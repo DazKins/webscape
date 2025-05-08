@@ -24,10 +24,10 @@ type Entity struct {
 	updated bool
 }
 
-func NewEntity(position math.Vec2) *Entity {
+func NewEntity(id EntityId, position math.Vec2) *Entity {
 	randomColor := fmt.Sprintf("#%06x", rand.Intn(0xffffff))
 	return &Entity{
-		ID:             EntityId(uuid.New()),
+		ID:             id,
 		Position:       position,
 		Color:          randomColor,
 		targetPosition: nil,

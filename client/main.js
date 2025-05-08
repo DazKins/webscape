@@ -6,12 +6,14 @@ import {
 } from "./message/message.js";
 import Game from "./game/game.js";
 
-const game = new Game();
+const myPlayerId = crypto.randomUUID();
+
+const game = new Game(myPlayerId);
 
 const wsClient = new WebSocketClient({
   onConnect: () => {
     console.log("Connected to WebSocket server");
-    wsClient.sendMessage(createMessage("join", {}));
+    wsClient.sendMessage(createMessage("join", { id: myPlayerId }));
   },
   onDisconnect: () => {
     console.log("Disconnected from WebSocket server");

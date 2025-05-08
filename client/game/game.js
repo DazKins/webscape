@@ -5,8 +5,10 @@ import addReferenceGeometry from "./referenceGeometry.js";
 import { createMessage } from "../message/message.js";
 
 class Game {
-  constructor(wsClient) {
-    this.wsClient = wsClient;
+  constructor(myPlayerId) {
+    this.wsClient = null;
+
+    this.myPlayerId = myPlayerId;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -150,12 +152,8 @@ class Game {
     );
   }
 
-  registerMyId(entityId) {
-    this.myId = entityId;
-  }
-
   getMyEntity() {
-    return this.entities.find((e) => e.id === this.myId);
+    return this.entities.find((e) => e.id === this.myPlayerId);
   }
 }
 

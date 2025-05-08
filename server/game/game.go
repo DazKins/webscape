@@ -84,24 +84,27 @@ func (g *Game) RemoveEntity(e *entity.Entity) {
 	log.Println("Removed entity", e.ID)
 }
 
-func (g *Game) HandleNewJoin(clientID string) {
+func (g *Game) HandleJoin(clientID string, id entity.EntityId) {
 	rand.Seed(time.Now().UnixNano())
 
-	x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
-	y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
+	if _, ok := g.entities[id]; !ok {
+		x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
+		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
 
-	playerEntity := entity.NewEntity(math.Vec2{X: x, Y: y})
-	g.AddEntity(playerEntity)
-	g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.ID.String()))
-	g.clientIdToEntityId.Put(clientID, playerEntity.ID)
+		playerEntity := entity.NewEntity(id, math.Vec2{X: x, Y: y})
+		g.AddEntity(playerEntity)
+		g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.ID.String()))
+		g.clientIdToEntityId.Put(clientID, playerEntity.ID)
+	}
+
+	g.sendMessage(clientID, message.NewWorldMessage(g.world))
+
 	for _, e := range g.entities {
-		if e.ID == playerEntity.ID {
+		if e.ID == id {
 			continue
 		}
 		g.sendMessage(clientID, message.NewEntityUpdateMessage(e))
 	}
-
-	g.sendMessage(clientID, message.NewWorldMessage(g.world))
 }
 
 func (g *Game) HandleMove(clientID string, x int, y int) {

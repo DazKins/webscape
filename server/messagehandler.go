@@ -3,7 +3,10 @@ package server
 import (
 	"log"
 	"webscape/server/game"
+	"webscape/server/game/entity"
 	"webscape/server/message"
+
+	"github.com/google/uuid"
 )
 
 type MessageSender func(clientId string, message message.Message)
@@ -23,14 +26,23 @@ func (h *ClientMessageHandler) HandleMessage(clientID string, msg message.Messag
 
 	switch msg.Metadata.Type {
 	case message.MessageTypeJoin:
-		h.handleJoinMessage(clientID)
+		h.handleJoinMessage(clientID, msg)
 	case message.MessageTypeMove:
 		h.handleMoveMessage(clientID, msg.Data)
 	}
 }
 
-func (h *ClientMessageHandler) handleJoinMessage(clientID string) {
-	h.game.HandleNewJoin(clientID)
+func (h *ClientMessageHandler) handleJoinMessage(clientID string, msg message.Message) {
+	joinData := msg.Data.(map[string]interface{})
+	id := joinData["id"].(string)
+
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		log.Printf("Invalid UUID: %v", err)
+		return
+	}
+
+	h.game.HandleJoin(clientID, entity.EntityId(uuid))
 }
 
 func (h *ClientMessageHandler) handleMoveMessage(clientID string, data interface{}) {
