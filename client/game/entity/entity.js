@@ -8,9 +8,9 @@ class Entity {
 
     // Create body (cylinder)
     const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 16);
-    const bodyMaterial = new THREE.MeshPhongMaterial({ 
+    const bodyMaterial = new THREE.MeshPhongMaterial({
       color: 0x00ff00,
-      shininess: 30
+      shininess: 30,
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
     body.position.y = 0.4; // Position the body slightly above ground
@@ -18,24 +18,35 @@ class Entity {
 
     // Create head (sphere)
     const headGeometry = new THREE.SphereGeometry(0.25, 16, 16);
-    const headMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xFFE0BD,
-      shininess: 30
+    const headMaterial = new THREE.MeshPhongMaterial({
+      color: 0xffe0bd,
+      shininess: 30,
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
     head.position.y = 0.9; // Position the head on top of the body
     this.mesh.add(head);
 
     this.scene.add(this.mesh);
+
+    this.ticksSinceUpdate = 0;
   }
 
-  update(entityUpdate) {
+  update() {
+    this.mesh.position.x =
+      this.positionX + 0.5 + 0.02 * this.velocityX * this.ticksSinceUpdate;
+    this.mesh.position.z =
+      this.positionY + 0.5 + 0.02 * this.velocityY * this.ticksSinceUpdate;
+    this.ticksSinceUpdate++;
+  }
+
+  handleEntityUpdate(entityUpdate) {
+    this.ticksSinceUpdate = 0;
+
     this.positionX = entityUpdate.positionX;
     this.positionY = entityUpdate.positionY;
+    this.velocityX = entityUpdate.velocityX;
+    this.velocityY = entityUpdate.velocityY;
 
-    this.mesh.position.x = this.positionX + 0.5;
-    this.mesh.position.z = this.positionY + 0.5;
-    
     // Update color only for the body (first child)
     this.mesh.children[0].material.color.set(entityUpdate.color);
   }

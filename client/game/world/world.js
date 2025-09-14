@@ -28,7 +28,6 @@ class World {
     this.grid = gridHelper;
     scene.add(this.grid);
 
-    // Create highlight mesh
     this.highlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({

@@ -54,6 +54,19 @@ class Game {
       }
     });
 
+    this.myLocationHighlightMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        color: 0x388E3C,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide
+      })
+    );
+    this.myLocationHighlightMesh.rotation.x = -Math.PI / 2;
+    this.myLocationHighlightMesh.position.y = 0.02;
+    this.scene.add(this.myLocationHighlightMesh);
+
     this.entities = [];
   }
 
@@ -115,7 +128,7 @@ class Game {
       this.addEntity(entity);
     }
 
-    entity.update(entityUpdate, this.world);
+    entity.handleEntityUpdate(entityUpdate, this.world);
   }
 
   handleEntityRemove(entityId) {
@@ -131,6 +144,9 @@ class Game {
 
   update() {
     this.updateCamera();
+    this.myLocationHighlightMesh.position.x = this.getMyEntity().positionX + 0.5;
+    this.myLocationHighlightMesh.position.z = this.getMyEntity().positionY + 0.5;
+    this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
     if (this.world) {
       this.world.update(this.camera);

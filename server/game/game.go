@@ -9,6 +9,8 @@ import (
 	"webscape/server/math"
 	"webscape/server/message"
 	"webscape/server/util"
+
+	"github.com/google/uuid"
 )
 
 type MessageBroadcaster func(message message.Message)
@@ -26,8 +28,13 @@ type Game struct {
 }
 
 func NewGame() *Game {
+	entities := make(map[entity.EntityId]*entity.Entity)
+	for i := 0; i < 2; i++ {
+		entities[entity.EntityId(uuid.New())] = entity.NewEntity(entity.EntityId(uuid.New()), math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5})
+	}
+
 	return &Game{
-		entities:           make(map[entity.EntityId]*entity.Entity),
+		entities:           entities,
 		clientIdToEntityId: util.NewBiMap[string, entity.EntityId](),
 		world:              world.NewWorld(10, 10),
 		done:               make(chan bool),

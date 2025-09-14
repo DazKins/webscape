@@ -17,6 +17,7 @@ func (id EntityId) String() string {
 type Entity struct {
 	ID       EntityId
 	Position math.Vec2
+	Velocity math.Vec2
 	Color    string
 
 	targetPosition *math.Vec2
@@ -29,6 +30,7 @@ func NewEntity(id EntityId, position math.Vec2) *Entity {
 	return &Entity{
 		ID:             id,
 		Position:       position,
+		Velocity:       math.Vec2Zero(),
 		Color:          randomColor,
 		targetPosition: nil,
 		updated:        false,
@@ -39,22 +41,34 @@ func (e *Entity) SetTargetPosition(targetPosition math.Vec2) {
 	e.targetPosition = &targetPosition
 }
 
+func getNextMove(position math.Vec2, targetPosition math.Vec2) math.Vec2 {
+	ret := math.Vec2Zero()
+
+	if position.X < targetPosition.X {
+		ret.X += 1
+	} else if position.X > targetPosition.X {
+		ret.X -= 1
+	}
+
+	if position.Y < targetPosition.Y {
+		ret.Y += 1
+	} else if position.Y > targetPosition.Y {
+		ret.Y -= 1
+	}
+
+	return ret
+}
+
 func (e *Entity) Update() {
 	e.updated = false
 
+	if !e.Velocity.IsZero() {
+		e.Position = e.Position.Add(e.Velocity)
+		e.updated = true
+	}
+
 	if e.targetPosition != nil {
-		if e.Position.X < e.targetPosition.X {
-			e.Position.X += 1
-		} else if e.Position.X > e.targetPosition.X {
-			e.Position.X -= 1
-		}
-
-		if e.Position.Y < e.targetPosition.Y {
-			e.Position.Y += 1
-		} else if e.Position.Y > e.targetPosition.Y {
-			e.Position.Y -= 1
-		}
-
+		e.Velocity = getNextMove(e.Position, *e.targetPosition)
 		e.updated = true
 
 		if e.Position.X == e.targetPosition.X && e.Position.Y == e.targetPosition.Y {
