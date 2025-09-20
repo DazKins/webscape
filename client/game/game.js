@@ -3,6 +3,7 @@ import World from "./world/world.js";
 import Input from "../input.js";
 import addReferenceGeometry from "./referenceGeometry.js";
 import { createMessage } from "../message/message.js";
+import EntityInteractionBox from "./ui/entityInteractionBox.js";
 
 class Game {
   constructor(myPlayerId) {
@@ -55,27 +56,12 @@ class Game {
 
     this.entities = [];
 
-    const uiBox = document.createElement("div");
-    uiBox.style.position = "absolute";
-    uiBox.style.background = "rgba(0, 0, 0, 1.0)";
-    uiBox.style.color = "white";
-    uiBox.style.padding = "10px";
-    uiBox.style.display = "none"; // Hidden by default
-    uiBox.style.border = "1px solid white";
-    uiBox.style.userSelect = "none"; // Disable text selection
-    uiBox.style.webkitUserSelect = "none"; // For Safari
-    uiBox.style.mozUserSelect = "none"; // For Firefox
-
-    uiBox.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
-
-    document.body.appendChild(uiBox);
-
     this.input = new Input();
 
+    this.entityInteractionBox = new EntityInteractionBox();
+
     this.input.registerClickCallback(() => {
-      uiBox.style.display = "none";
+      this.entityInteractionBox.hide();
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
         this.wsClient.sendMessage(
@@ -88,7 +74,7 @@ class Game {
     });
 
     this.input.registerRightClickCallback((event) => {
-      uiBox.style.display = "none";
+      this.entityInteractionBox.hide();
       const mouse = this.input.getMousePosition();
       const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
       const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
@@ -109,11 +95,13 @@ class Game {
         const entityId = hitMesh.userData.entityId;
         const entity = this.entities.find((e) => e.id === entityId);
         if (entity) {
-          uiBox.style.left = `${event.clientX}px`;
-          uiBox.style.top = `${event.clientY}px`;
-          uiBox.style.display = "block";
-          uiBox.textContent = `Entity: ${entity.name || "Unnamed"}`; // Customize content
-          console.log(`Hit entity: ${entity.name}`);
+          this.entityInteractionBox.show(
+            entity,
+            event.clientX,
+            event.clientY,
+            entity.name,
+            ["Talk", "Trade", "Attack"]
+          );
         }
       }
     });
@@ -193,10 +181,14 @@ class Game {
 
   update() {
     this.updateCamera();
-    this.myLocationHighlightMesh.position.x =
-      this.getMyEntity().positionX + 0.5;
-    this.myLocationHighlightMesh.position.z =
-      this.getMyEntity().positionY + 0.5;
+
+    if (this.getMyEntity()) {
+      this.myLocationHighlightMesh.position.x =
+        this.getMyEntity().positionX + 0.5;
+      this.myLocationHighlightMesh.position.z =
+        this.getMyEntity().positionY + 0.5;
+    }
+
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
     if (this.world) {
