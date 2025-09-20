@@ -17,7 +17,6 @@ class Input {
     window.addEventListener("mouseup", this.onMouseUp);
   }
 
-
   onKeyDown(event) {
     this.keys[event.key] = true;
   }
@@ -53,6 +52,13 @@ class Input {
 
   registerClickCallback(callback) {
     window.addEventListener("click", callback);
+  }
+
+  registerRightClickCallback(callback) {
+    window.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      callback(event);
+    });
   }
 }
 

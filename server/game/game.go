@@ -27,10 +27,16 @@ type Game struct {
 	done             chan bool
 }
 
+var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George", "Hannah", "Isaac", "Jack"}
+
 func NewGame() *Game {
 	entities := make(map[entity.EntityId]*entity.Entity)
 	for i := 0; i < 2; i++ {
-		entities[entity.EntityId(uuid.New())] = entity.NewEntity(entity.EntityId(uuid.New()), math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5})
+		entities[entity.EntityId(uuid.New())] = entity.NewEntity(
+			entity.EntityId(uuid.New()),
+			math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5},
+			NAMES[i],
+		)
 	}
 
 	return &Game{
@@ -91,14 +97,14 @@ func (g *Game) RemoveEntity(e *entity.Entity) {
 	log.Println("Removed entity", e.ID)
 }
 
-func (g *Game) HandleJoin(clientID string, id entity.EntityId) {
+func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 	rand.Seed(time.Now().UnixNano())
 
 	if _, ok := g.entities[id]; !ok {
 		x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
 		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
 
-		playerEntity := entity.NewEntity(id, math.Vec2{X: x, Y: y})
+		playerEntity := entity.NewEntity(id, math.Vec2{X: x, Y: y}, name)
 		g.AddEntity(playerEntity)
 		g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.ID.String()))
 		g.clientIdToEntityId.Put(clientID, playerEntity.ID)

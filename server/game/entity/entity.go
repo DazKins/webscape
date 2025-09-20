@@ -19,19 +19,21 @@ type Entity struct {
 	Position math.Vec2
 	Velocity math.Vec2
 	Color    string
+	Name     string
 
 	targetPosition *math.Vec2
 
 	updated bool
 }
 
-func NewEntity(id EntityId, position math.Vec2) *Entity {
+func NewEntity(id EntityId, position math.Vec2, name string) *Entity {
 	randomColor := fmt.Sprintf("#%06x", rand.Intn(0xffffff))
 	return &Entity{
 		ID:             id,
 		Position:       position,
 		Velocity:       math.Vec2Zero(),
 		Color:          randomColor,
+		Name:           name,
 		targetPosition: nil,
 		updated:        false,
 	}
@@ -62,11 +64,6 @@ func getNextMove(position math.Vec2, targetPosition math.Vec2) math.Vec2 {
 func (e *Entity) Update() {
 	e.updated = false
 
-	if !e.Velocity.IsZero() {
-		e.Position = e.Position.Add(e.Velocity)
-		e.updated = true
-	}
-
 	if e.targetPosition != nil {
 		e.Velocity = getNextMove(e.Position, *e.targetPosition)
 		e.updated = true
@@ -74,6 +71,11 @@ func (e *Entity) Update() {
 		if e.Position.X == e.targetPosition.X && e.Position.Y == e.targetPosition.Y {
 			e.targetPosition = nil
 		}
+	}
+
+	if !e.Velocity.IsZero() {
+		e.Position = e.Position.Add(e.Velocity)
+		e.updated = true
 	}
 }
 

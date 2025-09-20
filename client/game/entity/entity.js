@@ -5,6 +5,7 @@ class Entity {
 
     // Create a group to hold all parts of the entity
     this.mesh = new THREE.Group();
+    this.mesh.userData.entityId = id;
 
     // Create body (cylinder)
     const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 16);
@@ -27,25 +28,19 @@ class Entity {
     this.mesh.add(head);
 
     this.scene.add(this.mesh);
-
-    this.ticksSinceUpdate = 0;
   }
 
   update() {
-    this.mesh.position.x =
-      this.positionX + 0.5 + 0.02 * this.velocityX * this.ticksSinceUpdate;
-    this.mesh.position.z =
-      this.positionY + 0.5 + 0.02 * this.velocityY * this.ticksSinceUpdate;
-    this.ticksSinceUpdate++;
+    this.mesh.position.x +=
+      (this.positionX + 0.5 - this.mesh.position.x) * 0.05;
+    this.mesh.position.z +=
+      (this.positionY + 0.5 - this.mesh.position.z) * 0.05;
   }
 
   handleEntityUpdate(entityUpdate) {
-    this.ticksSinceUpdate = 0;
-
     this.positionX = entityUpdate.positionX;
     this.positionY = entityUpdate.positionY;
-    this.velocityX = entityUpdate.velocityX;
-    this.velocityY = entityUpdate.velocityY;
+    this.name = entityUpdate.name;
 
     // Update color only for the body (first child)
     this.mesh.children[0].material.color.set(entityUpdate.color);

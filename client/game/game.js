@@ -40,9 +40,42 @@ class Game {
     this.minHeight = 2;
     this.maxHeight = 10;
 
+    this.myLocationHighlightMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        color: 0x388e3c,
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      })
+    );
+    this.myLocationHighlightMesh.rotation.x = -Math.PI / 2;
+    this.myLocationHighlightMesh.position.y = 0.02;
+    this.scene.add(this.myLocationHighlightMesh);
+
+    this.entities = [];
+
+    const uiBox = document.createElement("div");
+    uiBox.style.position = "absolute";
+    uiBox.style.background = "rgba(0, 0, 0, 1.0)";
+    uiBox.style.color = "white";
+    uiBox.style.padding = "10px";
+    uiBox.style.display = "none"; // Hidden by default
+    uiBox.style.border = "1px solid white";
+    uiBox.style.userSelect = "none"; // Disable text selection
+    uiBox.style.webkitUserSelect = "none"; // For Safari
+    uiBox.style.mozUserSelect = "none"; // For Firefox
+
+    uiBox.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.body.appendChild(uiBox);
+
     this.input = new Input();
 
     this.input.registerClickCallback(() => {
+      uiBox.style.display = "none";
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
         this.wsClient.sendMessage(
@@ -54,20 +87,36 @@ class Game {
       }
     });
 
-    this.myLocationHighlightMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({
-        color: 0x388E3C,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide
-      })
-    );
-    this.myLocationHighlightMesh.rotation.x = -Math.PI / 2;
-    this.myLocationHighlightMesh.position.y = 0.02;
-    this.scene.add(this.myLocationHighlightMesh);
+    this.input.registerRightClickCallback((event) => {
+      uiBox.style.display = "none";
+      const mouse = this.input.getMousePosition();
+      const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
+      const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
 
-    this.entities = [];
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), this.camera);
+      const intersects = raycaster.intersectObjects(
+        this.entities.map((e) => e.mesh),
+        true
+      );
+      if (intersects.length > 0) {
+        let hitMesh = intersects[0].object;
+
+        while (hitMesh && !hitMesh.userData.entityId) {
+          hitMesh = hitMesh.parent;
+        }
+
+        const entityId = hitMesh.userData.entityId;
+        const entity = this.entities.find((e) => e.id === entityId);
+        if (entity) {
+          uiBox.style.left = `${event.clientX}px`;
+          uiBox.style.top = `${event.clientY}px`;
+          uiBox.style.display = "block";
+          uiBox.textContent = `Entity: ${entity.name || "Unnamed"}`; // Customize content
+          console.log(`Hit entity: ${entity.name}`);
+        }
+      }
+    });
   }
 
   registerWsClient(wsClient) {
@@ -144,8 +193,10 @@ class Game {
 
   update() {
     this.updateCamera();
-    this.myLocationHighlightMesh.position.x = this.getMyEntity().positionX + 0.5;
-    this.myLocationHighlightMesh.position.z = this.getMyEntity().positionY + 0.5;
+    this.myLocationHighlightMesh.position.x =
+      this.getMyEntity().positionX + 0.5;
+    this.myLocationHighlightMesh.position.z =
+      this.getMyEntity().positionY + 0.5;
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
     if (this.world) {

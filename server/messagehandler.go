@@ -28,13 +28,17 @@ func (h *ClientMessageHandler) HandleMessage(clientID string, msg message.Messag
 	case message.MessageTypeJoin:
 		h.handleJoinMessage(clientID, msg)
 	case message.MessageTypeMove:
-		h.handleMoveMessage(clientID, msg.Data)
+		h.handleMoveMessage(clientID, msg)
 	}
 }
 
 func (h *ClientMessageHandler) handleJoinMessage(clientID string, msg message.Message) {
-	joinData := msg.Data.(map[string]interface{})
-	id := joinData["id"].(string)
+	data := msg.Data.(map[string]interface{})
+	id := data["id"].(string)
+	name, ok := data["name"].(string)
+	if !ok {
+		name = "Heboblobus"
+	}
 
 	uuid, err := uuid.Parse(id)
 	if err != nil {
@@ -42,14 +46,14 @@ func (h *ClientMessageHandler) handleJoinMessage(clientID string, msg message.Me
 		return
 	}
 
-	h.game.HandleJoin(clientID, entity.EntityId(uuid))
+	h.game.HandleJoin(clientID, entity.EntityId(uuid), name)
 }
 
-func (h *ClientMessageHandler) handleMoveMessage(clientID string, data interface{}) {
-	moveData := data.(map[string]interface{})
+func (h *ClientMessageHandler) handleMoveMessage(clientID string, msg message.Message) {
+	data := msg.Data.(map[string]interface{})
 
-	x := moveData["x"].(float64)
-	y := moveData["y"].(float64)
+	x := data["x"].(float64)
+	y := data["y"].(float64)
 
 	h.game.HandleMove(clientID, int(x), int(y))
 }
