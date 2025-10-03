@@ -52,6 +52,7 @@ class Input {
 
   registerClickCallback(callback) {
     window.addEventListener("click", callback);
+
   }
 
   registerRightClickCallback(callback) {

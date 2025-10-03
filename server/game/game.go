@@ -30,19 +30,22 @@ type Game struct {
 var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George", "Hannah", "Isaac", "Jack"}
 
 func NewGame() *Game {
+	world := world.NewWorld(10, 10)
+
 	entities := make(map[entity.EntityId]*entity.Entity)
 	for i := 0; i < 2; i++ {
 		entities[entity.EntityId(uuid.New())] = entity.NewEntity(
 			entity.EntityId(uuid.New()),
 			math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5},
 			NAMES[i],
+			world,
 		)
 	}
 
 	return &Game{
 		entities:           entities,
 		clientIdToEntityId: util.NewBiMap[string, entity.EntityId](),
-		world:              world.NewWorld(10, 10),
+		world:              world,
 		done:               make(chan bool),
 	}
 }
@@ -104,7 +107,7 @@ func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 		x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
 		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
 
-		playerEntity := entity.NewEntity(id, math.Vec2{X: x, Y: y}, name)
+		playerEntity := entity.NewEntity(id, math.Vec2{X: x, Y: y}, name, g.world)
 		g.AddEntity(playerEntity)
 		g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.ID.String()))
 		g.clientIdToEntityId.Put(clientID, playerEntity.ID)
@@ -131,7 +134,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		log.Println("Entity not found in entities")
 	}
 
-	entity.SetTargetPosition(math.Vec2{X: x, Y: y})
+	entity.HandleMove(math.Vec2{X: x, Y: y})
 }
 
 func (g *Game) HandleLeave(clientID string) {

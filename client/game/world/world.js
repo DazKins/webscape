@@ -49,7 +49,7 @@ class World {
 
     this.walls.forEach((row, x) => {
       row.forEach((wall, y) => {
-        if (wall === null) return;
+        if (wall === false) return;
 
         // Create the main wall mesh with pastel grey color
         const wallMesh = new THREE.Mesh(
