@@ -20,7 +20,7 @@ class Game {
     this.camera.position.z = 5;
     this.camera.position.y = 5;
 
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x87ceeb);
     document.body.appendChild(this.renderer.domElement);
@@ -207,6 +207,7 @@ class Game {
       this.scene,
       worldUpdate.sizeX,
       worldUpdate.sizeY,
+      worldUpdate.walls,
       this.input
     );
   }
