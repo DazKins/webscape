@@ -11,7 +11,7 @@ class World {
     this.mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(sizeX, sizeY),
       new THREE.MeshBasicMaterial({
-        color: 0x4caf50,
+        color: 0xe77d11,
         side: THREE.DoubleSide,
       })
     );

@@ -33,7 +33,7 @@ func (h *ClientMessageHandler) HandleMessage(clientID string, msg message.Messag
 }
 
 func (h *ClientMessageHandler) handleJoinMessage(clientID string, msg message.Message) {
-	data := msg.Data.(map[string]interface{})
+	data := msg.Data.(map[string]any)
 	id := data["id"].(string)
 	name, ok := data["name"].(string)
 	if !ok {
@@ -50,7 +50,7 @@ func (h *ClientMessageHandler) handleJoinMessage(clientID string, msg message.Me
 }
 
 func (h *ClientMessageHandler) handleMoveMessage(clientID string, msg message.Message) {
-	data := msg.Data.(map[string]interface{})
+	data := msg.Data.(map[string]any)
 
 	x := data["x"].(float64)
 	y := data["y"].(float64)

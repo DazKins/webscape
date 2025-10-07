@@ -68,7 +68,6 @@ export class WebSocketClient {
   }
 
   handleMessage(data) {
-    // Call the user-provided message handler
     this.onMessage(data);
   }
 

@@ -158,10 +158,10 @@ class Game {
   }
 
   handleEntityUpdate(entityUpdate) {
-    let entity = this.entities.find((e) => e.id === entityUpdate.entityId);
+    let entity = this.entities.find((e) => e.id === entityUpdate.id);
 
     if (!entity) {
-      entity = new Entity(entityUpdate.entityId, this.scene);
+      entity = new Entity(entityUpdate.id, this.scene);
       this.addEntity(entity);
     }
 

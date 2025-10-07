@@ -5,22 +5,28 @@ import (
 )
 
 type entityUpdateData struct {
-	EntityId  string `json:"entityId"`
-	PositionX int    `json:"positionX"`
-	PositionY int    `json:"positionY"`
-	Color     string `json:"color"`
-	Name      string `json:"name"`
+	Id         string         `json:"id"`
+	Components map[string]any `json:"components"`
+}
+
+type SerializeableComponent interface {
+	Serialize() map[string]any
 }
 
 func NewEntityUpdateMessage(entity *entity.Entity) Message {
+	serializedComponents := make(map[string]any)
+	for _, component := range entity.GetComponents() {
+		if serializeableComponent, ok := component.(SerializeableComponent); ok {
+			name := component.GetId().String()
+			serializedComponents[name] = serializeableComponent.Serialize()
+		}
+	}
+
 	return newMessage(
 		MessageTypeEntityUpdate,
 		entityUpdateData{
-			EntityId:  entity.ID.String(),
-			PositionX: entity.Position.X,
-			PositionY: entity.Position.Y,
-			Color:     entity.Color,
-			Name:      entity.Name,
+			Id:         entity.Id.String(),
+			Components: serializedComponents,
 		},
 	)
 }

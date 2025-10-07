@@ -42,7 +42,7 @@ func NewWsServer() *wsServer {
 	return wss
 }
 
-func (w *wsServer) SetMessageHandler(handler MessageHandler) {
+func (w *wsServer) SetIncomingMessageHandler(handler MessageHandler) {
 	w.onMessage = handler
 }
 
@@ -52,9 +52,7 @@ func (w *wsServer) SetDisconnectHandler(handler DisconnectHandler) {
 
 // Broadcast sends a message to all connected clients
 func (w *wsServer) Broadcast(message message.Message) {
-	log.Println("Broadcasting message to", len(w.clients), "clients: ", message.Marshal())
 	w.broadcast <- []byte(message.Marshal())
-	log.Println("Broadcasted message to", len(w.clients), "clients: ", message.Marshal())
 }
 
 // SendToClient sends a message to a specific client identified by clientID
@@ -89,8 +87,6 @@ func (w *wsServer) run() {
 			go w.onDisconnect(client.id)
 		case message := <-w.broadcast:
 			w.mutex.Lock()
-			log.Println("Broadcasting message to", len(w.clients), "clients: ", string(message))
-
 			for _, client := range w.clients {
 				select {
 				case client.send <- message:

@@ -16,7 +16,7 @@ func NewWorld(sizeX int, sizeY int) *World {
 	for i := range walls {
 		walls[i] = make([]bool, sizeY)
 		for j := range walls[i] {
-			if rand.Intn(100) < 10 {
+			if rand.Intn(100) < 30 {
 				walls[i][j] = true
 			}
 		}

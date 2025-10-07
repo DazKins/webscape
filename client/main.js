@@ -36,7 +36,6 @@ const wsClient = new WebSocketClient({
         game.registerWorld(data);
         break;
       case "joined":
-        const id = data.entityId;
         break;
       default:
         console.log("Unknown message type:", data.type);

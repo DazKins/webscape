@@ -3,28 +3,25 @@ class Entity {
     this.id = id;
     this.scene = scene;
 
-    // Create a group to hold all parts of the entity
     this.mesh = new THREE.Group();
     this.mesh.userData.entityId = id;
 
-    // Create body (cylinder)
     const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 16);
     const bodyMaterial = new THREE.MeshPhongMaterial({
       color: 0x00ff00,
       shininess: 30,
     });
     const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.4; // Position the body slightly above ground
+    body.position.y = 0.4;
     this.mesh.add(body);
 
-    // Create head (sphere)
     const headGeometry = new THREE.SphereGeometry(0.25, 16, 16);
     const headMaterial = new THREE.MeshPhongMaterial({
       color: 0xffe0bd,
       shininess: 30,
     });
     const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 0.9; // Position the head on top of the body
+    head.position.y = 0.9;
     this.mesh.add(head);
 
     this.scene.add(this.mesh);
@@ -38,8 +35,10 @@ class Entity {
   }
 
   handleEntityUpdate(entityUpdate) {
-    this.positionX = entityUpdate.positionX;
-    this.positionY = entityUpdate.positionY;
+    const positionComponent = entityUpdate.components.position;
+
+    this.positionX = positionComponent.x;
+    this.positionY = positionComponent.y;
     this.name = entityUpdate.name;
 
     // Update color only for the body (first child)

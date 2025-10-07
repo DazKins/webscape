@@ -7,10 +7,7 @@ import (
 )
 
 func Start() {
-	// Create a file server
 	fs := http.FileServer(http.Dir("client"))
-
-	// Wrap the file server with a handler that adds cache control headers
 	noCacheHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Set("Pragma", "no-cache")
@@ -25,7 +22,7 @@ func Start() {
 	game.StartUpdateLoop()
 
 	wsServer := NewWsServer()
-	wsServer.SetMessageHandler(clientMessageHandler.HandleMessage)
+	wsServer.SetIncomingMessageHandler(clientMessageHandler.HandleMessage)
 	wsServer.SetDisconnectHandler(game.HandleLeave)
 
 	game.RegisterBroadcaster(wsServer.Broadcast)
