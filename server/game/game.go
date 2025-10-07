@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -33,9 +34,13 @@ func NewGame() *Game {
 	world := world.NewWorld(10, 10)
 	entities := make(map[entity.EntityId]*entity.Entity)
 
-	for range 3 {
+	for i := range 3 {
 		entity := entity.NewEntity(entity.EntityId(uuid.New()))
-		entity.AddComponent(&component.CPosition{Position: math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}})
+		entity.AddComponent(component.NewCPosition(math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}))
+		entity.AddComponent(component.NewCMetadata(map[string]any{
+			"name":  NAMES[i],
+			"color": fmt.Sprintf("#%06X", rand.Intn(0xFFFFFF)),
+		}))
 		entities[entity.Id] = entity
 	}
 
@@ -105,12 +110,15 @@ func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
 
 		playerEntity := entity.NewEntity(id)
-		positionComponent := &component.CPosition{Position: math.Vec2{X: x, Y: y}}
+		positionComponent := component.NewCPosition(math.Vec2{X: x, Y: y})
 		playerEntity.AddComponent(positionComponent)
 		playerEntity.AddComponent(component.NewCPathing(
 			g.world,
 			positionComponent,
 		))
+		playerEntity.AddComponent(component.NewCMetadata(map[string]any{
+			"name": name,
+		}))
 		g.AddEntity(playerEntity)
 
 		g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.Id.String()))

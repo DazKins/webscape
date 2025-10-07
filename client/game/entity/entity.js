@@ -36,13 +36,14 @@ class Entity {
 
   handleEntityUpdate(entityUpdate) {
     const positionComponent = entityUpdate.components.position;
+    const metadataComponent = entityUpdate.components.metadata;
 
     this.positionX = positionComponent.x;
     this.positionY = positionComponent.y;
-    this.name = entityUpdate.name;
+    this.name = metadataComponent.name;
 
     // Update color only for the body (first child)
-    this.mesh.children[0].material.color.set(entityUpdate.color);
+    this.mesh.children[0].material.color.set(metadataComponent.color);
   }
 
   remove() {

@@ -37,7 +37,7 @@ func (c *CPathing) GetId() ComponentId {
 func (c *CPathing) Update() bool {
 	if c.path != nil {
 		nextPos := c.path.Pop()
-		c.positionComponent.Position = nextPos
+		c.positionComponent.SetPosition(nextPos)
 
 		if c.path.Size() == 0 {
 			c.path = nil
@@ -50,13 +50,15 @@ func (c *CPathing) Update() bool {
 }
 
 func (c *CPathing) PathTo(targetPosition math.Vec2) {
+	position := c.positionComponent.GetPosition()
+
 	frontier := util.NewQueue[math.Vec2]()
-	frontier.Enqueue(c.positionComponent.Position)
+	frontier.Enqueue(position)
 
 	cameFrom := make(map[math.Vec2]math.Vec2)
 	costSoFar := make(map[math.Vec2]float64)
 
-	costSoFar[c.positionComponent.Position] = 0.0
+	costSoFar[position] = 0.0
 
 	for frontier.Size() > 0 {
 		current := frontier.Dequeue()
@@ -117,7 +119,7 @@ func (c *CPathing) PathTo(targetPosition math.Vec2) {
 
 	path := util.Path{}
 	current := targetPosition
-	for current != c.positionComponent.Position {
+	for current != position {
 		path.Append(current)
 		cameFrom, ok := cameFrom[current]
 		if !ok {
