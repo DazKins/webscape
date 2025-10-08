@@ -8,12 +8,13 @@ const (
 	MessageTypeEntityUpdate MessageType = iota
 	MessageTypeJoin
 	MessageTypeJoined
+	MessageTypeJoinFailed
 	MessageTypeWorld
 	MessageTypeMove
 	MessageTypeEntityRemove
 )
 
-var messageTypeStrings = []string{"entityUpdate", "join", "joined", "world", "move", "entityRemove"}
+var messageTypeStrings = []string{"entityUpdate", "join", "joined", "joinFailed", "world", "move", "entityRemove"}
 
 func (m MessageType) String() string {
 	return messageTypeStrings[m]

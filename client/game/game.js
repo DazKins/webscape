@@ -6,10 +6,9 @@ import { createMessage } from "../message/message.js";
 import EntityInteractionBox from "./ui/entityInteractionBox.js";
 
 class Game {
-  constructor(myPlayerId) {
+  constructor() {
     this.wsClient = null;
-
-    this.myPlayerId = myPlayerId;
+    this.myPlayerId = null;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -200,6 +199,10 @@ class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  registerMyPlayerId(myPlayerId) {
+    this.myPlayerId = myPlayerId;
   }
 
   registerWorld(worldUpdate) {

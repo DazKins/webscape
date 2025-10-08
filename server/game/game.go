@@ -23,7 +23,8 @@ type Game struct {
 	clientIdToEntityId *util.BiMap[string, entity.EntityId]
 	ticker             *time.Ticker
 	done               chan bool
-	entities           map[entity.EntityId]*entity.Entity
+	entities           *util.IdMap[*entity.Entity, entity.EntityId]
+	savedEntities      *util.IdMap[*entity.Entity, entity.EntityId]
 	sendMessage        MessageSender
 	broadcastMessage   MessageBroadcaster
 }
@@ -32,7 +33,7 @@ var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George
 
 func NewGame() *Game {
 	world := world.NewWorld(10, 10)
-	entities := make(map[entity.EntityId]*entity.Entity)
+	entities := util.NewIdMap[*entity.Entity]()
 
 	for i := range 3 {
 		entity := entity.NewEntity(entity.EntityId(uuid.New()))
@@ -41,7 +42,7 @@ func NewGame() *Game {
 			"name":  NAMES[i],
 			"color": fmt.Sprintf("#%06X", rand.Intn(0xFFFFFF)),
 		}))
-		entities[entity.Id] = entity
+		entities.Put(entity)
 	}
 
 	return &Game{
@@ -49,16 +50,17 @@ func NewGame() *Game {
 		world:              world,
 		done:               make(chan bool),
 		entities:           entities,
+		savedEntities:      util.NewIdMap[*entity.Entity](),
 	}
 }
 
 func (g *Game) AddEntity(e *entity.Entity) {
-	g.entities[e.Id] = e
+	g.entities.Put(e)
 	g.broadcastMessage(message.NewEntityUpdateMessage(e))
 }
 
 func (g *Game) RemoveEntity(e *entity.Entity) {
-	delete(g.entities, e.Id)
+	g.entities.Delete(e)
 }
 
 func (g *Game) StartUpdateLoop() {
@@ -79,7 +81,7 @@ func (g *Game) StartUpdateLoop() {
 func (g *Game) update() {
 	updatedEntities := make([]*entity.Entity, 0)
 
-	for _, entity := range g.entities {
+	for _, entity := range g.entities.Values() {
 		if entity.Update() {
 			updatedEntities = append(updatedEntities, entity)
 		}
@@ -105,11 +107,25 @@ func (g *Game) RegisterSender(messageSender MessageSender) {
 func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 	rand.Seed(time.Now().UnixNano())
 
-	if _, ok := g.entities[id]; !ok {
+	if _, ok := g.entities.GetById(id); ok {
+		g.sendMessage(clientID, message.NewJoinFailedMessage("you are already connected in another session"))
+		return
+	}
+
+	if _, ok := g.clientIdToEntityId.Get(clientID); ok {
+		g.sendMessage(clientID, message.NewJoinFailedMessage("you are already connected in another session"))
+		return
+	}
+
+	playerEntity := (*entity.Entity)(nil)
+	if savedEntity, ok := g.savedEntities.GetById(id); ok {
+		playerEntity = savedEntity
+		g.savedEntities.Delete(savedEntity)
+	} else {
 		x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
 		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
 
-		playerEntity := entity.NewEntity(id)
+		playerEntity = entity.NewEntity(id)
 		positionComponent := component.NewCPosition(math.Vec2{X: x, Y: y})
 		playerEntity.AddComponent(positionComponent)
 		playerEntity.AddComponent(component.NewCPathing(
@@ -119,16 +135,16 @@ func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 		playerEntity.AddComponent(component.NewCMetadata(map[string]any{
 			"name": name,
 		}))
-		g.AddEntity(playerEntity)
-
-		g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.Id.String()))
-		g.clientIdToEntityId.Put(clientID, playerEntity.Id)
 	}
 
+	g.AddEntity(playerEntity)
+	g.clientIdToEntityId.Put(clientID, playerEntity.GetId())
+
+	g.sendMessage(clientID, message.NewJoinedMessage(playerEntity.GetId().String()))
 	g.sendMessage(clientID, message.NewWorldMessage(g.world))
 
-	for _, e := range g.entities {
-		if e.Id == id {
+	for _, e := range g.entities.Values() {
+		if e.GetId() == id {
 			continue
 		}
 		g.sendMessage(clientID, message.NewEntityUpdateMessage(e))
@@ -141,7 +157,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		panic("Client ID not found in clientIdToEntityId")
 	}
 
-	entity, ok := g.entities[entityId]
+	entity, ok := g.entities.GetById(entityId)
 	if !ok {
 		panic("Entity not found in entities")
 	}
@@ -155,17 +171,20 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 }
 
 func (g *Game) HandleLeave(clientID string) {
-	log.Println("Handling leave for clientID", clientID)
-
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
+		return
 	}
 
-	entity, ok := g.entities[entityId]
+	entity, ok := g.entities.GetById(entityId)
 	if !ok {
-		log.Println("Entity not found in entities")
+		panic("Entity not found in entities")
 	}
 
+	g.clientIdToEntityId.Delete(clientID)
 	g.RemoveEntity(entity)
+	g.savedEntities.Put(entity)
+
+	g.broadcastMessage(message.NewEntityRemoveMessage(entityId))
 }

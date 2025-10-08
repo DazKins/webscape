@@ -6,9 +6,13 @@ import {
 } from "./message/message.js";
 import Game from "./game/game.js";
 
-const myPlayerId = crypto.randomUUID();
+let myPlayerId = window.localStorage.getItem("myPlayerId");
+if (!myPlayerId) {
+  myPlayerId = crypto.randomUUID();
+  window.localStorage.setItem("myPlayerId", myPlayerId);
+}
 
-const game = new Game(myPlayerId);
+const game = new Game();
 
 const wsClient = new WebSocketClient({
   onConnect: () => {
@@ -36,6 +40,10 @@ const wsClient = new WebSocketClient({
         game.registerWorld(data);
         break;
       case "joined":
+        game.registerMyPlayerId(data.entityId);
+        break;
+      case "joinFailed":
+        window.alert(`JOIN FAILED: ${data.reason}`);
         break;
       default:
         console.log("Unknown message type:", data.type);

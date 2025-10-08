@@ -13,15 +13,19 @@ func (id EntityId) String() string {
 }
 
 type Entity struct {
-	Id         EntityId
+	id         EntityId
 	components []component.Component
 }
 
 func NewEntity(id EntityId) *Entity {
 	return &Entity{
-		Id:         id,
+		id:         id,
 		components: []component.Component{},
 	}
+}
+
+func (e *Entity) GetId() EntityId {
+	return e.id
 }
 
 func (e *Entity) AddComponent(component component.Component) {

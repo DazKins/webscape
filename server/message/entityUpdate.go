@@ -25,7 +25,7 @@ func NewEntityUpdateMessage(entity *entity.Entity) Message {
 	return newMessage(
 		MessageTypeEntityUpdate,
 		entityUpdateData{
-			Id:         entity.Id.String(),
+			Id:         entity.GetId().String(),
 			Components: serializedComponents,
 		},
 	)
