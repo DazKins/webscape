@@ -1,23 +1,19 @@
 package message
 
-import "fmt"
-
-type MessageType int
+type MessageType string
 
 const (
-	MessageTypeEntityUpdate MessageType = iota
-	MessageTypeJoin
-	MessageTypeJoined
-	MessageTypeJoinFailed
-	MessageTypeWorld
-	MessageTypeMove
-	MessageTypeEntityRemove
+	MessageTypeEntityUpdate = "entityUpdate"
+	MessageTypeJoin         = "join"
+	MessageTypeJoined       = "joined"
+	MessageTypeJoinFailed   = "joinFailed"
+	MessageTypeWorld        = "world"
+	MessageTypeMove         = "move"
+	MessageTypeEntityRemove = "entityRemove"
 )
 
-var messageTypeStrings = []string{"entityUpdate", "join", "joined", "joinFailed", "world", "move", "entityRemove"}
-
 func (m MessageType) String() string {
-	return messageTypeStrings[m]
+	return string(m)
 }
 
 type MessageTypeDto string
@@ -27,10 +23,5 @@ func (m MessageType) ToDto() MessageTypeDto {
 }
 
 func (m MessageTypeDto) FromDto() (MessageType, error) {
-	for i, s := range messageTypeStrings {
-		if s == string(m) {
-			return MessageType(i), nil
-		}
-	}
-	return MessageType(0), fmt.Errorf("unknown message type: %s", m)
+	return MessageType(m), nil
 }
