@@ -2,6 +2,7 @@ class Entity {
   constructor(id, scene) {
     this.id = id;
     this.scene = scene;
+    this.interactionOptions = [];
 
     this.mesh = new THREE.Group();
     this.mesh.userData.entityId = id;
@@ -41,7 +42,8 @@ class Entity {
     this.positionX = positionComponent.x;
     this.positionY = positionComponent.y;
     this.name = metadataComponent.name;
-
+    this.interactionOptions =
+      entityUpdate.components.interactable.interactionOptions;
     // Update color only for the body (first child)
     this.mesh.children[0].material.color.set(metadataComponent.color);
   }

@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -11,8 +10,6 @@ import (
 	"webscape/server/math"
 	"webscape/server/message"
 	"webscape/server/util"
-
-	"github.com/google/uuid"
 )
 
 type MessageBroadcaster func(message message.Message)
@@ -36,13 +33,16 @@ func NewGame() *Game {
 	entities := util.NewIdMap[*entity.Entity]()
 
 	for i := range 3 {
-		entity := entity.NewEntity(entity.EntityId(uuid.New()))
-		entity.AddComponent(component.NewCPosition(math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}))
-		entity.AddComponent(component.NewCMetadata(map[string]any{
-			"name":  NAMES[i],
-			"color": fmt.Sprintf("#%06X", rand.Intn(0xFFFFFF)),
-		}))
-		entities.Put(entity)
+		position := math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}
+		for world.GetWall(position.X, position.Y) {
+			position = math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}
+		}
+
+		entities.Put(entity.CreateDudeEntity(
+			util.OptionalNone[entity.EntityId](),
+			NAMES[i],
+			position,
+		))
 	}
 
 	return &Game{
@@ -122,19 +122,7 @@ func (g *Game) HandleJoin(clientID string, id entity.EntityId, name string) {
 		playerEntity = savedEntity
 		g.savedEntities.Delete(savedEntity)
 	} else {
-		x := rand.Intn(g.world.GetSizeX()) - g.world.GetSizeX()/2
-		y := rand.Intn(g.world.GetSizeY()) - g.world.GetSizeY()/2
-
-		playerEntity = entity.NewEntity(id)
-		positionComponent := component.NewCPosition(math.Vec2{X: x, Y: y})
-		playerEntity.AddComponent(positionComponent)
-		playerEntity.AddComponent(component.NewCPathing(
-			g.world,
-			positionComponent,
-		))
-		playerEntity.AddComponent(component.NewCMetadata(map[string]any{
-			"name": name,
-		}))
+		playerEntity = entity.CreatePlayerEntity(util.OptionalSome(id), name, g.world)
 	}
 
 	g.AddEntity(playerEntity)

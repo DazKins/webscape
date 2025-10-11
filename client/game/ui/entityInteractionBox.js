@@ -11,7 +11,7 @@ class EntityInteractionBox {
     document.body.appendChild(this.box);
   }
 
-  show(entity, positionX, positionY, name, interactionOptions) {
+  show(entity, positionX, positionY, name) {
     this.box.style.left = `${positionX}px`;
     this.box.style.top = `${positionY}px`;
     this.box.style.display = "block";
@@ -19,7 +19,7 @@ class EntityInteractionBox {
       <div class="entity-interaction-box">
         <div class="title">${name || "Unnamed?!?!"}</div>
         <div class="interaction-options">
-          ${interactionOptions
+          ${entity.interactionOptions
             .map((option) => `<div class="interaction-option">${option}</div>`)
             .join("")}
         </div>

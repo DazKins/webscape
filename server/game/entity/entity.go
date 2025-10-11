@@ -2,6 +2,7 @@ package entity
 
 import (
 	"webscape/server/game/entity/component"
+	"webscape/server/util"
 
 	"github.com/google/uuid"
 )
@@ -17,9 +18,14 @@ type Entity struct {
 	components []component.Component
 }
 
-func NewEntity(id EntityId) *Entity {
+func NewEntity(id util.Optional[EntityId]) *Entity {
+	rawId := EntityId(uuid.New())
+	if id.IsPresent() {
+		rawId = id.Unwrap()
+	}
+
 	return &Entity{
-		id:         id,
+		id:         rawId,
 		components: []component.Component{},
 	}
 }
@@ -28,8 +34,9 @@ func (e *Entity) GetId() EntityId {
 	return e.id
 }
 
-func (e *Entity) AddComponent(component component.Component) {
+func (e *Entity) AddComponent(component component.Component) *Entity {
 	e.components = append(e.components, component)
+	return e
 }
 
 func (e *Entity) GetComponent(id component.ComponentId) component.Component {
