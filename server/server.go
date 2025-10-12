@@ -1,19 +1,14 @@
 package server
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 	"webscape/server/game"
 )
 
-func Start() {
-	fs := http.FileServer(http.Dir("client"))
-	noCacheHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		w.Header().Set("Pragma", "no-cache")
-		w.Header().Set("Expires", "0")
-		fs.ServeHTTP(w, r)
-	})
+func Start(distFS fs.FS) {
+	http.Handle("/", http.FileServer(http.FS(distFS)))
 
 	game := game.NewGame()
 
@@ -27,10 +22,10 @@ func Start() {
 
 	game.RegisterBroadcaster(wsServer.Broadcast)
 	game.RegisterSender(wsServer.SendToClient)
-	http.Handle("/", noCacheHandler)
 	http.HandleFunc("/ws", wsServer.HandleWebSocket)
 
 	log.Println("Starting server on :8080")
+
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
