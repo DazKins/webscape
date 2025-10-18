@@ -4,11 +4,31 @@ import Input from "../input.js";
 import addReferenceGeometry from "./referenceGeometry.js";
 import { createMessage } from "../message/message.js";
 import EntityInteractionBox from "./ui/entityInteractionBox.js";
+import * as THREE from "three";
+import { WebSocketClient } from "../ws.js";
 
 class Game {
+  wsClient!: WebSocketClient;
+  myPlayerId!: string;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer;
+  myLocationHighlightMesh: THREE.Mesh;
+  entities: Entity[];
+
+  cameraDistance: number;
+  cameraAngle: number;
+  cameraHeight: number;
+  orbitSpeed: number;
+  heightSpeed: number;
+  minHeight: number;
+  maxHeight: number;
+
+  entityInteractionBox: EntityInteractionBox;
+  input: Input;
+  world!: World;
+
   constructor() {
-    this.wsClient = null;
-    this.myPlayerId = null;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -24,8 +44,10 @@ class Game {
     this.renderer.setClearColor(0x87ceeb);
     document.body.appendChild(this.renderer.domElement);
 
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    this.scene.add(new THREE.DirectionalLight(0xffffff, 0.8));
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+    const light = new THREE.DirectionalLight(0xffffff, 0.8);
+    light.position.set(10, 10, 10);
+    this.scene.add(light);
 
     addReferenceGeometry(this.scene);
 
@@ -43,7 +65,7 @@ class Game {
     this.myLocationHighlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
-        color: 0x388e3c,
+        color: 0x572e05,
         transparent: true,
         opacity: 0.5,
         side: THREE.DoubleSide,
@@ -85,10 +107,14 @@ class Game {
         true
       );
       if (intersects.length > 0) {
-        let hitMesh = intersects[0].object;
+        let hitMesh: THREE.Object3D | null = intersects[0].object;
 
         while (hitMesh && !hitMesh.userData.entityId) {
           hitMesh = hitMesh.parent;
+        }
+
+        if (!hitMesh) {
+          return;
         }
 
         const entityId = hitMesh.userData.entityId;
@@ -98,15 +124,14 @@ class Game {
             entity,
             event.clientX,
             event.clientY,
-            entity.name,
-            ["Talk", "Trade", "Attack"]
+            entity.name
           );
         }
       }
     });
   }
 
-  registerWsClient(wsClient) {
+  registerWsClient(wsClient: WebSocketClient) {
     this.wsClient = wsClient;
   }
 
@@ -152,11 +177,11 @@ class Game {
     this.camera.lookAt(this.cameraTargetX, 0, this.cameraTargetY);
   }
 
-  addEntity(entity) {
+  addEntity(entity: Entity) {
     this.entities.push(entity);
   }
 
-  handleEntityUpdate(entityUpdate) {
+  handleEntityUpdate(entityUpdate: any) {
     let entity = this.entities.find((e) => e.id === entityUpdate.id);
 
     if (!entity) {
@@ -164,10 +189,10 @@ class Game {
       this.addEntity(entity);
     }
 
-    entity.handleEntityUpdate(entityUpdate, this.world);
+    entity.handleEntityUpdate(entityUpdate);
   }
 
-  handleEntityRemove(entityId) {
+  handleEntityRemove(entityId: string) {
     console.log("Removing entity", entityId);
     const entity = this.entities.find((e) => e.id === entityId);
     if (entity) {
@@ -181,11 +206,10 @@ class Game {
   update() {
     this.updateCamera();
 
-    if (this.getMyEntity()) {
-      this.myLocationHighlightMesh.position.x =
-        this.getMyEntity().positionX + 0.5;
-      this.myLocationHighlightMesh.position.z =
-        this.getMyEntity().positionY + 0.5;
+    const myEntity = this.getMyEntity();
+    if (myEntity) {
+      this.myLocationHighlightMesh.position.x = myEntity.positionX + 0.5;
+      this.myLocationHighlightMesh.position.z = myEntity.positionY + 0.5;
     }
 
     this.entities.forEach((e) => e.update());
@@ -201,11 +225,11 @@ class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  registerMyPlayerId(myPlayerId) {
+  registerMyPlayerId(myPlayerId: string) {
     this.myPlayerId = myPlayerId;
   }
 
-  registerWorld(worldUpdate) {
+  registerWorld(worldUpdate: any) {
     this.world = new World(
       this.scene,
       worldUpdate.sizeX,
@@ -215,7 +239,7 @@ class Game {
     );
   }
 
-  getMyEntity() {
+  getMyEntity(): Entity | undefined {
     return this.entities.find((e) => e.id === this.myPlayerId);
   }
 }

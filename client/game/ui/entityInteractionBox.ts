@@ -1,4 +1,8 @@
+import Entity from "../entity/entity";
+
 class EntityInteractionBox {
+  box: HTMLDivElement;
+
   constructor() {
     this.box = document.createElement("div");
     this.box.style.position = "absolute";
@@ -11,7 +15,7 @@ class EntityInteractionBox {
     document.body.appendChild(this.box);
   }
 
-  show(entity, positionX, positionY, name) {
+  show(entity: Entity, positionX: number, positionY: number, name: string) {
     this.box.style.left = `${positionX}px`;
     this.box.style.top = `${positionY}px`;
     this.box.style.display = "block";

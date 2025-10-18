@@ -1,10 +1,31 @@
+import { Message } from "./message/message";
+
+type WebSocketClientOptions = {
+  maxReconnectAttempts?: number;
+  reconnectDelay?: number;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onError?: (event: Event) => void;
+  onMessage?: (data: any) => void;
+};
+
 export class WebSocketClient {
-  constructor(options = {}) {
-    this.ws = null;
-    this.isConnected = false;
+  ws: WebSocket | undefined;
+  isConnected: boolean;
+  reconnectAttempts: number;
+  maxReconnectAttempts: number;
+  reconnectDelay: number;
+  onConnect: () => void;
+  onDisconnect: () => void;
+  onError: (event: Event) => void;
+  onMessage: (data: any) => void;
+
+  constructor(options: WebSocketClientOptions = {}) {
+    this.ws = undefined;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = options.maxReconnectAttempts || 5;
     this.reconnectDelay = options.reconnectDelay || 1000; // 1 second
+    this.isConnected = false;
 
     // Event handlers
     this.onConnect = options.onConnect || (() => {});
@@ -27,6 +48,10 @@ export class WebSocketClient {
   }
 
   setupEventListeners() {
+    if (!this.ws) {
+      throw new Error("WebSocket is not initialized");
+    }
+
     this.ws.onopen = () => {
       console.log("WebSocket connection established");
       this.isConnected = true;
@@ -50,8 +75,8 @@ export class WebSocketClient {
       this.handleReconnect();
     };
 
-    this.ws.onerror = (error) => {
-      this.onError(error);
+    this.ws.onerror = (event: Event) => {
+      this.onError(event);
     };
   }
 
@@ -67,19 +92,18 @@ export class WebSocketClient {
     }
   }
 
-  handleMessage(data) {
-    this.onMessage(data);
+  handleMessage(message: Message) {
+    this.onMessage(message);
   }
 
-  sendMessage(msg) {
-    if (!this.isConnected) {
-      console.error("WebSocket is not connected");
-      return;
+  sendMessage(message: Message) {
+    if (!this.ws) {
+      throw new Error("WebSocket is not initialized");
     }
 
     try {
-      const message = JSON.stringify(msg);
-      this.ws.send(message);
+      const messageString = JSON.stringify(message);
+      this.ws.send(messageString);
     } catch (error) {
       console.error("Error sending message:", error);
     }

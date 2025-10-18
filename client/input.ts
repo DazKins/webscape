@@ -1,4 +1,8 @@
 class Input {
+  keys: Record<string, boolean>;
+  mousePosition: { x: number; y: number };
+  mouseButtons: Record<number, boolean>;
+
   constructor() {
     this.keys = {};
     this.mousePosition = { x: 0, y: 0 };
@@ -17,28 +21,28 @@ class Input {
     window.addEventListener("mouseup", this.onMouseUp);
   }
 
-  onKeyDown(event) {
+  onKeyDown(event: KeyboardEvent) {
     this.keys[event.key] = true;
   }
 
-  onKeyUp(event) {
+  onKeyUp(event: KeyboardEvent) {
     this.keys[event.key] = false;
   }
 
-  onMouseMove(event) {
+  onMouseMove(event: MouseEvent) {
     this.mousePosition.x = event.clientX;
     this.mousePosition.y = event.clientY;
   }
 
-  onMouseDown(event) {
+  onMouseDown(event: MouseEvent) {
     this.mouseButtons[event.button] = true;
   }
 
-  onMouseUp(event) {
+  onMouseUp(event: MouseEvent) {
     this.mouseButtons[event.button] = false;
   }
 
-  getKey(key) {
+  getKey(key: string) {
     return this.keys[key];
   }
 
@@ -46,16 +50,15 @@ class Input {
     return { ...this.mousePosition };
   }
 
-  getMouseButton(button) {
+  getMouseButton(button: number) {
     return this.mouseButtons[button] || false;
   }
 
-  registerClickCallback(callback) {
+  registerClickCallback(callback: () => void) {
     window.addEventListener("click", callback);
-
   }
 
-  registerRightClickCallback(callback) {
+  registerRightClickCallback(callback: (event: MouseEvent) => void) {
     window.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       callback(event);

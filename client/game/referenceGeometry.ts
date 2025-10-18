@@ -1,4 +1,6 @@
-export default function addReferenceGeometry(scene) {
+import * as THREE from "three";
+
+export default function addReferenceGeometry(scene: THREE.Scene) {
   const axisLength = 1;
   const axisThickness = 0.05;
 

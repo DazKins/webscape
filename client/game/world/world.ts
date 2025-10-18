@@ -1,5 +1,21 @@
+import * as THREE from "three";
+import Input from "../../input";
+
 class World {
-  constructor(scene, sizeX, sizeY, walls, input) {
+  sizeX: number;
+  sizeY: number;
+  walls: boolean[][];
+  input: Input;
+  mesh: THREE.Mesh;
+  highlightMesh: THREE.Mesh;
+
+  constructor(
+    scene: THREE.Scene,
+    sizeX: number,
+    sizeY: number,
+    walls: boolean[][],
+    input: Input
+  ) {
     console.log("Creating world", sizeX, sizeY);
 
     this.sizeX = sizeX;
@@ -7,10 +23,9 @@ class World {
     this.walls = walls;
     this.input = input;
 
-    // Create the ground plane
     this.mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(sizeX, sizeY),
-      new THREE.MeshBasicMaterial({
+      new THREE.MeshPhongMaterial({
         color: 0xe77d11,
         side: THREE.DoubleSide,
       })
@@ -18,26 +33,10 @@ class World {
     this.mesh.rotation.x = -Math.PI / 2;
     scene.add(this.mesh);
 
-    const gridSize = sizeX;
-    const divisions = sizeX;
-    const gridHelper = new THREE.GridHelper(
-      gridSize,
-      divisions,
-      0x000000,
-      0x000000
-    );
-
-    gridHelper.material.linewidth = 1;
-    gridHelper.material.depthWrite = false;
-    gridHelper.position.y = 0.01;
-
-    this.grid = gridHelper;
-    scene.add(this.grid);
-
     this.highlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
-        color: 0x388e3c,
+        color: 0x572e05,
         transparent: true,
         opacity: 0.5,
         side: THREE.DoubleSide,
@@ -54,21 +53,26 @@ class World {
         // Create the main wall mesh with pastel grey color
         const wallMesh = new THREE.Mesh(
           new THREE.BoxGeometry(1, 1, 1),
-          new THREE.MeshBasicMaterial({ color: 0xd3d3d3 })
+          new THREE.MeshPhongMaterial({ color: 0xd3d3d3 })
         );
-        
+
         // Create wireframe for black edges
-        const wireframeGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
-        const wireframeMaterial = new THREE.LineBasicMaterial({ 
-          color: 0x000000, 
-          linewidth: 2,
-          transparent: true,
-          opacity: 1.0
-        });
-        const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-        
-        // Add wireframe to the wall mesh
-        wallMesh.add(wireframe);
+        // const wireframeGeometry = new THREE.EdgesGeometry(
+        //   new THREE.BoxGeometry(1, 1, 1)
+        // );
+        // const wireframeMaterial = new THREE.LineBasicMaterial({
+        //   color: 0x000000,
+        //   linewidth: 2,
+        //   transparent: true,
+        //   opacity: 1.0,
+        // });
+        // const wireframe = new THREE.LineSegments(
+        //   wireframeGeometry,
+        //   wireframeMaterial
+        // );
+
+        // // Add wireframe to the wall mesh
+        // wallMesh.add(wireframe);
         wallMesh.position.x = x - sizeX / 2 + 0.5;
         wallMesh.position.z = y - sizeY / 2 + 0.5;
         wallMesh.position.y = 0.5;
@@ -77,7 +81,7 @@ class World {
     });
   }
 
-  getHoveredTile(camera) {
+  getHoveredTile(camera: THREE.PerspectiveCamera) {
     const mouse = this.input.getMousePosition();
     const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
     const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
@@ -97,7 +101,7 @@ class World {
     }
   }
 
-  update(camera) {
+  update(camera: THREE.PerspectiveCamera) {
     const hoveredTile = this.getHoveredTile(camera);
     if (hoveredTile) {
       this.highlightMesh.position.x = hoveredTile.x + 0.5;
