@@ -37,9 +37,10 @@ func (c *CPathing) GetId() ComponentId {
 func (c *CPathing) Update() bool {
 	if c.path != nil {
 		nextPos := c.path.Pop()
-		c.positionComponent.SetPosition(nextPos)
 
-		if c.path.Size() == 0 {
+		if nextPos != nil {
+			c.positionComponent.SetPosition(*nextPos)
+		} else {
 			c.path = nil
 		}
 

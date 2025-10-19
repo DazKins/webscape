@@ -13,10 +13,14 @@ func (p *Path) Reversed() Path {
 	return *p
 }
 
-func (p *Path) Pop() math.Vec2 {
+func (p *Path) Pop() *math.Vec2 {
+	if p.Size() == 0 {
+		return nil
+	}
+
 	node := p.nodes[0]
 	p.nodes = p.nodes[1:]
-	return node
+	return &node
 }
 
 func (p *Path) Size() int {
