@@ -6,6 +6,7 @@ import { createMessage } from "../message/message.js";
 import EntityInteractionBox from "./ui/entityInteractionBox.js";
 import * as THREE from "three";
 import { WebSocketClient } from "../ws.js";
+import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
 
 class Game {
   wsClient!: WebSocketClient;
@@ -13,6 +14,7 @@ class Game {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
+  cssRenderer2d: CSS2DRenderer;
   myLocationHighlightMesh: THREE.Mesh;
   entities: Entity[];
 
@@ -43,6 +45,13 @@ class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x87ceeb);
     document.body.appendChild(this.renderer.domElement);
+
+    this.cssRenderer2d = new CSS2DRenderer();
+    this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
+    this.cssRenderer2d.domElement.style.position = "absolute";
+    this.cssRenderer2d.domElement.style.top = "0";
+    this.cssRenderer2d.domElement.style.pointerEvents = "none";
+    document.body.appendChild(this.cssRenderer2d.domElement);
 
     this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
     const light = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -124,7 +133,7 @@ class Game {
             entity,
             event.clientX,
             event.clientY,
-            entity.name
+            entity.name || "Unnamed?!?!"
           );
         }
       }
@@ -214,6 +223,7 @@ class Game {
 
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
+    this.cssRenderer2d.render(this.scene, this.camera);
     if (this.world) {
       this.world.update(this.camera);
     }

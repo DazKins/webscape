@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createEntityNamecard } from "../ui/entityNamecard";
 
 class Entity {
   id: string;
@@ -7,7 +8,7 @@ class Entity {
   mesh: THREE.Group;
   positionX: number;
   positionY: number;
-  name: string;
+  name?: string;
 
   constructor(id: string, scene: THREE.Scene) {
     this.id = id;
@@ -15,7 +16,6 @@ class Entity {
     this.interactionOptions = [];
     this.positionX = 0;
     this.positionY = 0;
-    this.name = "";
 
     this.mesh = new THREE.Group();
     this.mesh.userData.entityId = id;
@@ -53,7 +53,12 @@ class Entity {
 
     this.positionX = positionComponent.x;
     this.positionY = positionComponent.y;
-    this.name = metadataComponent.name;
+    if (metadataComponent.name && metadataComponent.name !== this.name) {
+      const name = metadataComponent.name as string;
+      this.name = name;
+      const namecard = createEntityNamecard(name, 0, 1.5, 0);
+      this.mesh.add(namecard);
+    }
 
     if (interactableComponent) {
       this.interactionOptions = interactableComponent.interactionOptions;
