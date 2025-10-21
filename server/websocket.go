@@ -16,7 +16,7 @@ type client struct {
 	id   string
 }
 
-type MessageHandler func(clientID string, message message.Message)
+type MessageHandler func(clientID string, message string)
 type DisconnectHandler func(clientID string)
 
 type wsServer struct {
@@ -115,12 +115,7 @@ func (c *client) readPump(onMessage MessageHandler, unregister chan *client) {
 			break
 		}
 		if onMessage != nil {
-			msg, err := message.Unmarshal(string(msg))
-			if err != nil {
-				log.Printf("error: %v", err)
-			} else {
-				onMessage(c.id, msg)
-			}
+			onMessage(c.id, string(msg))
 		}
 	}
 }

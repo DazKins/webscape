@@ -1,10 +1,10 @@
 import { WebSocketClient } from "./ws.js";
 import {
-  createMessage,
-  getMessageType,
-  getMessageData,
-} from "./message/message.js";
-import Game from "./game/game.js";
+  createCommand,
+  getCommandType,
+  getCommandData,
+} from "./command/command.ts";
+import Game from "./game/game.ts";
 
 let myPlayerId = window.localStorage.getItem("myPlayerId");
 if (!myPlayerId) {
@@ -17,7 +17,7 @@ const game = new Game();
 const wsClient = new WebSocketClient({
   onConnect: () => {
     console.log("Connected to WebSocket server");
-    wsClient.sendMessage(createMessage("join", { id: myPlayerId }));
+    wsClient.sendMessage(createCommand("join", { id: myPlayerId }));
   },
   onDisconnect: () => {
     console.log("Disconnected from WebSocket server");
@@ -25,9 +25,9 @@ const wsClient = new WebSocketClient({
   onError: (error) => {
     console.error("WebSocket error:", error);
   },
-  onMessage: (msg) => {
-    const type = getMessageType(msg);
-    const data = getMessageData(msg);
+  onMessage: (msg: any) => {
+    const type = msg.metadata.type;
+    const data = msg.data;
 
     switch (type) {
       case "entityUpdate":

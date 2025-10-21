@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"webscape/server/command"
 	"webscape/server/game"
 )
 
@@ -12,12 +13,19 @@ func Start(distFS fs.FS) {
 
 	game := game.NewGame()
 
-	clientMessageHandler := NewClientMessageHandler(game)
+	clientCommandHandler := NewClientCommandHandler(game)
 
 	game.StartUpdateLoop()
 
 	wsServer := NewWsServer()
-	wsServer.SetIncomingMessageHandler(clientMessageHandler.HandleMessage)
+	wsServer.SetIncomingMessageHandler(func(clientID string, message string) {
+		command, err := command.Unmarshal(message)
+		if err != nil {
+			log.Printf("error unmarshalling command: %v", err)
+			return
+		}
+		clientCommandHandler.HandleCommand(clientID, command)
+	})
 	wsServer.SetDisconnectHandler(game.HandleLeave)
 
 	game.RegisterBroadcaster(wsServer.Broadcast)

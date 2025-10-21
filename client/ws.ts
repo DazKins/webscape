@@ -1,4 +1,4 @@
-import { Message } from "./message/message";
+import { Message } from "./command/command";
 
 type WebSocketClientOptions = {
   maxReconnectAttempts?: number;

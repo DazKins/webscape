@@ -1,13 +1,13 @@
-import Entity from "./entity/entity.js";
-import World from "./world/world.js";
-import Input from "../input.js";
-import addReferenceGeometry from "./referenceGeometry.js";
-import { createMessage } from "../message/message.js";
-import EntityInteractionBox from "./ui/entityInteractionBox.js";
+import Entity from "./entity/entity.ts";
+import World from "./world/world.ts";
+import Input from "../input.ts";
+import addReferenceGeometry from "./referenceGeometry.ts";
+import { createCommand } from "../command/command.ts";
+import EntityInteractionBox from "./ui/entityInteractionBox";
 import * as THREE from "three";
-import { WebSocketClient } from "../ws.js";
+import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
-import ChatBox from "./ui/chatBox.js";
+import ChatBox from "./ui/chatBox.ts";
 
 class Game {
   wsClient!: WebSocketClient;
@@ -98,7 +98,7 @@ class Game {
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
         this.wsClient.sendMessage(
-          createMessage("move", {
+          createCommand("move", {
             x: hoveredTile.x,
             y: hoveredTile.y,
           })

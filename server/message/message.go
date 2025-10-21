@@ -36,21 +36,3 @@ func (m *Message) Marshal() string {
 	}
 	return string(json)
 }
-
-func Unmarshal(data string) (Message, error) {
-	var dto messageDto
-	err := json.Unmarshal([]byte(data), &dto)
-	if err != nil {
-		return Message{}, err
-	}
-
-	metadata, err := dto.Metadata.FromDto()
-	if err != nil {
-		return Message{}, err
-	}
-
-	return Message{
-		Metadata: metadata,
-		Data:     dto.Data,
-	}, nil
-}
