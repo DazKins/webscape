@@ -38,3 +38,45 @@
   background: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
 }
+
+.chat-box {
+  width: 500px;
+  height: 200px;
+  background: rgba(50, 50, 50, 0.5);
+  color: rgba(230, 230, 230, 1.0);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.chat-box-header {
+  display: flex;
+  height: 30px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-bottom: 1px solid rgba(230, 230, 230, 1.0);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.chat-box-header-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.chat-box-content {
+  height: 140px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.chat-box-input {
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-top: 1px solid rgba(230, 230, 230, 1.0);
+  overflow: hidden;
+  box-sizing: border-box;
+}

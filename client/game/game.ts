@@ -7,6 +7,7 @@ import EntityInteractionBox from "./ui/entityInteractionBox.js";
 import * as THREE from "three";
 import { WebSocketClient } from "../ws.js";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
+import ChatBox from "./ui/chatBox.js";
 
 class Game {
   wsClient!: WebSocketClient;
@@ -25,10 +26,12 @@ class Game {
   heightSpeed: number;
   minHeight: number;
   maxHeight: number;
+  typedChatText: string;
 
   entityInteractionBox: EntityInteractionBox;
   input: Input;
   world!: World;
+  chatBox: ChatBox;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -138,6 +141,11 @@ class Game {
         }
       }
     });
+
+    this.chatBox = new ChatBox();
+    this.chatBox.show();
+
+    this.typedChatText = "";
   }
 
   registerWsClient(wsClient: WebSocketClient) {
@@ -151,20 +159,20 @@ class Game {
     const myEntity = this.getMyEntity();
     if (!myEntity) return;
 
-    if (this.input.getKey("ArrowLeft")) {
+    if (this.input.getKey("arrowleft")) {
       this.cameraAngle += this.orbitSpeed;
     }
-    if (this.input.getKey("ArrowRight")) {
+    if (this.input.getKey("arrowright")) {
       this.cameraAngle -= this.orbitSpeed;
     }
 
-    if (this.input.getKey("ArrowUp")) {
+    if (this.input.getKey("arrowup")) {
       this.cameraHeight = Math.min(
         this.cameraHeight + this.heightSpeed,
         this.maxHeight
       );
     }
-    if (this.input.getKey("ArrowDown")) {
+    if (this.input.getKey("arrowdown")) {
       this.cameraHeight = Math.max(
         this.cameraHeight - this.heightSpeed,
         this.minHeight
@@ -221,6 +229,8 @@ class Game {
       this.myLocationHighlightMesh.position.z = myEntity.positionY + 0.5;
     }
 
+    this.chatBox.update(this.input.getTypedCharsBuffer());
+
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
     this.cssRenderer2d.render(this.scene, this.camera);
@@ -233,6 +243,7 @@ class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
   }
 
   registerMyPlayerId(myPlayerId: string) {
