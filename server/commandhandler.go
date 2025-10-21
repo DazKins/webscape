@@ -30,6 +30,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleJoinCommand(clientID, cmd)
 	case command.CommandTypeMove:
 		h.handleMoveCommand(clientID, cmd)
+	case command.CommandTypeChat:
+		h.handleChatCommand(clientID, cmd)
 	}
 }
 
@@ -54,4 +56,10 @@ func (h *ClientCommandHandler) handleMoveCommand(clientID string, cmd command.Co
 	y := cmd.Data["y"].(float64)
 
 	h.game.HandleMove(clientID, int(x), int(y))
+}
+
+func (h *ClientCommandHandler) handleChatCommand(clientID string, cmd command.Command) {
+	message := cmd.Data["message"].(string)
+
+	h.game.HandleChat(clientID, message)
 }

@@ -26,7 +26,6 @@ class Game {
   heightSpeed: number;
   minHeight: number;
   maxHeight: number;
-  typedChatText: string;
 
   entityInteractionBox: EntityInteractionBox;
   input: Input;
@@ -144,8 +143,6 @@ class Game {
 
     this.chatBox = new ChatBox();
     this.chatBox.show();
-
-    this.typedChatText = "";
   }
 
   registerWsClient(wsClient: WebSocketClient) {
@@ -229,7 +226,17 @@ class Game {
       this.myLocationHighlightMesh.position.z = myEntity.positionY + 0.5;
     }
 
-    this.chatBox.update(this.input.getTypedCharsBuffer());
+    const typedChatText = this.input.getTypedCharsBuffer();
+    this.chatBox.update(typedChatText);
+
+    if (this.input.getKeyJustDown("enter") && typedChatText.length > 0) {
+      this.wsClient.sendMessage(
+        createCommand("chat", {
+          message: typedChatText,
+        })
+      );
+      this.input.clearTypedCharsBuffer();
+    }
 
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
@@ -237,6 +244,8 @@ class Game {
     if (this.world) {
       this.world.update(this.camera);
     }
+
+    this.input.flush();
   }
 
   onWindowResize() {

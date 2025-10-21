@@ -176,3 +176,18 @@ func (g *Game) HandleLeave(clientID string) {
 
 	g.broadcastMessage(message.NewEntityRemoveMessage(entityId))
 }
+
+func (g *Game) HandleChat(clientID string, chatMessage string) {
+	entityId, ok := g.clientIdToEntityId.Get(clientID)
+	if !ok {
+		log.Println("Client ID not found in clientIdToEntityId")
+		return
+	}
+
+	if _, ok := g.entities.GetById(entityId); !ok {
+		log.Println("Entity not found in entities")
+		return
+	}
+
+	g.broadcastMessage(message.NewChatMessage(entityId.String(), chatMessage))
+}

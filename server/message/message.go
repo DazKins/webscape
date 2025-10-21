@@ -6,15 +6,15 @@ import (
 
 type Message struct {
 	Metadata MessageMetadata `json:"metadata"`
-	Data     interface{}     `json:"data"`
+	Data     any             `json:"data"`
 }
 
 type messageDto struct {
 	Metadata messageMetadataDto `json:"metadata"`
-	Data     interface{}        `json:"data"`
+	Data     any                `json:"data"`
 }
 
-func newMessage(typ MessageType, data interface{}) Message {
+func newMessage(typ MessageType, data any) Message {
 	return Message{
 		Metadata: NewMessageMetadata(typ),
 		Data:     data,

@@ -9,6 +9,7 @@ type CommandType string
 const (
 	CommandTypeJoin = "join"
 	CommandTypeMove = "move"
+	CommandTypeChat = "chat"
 )
 
 type Command struct {

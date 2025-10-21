@@ -10,6 +10,7 @@ const (
 	MessageTypeWorld        = "world"
 	MessageTypeMove         = "move"
 	MessageTypeEntityRemove = "entityRemove"
+	MessageTypeChat         = "chat"
 )
 
 func (m MessageType) String() string {

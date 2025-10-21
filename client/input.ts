@@ -1,11 +1,13 @@
 class Input {
   keys: Record<string, boolean>;
+  keysJustDown: Record<string, boolean>;
   mousePosition: { x: number; y: number };
   mouseButtons: Record<number, boolean>;
   typedCharsBuffer: string;
 
   constructor() {
     this.keys = {};
+    this.keysJustDown = {};
     this.mousePosition = { x: 0, y: 0 };
     this.mouseButtons = {};
     this.typedCharsBuffer = "";
@@ -23,6 +25,10 @@ class Input {
     window.addEventListener("mouseup", this.onMouseUp);
   }
 
+  flush() {
+    this.keysJustDown = {};
+  }
+
   onKeyDown(event: KeyboardEvent) {
     const key = event.key;
     if (key.length === 1) {
@@ -32,6 +38,7 @@ class Input {
       this.typedCharsBuffer = this.typedCharsBuffer.slice(0, -1);
     }
     this.keys[key.toLowerCase()] = true;
+    this.keysJustDown[key.toLowerCase()] = true;
   }
 
   onKeyUp(event: KeyboardEvent) {
@@ -52,7 +59,11 @@ class Input {
   }
 
   getKey(key: string) {
-    return this.keys[key];
+    return this.keys[key.toLowerCase()];
+  }
+
+  getKeyJustDown(key: string) {
+    return this.keysJustDown[key.toLowerCase()];
   }
 
   getMousePosition() {
@@ -76,6 +87,10 @@ class Input {
 
   getTypedCharsBuffer(): string {
     return this.typedCharsBuffer;
+  }
+
+  clearTypedCharsBuffer() {
+    this.typedCharsBuffer = "";
   }
 }
 
