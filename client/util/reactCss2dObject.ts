@@ -6,11 +6,17 @@ export function createReactCss2dObject<P>(
   Component: React.ComponentType<P>,
   props: P
 ): CSS2DObject {
-  const container = document.createElement("div");
-  container.style.pointerEvents = "none";
+  const outer = document.createElement("div");
+  outer.style.position = "absolute";
+  outer.style.top = "0";
+  outer.style.left = "0";
+  outer.style.pointerEvents = "none";
 
-  const root: Root = createRoot(container);
+  const inner = document.createElement("div");
+  outer.appendChild(inner);
+
+  const root: Root = createRoot(inner);
   root.render(React.createElement(Component as React.ElementType, props));
 
-  return new CSS2DObject(container);
+  return new CSS2DObject(outer);
 }
