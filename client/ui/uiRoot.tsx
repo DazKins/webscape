@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import Game from "../game/game";
-import AbsolutePositioned from "./components/absolutePositioned";
 import ChatBox from "./components/chatBox";
 import InteractionMenu from "./components/interactionMenu";
 
