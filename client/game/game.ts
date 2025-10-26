@@ -3,10 +3,10 @@ import World from "./world/world.ts";
 import Input, { InputReceiver } from "../input.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
 import { createCommand } from "../command/command.ts";
-import EntityInteractionBox from "./ui/entityInteractionBox";
 import * as THREE from "three";
 import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
+import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -26,13 +26,12 @@ class Game extends EventTarget implements InputReceiver {
   minHeight: number;
   maxHeight: number;
 
-  entityInteractionBox: EntityInteractionBox;
   input: Input;
   world!: World;
 
   typedChatText: string;
 
-  constructor() {
+  constructor(sceneLayerRoot: HTMLElement, hudLayerRoot: HTMLElement) {
     super();
 
     this.scene = new THREE.Scene();
@@ -48,14 +47,14 @@ class Game extends EventTarget implements InputReceiver {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x87ceeb);
-    document.body.appendChild(this.renderer.domElement);
+    sceneLayerRoot.appendChild(this.renderer.domElement);
 
     this.cssRenderer2d = new CSS2DRenderer();
     this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
     this.cssRenderer2d.domElement.style.position = "absolute";
     this.cssRenderer2d.domElement.style.top = "0";
     this.cssRenderer2d.domElement.style.pointerEvents = "none";
-    document.body.appendChild(this.cssRenderer2d.domElement);
+    hudLayerRoot.appendChild(this.cssRenderer2d.domElement);
 
     this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
     const light = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -92,10 +91,7 @@ class Game extends EventTarget implements InputReceiver {
 
     this.input = new Input();
 
-    this.entityInteractionBox = new EntityInteractionBox();
-
     this.input.registerClickCallback(() => {
-      this.entityInteractionBox.hide();
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
         this.wsClient.sendMessage(
@@ -107,8 +103,7 @@ class Game extends EventTarget implements InputReceiver {
       }
     });
 
-    this.input.registerRightClickCallback((event) => {
-      this.entityInteractionBox.hide();
+    this.input.registerRightClickCallback((event: MouseEvent) => {
       const mouse = this.input.getMousePosition();
       const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
       const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
@@ -133,11 +128,14 @@ class Game extends EventTarget implements InputReceiver {
         const entityId = hitMesh.userData.entityId;
         const entity = this.entities.find((e) => e.id === entityId);
         if (entity) {
-          this.entityInteractionBox.show(
-            entity,
-            event.clientX,
-            event.clientY,
-            entity.name || "Unnamed?!?!"
+          this.dispatchEvent(
+            new InteractionMenuOpenEvent(
+              entity.id,
+              entity.name || "Unnamed?!?!",
+              entity.interactionOptions,
+              event.clientX,
+              event.clientY
+            )
           );
         }
       }

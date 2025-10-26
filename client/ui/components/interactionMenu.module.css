@@ -1,0 +1,32 @@
+.container {
+  width: 200px;
+  background: rgba(50, 50, 50, 1.0);
+  color: rgba(230, 230, 230, 1.0);
+  border: 1px solid rgba(230, 230, 230, 1.0);
+  border-radius: 5px;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px 5px;
+}
+
+.interactionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.interactionOption {
+  padding: 5px;
+  border-radius: 5px;
+  background: rgba(100, 100, 100, 1.0);
+  cursor: pointer;
+}
+
+.interactionOption:hover {
+  background: rgba(150, 150, 150, 1.0);
+}

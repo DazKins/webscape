@@ -11,9 +11,12 @@ if (!myPlayerId) {
   window.localStorage.setItem("myPlayerId", myPlayerId);
 }
 
-const game = new Game();
+const sceneLayerRoot = document.getElementById("sceneLayerRoot")!;
+const hudLayerRoot = document.getElementById("hudLayerRoot")!;
 
-const uiRoot = document.getElementById("uiRoot")!;
+const game = new Game(sceneLayerRoot, hudLayerRoot);
+
+const uiRoot = document.getElementById("uiLayerRoot")!;
 const root = createRoot(uiRoot);
 root.render(React.createElement(UiRoot, { game: game }));
 

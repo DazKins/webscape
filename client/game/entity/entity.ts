@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { createEntityNamecard } from "../ui/entityNamecard";
 import { CSS2DObject } from "three/examples/jsm/Addons.js";
 import OverheadChat from "../../ui/components/overheadChat";
 import { createReactCss2dObject } from "../../util/reactCss2dObject";
+import EntityNamecard from "../../ui/components/entityNamecard";
 
 class Entity {
   id: string;
@@ -80,7 +80,8 @@ class Entity {
     if (metadataComponent.name && metadataComponent.name !== this.name) {
       const name = metadataComponent.name as string;
       this.name = name;
-      const namecard = createEntityNamecard(name, 0, 1.5, 0);
+      const namecard = createReactCss2dObject(EntityNamecard, { name });
+      namecard.position.set(0, 1.5, 0);
       this.mesh.add(namecard);
     }
 

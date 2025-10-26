@@ -3,13 +3,44 @@
   <head>
     <title>Webscape</title>
     <style>
-      body { margin: 0; }
-      canvas { display: block; }
+      body {
+        margin: 0;
+      }
+      canvas {
+        display: block;
+      }
+      #roots {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      #sceneLayerRoot {
+        z-index: 0;
+      }
+      #hudLayerRoot {
+        z-index: 1000;
+      }
+      #uiLayerRoot {
+        z-index: 2000;
+      }
+      #sceneLayerRoot,
+      #hudLayerRoot,
+      #uiLayerRoot {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div id="uiRoot"></div>
+    <div id="roots">
+      <div id="sceneLayerRoot"></div>
+      <div id="hudLayerRoot"></div>
+      <div id="uiLayerRoot"></div>
+    </div>
     <script type="module" src="main.js"></script>
   </body>
 </html>
