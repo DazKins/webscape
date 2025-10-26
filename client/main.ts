@@ -1,4 +1,4 @@
-import Root from "./ui/root.tsx";
+import UiRoot from "./ui/uiRoot.tsx";
 import { WebSocketClient } from "./ws.js";
 import { createCommand } from "./command/command.ts";
 import Game from "./game/game.ts";
@@ -15,7 +15,7 @@ const game = new Game();
 
 const uiRoot = document.getElementById("uiRoot")!;
 const root = createRoot(uiRoot);
-root.render(React.createElement(Root, { game: game }));
+root.render(React.createElement(UiRoot, { game: game }));
 
 const wsClient = new WebSocketClient({
   onConnect: () => {

@@ -1,11 +1,11 @@
 import Game from "../game/game";
-import ChatBox from "./chatBox";
+import ChatBox from "./components/chatBox";
 
 type Props = {
   game: Game;
 };
 
-export default function Root(props: Props) {
+export default function UiRoot(props: Props) {
   return (
     <div
       style={{

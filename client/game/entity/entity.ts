@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { createEntityNamecard } from "../ui/entityNamecard";
-import { createEntityChat } from "../ui/entityChat";
 import { CSS2DObject } from "three/examples/jsm/Addons.js";
+import OverheadChat from "../../ui/components/overheadChat";
+import { createReactCss2dObject } from "../../util/reactCss2dObject";
 
 class Entity {
   id: string;
@@ -58,7 +59,8 @@ class Entity {
     if (this.chat) {
       this.mesh.remove(this.chat);
     }
-    this.chat = createEntityChat(text);
+    this.chat = createReactCss2dObject(OverheadChat, { text });
+    this.chat.position.set(0, 2, 0);
     this.mesh.add(this.chat);
     this.chatTimeoutId = setTimeout(() => {
       if (this.chat) {

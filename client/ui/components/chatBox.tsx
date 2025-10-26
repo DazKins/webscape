@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./chatBox.module.css";
-import Game from "../game/game";
+import Game from "../../game/game";
 
 type Props = {
   game: Game;
