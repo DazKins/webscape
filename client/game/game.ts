@@ -286,6 +286,13 @@ class Game extends EventTarget implements InputReceiver {
   getMyEntity(): Entity | undefined {
     return this.entities.find((e) => e.id === this.myPlayerId);
   }
+
+  handleChat(entityId: string, message: string) {
+    const entity = this.entities.find((e) => e.id === entityId);
+    if (entity) {
+      entity.handleChat(message);
+    }
+  }
 }
 
 export default Game;

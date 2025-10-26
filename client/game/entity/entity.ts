@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { createEntityNamecard } from "../ui/entityNamecard";
+import { createEntityChat } from "../ui/entityChat";
+import { CSS2DObject } from "three/examples/jsm/Addons.js";
 
 class Entity {
   id: string;
@@ -9,6 +11,7 @@ class Entity {
   positionX: number;
   positionY: number;
   name?: string;
+  chat?: CSS2DObject;
 
   constructor(id: string, scene: THREE.Scene) {
     this.id = id;
@@ -44,6 +47,25 @@ class Entity {
       (this.positionX + 0.5 - this.mesh.position.x) * 0.05;
     this.mesh.position.z +=
       (this.positionY + 0.5 - this.mesh.position.z) * 0.05;
+  }
+
+  chatTimeoutId?: number;
+
+  handleChat(text: string) {
+    if (this.chatTimeoutId) {
+      clearTimeout(this.chatTimeoutId);
+    }
+    if (this.chat) {
+      this.mesh.remove(this.chat);
+    }
+    this.chat = createEntityChat(text);
+    this.mesh.add(this.chat);
+    this.chatTimeoutId = setTimeout(() => {
+      if (this.chat) {
+        this.mesh.remove(this.chat);
+      }
+      this.chat = undefined;
+    }, 7000);
   }
 
   handleEntityUpdate(entityUpdate: any) {
