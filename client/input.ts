@@ -1,16 +1,18 @@
+export interface InputReceiver {
+  onKeyDown(key: string): void;
+}
+
 class Input {
   keys: Record<string, boolean>;
-  keysJustDown: Record<string, boolean>;
   mousePosition: { x: number; y: number };
   mouseButtons: Record<number, boolean>;
-  typedCharsBuffer: string;
+
+  activeReceiver?: InputReceiver;
 
   constructor() {
     this.keys = {};
-    this.keysJustDown = {};
     this.mousePosition = { x: 0, y: 0 };
     this.mouseButtons = {};
-    this.typedCharsBuffer = "";
 
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
@@ -25,20 +27,24 @@ class Input {
     window.addEventListener("mouseup", this.onMouseUp);
   }
 
-  flush() {
-    this.keysJustDown = {};
+  setActiveReceiver(receiver: InputReceiver) {
+    this.activeReceiver = receiver;
   }
 
   onKeyDown(event: KeyboardEvent) {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    )
+      return;
+
     const key = event.key;
-    if (key.length === 1) {
-      this.typedCharsBuffer += key;
+
+    if (this.activeReceiver) {
+      this.activeReceiver.onKeyDown(key);
     }
-    if (key === "Backspace") {
-      this.typedCharsBuffer = this.typedCharsBuffer.slice(0, -1);
-    }
+
     this.keys[key.toLowerCase()] = true;
-    this.keysJustDown[key.toLowerCase()] = true;
   }
 
   onKeyUp(event: KeyboardEvent) {
@@ -62,10 +68,6 @@ class Input {
     return this.keys[key.toLowerCase()];
   }
 
-  getKeyJustDown(key: string) {
-    return this.keysJustDown[key.toLowerCase()];
-  }
-
   getMousePosition() {
     return { ...this.mousePosition };
   }
@@ -83,14 +85,6 @@ class Input {
       event.preventDefault();
       callback(event);
     });
-  }
-
-  getTypedCharsBuffer(): string {
-    return this.typedCharsBuffer;
-  }
-
-  clearTypedCharsBuffer() {
-    this.typedCharsBuffer = "";
   }
 }
 

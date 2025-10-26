@@ -1,15 +1,14 @@
 import Entity from "./entity/entity.ts";
 import World from "./world/world.ts";
-import Input from "../input.ts";
+import Input, { InputReceiver } from "../input.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
 import { createCommand } from "../command/command.ts";
 import EntityInteractionBox from "./ui/entityInteractionBox";
 import * as THREE from "three";
 import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
-import ChatBox from "./ui/chatBox.ts";
 
-class Game {
+class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
   myPlayerId!: string;
   scene: THREE.Scene;
@@ -30,9 +29,12 @@ class Game {
   entityInteractionBox: EntityInteractionBox;
   input: Input;
   world!: World;
-  chatBox: ChatBox;
+
+  typedChatText: string;
 
   constructor() {
+    super();
+
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -141,8 +143,34 @@ class Game {
       }
     });
 
-    this.chatBox = new ChatBox();
-    this.chatBox.show();
+    this.input.setActiveReceiver(this);
+
+    this.typedChatText = "";
+  }
+
+  onKeyDown(key: string): void {
+    const beforeTypedChatText = this.typedChatText;
+
+    if (key === "Enter") {
+      this.wsClient.sendMessage(
+        createCommand("chat", { message: this.typedChatText })
+      );
+      this.typedChatText = "";
+    } else if (key === "Escape") {
+      this.typedChatText = "";
+    } else if (key === "Backspace") {
+      this.typedChatText = this.typedChatText.slice(0, -1);
+    } else if (key.length === 1) {
+      this.typedChatText += key;
+    }
+
+    if (beforeTypedChatText !== this.typedChatText) {
+      this.dispatchEvent(
+        new CustomEvent<string>("typedChatTextChanged", {
+          detail: this.typedChatText,
+        })
+      );
+    }
   }
 
   registerWsClient(wsClient: WebSocketClient) {
@@ -226,26 +254,12 @@ class Game {
       this.myLocationHighlightMesh.position.z = myEntity.positionY + 0.5;
     }
 
-    const typedChatText = this.input.getTypedCharsBuffer();
-    this.chatBox.update(typedChatText);
-
-    if (this.input.getKeyJustDown("enter") && typedChatText.length > 0) {
-      this.wsClient.sendMessage(
-        createCommand("chat", {
-          message: typedChatText,
-        })
-      );
-      this.input.clearTypedCharsBuffer();
-    }
-
     this.entities.forEach((e) => e.update());
     this.renderer.render(this.scene, this.camera);
     this.cssRenderer2d.render(this.scene, this.camera);
     if (this.world) {
       this.world.update(this.camera);
     }
-
-    this.input.flush();
   }
 
   onWindowResize() {

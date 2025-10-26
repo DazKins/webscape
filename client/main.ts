@@ -1,10 +1,9 @@
+import Root from "./ui/root.tsx";
 import { WebSocketClient } from "./ws.js";
-import {
-  createCommand,
-  getCommandType,
-  getCommandData,
-} from "./command/command.ts";
+import { createCommand } from "./command/command.ts";
 import Game from "./game/game.ts";
+import { createRoot } from "react-dom/client";
+import React from "react";
 
 let myPlayerId = window.localStorage.getItem("myPlayerId");
 if (!myPlayerId) {
@@ -13,6 +12,10 @@ if (!myPlayerId) {
 }
 
 const game = new Game();
+
+const uiRoot = document.getElementById("uiRoot")!;
+const root = createRoot(uiRoot);
+root.render(React.createElement(Root, { game: game }));
 
 const wsClient = new WebSocketClient({
   onConnect: () => {
@@ -45,8 +48,11 @@ const wsClient = new WebSocketClient({
       case "joinFailed":
         window.alert(`JOIN FAILED: ${data.reason}`);
         break;
+      case "chat":
+        // game.handleChat(data.entityId, data.message);
+        break;
       default:
-        console.log("Unknown message type:", data.type);
+        console.log("Unknown message type:", type);
     }
   },
 });

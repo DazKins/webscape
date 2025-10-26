@@ -1,5 +1,3 @@
-import { Message } from "./command/command";
-
 type WebSocketClientOptions = {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
@@ -92,11 +90,11 @@ export class WebSocketClient {
     }
   }
 
-  handleMessage(message: Message) {
+  handleMessage(message: any) {
     this.onMessage(message);
   }
 
-  sendMessage(message: Message) {
+  sendMessage(message: any) {
     if (!this.ws) {
       throw new Error("WebSocket is not initialized");
     }
