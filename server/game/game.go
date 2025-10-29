@@ -39,6 +39,7 @@ func NewGame() *Game {
 		}
 
 		entities.Put(entity.CreateDudeEntity(
+			world,
 			util.OptionalNone[entity.EntityId](),
 			NAMES[i],
 			position,
