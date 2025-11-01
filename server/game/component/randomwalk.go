@@ -1,6 +1,6 @@
 package component
 
-import "webscape/server/game/componentheader"
+import "webscape/server/game/component/componentheader"
 
 const ComponentIdRandomWalk = ComponentId("randomwalk")
 

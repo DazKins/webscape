@@ -1,7 +1,7 @@
 package component
 
 import (
-	"webscape/server/game/componentheader"
+	"webscape/server/game/component/componentheader"
 	"webscape/server/util"
 )
 
