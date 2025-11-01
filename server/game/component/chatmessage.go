@@ -2,6 +2,7 @@ package component
 
 import (
 	"webscape/server/game/model"
+	"webscape/server/util"
 )
 
 const ComponentIdChatMessage = ComponentId("chatmessage")
@@ -16,9 +17,9 @@ func (c *CChatMessage) GetId() ComponentId {
 	return ComponentIdChatMessage
 }
 
-func (c *CChatMessage) Serialize() map[string]any {
-	return map[string]any{
-		"fromEntityId": c.FromEntityId.String(),
-		"message":      c.Message,
-	}
+func (c *CChatMessage) Serialize() util.Json {
+	return util.JObject(map[string]util.Json{
+		"fromEntityId": util.JString(c.FromEntityId.String()),
+		"message":      util.JString(c.Message),
+	})
 }
