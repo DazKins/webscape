@@ -6,6 +6,7 @@ import (
 	"time"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
+	"webscape/server/game/system"
 	"webscape/server/game/world"
 	"webscape/server/math"
 	"webscape/server/message"
@@ -24,6 +25,7 @@ type Game struct {
 	broadcastMessage   MessageBroadcaster
 
 	entities *util.IdMap[*entity.Entity, entity.EntityId]
+	systems  []system.System
 }
 
 var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George", "Hannah", "Isaac", "Jack"}
@@ -36,7 +38,8 @@ func NewGame() *Game {
 		world:              world,
 		done:               make(chan bool),
 
-		entities: util.NewIdMap[*entity.Entity, entity.EntityId](),
+		entities: util.NewIdMap[*entity.Entity](),
+		systems:  []system.System{},
 	}
 
 	for i := range 3 {
@@ -51,7 +54,17 @@ func NewGame() *Game {
 		))
 	}
 
+	game.RegisterSystem(&system.PathingSystem{})
+	game.RegisterSystem(&system.RandomWalkSystem{
+		World: world,
+	})
+
 	return game
+}
+
+func (g *Game) RegisterSystem(system system.System) {
+	system.SetEntityGetter(g)
+	g.systems = append(g.systems, system)
 }
 
 func (g *Game) AddEntity(entity *entity.Entity) {
@@ -60,6 +73,26 @@ func (g *Game) AddEntity(entity *entity.Entity) {
 
 func (g *Game) GetEntity(entityId entity.EntityId) (*entity.Entity, bool) {
 	return g.entities.GetById(entityId)
+}
+
+func (g *Game) GetEntities() []*entity.Entity {
+	return g.entities.Values()
+}
+
+func (g *Game) GetEntitiesWithComponents(componentIds ...component.ComponentId) []*entity.Entity {
+	entities := make([]*entity.Entity, 0)
+	for _, entity := range g.entities.Values() {
+		match := true
+		for _, componentId := range componentIds {
+			if entity.GetComponent(componentId) == nil {
+				match = false
+			}
+		}
+		if match {
+			entities = append(entities, entity)
+		}
+	}
+	return entities
 }
 
 func (g *Game) RemoveEntity(entityId entity.EntityId) {
@@ -82,7 +115,9 @@ func (g *Game) StartUpdateLoop() {
 }
 
 func (g *Game) update() {
-	g.updatePathing()
+	for _, system := range g.systems {
+		system.Update()
+	}
 
 	for _, entity := range g.entities.Values() {
 		for _, comp := range entity.GetComponents().Values() {
@@ -157,11 +192,10 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		panic("entity not found")
 	}
 
-	positionComponentI, ok := entity.GetComponent(component.ComponentIdPosition)
-	if !ok {
+	positionComponent := entity.GetComponent(component.ComponentIdPosition).(*component.CPosition)
+	if positionComponent == nil {
 		panic("position component not found")
 	}
-	positionComponent := positionComponentI.(*component.CPosition)
 
 	path, err := g.getPath(positionComponent.GetPosition(), math.Vec2{X: x, Y: y})
 	if err != nil {
@@ -203,11 +237,10 @@ func (g *Game) HandleInteract(clientID string, entityId entity.EntityId, option 
 		panic("entity not found")
 	}
 
-	interactableComponentI, ok := entity.GetComponent(component.ComponentIdInteractable)
-	if !ok {
+	interactableComponent := entity.GetComponent(component.ComponentIdInteractable).(*component.CInteractable)
+	if interactableComponent == nil {
 		panic("interactable component not found")
 	}
-	interactableComponent := interactableComponentI.(*component.CInteractable)
 
 	for _, interactionOption := range interactableComponent.GetInteractionOptions() {
 		if interactionOption == option {

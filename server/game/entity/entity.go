@@ -37,9 +37,12 @@ func (e *Entity) GetComponents() *util.IdMap[component.Component, component.Comp
 	return e.components
 }
 
-func (e *Entity) GetComponent(componentId component.ComponentId) (component.Component, bool) {
+func (e *Entity) GetComponent(componentId component.ComponentId) component.Component {
 	component, ok := e.components.GetById(componentId)
-	return component, ok
+	if !ok {
+		return nil
+	}
+	return component
 }
 
 func (e *Entity) SetComponent(component component.Component) *Entity {
