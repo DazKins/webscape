@@ -2,34 +2,23 @@ package entity
 
 import (
 	"webscape/server/game/component"
+	"webscape/server/game/model"
 	"webscape/server/util"
-
-	"github.com/google/uuid"
 )
 
-type EntityId uuid.UUID
-
-func NewEntityId() EntityId {
-	return EntityId(uuid.New())
-}
-
-func (e EntityId) String() string {
-	return uuid.UUID(e).String()
-}
-
 type Entity struct {
-	id         EntityId
+	id         model.EntityId
 	components *util.IdMap[component.Component, component.ComponentId]
 }
 
-func NewEntity(id EntityId) *Entity {
+func NewEntity(id model.EntityId) *Entity {
 	return &Entity{
 		id:         id,
 		components: util.NewIdMap[component.Component](),
 	}
 }
 
-func (e *Entity) GetId() EntityId {
+func (e *Entity) GetId() model.EntityId {
 	return e.id
 }
 

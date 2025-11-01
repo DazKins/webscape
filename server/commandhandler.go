@@ -5,7 +5,7 @@ import (
 	"webscape/server/command"
 	"webscape/server/game"
 	"webscape/server/game/component"
-	"webscape/server/game/entity"
+	"webscape/server/game/model"
 	"webscape/server/message"
 
 	"github.com/google/uuid"
@@ -51,7 +51,7 @@ func (h *ClientCommandHandler) handleJoinCommand(clientID string, cmd command.Co
 		return
 	}
 
-	h.game.HandleJoin(clientID, entity.EntityId(uuid), name)
+	h.game.HandleJoin(clientID, model.EntityId(uuid), name)
 }
 
 func (h *ClientCommandHandler) handleMoveCommand(clientID string, cmd command.Command) {
@@ -77,5 +77,5 @@ func (h *ClientCommandHandler) handleInteractCommand(clientID string, cmd comman
 		return
 	}
 
-	h.game.HandleInteract(clientID, entity.EntityId(uuid), component.InteractionOption(option))
+	h.game.HandleInteract(clientID, model.EntityId(uuid), component.InteractionOption(option))
 }

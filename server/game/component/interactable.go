@@ -1,6 +1,8 @@
 package component
 
-import "webscape/server/game/component/componentheader"
+import (
+	"webscape/server/util"
+)
 
 const ComponentIdInteractable = ComponentId("interactable")
 
@@ -13,25 +15,17 @@ const (
 )
 
 type CInteractable struct {
-	componentheader.ComponentHeader
-	interactionOptions []InteractionOption
+	InteractionOptions []InteractionOption
 }
 
 func (c *CInteractable) GetId() ComponentId {
 	return ComponentIdInteractable
 }
 
-func (c *CInteractable) Serialize() map[string]any {
-	return map[string]any{
-		"interactionOptions": c.interactionOptions,
-	}
-}
-
-func (c *CInteractable) GetInteractionOptions() []InteractionOption {
-	return c.interactionOptions
-}
-
-func (c *CInteractable) SetInteractionOptions(interactionOptions []InteractionOption) {
-	c.interactionOptions = interactionOptions
-	c.Update()
+func (c *CInteractable) Serialize() util.Json {
+	return util.JObject(map[string]util.Json{
+		"interactionOptions": util.JArrayFrom(c.InteractionOptions, func(option InteractionOption) util.Json {
+			return util.JString(option)
+		}),
+	})
 }

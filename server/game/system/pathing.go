@@ -15,7 +15,7 @@ func (s *PathingSystem) Update() {
 		positionComponent := entity.GetComponent(component.ComponentIdPosition).(*component.CPosition)
 		pathingComponent := entity.GetComponent(component.ComponentIdPathing).(*component.CPathing)
 
-		path := pathingComponent.GetPath()
+		path := pathingComponent.Path
 
 		if path.Size() == 0 {
 			entity.RemoveComponent(component.ComponentIdPathing)
@@ -23,6 +23,6 @@ func (s *PathingSystem) Update() {
 		}
 
 		nextPosition := path.Pop()
-		positionComponent.SetPosition(*nextPosition)
+		positionComponent.Position = *nextPosition
 	}
 }

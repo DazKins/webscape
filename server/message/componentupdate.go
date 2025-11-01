@@ -2,16 +2,17 @@ package message
 
 import (
 	"webscape/server/game/component"
-	"webscape/server/game/entity"
+	"webscape/server/game/model"
+	"webscape/server/util"
 )
 
 type componentUpdateData struct {
-	EntityId    string         `json:"entityId"`
-	ComponentId string         `json:"componentId"`
-	Data        map[string]any `json:"data"`
+	EntityId    string    `json:"entityId"`
+	ComponentId string    `json:"componentId"`
+	Data        util.Json `json:"data"`
 }
 
-func NewComponentUpdateMessage(entityId entity.EntityId, componentId component.ComponentId, data map[string]any) Message {
+func NewComponentUpdateMessage(entityId model.EntityId, componentId component.ComponentId, data util.Json) Message {
 	return newMessage(
 		MessageTypeComponentUpdate,
 		componentUpdateData{

@@ -29,16 +29,16 @@ func (s *RandomWalkSystem) Update() {
 		randomwalkComponent := entity.GetComponent(component.ComponentIdRandomWalk).(*component.CRandomWalk)
 		positionComponent := entity.GetComponent(component.ComponentIdPosition).(*component.CPosition)
 
-		randomwalkComponent.SetWalkTimer(randomwalkComponent.GetWalkTimer() - 1)
-		if randomwalkComponent.GetWalkTimer() <= 0 {
+		randomwalkComponent.WalkTimer -= 1
+		if randomwalkComponent.WalkTimer <= 0 {
 			direction := DIRECTIONS[rand.Intn(len(DIRECTIONS))]
-			newPosition := positionComponent.GetPosition().Add(direction)
+			newPosition := positionComponent.Position.Add(direction)
 
 			if !s.World.GetWall(newPosition.X, newPosition.Y) {
-				positionComponent.SetPosition(newPosition)
+				positionComponent.Position = newPosition
 			}
 
-			randomwalkComponent.SetWalkTimer(WALK_TIMER + rand.Intn(WALK_TIMER_VARIANCE*2) - WALK_TIMER_VARIANCE)
+			randomwalkComponent.WalkTimer = WALK_TIMER + rand.Intn(WALK_TIMER_VARIANCE*2) - WALK_TIMER_VARIANCE
 		}
 	}
 }

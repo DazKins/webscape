@@ -1,12 +1,12 @@
 package message
 
-import "webscape/server/game/entity"
+import "webscape/server/game/model"
 
 type entityRemoveData struct {
 	Id string `json:"id"`
 }
 
-func NewEntityRemoveMessage(entityId entity.EntityId) Message {
+func NewEntityRemoveMessage(entityId model.EntityId) Message {
 	return newMessage(
 		MessageTypeEntityRemove,
 		entityRemoveData{

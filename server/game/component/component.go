@@ -1,5 +1,7 @@
 package component
 
+import "webscape/server/util"
+
 type ComponentId string
 
 func (c ComponentId) String() string {
@@ -8,10 +10,8 @@ func (c ComponentId) String() string {
 
 type Component interface {
 	GetId() ComponentId
-	ShouldSend() bool
-	MarkSent()
 }
 
 type SerializeableComponent interface {
-	Serialize() map[string]any
+	Serialize() util.Json
 }

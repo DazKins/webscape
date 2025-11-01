@@ -2,18 +2,21 @@ package entity
 
 import (
 	"webscape/server/game/component"
-	"webscape/server/game/world"
+	"webscape/server/game/model"
 	"webscape/server/math"
+	"webscape/server/util"
 )
 
-func CreatePlayerEntity(id EntityId, name string, world *world.World) *Entity {
-	positionComponent := &component.CPosition{}
-	positionComponent.SetPosition(math.Vec2{X: 0, Y: 0})
+func CreatePlayerEntity(id model.EntityId, name string) *Entity {
+	positionComponent := &component.CPosition{
+		Position: math.Vec2{X: 0, Y: 0},
+	}
 
-	metadataComponent := &component.CMetadata{}
-	metadataComponent.SetMetadata(map[string]any{
-		"name": name,
-	})
+	metadataComponent := &component.CMetadata{
+		Metadata: util.JObject(map[string]util.Json{
+			"name": util.JString(name),
+		}),
+	}
 
 	return NewEntity(id).
 		SetComponent(positionComponent).
