@@ -8,5 +8,10 @@ func (c ComponentId) String() string {
 
 type Component interface {
 	GetId() ComponentId
-	Update() bool
+	ShouldSend() bool
+	MarkSent()
+}
+
+type SerializeableComponent interface {
+	Serialize() map[string]any
 }

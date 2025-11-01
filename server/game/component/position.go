@@ -1,19 +1,15 @@
 package component
 
-import "webscape/server/math"
+import (
+	"webscape/server/game/componentheader"
+	"webscape/server/math"
+)
 
-const ComponentIdPosition ComponentId = "position"
+const ComponentIdPosition = ComponentId("position")
 
 type CPosition struct {
+	componentheader.ComponentHeader
 	position math.Vec2
-}
-
-func NewCPosition(position math.Vec2) *CPosition {
-	return &CPosition{position}
-}
-
-func (c *CPosition) Update() bool {
-	return false
 }
 
 func (c *CPosition) GetId() ComponentId {
@@ -33,4 +29,5 @@ func (c *CPosition) GetPosition() math.Vec2 {
 
 func (c *CPosition) SetPosition(position math.Vec2) {
 	c.position = position
+	c.Update()
 }

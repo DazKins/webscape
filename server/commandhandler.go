@@ -4,6 +4,7 @@ import (
 	"log"
 	"webscape/server/command"
 	"webscape/server/game"
+	"webscape/server/game/component"
 	"webscape/server/game/entity"
 	"webscape/server/message"
 
@@ -32,6 +33,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleMoveCommand(clientID, cmd)
 	case command.CommandTypeChat:
 		h.handleChatCommand(clientID, cmd)
+	case command.CommandTypeInteract:
+		h.handleInteractCommand(clientID, cmd)
 	}
 }
 
@@ -62,4 +65,17 @@ func (h *ClientCommandHandler) handleChatCommand(clientID string, cmd command.Co
 	message := cmd.Data["message"].(string)
 
 	h.game.HandleChat(clientID, message)
+}
+
+func (h *ClientCommandHandler) handleInteractCommand(clientID string, cmd command.Command) {
+	entityId := cmd.Data["entityId"].(string)
+	option := cmd.Data["option"].(string)
+
+	uuid, err := uuid.Parse(entityId)
+	if err != nil {
+		log.Printf("Invalid UUID: %v", err)
+		return
+	}
+
+	h.game.HandleInteract(clientID, entity.EntityId(uuid), component.InteractionOption(option))
 }

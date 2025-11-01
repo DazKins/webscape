@@ -13,6 +13,7 @@ export default function InteractionMenu(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   const [interactionMenuOpen, setInteractionMenuOpen] = useState(false);
+  const [entityId, setEntityId] = useState("");
   const [name, setName] = useState("");
   const [interactionOptions, setInteractionOptions] = useState<string[]>([]);
   const [positionX, setPositionX] = useState(0);
@@ -23,6 +24,7 @@ export default function InteractionMenu(props: Props) {
       return;
     }
     setInteractionMenuOpen(true);
+    setEntityId(event.entityId);
     setName(event.name);
     setInteractionOptions(event.interactionOptions);
     setPositionX(event.positionX);
@@ -54,6 +56,11 @@ export default function InteractionMenu(props: Props) {
     };
   }, []);
 
+  const handleInteractionOptionClick = (option: string): void => {
+    props.game.handleInteractionOptionClick(entityId, option);
+    setInteractionMenuOpen(false);
+  };
+
   return (
     interactionMenuOpen && (
       <AbsolutePositioned top={positionY} left={positionX}>
@@ -66,7 +73,11 @@ export default function InteractionMenu(props: Props) {
           <p className={styles.name}>{name}</p>
           <div className={styles.interactionOptions}>
             {interactionOptions.map((option, index) => (
-              <button className={styles.interactionOption} key={index}>
+              <button
+                className={styles.interactionOption}
+                key={index}
+                onClick={() => handleInteractionOptionClick(option)}
+              >
                 {option}
               </button>
             ))}

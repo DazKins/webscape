@@ -1,5 +1,9 @@
 package component
 
+import "webscape/server/game/componentheader"
+
+const ComponentIdInteractable = ComponentId("interactable")
+
 type InteractionOption string
 
 const (
@@ -8,26 +12,26 @@ const (
 	InteractionOptionAttack = "attack"
 )
 
-const ComponentIdInteractable ComponentId = "interactable"
-
 type CInteractable struct {
+	componentheader.ComponentHeader
 	interactionOptions []InteractionOption
-}
-
-func NewCInteractable(interactionOptions []InteractionOption) *CInteractable {
-	return &CInteractable{interactionOptions: interactionOptions}
 }
 
 func (c *CInteractable) GetId() ComponentId {
 	return ComponentIdInteractable
 }
 
-func (c *CInteractable) Update() bool {
-	return false
-}
-
 func (c *CInteractable) Serialize() map[string]any {
 	return map[string]any{
 		"interactionOptions": c.interactionOptions,
 	}
+}
+
+func (c *CInteractable) GetInteractionOptions() []InteractionOption {
+	return c.interactionOptions
+}
+
+func (c *CInteractable) SetInteractionOptions(interactionOptions []InteractionOption) {
+	c.interactionOptions = interactionOptions
+	c.Update()
 }

@@ -1,35 +1,38 @@
 package entity
 
 import (
-	"fmt"
 	"math/rand"
-	"webscape/server/game/entity/component"
-	"webscape/server/game/world"
+	"strconv"
+	"webscape/server/game/component"
 	"webscape/server/math"
-	"webscape/server/util"
 )
 
 func CreateDudeEntity(
-	world *world.World,
-	id util.Optional[EntityId],
 	name string,
 	position math.Vec2,
 ) *Entity {
-	positionComponent := component.NewCPosition(position)
-	metadataComponent := component.NewCMetadata(map[string]any{
+	positionComponent := &component.CPosition{}
+	positionComponent.SetPosition(position)
+
+	metadataComponent := &component.CMetadata{}
+	metadataComponent.SetMetadata(map[string]any{
 		"name":  name,
-		"color": fmt.Sprintf("#%06X", rand.Intn(0xFFFFFF)),
+		"color": "#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16),
 	})
-	interactableComponent := component.NewCInteractable([]component.InteractionOption{
+
+	interactableComponent := &component.CInteractable{}
+	interactableComponent.SetInteractionOptions([]component.InteractionOption{
 		component.InteractionOptionTalk,
 		component.InteractionOptionTrade,
 		component.InteractionOptionAttack,
 	})
-	randomWalkComponent := component.NewCRandomWalk(world, positionComponent)
 
-	return NewEntity(id).
-		AddComponent(positionComponent).
-		AddComponent(metadataComponent).
-		AddComponent(interactableComponent).
-		AddComponent(randomWalkComponent)
+	randomwalkComponent := &component.CRandomWalk{}
+	randomwalkComponent.SetWalkTimer(10)
+
+	return NewEntity(NewEntityId()).
+		SetComponent(positionComponent).
+		SetComponent(metadataComponent).
+		SetComponent(interactableComponent).
+		SetComponent(randomwalkComponent)
 }

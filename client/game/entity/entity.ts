@@ -70,30 +70,34 @@ class Entity {
     }, 7000);
   }
 
-  handleEntityUpdate(entityUpdate: any) {
-    const positionComponent = entityUpdate.components.position;
-    const metadataComponent = entityUpdate.components.metadata;
-    const interactableComponent = entityUpdate.components.interactable;
+  handleComponentUpdate(componentId: string, data: any) {
+    switch (componentId) {
+      case "position":
+        this.positionX = data.x;
+        this.positionY = data.y;
+        break;
+      case "metadata":
+        if (data.name && data.name !== this.name) {
+          const name = data.name as string;
+          this.name = name;
+          const namecard = createReactCss2dObject(EntityNamecard, { name });
+          namecard.position.set(0, 1.5, 0);
+          this.mesh.add(namecard);
+        }
 
-    this.positionX = positionComponent.x;
-    this.positionY = positionComponent.y;
-    if (metadataComponent.name && metadataComponent.name !== this.name) {
-      const name = metadataComponent.name as string;
-      this.name = name;
-      const namecard = createReactCss2dObject(EntityNamecard, { name });
-      namecard.position.set(0, 1.5, 0);
-      this.mesh.add(namecard);
-    }
-
-    if (interactableComponent) {
-      this.interactionOptions = interactableComponent.interactionOptions;
-    }
-
-    if (metadataComponent.color) {
-      const body = this.mesh.children[0];
-      if (body instanceof THREE.Mesh) {
-        body.material.color.set(metadataComponent.color);
-      }
+        if (data.color) {
+          const body = this.mesh.children[0];
+          if (body instanceof THREE.Mesh) {
+            body.material.color.set(data.color);
+          }
+        }
+        break;
+      case "interactable":
+        this.interactionOptions = data.interactionOptions;
+        break;
+      default:
+        console.log("Unknown component ID:", componentId);
+        break;
     }
   }
 

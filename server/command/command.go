@@ -7,9 +7,10 @@ import (
 type CommandType string
 
 const (
-	CommandTypeJoin = "join"
-	CommandTypeMove = "move"
-	CommandTypeChat = "chat"
+	CommandTypeJoin     = "join"
+	CommandTypeMove     = "move"
+	CommandTypeChat     = "chat"
+	CommandTypeInteract = "interact"
 )
 
 type Command struct {

@@ -221,15 +221,18 @@ class Game extends EventTarget implements InputReceiver {
     this.entities.push(entity);
   }
 
-  handleEntityUpdate(entityUpdate: any) {
-    let entity = this.entities.find((e) => e.id === entityUpdate.id);
+  handleComponentUpdate(componentUpdate: any) {
+    const entityId = componentUpdate.entityId;
+    const componentId = componentUpdate.componentId;
+    const data = componentUpdate.data;
 
+    let entity = this.entities.find((e) => e.id === entityId);
     if (!entity) {
-      entity = new Entity(entityUpdate.id, this.scene);
+      entity = new Entity(entityId, this.scene);
       this.addEntity(entity);
     }
 
-    entity.handleEntityUpdate(entityUpdate);
+    entity.handleComponentUpdate(componentId, data);
   }
 
   handleEntityRemove(entityId: string) {
@@ -290,6 +293,15 @@ class Game extends EventTarget implements InputReceiver {
     if (entity) {
       entity.handleChat(message);
     }
+  }
+
+  handleInteractionOptionClick(entityId: string, option: string) {
+    this.wsClient.sendMessage(
+      createCommand("interact", {
+        entityId,
+        option,
+      })
+    );
   }
 }
 

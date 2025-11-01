@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"webscape/server/game/entity/component"
+	"webscape/server/game/component"
 	"webscape/server/util"
 
 	"github.com/google/uuid"
@@ -9,24 +9,23 @@ import (
 
 type EntityId uuid.UUID
 
-func (id EntityId) String() string {
-	return uuid.UUID(id).String()
+func NewEntityId() EntityId {
+	return EntityId(uuid.New())
+}
+
+func (e EntityId) String() string {
+	return uuid.UUID(e).String()
 }
 
 type Entity struct {
 	id         EntityId
-	components []component.Component
+	components *util.IdMap[component.Component, component.ComponentId]
 }
 
-func NewEntity(id util.Optional[EntityId]) *Entity {
-	rawId := EntityId(uuid.New())
-	if id.IsPresent() {
-		rawId = id.Unwrap()
-	}
-
+func NewEntity(id EntityId) *Entity {
 	return &Entity{
-		id:         rawId,
-		components: []component.Component{},
+		id:         id,
+		components: util.NewIdMap[component.Component](),
 	}
 }
 
@@ -34,30 +33,21 @@ func (e *Entity) GetId() EntityId {
 	return e.id
 }
 
-func (e *Entity) AddComponent(component component.Component) *Entity {
-	e.components = append(e.components, component)
-	return e
-}
-
-func (e *Entity) GetComponent(id component.ComponentId) component.Component {
-	for _, component := range e.components {
-		if component.GetId() == id {
-			return component
-		}
-	}
-	return nil
-}
-
-func (e *Entity) GetComponents() []component.Component {
+func (e *Entity) GetComponents() *util.IdMap[component.Component, component.ComponentId] {
 	return e.components
 }
 
-func (e *Entity) Update() bool {
-	anyUpdated := false
-	for _, component := range e.components {
-		if component.Update() {
-			anyUpdated = true
-		}
-	}
-	return anyUpdated
+func (e *Entity) GetComponent(componentId component.ComponentId) (component.Component, bool) {
+	component, ok := e.components.GetById(componentId)
+	return component, ok
+}
+
+func (e *Entity) SetComponent(component component.Component) *Entity {
+	e.components.Put(component)
+	return e
+}
+
+func (e *Entity) RemoveComponent(componentId component.ComponentId) *Entity {
+	e.components.DeleteById(componentId)
+	return e
 }
