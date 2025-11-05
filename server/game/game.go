@@ -132,6 +132,8 @@ func (g *Game) update() {
 		system.Update()
 	}
 
+	updatedComponents := make(map[model.EntityId]map[component.ComponentId]util.Json)
+
 	for _, entity := range g.entities.Values() {
 		entitySerialisedComponents := g.prevSerialisedComponents[entity.GetId()]
 		if entitySerialisedComponents == nil {
@@ -153,11 +155,15 @@ func (g *Game) update() {
 
 			entitySerialisedComponents[comp.GetId()] = serialized
 
-			g.broadcastMessage(message.NewComponentUpdateMessage(
-				entity.GetId(),
-				comp.GetId(), serialized),
-			)
+			if updatedComponents[entity.GetId()] == nil {
+				updatedComponents[entity.GetId()] = make(map[component.ComponentId]util.Json)
+			}
+			updatedComponents[entity.GetId()][comp.GetId()] = serialized
 		}
+	}
+
+	if len(updatedComponents) > 0 {
+		g.broadcastMessage(message.NewGameUpdateMessage(updatedComponents))
 	}
 }
 
@@ -189,18 +195,10 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 	g.sendMessage(clientID, message.NewJoinedMessage(id.String()))
 	g.sendMessage(clientID, message.NewWorldMessage(g.world))
 
-	for _, e := range g.entities.Values() {
-		components := e.GetComponents()
-		for _, comp := range components.Values() {
-			if serializeableComp, ok := comp.(component.SerializeableComponent); ok {
-				g.sendMessage(clientID, message.NewComponentUpdateMessage(
-					e.GetId(),
-					comp.GetId(),
-					serializeableComp.Serialize(),
-				))
-			}
-		}
-	}
+	// This seems hacky. Could be race conditions if we try
+	// to send the new client the state of all entities while
+	// a game tick is in progress. Works for now.
+	g.sendMessage(clientID, message.NewGameUpdateMessage(g.prevSerialisedComponents))
 }
 
 func (g *Game) HandleMove(clientID string, x int, y int) {

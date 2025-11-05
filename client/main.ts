@@ -36,8 +36,8 @@ const wsClient = new WebSocketClient({
     const data = msg.data;
 
     switch (type) {
-      case "componentUpdate":
-        game.handleComponentUpdate(data);
+      case "gameUpdate":
+        game.handleGameUpdate(data);
         break;
       case "entityRemove":
         game.handleEntityRemove(data.entityId);

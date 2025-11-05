@@ -171,18 +171,22 @@ class Game extends EventTarget implements InputReceiver {
     this.entities.push(entity);
   }
 
-  handleComponentUpdate(componentUpdate: any) {
-    const entityId = componentUpdate.entityId;
-    const componentId = componentUpdate.componentId;
-    const data = componentUpdate.data;
+  handleGameUpdate(componentUpdate: any) {
+    const entities = componentUpdate.entities;
 
-    let entity = this.entities.find((e) => e.id === entityId);
-    if (!entity) {
-      entity = new Entity(entityId, this.scene);
-      this.addEntity(entity);
+    for (const entity of entities) {
+      const entityId = entity.entityId;
+      const componentId = entity.componentId;
+      const data = entity.data;
+
+      let localEntity = this.entities.find((e) => e.id === entityId);
+      if (!localEntity) {
+        localEntity = new Entity(entityId, this.scene);
+        this.addEntity(localEntity);
+      }
+
+      localEntity.handleComponentUpdate(componentId, data);
     }
-
-    entity.handleComponentUpdate(componentId, data);
   }
 
   handleEntityRemove(entityId: string) {

@@ -3,15 +3,15 @@ package message
 type MessageType string
 
 const (
-	MessageTypeEntityUpdate    = "entityUpdate"
-	MessageTypeComponentUpdate = "componentUpdate"
-	MessageTypeJoin            = "join"
-	MessageTypeJoined          = "joined"
-	MessageTypeJoinFailed      = "joinFailed"
-	MessageTypeWorld           = "world"
-	MessageTypeMove            = "move"
-	MessageTypeEntityRemove    = "entityRemove"
-	MessageTypeChat            = "chat"
+	MessageTypeEntityUpdate = "entityUpdate"
+	MessageTypeGameUpdate   = "gameUpdate"
+	MessageTypeJoin         = "join"
+	MessageTypeJoined       = "joined"
+	MessageTypeJoinFailed   = "joinFailed"
+	MessageTypeWorld        = "world"
+	MessageTypeMove         = "move"
+	MessageTypeEntityRemove = "entityRemove"
+	MessageTypeChat         = "chat"
 )
 
 func (m MessageType) String() string {
