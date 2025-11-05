@@ -7,24 +7,17 @@ import * as THREE from "three";
 import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
 import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
+import Camera from "./camera.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
   myPlayerId!: string;
   scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera;
+  camera: Camera;
   renderer: THREE.WebGLRenderer;
   cssRenderer2d: CSS2DRenderer;
   myLocationHighlightMesh: THREE.Mesh;
   entities: Entity[];
-
-  cameraDistance: number;
-  cameraAngle: number;
-  cameraHeight: number;
-  orbitSpeed: number;
-  heightSpeed: number;
-  minHeight: number;
-  maxHeight: number;
 
   input: Input;
   world!: World;
@@ -35,14 +28,8 @@ class Game extends EventTarget implements InputReceiver {
     super();
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    this.camera.position.z = 5;
-    this.camera.position.y = 5;
+    this.input = new Input();
+    this.camera = new Camera(this.input);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -66,14 +53,6 @@ class Game extends EventTarget implements InputReceiver {
     this.onWindowResize = this.onWindowResize.bind(this);
     window.addEventListener("resize", this.onWindowResize, false);
 
-    this.cameraDistance = 5;
-    this.cameraAngle = 0;
-    this.cameraHeight = 5;
-    this.orbitSpeed = 0.05;
-    this.heightSpeed = 0.1;
-    this.minHeight = 2;
-    this.maxHeight = 10;
-
     this.myLocationHighlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
@@ -88,8 +67,6 @@ class Game extends EventTarget implements InputReceiver {
     this.scene.add(this.myLocationHighlightMesh);
 
     this.entities = [];
-
-    this.input = new Input();
 
     this.input.registerClickCallback(() => {
       const hoveredTile = this.world.getHoveredTile(this.camera);
@@ -109,7 +86,10 @@ class Game extends EventTarget implements InputReceiver {
       const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
 
       const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), this.camera);
+      raycaster.setFromCamera(
+        new THREE.Vector2(mouseX, mouseY),
+        this.camera.getInnerCamera()
+      );
       const intersects = raycaster.intersectObjects(
         this.entities.map((e) => e.mesh),
         true
@@ -182,39 +162,9 @@ class Game extends EventTarget implements InputReceiver {
     const myEntity = this.getMyEntity();
     if (!myEntity) return;
 
-    if (this.input.getKey("arrowleft")) {
-      this.cameraAngle += this.orbitSpeed;
-    }
-    if (this.input.getKey("arrowright")) {
-      this.cameraAngle -= this.orbitSpeed;
-    }
-
-    if (this.input.getKey("arrowup")) {
-      this.cameraHeight = Math.min(
-        this.cameraHeight + this.heightSpeed,
-        this.maxHeight
-      );
-    }
-    if (this.input.getKey("arrowdown")) {
-      this.cameraHeight = Math.max(
-        this.cameraHeight - this.heightSpeed,
-        this.minHeight
-      );
-    }
-
-    const targetX = myEntity.mesh.position.x;
-    const targetY = myEntity.mesh.position.z;
-
-    this.cameraTargetX += (targetX - this.cameraTargetX) * 0.1;
-    this.cameraTargetY += (targetY - this.cameraTargetY) * 0.1;
-
-    this.camera.position.x =
-      this.cameraTargetX + Math.cos(this.cameraAngle) * this.cameraDistance;
-    this.camera.position.z =
-      this.cameraTargetY + Math.sin(this.cameraAngle) * this.cameraDistance;
-    this.camera.position.y = this.cameraHeight;
-
-    this.camera.lookAt(this.cameraTargetX, 0, this.cameraTargetY);
+    this.camera.update(
+      new THREE.Vector3(myEntity.mesh.position.x, 0, myEntity.mesh.position.z)
+    );
   }
 
   addEntity(entity: Entity) {
@@ -256,16 +206,15 @@ class Game extends EventTarget implements InputReceiver {
     }
 
     this.entities.forEach((e) => e.update());
-    this.renderer.render(this.scene, this.camera);
-    this.cssRenderer2d.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.camera.getInnerCamera());
+    this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
     if (this.world) {
       this.world.update(this.camera);
     }
   }
 
   onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
+    this.camera.onWindowResize();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
   }

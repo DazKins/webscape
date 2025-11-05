@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Input from "../../input";
+import Camera from "../camera";
 
 class World {
   sizeX: number;
@@ -81,13 +82,13 @@ class World {
     });
   }
 
-  getHoveredTile(camera: THREE.PerspectiveCamera) {
+  getHoveredTile(camera: Camera) {
     const mouse = this.input.getMousePosition();
     const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
     const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
 
     const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
+    raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera.getInnerCamera());
 
     const intersects = raycaster.intersectObject(this.mesh);
 
@@ -101,7 +102,7 @@ class World {
     }
   }
 
-  update(camera: THREE.PerspectiveCamera) {
+  update(camera: Camera) {
     const hoveredTile = this.getHoveredTile(camera);
     if (hoveredTile) {
       this.highlightMesh.position.x = hoveredTile.x + 0.5;
