@@ -36,9 +36,14 @@ func CreateDudeEntity(
 		WalkTimer: 10,
 	}
 
+	renderableComponent := &component.CRenderable{
+		Type: "human",
+	}
+
 	return NewEntity(model.NewEntityId()).
 		SetComponent(positionComponent).
 		SetComponent(metadataComponent).
 		SetComponent(interactableComponent).
-		SetComponent(randomwalkComponent)
+		SetComponent(randomwalkComponent).
+		SetComponent(renderableComponent)
 }

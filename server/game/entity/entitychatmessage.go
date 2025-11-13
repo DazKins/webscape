@@ -13,7 +13,11 @@ func CreateChatMessageEntity(fromEntityId model.EntityId, message string) *Entit
 		Message:      message,
 		Ttl:          ChatMessageTtl,
 	}
+	renderableComponent := &component.CRenderable{
+		Type: "chatmessage",
+	}
 
 	return NewEntity(model.NewEntityId()).
-		SetComponent(chatMessageComponent)
+		SetComponent(chatMessageComponent).
+		SetComponent(renderableComponent)
 }

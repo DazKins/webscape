@@ -18,7 +18,12 @@ func CreatePlayerEntity(id model.EntityId, name string) *Entity {
 		}),
 	}
 
+	renderableComponent := &component.CRenderable{
+		Type: "human",
+	}
+
 	return NewEntity(id).
 		SetComponent(positionComponent).
-		SetComponent(metadataComponent)
+		SetComponent(metadataComponent).
+		SetComponent(renderableComponent)
 }
