@@ -9,6 +9,7 @@ import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
 import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
 import Camera from "./camera.ts";
 import EntityRenderSystem from "./entityRenderSystem.ts";
+import { ChatMessageEvent } from "../events/chat.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -115,8 +116,8 @@ class Game extends EventTarget implements InputReceiver {
           this.dispatchEvent(
             new InteractionMenuOpenEvent(
               entity.getId(),
-              entity.getComponent("metadata").name || "Unnamed?!?!",
-              entity.getComponent("interactable").interactionOptions,
+              entity.getComponent("metadata")?.name || "Unnamed?!?!",
+              entity.getComponent("interactable")?.interactionOptions || [],
               event.clientX,
               event.clientY
             )
@@ -178,18 +179,40 @@ class Game extends EventTarget implements InputReceiver {
   handleGameUpdate(gameUpdate: any) {
     console.log("Game update");
 
-    const entities = gameUpdate.entities;
+    const entityComponentsUpdates = gameUpdate.entities;
 
-    for (const entity of entities) {
-      const entityId = entity.entityId;
-      const componentId = entity.componentId;
-      const data = entity.data;
+    for (const entityComponentUpdate of entityComponentsUpdates) {
+      const entityId = entityComponentUpdate.entityId;
+      const componentId = entityComponentUpdate.componentId;
+      const data = entityComponentUpdate.data;
 
       let localEntity = this.entities.find((e) => e.getId() === entityId);
       if (!localEntity) {
         console.log("Adding new entity", entityId);
         localEntity = new Entity(entityId);
         this.entities.push(localEntity);
+      }
+
+      if (componentId === "chatmessage" && data) {
+        console.log("Chat message", data.message);
+
+        const fromEntityId = data.fromEntityId;
+
+        const fromEntity = this.entities.find((e) => e.getId() === fromEntityId);
+        if (!fromEntity) {
+          console.log("From entity not found", fromEntityId);
+          continue;
+        }
+
+        const fromEntityMetadata = fromEntity.getComponent("metadata");
+        if (!fromEntityMetadata) {
+          console.log("From entity metadata not found", fromEntityId);
+          continue;
+        }
+
+        this.dispatchEvent(
+          new ChatMessageEvent(data.message, fromEntityMetadata.name ?? "Unknown")
+        );
       }
 
       if (data === null) {

@@ -6,6 +6,8 @@
 }
 
 .header {
+  font-weight: bold;
+  font-size: 16px;
   display: flex;
   height: 30px;
   justify-content: space-between;
@@ -22,13 +24,27 @@
   box-sizing: border-box;
 }
 
+.chat {
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.chatFrom {
+  font-weight: bold;
+}
+
 .input {
   height: 30px;
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
+  gap: 10px;
   align-items: center;
   padding: 5px;
   border-top: 1px solid rgba(230, 230, 230, 1.0);
   overflow: hidden;
   box-sizing: border-box;
+}
+
+.inputPrefix {
+  font-weight: bold;
 }

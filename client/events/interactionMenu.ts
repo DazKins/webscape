@@ -1,3 +1,5 @@
+export const InteractionMenuOpenEventName = "interactionMenuOpen";
+
 export class InteractionMenuOpenEvent extends Event {
   constructor(
     public entityId: string,
@@ -6,6 +8,6 @@ export class InteractionMenuOpenEvent extends Event {
     public positionX: number,
     public positionY: number
   ) {
-    super("interactionMenuOpen");
+    super(InteractionMenuOpenEventName);
   }
 }
