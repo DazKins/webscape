@@ -23,11 +23,11 @@ type RandomWalkSystem struct {
 }
 
 func (s *RandomWalkSystem) Update() {
-	entities := s.entityGetter.GetEntitiesWithComponents(component.ComponentIdPosition, component.ComponentIdRandomWalk)
+	entityIds := s.ComponentManager.GetEntitiesWithComponents(component.ComponentIdPosition, component.ComponentIdRandomWalk)
 
-	for _, entity := range entities {
-		randomwalkComponent := entity.GetComponent(component.ComponentIdRandomWalk).(*component.CRandomWalk)
-		positionComponent := entity.GetComponent(component.ComponentIdPosition).(*component.CPosition)
+	for _, entityId := range entityIds {
+		randomwalkComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdRandomWalk, entityId).(*component.CRandomWalk)
+		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
 
 		randomwalkComponent.WalkTimer -= 1
 		if randomwalkComponent.WalkTimer <= 0 {

@@ -8,6 +8,10 @@ type JNull struct{}
 
 func (JNull) isJson() {}
 
+func (JNull) MarshalJSON() ([]byte, error) {
+	return []byte("null"), nil
+}
+
 type JBool bool
 
 func (JBool) isJson() {}

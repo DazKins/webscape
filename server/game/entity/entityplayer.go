@@ -7,7 +7,7 @@ import (
 	"webscape/server/util"
 )
 
-func CreatePlayerEntity(id model.EntityId, name string) *Entity {
+func CreatePlayerEntity(id model.EntityId, name string) []component.Component {
 	positionComponent := &component.CPosition{
 		Position: math.Vec2{X: 0, Y: 0},
 	}
@@ -18,7 +18,13 @@ func CreatePlayerEntity(id model.EntityId, name string) *Entity {
 		}),
 	}
 
-	return NewEntity(id).
-		SetComponent(positionComponent).
-		SetComponent(metadataComponent)
+	renderableComponent := &component.CRenderable{
+		Type: "human",
+	}
+
+	return []component.Component{
+		positionComponent,
+		metadataComponent,
+		renderableComponent,
+	}
 }

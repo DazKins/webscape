@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"strconv"
 	"webscape/server/game/component"
-	"webscape/server/game/model"
 	"webscape/server/math"
 	"webscape/server/util"
 )
@@ -12,7 +11,7 @@ import (
 func CreateDudeEntity(
 	name string,
 	position math.Vec2,
-) *Entity {
+) []component.Component {
 	positionComponent := &component.CPosition{
 		Position: position,
 	}
@@ -36,9 +35,15 @@ func CreateDudeEntity(
 		WalkTimer: 10,
 	}
 
-	return NewEntity(model.NewEntityId()).
-		SetComponent(positionComponent).
-		SetComponent(metadataComponent).
-		SetComponent(interactableComponent).
-		SetComponent(randomwalkComponent)
+	renderableComponent := &component.CRenderable{
+		Type: "human",
+	}
+
+	return []component.Component{
+		positionComponent,
+		metadataComponent,
+		interactableComponent,
+		randomwalkComponent,
+		renderableComponent,
+	}
 }

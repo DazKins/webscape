@@ -43,3 +43,8 @@ func (e *Entity) RemoveComponent(componentId component.ComponentId) *Entity {
 	e.components.DeleteById(componentId)
 	return e
 }
+
+func (e *Entity) RemoveAllComponents() *Entity {
+	e.components = util.NewIdMap[component.Component]()
+	return e
+}

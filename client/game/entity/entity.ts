@@ -1,109 +1,30 @@
-import * as THREE from "three";
-import { CSS2DObject } from "three/examples/jsm/Addons.js";
-import OverheadChat from "../../ui/components/overheadChat";
-import { createReactCss2dObject } from "../../util/reactCss2dObject";
-import EntityNamecard from "../../ui/components/entityNamecard";
-
 class Entity {
-  id: string;
-  scene: THREE.Scene;
-  interactionOptions: string[];
-  mesh: THREE.Group;
-  positionX: number;
-  positionY: number;
-  name?: string;
-  chat?: CSS2DObject;
+  private id: string;
+  private components: Record<string, any>;
 
-  constructor(id: string, scene: THREE.Scene) {
+  constructor(id: string) {
     this.id = id;
-    this.scene = scene;
-    this.interactionOptions = [];
-    this.positionX = 0;
-    this.positionY = 0;
-
-    this.mesh = new THREE.Group();
-    this.mesh.userData.entityId = id;
-
-    const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 16);
-    const bodyMaterial = new THREE.MeshPhongMaterial({
-      color: 0x00ff00,
-    });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.4;
-    this.mesh.add(body);
-
-    const headGeometry = new THREE.SphereGeometry(0.25, 16, 16);
-    const headMaterial = new THREE.MeshPhongMaterial({
-      color: 0xffe0bd,
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 0.9;
-    this.mesh.add(head);
-
-    this.scene.add(this.mesh);
+    this.components = {};
   }
 
-  update() {
-    this.mesh.position.x +=
-      (this.positionX + 0.5 - this.mesh.position.x) * 0.05;
-    this.mesh.position.z +=
-      (this.positionY + 0.5 - this.mesh.position.z) * 0.05;
+  getId() {
+    return this.id;
   }
 
-  chatTimeoutId?: number;
-
-  handleChat(text: string) {
-    if (this.chatTimeoutId) {
-      clearTimeout(this.chatTimeoutId);
-    }
-    if (this.chat) {
-      this.mesh.remove(this.chat);
-    }
-    this.chat = createReactCss2dObject(OverheadChat, { text });
-    this.chat.position.set(0, 2, 0);
-    this.mesh.add(this.chat);
-    this.chatTimeoutId = setTimeout(() => {
-      if (this.chat) {
-        this.mesh.remove(this.chat);
-      }
-      this.chat = undefined;
-    }, 7000);
+  updateComponent(componentId: string, data: any) {
+    this.components[componentId] = data;
   }
 
-  handleComponentUpdate(componentId: string, data: any) {
-    switch (componentId) {
-      case "position":
-        this.positionX = data.x;
-        this.positionY = data.y;
-        break;
-      case "metadata":
-        if (data.name && data.name !== this.name) {
-          const name = data.name as string;
-          this.name = name;
-          const namecard = createReactCss2dObject(EntityNamecard, { name });
-          namecard.position.set(0, 1.5, 0);
-          this.mesh.add(namecard);
-        }
-
-        if (data.color) {
-          const body = this.mesh.children[0];
-          if (body instanceof THREE.Mesh) {
-            body.material.color.set(data.color);
-          }
-        }
-        break;
-      case "interactable":
-        this.interactionOptions = data.interactionOptions;
-        break;
-      default:
-        console.log("Unknown component ID:", componentId);
-        break;
-    }
+  getComponent(componentId: string) {
+    return this.components[componentId];
   }
 
-  remove() {
-    console.log("Removing entity from scene", this.id);
-    this.scene.remove(this.mesh);
+  isEmpty() {
+    return Object.keys(this.components).length === 0;
+  }
+
+  removeComponent(componentId: string) {
+    delete this.components[componentId];
   }
 }
 

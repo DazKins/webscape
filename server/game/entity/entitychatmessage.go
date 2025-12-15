@@ -7,13 +7,18 @@ import (
 
 const ChatMessageTtl = 10
 
-func CreateChatMessageEntity(fromEntityId model.EntityId, message string) *Entity {
+func CreateChatMessageEntity(fromEntityId model.EntityId, message string) []component.Component {
 	chatMessageComponent := &component.CChatMessage{
 		FromEntityId: fromEntityId,
 		Message:      message,
 		Ttl:          ChatMessageTtl,
 	}
+	renderableComponent := &component.CRenderable{
+		Type: "chatmessage",
+	}
 
-	return NewEntity(model.NewEntityId()).
-		SetComponent(chatMessageComponent)
+	return []component.Component{
+		chatMessageComponent,
+		renderableComponent,
+	}
 }

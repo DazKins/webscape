@@ -25,10 +25,10 @@ type Game struct {
 	sendMessage        MessageSender
 	broadcastMessage   MessageBroadcaster
 
-	entities *util.IdMap[*entity.Entity, model.EntityId]
-	systems  []system.System
+	systems []system.System
 
-	prevSerialisedComponents map[model.EntityId]map[component.ComponentId]util.Json
+	componentManager         *component.ComponentManager
+	prevSerialisedComponents map[component.ComponentId]map[model.EntityId]util.Json
 }
 
 var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George", "Hannah", "Isaac", "Jack"}
@@ -41,10 +41,10 @@ func NewGame() *Game {
 		world:              world,
 		done:               make(chan bool),
 
-		entities: util.NewIdMap[*entity.Entity](),
-		systems:  []system.System{},
+		componentManager: component.NewComponentManager(),
+		systems:          []system.System{},
 
-		prevSerialisedComponents: make(map[model.EntityId]map[component.ComponentId]util.Json),
+		prevSerialisedComponents: make(map[component.ComponentId]map[model.EntityId]util.Json),
 	}
 
 	for i := range 3 {
@@ -53,57 +53,60 @@ func NewGame() *Game {
 			position = math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}
 		}
 
-		game.AddEntity(entity.CreateDudeEntity(
+		components := entity.CreateDudeEntity(
 			NAMES[i],
 			position,
-		))
+		)
+		game.componentManager.CreateNewEntity(components...)
 	}
 
-	game.RegisterSystem(&system.PathingSystem{})
+	game.RegisterSystem(&system.PathingSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	})
 	game.RegisterSystem(&system.RandomWalkSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
 		World: world,
 	})
-	game.RegisterSystem(&system.ChatMessageSystem{})
+	game.RegisterSystem(&system.ChatMessageSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	})
 
 	return game
 }
 
 func (g *Game) RegisterSystem(system system.System) {
-	system.SetEntityGetter(g)
 	g.systems = append(g.systems, system)
 }
 
-func (g *Game) AddEntity(entity *entity.Entity) {
-	g.entities.Put(entity)
-}
+func (g *Game) GetEntitiesWithComponents(componentIds ...component.ComponentId) []model.EntityId {
+	if len(componentIds) == 0 {
+		return []model.EntityId{}
+	}
 
-func (g *Game) GetEntity(entityId model.EntityId) (*entity.Entity, bool) {
-	return g.entities.GetById(entityId)
-}
-
-func (g *Game) RemoveEntity(entityId model.EntityId) {
-	g.entities.DeleteById(entityId)
-	g.broadcastMessage(message.NewEntityRemoveMessage(entityId))
-}
-
-func (g *Game) GetEntities() []*entity.Entity {
-	return g.entities.Values()
-}
-
-func (g *Game) GetEntitiesWithComponents(componentIds ...component.ComponentId) []*entity.Entity {
-	entities := make([]*entity.Entity, 0)
-	for _, entity := range g.entities.Values() {
-		match := true
-		for _, componentId := range componentIds {
-			if entity.GetComponent(componentId) == nil {
-				match = false
-			}
-		}
-		if match {
-			entities = append(entities, entity)
+	// Count how many of the requested components each entity has
+	entityCounts := make(map[model.EntityId]int)
+	for _, componentId := range componentIds {
+		for entityId := range g.componentManager.GetComponent(componentId) {
+			entityCounts[entityId]++
 		}
 	}
-	return entities
+
+	// Only keep entities that have all requested components
+	result := make([]model.EntityId, 0)
+	requiredCount := len(componentIds)
+	for entityId, count := range entityCounts {
+		if count == requiredCount {
+			result = append(result, entityId)
+		}
+	}
+
+	return result
 }
 
 func (g *Game) StartUpdateLoop() {
@@ -122,48 +125,53 @@ func (g *Game) StartUpdateLoop() {
 }
 
 func (g *Game) update() {
-	for _, entity := range g.entities.Values() {
-		if len(entity.GetComponents().Values()) == 0 {
-			g.RemoveEntity(entity.GetId())
-		}
-	}
-
 	for _, system := range g.systems {
 		system.Update()
 	}
 
-	updatedComponents := make(map[model.EntityId]map[component.ComponentId]util.Json)
+	updatedComponents := make(map[component.ComponentId]map[model.EntityId]util.Json)
 
-	for _, entity := range g.entities.Values() {
-		entitySerialisedComponents := g.prevSerialisedComponents[entity.GetId()]
-		if entitySerialisedComponents == nil {
-			entitySerialisedComponents = make(map[component.ComponentId]util.Json)
-			g.prevSerialisedComponents[entity.GetId()] = entitySerialisedComponents
+	for componentId, entities := range g.componentManager.GetAllComponents() {
+		prevSerialisedEntities := g.prevSerialisedComponents[componentId]
+		if prevSerialisedEntities == nil {
+			prevSerialisedEntities = make(map[model.EntityId]util.Json)
+			g.prevSerialisedComponents[componentId] = prevSerialisedEntities
 		}
 
-		for _, comp := range entity.GetComponents().Values() {
-			serializeableComp, ok := comp.(component.SerializeableComponent)
+		for entityId, comp := range entities {
+			serializeableComponent, ok := comp.(component.SerializeableComponent)
 			if !ok {
 				continue
 			}
 
-			serialized := serializeableComp.Serialize()
+			serialized := serializeableComponent.Serialize()
 
-			if util.JsonEqual(entitySerialisedComponents[comp.GetId()], serialized) {
+			if util.JsonEqual(prevSerialisedEntities[entityId], serialized) {
 				continue
 			}
 
-			entitySerialisedComponents[comp.GetId()] = serialized
+			prevSerialisedEntities[entityId] = serialized
 
-			if updatedComponents[entity.GetId()] == nil {
-				updatedComponents[entity.GetId()] = make(map[component.ComponentId]util.Json)
+			if updatedComponents[componentId] == nil {
+				updatedComponents[componentId] = make(map[model.EntityId]util.Json)
 			}
-			updatedComponents[entity.GetId()][comp.GetId()] = serialized
+			updatedComponents[componentId][entityId] = serialized
 		}
 	}
 
-	if len(updatedComponents) > 0 {
-		g.broadcastMessage(message.NewGameUpdateMessage(updatedComponents))
+	removedComponents := make(map[component.ComponentId][]model.EntityId)
+
+	for componentId, prevSerialisedEntities := range g.prevSerialisedComponents {
+		for entityId := range prevSerialisedEntities {
+			if g.componentManager.GetEntityComponent(componentId, entityId) == nil {
+				removedComponents[componentId] = append(removedComponents[componentId], entityId)
+				delete(prevSerialisedEntities, entityId)
+			}
+		}
+	}
+
+	if len(updatedComponents) > 0 || len(removedComponents) > 0 {
+		g.broadcastMessage(message.NewGameUpdateMessage(updatedComponents, removedComponents))
 	}
 }
 
@@ -187,8 +195,8 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 		return
 	}
 
-	playerEntity := entity.CreatePlayerEntity(id, name)
-	g.AddEntity(playerEntity)
+	components := entity.CreatePlayerEntity(id, name)
+	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)
 
@@ -198,7 +206,10 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 	// This seems hacky. Could be race conditions if we try
 	// to send the new client the state of all entities while
 	// a game tick is in progress. Works for now.
-	g.sendMessage(clientID, message.NewGameUpdateMessage(g.prevSerialisedComponents))
+	g.sendMessage(clientID, message.NewGameUpdateMessage(
+		g.prevSerialisedComponents,
+		make(map[component.ComponentId][]model.EntityId),
+	))
 }
 
 func (g *Game) HandleMove(clientID string, x int, y int) {
@@ -207,13 +218,8 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		panic("client ID not found in clientIdToEntityId")
 	}
 
-	entity, ok := g.GetEntity(entityId)
-	if !ok {
-		panic("entity not found")
-	}
-
-	positionComponent := entity.GetComponent(component.ComponentIdPosition).(*component.CPosition)
-	if positionComponent == nil {
+	positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
+	if !ok || positionComponent == nil {
 		panic("position component not found")
 	}
 
@@ -225,7 +231,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 
 	pathingComponent := &component.CPathing{}
 	pathingComponent.Path = &path
-	entity.SetComponent(pathingComponent)
+	g.componentManager.SetEntityComponent(entityId, pathingComponent)
 }
 
 func (g *Game) HandleLeave(clientID string) {
@@ -235,8 +241,8 @@ func (g *Game) HandleLeave(clientID string) {
 		return
 	}
 
+	g.componentManager.RemoveEntity(entityId)
 	g.clientIdToEntityId.Delete(clientID)
-	g.RemoveEntity(entityId)
 }
 
 func (g *Game) HandleChat(clientID string, chatMessage string) {
@@ -246,17 +252,12 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 		return
 	}
 
-	chatMessageEntity := entity.CreateChatMessageEntity(entityId, chatMessage)
-	g.AddEntity(chatMessageEntity)
+	chatMessageComponents := entity.CreateChatMessageEntity(entityId, chatMessage)
+	g.componentManager.CreateNewEntity(chatMessageComponents...)
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {
-	entity, ok := g.GetEntity(entityId)
-	if !ok {
-		panic("entity not found")
-	}
-
-	interactableComponent := entity.GetComponent(component.ComponentIdInteractable).(*component.CInteractable)
+	interactableComponent := g.componentManager.GetEntityComponent(component.ComponentIdInteractable, entityId).(*component.CInteractable)
 	if interactableComponent == nil {
 		panic("interactable component not found")
 	}

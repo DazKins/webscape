@@ -8,6 +8,7 @@ import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
 import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
 import Camera from "./camera.ts";
+import EntityRenderSystem from "./entityRenderSystem.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -18,6 +19,7 @@ class Game extends EventTarget implements InputReceiver {
   cssRenderer2d: CSS2DRenderer;
   myLocationHighlightMesh: THREE.Mesh;
   entities: Entity[];
+  entityRenderSystem: EntityRenderSystem;
 
   input: Input;
   world!: World;
@@ -30,6 +32,7 @@ class Game extends EventTarget implements InputReceiver {
     this.scene = new THREE.Scene();
     this.input = new Input();
     this.camera = new Camera(this.input);
+    this.entityRenderSystem = new EntityRenderSystem(this.scene);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -90,8 +93,9 @@ class Game extends EventTarget implements InputReceiver {
         new THREE.Vector2(mouseX, mouseY),
         this.camera.getInnerCamera()
       );
+      const object3Ds = Object.values(this.entityRenderSystem.getRenderers()).map((r) => r?.getObject3D() ?? null).filter((o) => o !== null);
       const intersects = raycaster.intersectObjects(
-        this.entities.map((e) => e.mesh),
+        object3Ds,
         true
       );
       if (intersects.length > 0) {
@@ -106,13 +110,13 @@ class Game extends EventTarget implements InputReceiver {
         }
 
         const entityId = hitMesh.userData.entityId;
-        const entity = this.entities.find((e) => e.id === entityId);
+        const entity = this.entities.find((e) => e.getId() === entityId);
         if (entity) {
           this.dispatchEvent(
             new InteractionMenuOpenEvent(
-              entity.id,
-              entity.name || "Unnamed?!?!",
-              entity.interactionOptions,
+              entity.getId(),
+              entity.getComponent("metadata").name || "Unnamed?!?!",
+              entity.getComponent("interactable").interactionOptions,
               event.clientX,
               event.clientY
             )
@@ -155,46 +159,62 @@ class Game extends EventTarget implements InputReceiver {
     this.wsClient = wsClient;
   }
 
-  cameraTargetX = 0.0;
-  cameraTargetY = 0.0;
-
   updateCamera() {
     const myEntity = this.getMyEntity();
     if (!myEntity) return;
 
+    const myEntityRenderer = this.entityRenderSystem.getRenderers()[myEntity.getId()];
+    if (!myEntityRenderer) {
+      return;
+    }
+
+    const myObject3D = myEntityRenderer.getObject3D()!;
+
     this.camera.update(
-      new THREE.Vector3(myEntity.mesh.position.x, 0, myEntity.mesh.position.z)
+      new THREE.Vector3(myObject3D.position.x + 0.5, 0, myObject3D.position.z + 0.5)
     );
   }
 
-  addEntity(entity: Entity) {
-    this.entities.push(entity);
-  }
+  handleGameUpdate(gameUpdate: any) {
+    console.log("Game update");
 
-  handleGameUpdate(componentUpdate: any) {
-    const entities = componentUpdate.entities;
+    const entities = gameUpdate.entities;
 
     for (const entity of entities) {
       const entityId = entity.entityId;
       const componentId = entity.componentId;
       const data = entity.data;
 
-      let localEntity = this.entities.find((e) => e.id === entityId);
+      let localEntity = this.entities.find((e) => e.getId() === entityId);
       if (!localEntity) {
-        localEntity = new Entity(entityId, this.scene);
-        this.addEntity(localEntity);
+        console.log("Adding new entity", entityId);
+        localEntity = new Entity(entityId);
+        this.entities.push(localEntity);
       }
 
-      localEntity.handleComponentUpdate(componentId, data);
+      if (data === null) {
+        console.log("Removing component", { entityId, componentId });
+        localEntity.removeComponent(componentId);
+        continue;
+      }
+
+      console.log(`Updating component`, { entityId, componentId, data });
+
+      localEntity.updateComponent(componentId, data);
+    }
+
+    const emptyEntities = this.entities.filter((e) => e.isEmpty());
+    if (emptyEntities.length > 0) {
+      console.log("Removing empty entities", emptyEntities.map((e) => e.getId()));
+      this.entities = this.entities.filter((e) => !e.isEmpty());
     }
   }
 
   handleEntityRemove(entityId: string) {
     console.log("Removing entity", entityId);
-    const entity = this.entities.find((e) => e.id === entityId);
+    const entity = this.entities.find((e) => e.getId() === entityId);
     if (entity) {
-      entity.remove();
-      this.entities = this.entities.filter((e) => e.id !== entityId);
+      this.entities = this.entities.filter((e) => e.getId() !== entityId);
     } else {
       console.log("Entity not found", entityId);
     }
@@ -205,11 +225,15 @@ class Game extends EventTarget implements InputReceiver {
 
     const myEntity = this.getMyEntity();
     if (myEntity) {
-      this.myLocationHighlightMesh.position.x = myEntity.positionX + 0.5;
-      this.myLocationHighlightMesh.position.z = myEntity.positionY + 0.5;
+      const positionComponent = myEntity.getComponent("position");
+      if (positionComponent) {
+        this.myLocationHighlightMesh.position.x = positionComponent.x + 0.5;
+        this.myLocationHighlightMesh.position.z = positionComponent.y + 0.5;
+      }
     }
 
-    this.entities.forEach((e) => e.update());
+    this.entityRenderSystem.update(this.entities);
+
     this.renderer.render(this.scene, this.camera.getInnerCamera());
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
     if (this.world) {
@@ -238,14 +262,7 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   getMyEntity(): Entity | undefined {
-    return this.entities.find((e) => e.id === this.myPlayerId);
-  }
-
-  handleChat(entityId: string, message: string) {
-    const entity = this.entities.find((e) => e.id === entityId);
-    if (entity) {
-      entity.handleChat(message);
-    }
+    return this.entities.find((e) => e.getId() === this.myPlayerId);
   }
 
   handleInteractionOptionClick(entityId: string, option: string) {
