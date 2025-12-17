@@ -64,6 +64,7 @@ func NewGame() *Game {
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
+		World: world,
 	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
@@ -223,14 +224,11 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		panic("position component not found")
 	}
 
-	path, err := g.getPath(positionComponent.Position, math.Vec2{X: x, Y: y})
-	if err != nil {
-		log.Printf("failed to get path: %v\n", err)
-		return
+	pathingComponent := &component.CPathing{
+		Target: component.PathingTarget{
+			Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
+		},
 	}
-
-	pathingComponent := &component.CPathing{}
-	pathingComponent.Path = &path
 	g.componentManager.SetEntityComponent(entityId, pathingComponent)
 }
 

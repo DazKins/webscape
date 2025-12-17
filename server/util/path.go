@@ -30,3 +30,10 @@ func (p *Path) Size() int {
 func (p *Path) Append(node math.Vec2) {
 	p.nodes = append(p.nodes, node)
 }
+
+func (p *Path) GetLast() *math.Vec2 {
+	if p.Size() == 0 {
+		return nil
+	}
+	return &p.nodes[len(p.nodes)-1]
+}

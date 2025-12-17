@@ -99,6 +99,8 @@ export class WebSocketClient {
       throw new Error("WebSocket is not initialized");
     }
 
+    console.log("Sending message", message);
+
     try {
       const messageString = JSON.stringify(message);
       this.ws.send(messageString);
