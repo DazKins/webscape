@@ -37,17 +37,19 @@ func (s *PathingSystem) Update() {
 			pathToPosition = targetEntityPosition.Position
 		}
 
-		shouldRecomputePath := path == nil || path.GetLast().Eq(pathToPosition)
-
-		if shouldRecomputePath {
-			newPath, err := s.World.GetPath(positionComponent.Position, pathToPosition)
-			if err != nil {
-				log.Printf("failed to get path: %v\n", err)
-				continue
-			}
-			pathingComponent.Path = &newPath
-			path = &newPath
+		if pathToPosition.Eq(positionComponent.Position) {
+			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
+			continue
 		}
+
+		// It's easiest just to recompute the path every time for now...
+		newPath, err := s.World.GetPath(positionComponent.Position, pathToPosition)
+		if err != nil {
+			log.Printf("failed to get path: %v\n", err)
+			continue
+		}
+		pathingComponent.Path = &newPath
+		path = &newPath
 
 		nextPosition := path.Pop()
 		positionComponent.Position = *nextPosition

@@ -260,11 +260,22 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 		panic("interactable component not found")
 	}
 
-	for _, interactionOption := range interactableComponent.InteractionOptions {
-		if interactionOption == option {
-			// TODO
-		}
+	// TODO check actual options in the future
+	// for _, interactionOption := range interactableComponent.InteractionOptions {
+	// 	if interactionOption == option {
+	// 	}
+	// }
+
+	interactingEntityId, ok := g.clientIdToEntityId.Get(clientID)
+	if !ok {
+		log.Println("Client ID not found in clientIdToEntityId")
+		return
 	}
 
-	log.Println("Invalid interaction option")
+	pathingComponent := &component.CPathing{
+		Target: component.PathingTarget{
+			EntityId: util.OptionalSome(entityId),
+		},
+	}
+	g.componentManager.SetEntityComponent(interactingEntityId, pathingComponent)
 }

@@ -7,8 +7,8 @@ import (
 	"webscape/server/math"
 )
 
-const WALK_TIMER = 10
-const WALK_TIMER_VARIANCE = 2
+const WALK_TIMER = 2
+const WALK_TIMER_VARIANCE = 1
 
 var DIRECTIONS = []math.Vec2{
 	{X: 0, Y: 1},
