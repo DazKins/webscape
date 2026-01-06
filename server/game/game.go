@@ -272,10 +272,18 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 		return
 	}
 
+	// Set pathing component to path to the target entity
 	pathingComponent := &component.CPathing{
 		Target: component.PathingTarget{
 			EntityId: util.OptionalSome(entityId),
 		},
 	}
 	g.componentManager.SetEntityComponent(interactingEntityId, pathingComponent)
+
+	// Set interacting component to track the interaction
+	interactingComponent := &component.CInteracting{
+		TargetEntityId: entityId,
+		Option:         option,
+	}
+	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
 }

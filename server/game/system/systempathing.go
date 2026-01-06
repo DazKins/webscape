@@ -3,6 +3,8 @@ package system
 import (
 	"log"
 	"webscape/server/game/component"
+	"webscape/server/game/entity"
+	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
 )
@@ -10,6 +12,24 @@ import (
 type PathingSystem struct {
 	SystemBase
 	World *world.World
+}
+
+func (s *PathingSystem) handleInteractionCompletion(entityId model.EntityId) {
+	// Check if this entity was interacting with another entity
+	interactingComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId)
+	if interactingComponent != nil {
+		interacting := interactingComponent.(*component.CInteracting)
+
+		// Handle the interaction based on the option
+		if interacting.Option == component.InteractionOptionTalk {
+			// The target entity says "Hello!"
+			chatMessageComponents := entity.CreateChatMessageEntity(interacting.TargetEntityId, "Hello!")
+			s.ComponentManager.CreateNewEntity(chatMessageComponents...)
+		}
+
+		// Remove the interacting component after handling
+		s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+	}
 }
 
 func (s *PathingSystem) Update() {
@@ -24,6 +44,7 @@ func (s *PathingSystem) Update() {
 
 		if path != nil && path.Size() == 0 {
 			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
+			s.handleInteractionCompletion(entityId)
 			continue
 		}
 
@@ -39,6 +60,7 @@ func (s *PathingSystem) Update() {
 
 		if pathToPosition.Eq(positionComponent.Position) {
 			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
+			s.handleInteractionCompletion(entityId)
 			continue
 		}
 
