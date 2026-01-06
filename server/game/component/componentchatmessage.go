@@ -10,7 +10,6 @@ const ComponentIdChatMessage = ComponentId("chatmessage")
 type CChatMessage struct {
 	FromEntityId model.EntityId
 	Message      string
-	Ttl          uint64
 }
 
 func (c *CChatMessage) GetId() ComponentId {

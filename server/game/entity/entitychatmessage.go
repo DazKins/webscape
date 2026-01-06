@@ -11,14 +11,17 @@ func CreateChatMessageEntity(fromEntityId model.EntityId, message string) []comp
 	chatMessageComponent := &component.CChatMessage{
 		FromEntityId: fromEntityId,
 		Message:      message,
-		Ttl:          ChatMessageTtl,
 	}
 	renderableComponent := &component.CRenderable{
 		Type: "chatmessage",
+	}
+	ttlComponent := &component.CTtl{
+		Remaining: ChatMessageTtl,
 	}
 
 	return []component.Component{
 		chatMessageComponent,
 		renderableComponent,
+		ttlComponent,
 	}
 }

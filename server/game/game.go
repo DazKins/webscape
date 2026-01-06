@@ -72,7 +72,7 @@ func NewGame() *Game {
 		},
 		World: world,
 	})
-	game.RegisterSystem(&system.ChatMessageSystem{
+	game.RegisterSystem(&system.TtlSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},

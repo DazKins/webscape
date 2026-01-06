@@ -21,11 +21,12 @@ func (s *PathingSystem) handleInteractionCompletion(entityId model.EntityId) {
 		interacting := interactingComponent.(*component.CInteracting)
 
 		// Handle the interaction based on the option
-		if interacting.Option == component.InteractionOptionTalk {
+		switch interacting.Option {
+		case component.InteractionOptionTalk:
 			// The target entity says "Hello!"
 			chatMessageComponents := entity.CreateChatMessageEntity(interacting.TargetEntityId, "Hello!")
 			s.ComponentManager.CreateNewEntity(chatMessageComponents...)
-		} else if interacting.Option == component.InteractionOptionAttack {
+		case component.InteractionOptionAttack:
 			// Attack the target entity - reduce their health
 			healthComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdHealth, interacting.TargetEntityId)
 			if healthComponent != nil {

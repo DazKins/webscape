@@ -2,9 +2,12 @@ import { lerp } from "../../math/lerp";
 import Entity from "../entity/entity";
 import EntityRenderer from "./renderer";
 import * as THREE from "three";
+import { createReactCss2dObject, ReactCss2dObject } from "../../util/reactCss2dObject";
+import EntityHealthBar from "../../ui/components/entityHealthBar";
 
 export default class RendererHuman extends EntityRenderer {
   mesh: THREE.Group;
+  healthBar: ReactCss2dObject<{ currentHealth: number; maxHealth: number }> | null = null;
 
   constructor(scene: THREE.Scene, entity: Entity) {
     super(scene, entity);
@@ -55,6 +58,32 @@ export default class RendererHuman extends EntityRenderer {
       0,
       lerp(this.mesh.position.z, positionComponent.y, 0.05),
     );
+
+    // Update health bar if health component exists
+    const healthComponent = this.entity.getComponent("health");
+    if (healthComponent) {
+      if (!this.healthBar) {
+        // Create health bar if it doesn't exist
+        this.healthBar = createReactCss2dObject(EntityHealthBar, {
+          currentHealth: healthComponent.currentHealth,
+          maxHealth: healthComponent.maxHealth,
+        });
+        this.healthBar.object.position.x = 0.5;
+        this.healthBar.object.position.y = 1.2;
+        this.healthBar.object.position.z = 0.5;
+        this.mesh.add(this.healthBar.object);
+      } else {
+        // Update existing health bar props
+        this.healthBar.updateProps({
+          currentHealth: healthComponent.currentHealth,
+          maxHealth: healthComponent.maxHealth,
+        });
+      }
+    } else if (this.healthBar) {
+      // Remove health bar if health component is removed
+      this.mesh.remove(this.healthBar.object);
+      this.healthBar = null;
+    }
   }
 
   getObject3D(): THREE.Object3D {
@@ -62,6 +91,9 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   onRemove() {
+    if (this.healthBar) {
+      this.mesh.remove(this.healthBar.object);
+    }
     this.scene.remove(this.mesh);
   }
 }
