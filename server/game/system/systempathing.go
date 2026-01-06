@@ -49,6 +49,7 @@ func (s *PathingSystem) Update() {
 		}
 
 		pathToPosition := math.Vec2{}
+		isEntityTarget := false
 
 		if target.Position.IsPresent() {
 			pathToPosition = target.Position.Unwrap()
@@ -56,9 +57,29 @@ func (s *PathingSystem) Update() {
 			targetEntityId := target.EntityId.Unwrap()
 			targetEntityPosition := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, targetEntityId).(*component.CPosition)
 			pathToPosition = targetEntityPosition.Position
+			isEntityTarget = true
 		}
 
-		if pathToPosition.Eq(positionComponent.Position) {
+		// Calculate Manhattan distance
+		dx := pathToPosition.X - positionComponent.Position.X
+		if dx < 0 {
+			dx = -dx
+		}
+		dy := pathToPosition.Y - positionComponent.Position.Y
+		if dy < 0 {
+			dy = -dy
+		}
+		distance := dx + dy
+
+		// For entity targets, stop when 1 tile away (adjacent). For position targets, stop when at exact position.
+		shouldStop := false
+		if isEntityTarget {
+			shouldStop = distance <= 1
+		} else {
+			shouldStop = distance == 0
+		}
+
+		if shouldStop {
 			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
 			s.handleInteractionCompletion(entityId)
 			continue
