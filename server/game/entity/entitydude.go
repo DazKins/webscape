@@ -39,11 +39,17 @@ func CreateDudeEntity(
 		Type: "human",
 	}
 
+	healthComponent := &component.CHealth{
+		MaxHealth:     100,
+		CurrentHealth: 100,
+	}
+
 	return []component.Component{
 		positionComponent,
 		metadataComponent,
 		interactableComponent,
 		randomwalkComponent,
 		renderableComponent,
+		healthComponent,
 	}
 }

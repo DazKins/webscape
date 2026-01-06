@@ -77,6 +77,11 @@ func NewGame() *Game {
 			ComponentManager: game.componentManager,
 		},
 	})
+	game.RegisterSystem(&system.HealthSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	})
 
 	return game
 }
@@ -161,18 +166,41 @@ func (g *Game) update() {
 	}
 
 	removedComponents := make(map[component.ComponentId][]model.EntityId)
+	removedEntities := make(map[model.EntityId]bool)
 
 	for componentId, prevSerialisedEntities := range g.prevSerialisedComponents {
 		for entityId := range prevSerialisedEntities {
 			if g.componentManager.GetEntityComponent(componentId, entityId) == nil {
 				removedComponents[componentId] = append(removedComponents[componentId], entityId)
 				delete(prevSerialisedEntities, entityId)
+				removedEntities[entityId] = true
 			}
+		}
+	}
+
+	// Check if any entities have been completely removed (no components left)
+	completelyRemovedEntities := make([]model.EntityId, 0)
+	for entityId := range removedEntities {
+		// Check if entity has any components left
+		hasComponents := false
+		for _, components := range g.componentManager.GetAllComponents() {
+			if _, exists := components[entityId]; exists {
+				hasComponents = true
+				break
+			}
+		}
+		if !hasComponents {
+			completelyRemovedEntities = append(completelyRemovedEntities, entityId)
 		}
 	}
 
 	if len(updatedComponents) > 0 || len(removedComponents) > 0 {
 		g.broadcastMessage(message.NewGameUpdateMessage(updatedComponents, removedComponents))
+	}
+
+	// Send entity removal messages for completely removed entities
+	for _, entityId := range completelyRemovedEntities {
+		g.broadcastMessage(message.NewEntityRemoveMessage(entityId))
 	}
 }
 

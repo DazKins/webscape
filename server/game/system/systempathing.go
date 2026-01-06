@@ -25,6 +25,23 @@ func (s *PathingSystem) handleInteractionCompletion(entityId model.EntityId) {
 			// The target entity says "Hello!"
 			chatMessageComponents := entity.CreateChatMessageEntity(interacting.TargetEntityId, "Hello!")
 			s.ComponentManager.CreateNewEntity(chatMessageComponents...)
+		} else if interacting.Option == component.InteractionOptionAttack {
+			// Attack the target entity - reduce their health
+			healthComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdHealth, interacting.TargetEntityId)
+			if healthComponent != nil {
+				health := healthComponent.(*component.CHealth)
+				// Deal 10 damage per attack
+				health.CurrentHealth -= 10
+				if health.CurrentHealth < 0 {
+					health.CurrentHealth = 0
+				}
+				// Update the health component
+				s.ComponentManager.SetEntityComponent(interacting.TargetEntityId, health)
+
+				// The target entity says "Ow!" when hit
+				chatMessageComponents := entity.CreateChatMessageEntity(interacting.TargetEntityId, "Ow!")
+				s.ComponentManager.CreateNewEntity(chatMessageComponents...)
+			}
 		}
 
 		// Remove the interacting component after handling

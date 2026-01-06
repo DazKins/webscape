@@ -22,9 +22,15 @@ func CreatePlayerEntity(id model.EntityId, name string) []component.Component {
 		Type: "human",
 	}
 
+	healthComponent := &component.CHealth{
+		MaxHealth:     100,
+		CurrentHealth: 100,
+	}
+
 	return []component.Component{
 		positionComponent,
 		metadataComponent,
 		renderableComponent,
+		healthComponent,
 	}
 }
