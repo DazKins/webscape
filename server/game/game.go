@@ -66,6 +66,11 @@ func NewGame() *Game {
 		},
 		World: world,
 	})
+	game.RegisterSystem(&system.InteractionSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
