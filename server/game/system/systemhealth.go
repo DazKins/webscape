@@ -15,7 +15,7 @@ func (s *HealthSystem) Update() {
 		healthComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdHealth, entityId).(*component.CHealth)
 
 		// If health is zero or below, mark entity for removal
-		if healthComponent.CurrentHealth <= 0 {
+		if healthComponent.GetCurrentHealth() <= 0 {
 			// Remove all components from the entity (this effectively removes it)
 			s.ComponentManager.RemoveEntity(entityId)
 		}

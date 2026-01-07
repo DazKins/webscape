@@ -8,16 +8,9 @@ import (
 const ChatMessageTtl = 10
 
 func CreateChatMessageEntity(fromEntityId model.EntityId, message string) []component.Component {
-	chatMessageComponent := &component.CChatMessage{
-		FromEntityId: fromEntityId,
-		Message:      message,
-	}
-	renderableComponent := &component.CRenderable{
-		Type: "chatmessage",
-	}
-	ttlComponent := &component.CTtl{
-		Remaining: ChatMessageTtl,
-	}
+	chatMessageComponent := component.NewCChatMessage(fromEntityId, message)
+	renderableComponent := component.NewCRenderable("chatmessage")
+	ttlComponent := component.NewCTtl(ChatMessageTtl)
 
 	return []component.Component{
 		chatMessageComponent,

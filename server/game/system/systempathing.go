@@ -19,8 +19,8 @@ func (s *PathingSystem) Update() {
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
 		pathingComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPathing, entityId).(*component.CPathing)
 
-		target := pathingComponent.Target
-		path := pathingComponent.Path
+		target := pathingComponent.GetTarget()
+		path := pathingComponent.GetPath()
 
 		if path != nil && path.Size() == 0 {
 			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
@@ -35,16 +35,17 @@ func (s *PathingSystem) Update() {
 		} else if target.EntityId.IsPresent() {
 			targetEntityId := target.EntityId.Unwrap()
 			targetEntityPosition := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, targetEntityId).(*component.CPosition)
-			pathToPosition = targetEntityPosition.Position
+			pathToPosition = targetEntityPosition.GetPosition()
 			isEntityTarget = true
 		}
 
 		// Calculate Manhattan distance
-		dx := pathToPosition.X - positionComponent.Position.X
+		positionPos := positionComponent.GetPosition()
+		dx := pathToPosition.X - positionPos.X
 		if dx < 0 {
 			dx = -dx
 		}
-		dy := pathToPosition.Y - positionComponent.Position.Y
+		dy := pathToPosition.Y - positionPos.Y
 		if dy < 0 {
 			dy = -dy
 		}
@@ -64,15 +65,15 @@ func (s *PathingSystem) Update() {
 		}
 
 		// It's easiest just to recompute the path every time for now...
-		newPath, err := s.World.GetPath(positionComponent.Position, pathToPosition)
+		newPath, err := s.World.GetPath(positionPos, pathToPosition)
 		if err != nil {
 			log.Printf("failed to get path: %v\n", err)
 			continue
 		}
-		pathingComponent.Path = &newPath
+		pathingComponent.SetPath(&newPath)
 		path = &newPath
 
 		nextPosition := path.Pop()
-		positionComponent.Position = *nextPosition
+		positionComponent.SetPosition(*nextPosition)
 	}
 }

@@ -14,8 +14,9 @@ func (s *TtlSystem) Update() {
 	for _, entityId := range entityIds {
 		ttlComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdTtl, entityId).(*component.CTtl)
 
-		ttlComponent.Remaining -= 1
-		if ttlComponent.Remaining <= 0 {
+		newRemaining := ttlComponent.GetRemaining() - 1
+		ttlComponent.SetRemaining(newRemaining)
+		if newRemaining <= 0 {
 			// Remove all components from the entity (effectively removing it)
 			s.ComponentManager.RemoveEntity(entityId)
 		}

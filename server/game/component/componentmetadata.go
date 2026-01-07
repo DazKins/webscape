@@ -7,7 +7,13 @@ import (
 const ComponentIdMetadata = ComponentId("metadata")
 
 type CMetadata struct {
-	Metadata util.Json
+	metadata util.Json
+}
+
+func NewCMetadata(metadata util.Json) *CMetadata {
+	return &CMetadata{
+		metadata: metadata,
+	}
 }
 
 func (c *CMetadata) GetId() ComponentId {
@@ -15,5 +21,13 @@ func (c *CMetadata) GetId() ComponentId {
 }
 
 func (c *CMetadata) Serialize() util.Json {
-	return c.Metadata
+	return c.metadata
+}
+
+func (c *CMetadata) GetMetadata() util.Json {
+	return c.metadata
+}
+
+func (c *CMetadata) SetMetadata(metadata util.Json) {
+	c.metadata = metadata
 }

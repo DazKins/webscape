@@ -17,29 +17,30 @@ type InteractionSystem struct {
 func (s *InteractionSystem) processInteraction(
 	interacting *component.CInteracting,
 ) {
-	switch interacting.Option {
+	switch interacting.GetOption() {
 	case component.InteractionOptionTalk:
 		// Handle talk interaction - target entity says "Hello!"
 		s.ChatMessageSender.SendChatMessageEntityFor(
-			interacting.TargetEntityId, "Hello!")
+			interacting.GetTargetEntityId(), "Hello!")
 
 	case component.InteractionOptionAttack:
 		// Handle attack interaction - reduce target's health
 		healthComponent := s.ComponentManager.GetEntityComponent(
-			component.ComponentIdHealth, interacting.TargetEntityId)
+			component.ComponentIdHealth, interacting.GetTargetEntityId())
 		if healthComponent != nil {
 			health := healthComponent.(*component.CHealth)
 			// Deal 10 damage per attack
-			health.CurrentHealth -= 10
-			if health.CurrentHealth < 0 {
-				health.CurrentHealth = 0
+			newHealth := health.GetCurrentHealth() - 10
+			if newHealth < 0 {
+				newHealth = 0
 			}
+			health.SetCurrentHealth(newHealth)
 			// Update the health component
-			s.ComponentManager.SetEntityComponent(interacting.TargetEntityId, health)
+			s.ComponentManager.SetEntityComponent(interacting.GetTargetEntityId(), health)
 
 			// The target entity says "Ow!" when hit
 			s.ChatMessageSender.SendChatMessageEntityFor(
-				interacting.TargetEntityId, "Ow!")
+				interacting.GetTargetEntityId(), "Ow!")
 		}
 	}
 }
@@ -59,7 +60,7 @@ func (s *InteractionSystem) Update() {
 
 		// Check if target entity still exists and get its position
 		targetPositionComponent := s.ComponentManager.GetEntityComponent(
-			component.ComponentIdPosition, interacting.TargetEntityId)
+			component.ComponentIdPosition, interacting.GetTargetEntityId())
 
 		if targetPositionComponent == nil {
 			// Target no longer exists, cancel interaction
@@ -70,11 +71,13 @@ func (s *InteractionSystem) Update() {
 		targetPosition := targetPositionComponent.(*component.CPosition)
 
 		// Calculate Manhattan distance
-		dx := targetPosition.Position.X - position.Position.X
+		positionPos := position.GetPosition()
+		targetPos := targetPosition.GetPosition()
+		dx := targetPos.X - positionPos.X
 		if dx < 0 {
 			dx = -dx
 		}
-		dy := targetPosition.Position.Y - position.Position.Y
+		dy := targetPos.Y - positionPos.Y
 		if dy < 0 {
 			dy = -dy
 		}

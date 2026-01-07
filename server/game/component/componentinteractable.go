@@ -15,7 +15,13 @@ const (
 )
 
 type CInteractable struct {
-	InteractionOptions []InteractionOption
+	interactionOptions []InteractionOption
+}
+
+func NewCInteractable(interactionOptions []InteractionOption) *CInteractable {
+	return &CInteractable{
+		interactionOptions: interactionOptions,
+	}
 }
 
 func (c *CInteractable) GetId() ComponentId {
@@ -24,8 +30,19 @@ func (c *CInteractable) GetId() ComponentId {
 
 func (c *CInteractable) Serialize() util.Json {
 	return util.JObject(map[string]util.Json{
-		"interactionOptions": util.JArrayFrom(c.InteractionOptions, func(option InteractionOption) util.Json {
+		"interactionOptions": util.JArrayFrom(c.interactionOptions, func(option InteractionOption) util.Json {
 			return util.JString(option)
 		}),
 	})
+}
+
+func (c *CInteractable) GetInteractionOptions() []InteractionOption {
+	// Return a copy to prevent external modification
+	result := make([]InteractionOption, len(c.interactionOptions))
+	copy(result, c.interactionOptions)
+	return result
+}
+
+func (c *CInteractable) SetInteractionOptions(interactionOptions []InteractionOption) {
+	c.interactionOptions = interactionOptions
 }

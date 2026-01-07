@@ -12,37 +12,24 @@ func CreateDudeEntity(
 	name string,
 	position math.Vec2,
 ) []component.Component {
-	positionComponent := &component.CPosition{
-		Position: position,
-	}
+	positionComponent := component.NewCPosition(position)
 
-	metadataComponent := &component.CMetadata{
-		Metadata: util.JObject(map[string]util.Json{
-			"name":  util.JString(name),
-			"color": util.JString("#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16)),
-		}),
-	}
+	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
+		"name":  util.JString(name),
+		"color": util.JString("#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16)),
+	}))
 
-	interactableComponent := &component.CInteractable{
-		InteractionOptions: []component.InteractionOption{
-			component.InteractionOptionTalk,
-			component.InteractionOptionTrade,
-			component.InteractionOptionAttack,
-		},
-	}
+	interactableComponent := component.NewCInteractable([]component.InteractionOption{
+		component.InteractionOptionTalk,
+		component.InteractionOptionTrade,
+		component.InteractionOptionAttack,
+	})
 
-	randomwalkComponent := &component.CRandomWalk{
-		WalkTimer: 10,
-	}
+	randomwalkComponent := component.NewCRandomWalk(10)
 
-	renderableComponent := &component.CRenderable{
-		Type: "human",
-	}
+	renderableComponent := component.NewCRenderable("human")
 
-	healthComponent := &component.CHealth{
-		MaxHealth:     100,
-		CurrentHealth: 100,
-	}
+	healthComponent := component.NewCHealth(100, 100)
 
 	return []component.Component{
 		positionComponent,

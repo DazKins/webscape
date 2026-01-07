@@ -258,11 +258,9 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 		panic("position component not found")
 	}
 
-	pathingComponent := &component.CPathing{
-		Target: component.PathingTarget{
-			Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
-		},
-	}
+	pathingComponent := component.NewCPathing(component.PathingTarget{
+		Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
+	})
 	g.componentManager.SetEntityComponent(entityId, pathingComponent)
 }
 
@@ -285,7 +283,7 @@ func (g *Game) SendChatMessageEntityFor(fromEntityId model.EntityId, message str
 	chatMessageEntities := g.componentManager.GetComponent(component.ComponentIdChatMessage)
 	for existingEntityId, comp := range chatMessageEntities {
 		chatMessageComp := comp.(*component.CChatMessage)
-		if chatMessageComp.FromEntityId == fromEntityId {
+		if chatMessageComp.GetFromEntityId() == fromEntityId {
 			g.componentManager.RemoveEntity(existingEntityId)
 		}
 	}
@@ -324,17 +322,12 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	}
 
 	// Set pathing component to path to the target entity
-	pathingComponent := &component.CPathing{
-		Target: component.PathingTarget{
-			EntityId: util.OptionalSome(entityId),
-		},
-	}
+	pathingComponent := component.NewCPathing(component.PathingTarget{
+		EntityId: util.OptionalSome(entityId),
+	})
 	g.componentManager.SetEntityComponent(interactingEntityId, pathingComponent)
 
 	// Set interacting component to track the interaction
-	interactingComponent := &component.CInteracting{
-		TargetEntityId: entityId,
-		Option:         option,
-	}
+	interactingComponent := component.NewCInteracting(entityId, option)
 	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
 }

@@ -7,7 +7,13 @@ import (
 const ComponentIdTtl = ComponentId("ttl")
 
 type CTtl struct {
-	Remaining uint64
+	remaining uint64
+}
+
+func NewCTtl(remaining uint64) *CTtl {
+	return &CTtl{
+		remaining: remaining,
+	}
 }
 
 func (c *CTtl) GetId() ComponentId {
@@ -16,7 +22,15 @@ func (c *CTtl) GetId() ComponentId {
 
 func (c *CTtl) Serialize() util.Json {
 	return util.JObject(map[string]util.Json{
-		"remaining": util.JNumber(c.Remaining),
+		"remaining": util.JNumber(c.remaining),
 	})
+}
+
+func (c *CTtl) GetRemaining() uint64 {
+	return c.remaining
+}
+
+func (c *CTtl) SetRemaining(remaining uint64) {
+	c.remaining = remaining
 }
 
