@@ -10,6 +10,7 @@ import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
 import Camera from "./camera.ts";
 import EntityRenderSystem from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
+import { InventoryUpdateEvent } from "../events/inventory.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -224,6 +225,11 @@ class Game extends EventTarget implements InputReceiver {
       console.log(`Updating component`, { entityId, componentId, data });
 
       localEntity.updateComponent(componentId, data);
+
+      // Dispatch inventory update event if this is the player's inventory
+      if (componentId === "inventory" && entityId === this.myPlayerId) {
+        this.dispatchEvent(new InventoryUpdateEvent());
+      }
     }
 
     const emptyEntities = this.entities.filter((e) => e.isEmpty());

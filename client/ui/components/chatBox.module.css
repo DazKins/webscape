@@ -1,28 +1,13 @@
 .container {
+  position: absolute;
+  top: calc(100vh - 220px);
+  left: 20px;
   width: 500px;
   height: 200px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: rgba(230, 230, 230, 1.0);
+  z-index: 100;
 }
 
-.header {
-  font-weight: bold;
-  font-size: 16px;
-  display: flex;
-  height: 30px;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px;
-  border-bottom: 1px solid rgba(230, 230, 230, 1.0);
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.content {
-  height: 140px;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
+/* Content uses panelContent styles, this is just for chat-specific overrides if needed */
 
 .chat {
   padding: 5px;
@@ -34,13 +19,15 @@
 }
 
 .input {
-  height: 30px;
+  height: 35px;
   display: flex;
   justify-content: left;
   gap: 10px;
   align-items: center;
-  padding: 5px;
-  border-top: 1px solid rgba(230, 230, 230, 1.0);
+  padding: 8px;
+  border-top: 2px solid rgba(230, 230, 230, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 0 0 6px 6px;
   overflow: hidden;
   box-sizing: border-box;
 }

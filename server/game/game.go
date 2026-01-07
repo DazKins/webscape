@@ -235,6 +235,23 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 
 	g.clientIdToEntityId.Put(clientID, id)
 
+	// Serialize the newly created player's components and add them to prevSerialisedComponents
+	// so they're included in the initial game update
+	for _, comp := range components {
+		serializeableComponent, ok := comp.(component.SerializeableComponent)
+		if !ok {
+			continue
+		}
+
+		componentId := comp.GetId()
+		if g.prevSerialisedComponents[componentId] == nil {
+			g.prevSerialisedComponents[componentId] = make(map[model.EntityId]util.Json)
+		}
+
+		serialized := serializeableComponent.Serialize()
+		g.prevSerialisedComponents[componentId][id] = serialized
+	}
+
 	g.sendMessage(clientID, message.NewJoinedMessage(id.String()))
 	g.sendMessage(clientID, message.NewWorldMessage(g.world))
 

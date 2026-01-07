@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./chatBox.module.css";
+import panelStyles from "./uiPanel.module.css";
 import Game from "../../game/game";
 import { ChatMessageEvent, ChatMessageEventName } from "../../events/chat";
 
@@ -49,9 +50,9 @@ export default function ChatBox(props: Props) {
   }, [props.game]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>Chat</div>
-      <div className={styles.content}>
+    <div className={`${panelStyles.panel} ${styles.container}`}>
+      <div className={panelStyles.panelHeader}>Chat</div>
+      <div className={panelStyles.panelContent}>
         {chats.map((chat, index) => (
           <div key={index} className={styles.chat}>
             <span className={styles.chatFrom}>{chat.from}</span>: {chat.message}
