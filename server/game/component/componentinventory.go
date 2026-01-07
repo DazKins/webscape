@@ -24,11 +24,15 @@ func (c *CInventory) GetId() ComponentId {
 func (c *CInventory) Serialize() util.Json {
 	itemsArray := make(util.JArray, len(c.items))
 	for i, item := range c.items {
-		itemsArray[i] = util.JObject(map[string]util.Json{
+		itemObj := util.JObject(map[string]util.Json{
 			"id":   util.JString(item.Id.String()),
 			"name": util.JString(item.Name),
 			"type": util.JString(item.Type),
 		})
+		if item.EquipmentSlot != nil {
+			itemObj["equipmentSlot"] = util.JString(string(*item.EquipmentSlot))
+		}
+		itemsArray[i] = itemObj
 	}
 	return util.JObject(map[string]util.Json{
 		"items": itemsArray,

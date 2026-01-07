@@ -7,24 +7,13 @@ import (
 
 const ComponentIdEquipped = ComponentId("equipped")
 
-type EquipmentSlot string
-
-const (
-	SlotHead    EquipmentSlot = "head"
-	SlotChest   EquipmentSlot = "chest"
-	SlotLegs    EquipmentSlot = "legs"
-	SlotFeet    EquipmentSlot = "feet"
-	SlotWeapon  EquipmentSlot = "weapon"
-	SlotOffhand EquipmentSlot = "offhand"
-)
-
 type CEquipped struct {
-	slots map[EquipmentSlot]*model.Item
+	slots map[model.EquipmentSlot]*model.Item
 }
 
 func NewCEquipped() *CEquipped {
 	return &CEquipped{
-		slots: make(map[EquipmentSlot]*model.Item),
+		slots: make(map[model.EquipmentSlot]*model.Item),
 	}
 }
 
@@ -50,14 +39,14 @@ func (c *CEquipped) Serialize() util.Json {
 	})
 }
 
-func (c *CEquipped) EquipItem(slot EquipmentSlot, item *model.Item) *model.Item {
+func (c *CEquipped) EquipItem(slot model.EquipmentSlot, item *model.Item) *model.Item {
 	// Store the previously equipped item (if any) to return it
 	previouslyEquipped := c.slots[slot]
 	c.slots[slot] = item
 	return previouslyEquipped
 }
 
-func (c *CEquipped) UnequipItem(slot EquipmentSlot) *model.Item {
+func (c *CEquipped) UnequipItem(slot model.EquipmentSlot) *model.Item {
 	item := c.slots[slot]
 	if item != nil {
 		delete(c.slots, slot)
@@ -65,17 +54,17 @@ func (c *CEquipped) UnequipItem(slot EquipmentSlot) *model.Item {
 	return item
 }
 
-func (c *CEquipped) GetEquippedItem(slot EquipmentSlot) *model.Item {
+func (c *CEquipped) GetEquippedItem(slot model.EquipmentSlot) *model.Item {
 	return c.slots[slot]
 }
 
-func (c *CEquipped) IsSlotEquipped(slot EquipmentSlot) bool {
+func (c *CEquipped) IsSlotEquipped(slot model.EquipmentSlot) bool {
 	return c.slots[slot] != nil
 }
 
-func (c *CEquipped) GetAllEquippedItems() map[EquipmentSlot]*model.Item {
+func (c *CEquipped) GetAllEquippedItems() map[model.EquipmentSlot]*model.Item {
 	// Return a copy to prevent external modification
-	result := make(map[EquipmentSlot]*model.Item)
+	result := make(map[model.EquipmentSlot]*model.Item)
 	for slot, item := range c.slots {
 		result[slot] = item
 	}
