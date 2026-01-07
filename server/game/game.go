@@ -70,6 +70,7 @@ func NewGame() *Game {
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
+		ChatMessageSender: game,
 	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
@@ -276,6 +277,24 @@ func (g *Game) HandleLeave(clientID string) {
 	g.clientIdToEntityId.Delete(clientID)
 }
 
+// SendChatMessageEntityFor sends a new chat message entity for the given entity,
+// removing any existing chat messages from that entity first to ensure only one
+// chat message exists per entity at a time.
+func (g *Game) SendChatMessageEntityFor(fromEntityId model.EntityId, message string) model.EntityId {
+	// Remove any existing chat messages from this entity
+	chatMessageEntities := g.componentManager.GetComponent(component.ComponentIdChatMessage)
+	for existingEntityId, comp := range chatMessageEntities {
+		chatMessageComp := comp.(*component.CChatMessage)
+		if chatMessageComp.FromEntityId == fromEntityId {
+			g.componentManager.RemoveEntity(existingEntityId)
+		}
+	}
+
+	// Create the new chat message entity
+	chatMessageComponents := entity.CreateChatMessageEntity(fromEntityId, message)
+	return g.componentManager.CreateNewEntity(chatMessageComponents...)
+}
+
 func (g *Game) HandleChat(clientID string, chatMessage string) {
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
@@ -283,8 +302,7 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 		return
 	}
 
-	chatMessageComponents := entity.CreateChatMessageEntity(entityId, chatMessage)
-	g.componentManager.CreateNewEntity(chatMessageComponents...)
+	g.SendChatMessageEntityFor(entityId, chatMessage)
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {

@@ -2,11 +2,16 @@ package system
 
 import (
 	"webscape/server/game/component"
-	"webscape/server/game/entity"
+	"webscape/server/game/model"
 )
+
+type ChatMessageSender interface {
+	SendChatMessageEntityFor(fromEntityId model.EntityId, message string) model.EntityId
+}
 
 type InteractionSystem struct {
 	SystemBase
+	ChatMessageSender ChatMessageSender
 }
 
 func (s *InteractionSystem) processInteraction(
@@ -15,9 +20,8 @@ func (s *InteractionSystem) processInteraction(
 	switch interacting.Option {
 	case component.InteractionOptionTalk:
 		// Handle talk interaction - target entity says "Hello!"
-		chatMessageComponents := entity.CreateChatMessageEntity(
+		s.ChatMessageSender.SendChatMessageEntityFor(
 			interacting.TargetEntityId, "Hello!")
-		s.ComponentManager.CreateNewEntity(chatMessageComponents...)
 
 	case component.InteractionOptionAttack:
 		// Handle attack interaction - reduce target's health
@@ -34,9 +38,8 @@ func (s *InteractionSystem) processInteraction(
 			s.ComponentManager.SetEntityComponent(interacting.TargetEntityId, health)
 
 			// The target entity says "Ow!" when hit
-			chatMessageComponents := entity.CreateChatMessageEntity(
+			s.ChatMessageSender.SendChatMessageEntityFor(
 				interacting.TargetEntityId, "Ow!")
-			s.ComponentManager.CreateNewEntity(chatMessageComponents...)
 		}
 	}
 }
