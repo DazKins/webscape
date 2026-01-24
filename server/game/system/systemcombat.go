@@ -133,7 +133,6 @@ func (s *CombatSystem) updateCombatStates() {
 		}
 
 		combatState.SetCooldownRemaining(attackerStats.GetAttackSpeedTicks())
-		combatState.SetLastAttackTick(s.TickCounter)
 	}
 }
 

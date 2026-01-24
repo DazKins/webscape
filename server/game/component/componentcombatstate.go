@@ -7,14 +7,12 @@ const ComponentIdCombatState = ComponentId("combatstate")
 type CCombatState struct {
 	targetId          model.EntityId
 	cooldownRemaining int
-	lastAttackTick    int
 }
 
 func NewCCombatState(targetId model.EntityId) *CCombatState {
 	return &CCombatState{
 		targetId:          targetId,
 		cooldownRemaining: 0,
-		lastAttackTick:    0,
 	}
 }
 
@@ -36,12 +34,4 @@ func (c *CCombatState) GetCooldownRemaining() int {
 
 func (c *CCombatState) SetCooldownRemaining(cooldownRemaining int) {
 	c.cooldownRemaining = cooldownRemaining
-}
-
-func (c *CCombatState) GetLastAttackTick() int {
-	return c.lastAttackTick
-}
-
-func (c *CCombatState) SetLastAttackTick(lastAttackTick int) {
-	c.lastAttackTick = lastAttackTick
 }
