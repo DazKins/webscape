@@ -210,7 +210,7 @@ func (s *CombatSystem) addCombatLog(entityId model.EntityId, text string, kind s
 	}
 	s.entryCounter++
 	combatLogComponent := combatLog.(*component.CCombatLog)
-	combatLogComponent.AddEntry(component.NewCombatLogEntry(fmt.Sprintf("evt-%d", s.entryCounter), text, kind))
+	combatLogComponent.AddEntry(component.NewCombatLogEntry(text, kind))
 	s.ComponentManager.SetEntityComponent(entityId, combatLogComponent)
 }
 
