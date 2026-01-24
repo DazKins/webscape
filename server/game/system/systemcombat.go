@@ -17,12 +17,10 @@ const (
 type CombatSystem struct {
 	SystemBase
 	World        *world.World
-	TickCounter  int
 	entryCounter int
 }
 
 func (s *CombatSystem) Update() {
-	s.TickCounter++
 	s.updateCombatAI()
 	s.updateCombatStates()
 }
