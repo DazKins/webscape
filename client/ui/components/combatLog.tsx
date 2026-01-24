@@ -9,7 +9,6 @@ type Props = {
 };
 
 type CombatLogEntry = {
-  id: string;
   text: string;
   kind: string;
 };
@@ -53,9 +52,9 @@ export default function CombatLog(props: Props) {
         {entries.length === 0 ? (
           <div className={styles.empty}>No combat yet</div>
         ) : (
-          entries.map((entry) => (
+          entries.map((entry, index) => (
             <div
-              key={entry.id}
+              key={index}
               className={`${styles.entry} ${
                 entry.kind === "crit"
                   ? styles.entryCrit
