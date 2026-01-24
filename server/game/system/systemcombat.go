@@ -273,7 +273,7 @@ func manhattanDistance(a math.Vec2, b math.Vec2) int {
 	if dx < 0 {
 		dx = -dx
 	}
-	dy := b.Y - a.Y
+	dy := a.Y - b.Y
 	if dy < 0 {
 		dy = -dy
 	}
