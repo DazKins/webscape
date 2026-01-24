@@ -72,6 +72,12 @@ func NewGame() *Game {
 		},
 		ChatMessageSender: game,
 	})
+	game.RegisterSystem(&system.CombatSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+		World: world,
+	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
@@ -347,4 +353,71 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	// Set interacting component to track the interaction
 	interactingComponent := component.NewCInteracting(entityId, option)
 	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
+}
+
+func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
+	entityId, ok := g.clientIdToEntityId.Get(clientID)
+	if !ok {
+		log.Println("Client ID not found in clientIdToEntityId")
+		return
+	}
+
+	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, entityId)
+	equipped := g.componentManager.GetEntityComponent(component.ComponentIdEquipped, entityId)
+	baseStats := g.componentManager.GetEntityComponent(component.ComponentIdBaseStats, entityId)
+	if inventory == nil || equipped == nil || baseStats == nil {
+		return
+	}
+
+	inventoryComponent := inventory.(*component.CInventory)
+	equippedComponent := equipped.(*component.CEquipped)
+	baseStatsComponent := baseStats.(*component.CBaseStats)
+
+	item := inventoryComponent.GetItem(itemId)
+	if item == nil || !item.IsEquipable() || item.GetEquipmentSlot() == nil {
+		return
+	}
+
+	slot := *item.GetEquipmentSlot()
+	previousItem := equippedComponent.EquipItem(slot, item)
+	inventoryComponent.RemoveItem(itemId)
+	if previousItem != nil {
+		inventoryComponent.AddItem(previousItem)
+	}
+
+	g.componentManager.SetEntityComponent(entityId, inventoryComponent)
+	g.componentManager.SetEntityComponent(entityId, equippedComponent)
+
+	combatStats := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
+	g.componentManager.SetEntityComponent(entityId, combatStats)
+}
+
+func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
+	entityId, ok := g.clientIdToEntityId.Get(clientID)
+	if !ok {
+		log.Println("Client ID not found in clientIdToEntityId")
+		return
+	}
+
+	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, entityId)
+	equipped := g.componentManager.GetEntityComponent(component.ComponentIdEquipped, entityId)
+	baseStats := g.componentManager.GetEntityComponent(component.ComponentIdBaseStats, entityId)
+	if inventory == nil || equipped == nil || baseStats == nil {
+		return
+	}
+
+	inventoryComponent := inventory.(*component.CInventory)
+	equippedComponent := equipped.(*component.CEquipped)
+	baseStatsComponent := baseStats.(*component.CBaseStats)
+
+	item := equippedComponent.UnequipItem(slot)
+	if item != nil {
+		inventoryComponent.AddItem(item)
+	}
+
+	g.componentManager.SetEntityComponent(entityId, inventoryComponent)
+	g.componentManager.SetEntityComponent(entityId, equippedComponent)
+
+	combatStats := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
+	g.componentManager.SetEntityComponent(entityId, combatStats)
 }

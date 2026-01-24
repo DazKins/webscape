@@ -25,11 +25,7 @@ func (c *CEquipped) Serialize() util.Json {
 	slotsObject := make(util.JObject)
 	for slot, item := range c.slots {
 		if item != nil {
-			slotsObject[string(slot)] = util.JObject(map[string]util.Json{
-				"id":   util.JString(item.Id.String()),
-				"name": util.JString(item.Name),
-				"type": util.JString(item.Type),
-			})
+			slotsObject[string(slot)] = SerializeItem(item)
 		} else {
 			slotsObject[string(slot)] = util.JNull{}
 		}

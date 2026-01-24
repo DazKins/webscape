@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import RendererHuman from "./renderer/rendererHuman";
 import RendererChatMessage from "./renderer/rendererChatMessage";
+import RendererCombatText from "./renderer/rendererCombatText";
 import EntityRenderer from "./renderer/renderer";
 import Entity from "./entity/entity";
 
@@ -24,6 +25,13 @@ export default class EntityRenderSystem {
           return null;
         }
         return new RendererChatMessage(this.scene, entity, parentRenderer);
+      case "combattext":
+        const combatTextParent = this.renderers[entity.getComponent("combattext").fromEntityId];
+        if (!combatTextParent) {
+          console.error("parent renderer not found for combat text");
+          return null;
+        }
+        return new RendererCombatText(this.scene, entity, combatTextParent);
     }
     console.error("unknown renderer type:", renderableType);
     return null;

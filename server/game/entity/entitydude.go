@@ -30,6 +30,10 @@ func CreateDudeEntity(
 	renderableComponent := component.NewCRenderable("human")
 
 	healthComponent := component.NewCHealth(100, 100)
+	baseStatsComponent := component.NewCBaseStats(6, 5, 6)
+	equippedComponent := component.NewCEquipped()
+	combatStatsComponent := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
+	combatAiComponent := component.NewCCombatAI(4, 6, 6, position)
 
 	return []component.Component{
 		positionComponent,
@@ -38,5 +42,9 @@ func CreateDudeEntity(
 		randomwalkComponent,
 		renderableComponent,
 		healthComponent,
+		baseStatsComponent,
+		equippedComponent,
+		combatStatsComponent,
+		combatAiComponent,
 	}
 }

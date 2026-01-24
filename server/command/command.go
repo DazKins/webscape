@@ -11,6 +11,8 @@ const (
 	CommandTypeMove     = "move"
 	CommandTypeChat     = "chat"
 	CommandTypeInteract = "interact"
+	CommandTypeEquip    = "equip"
+	CommandTypeUnequip  = "unequip"
 )
 
 type Command struct {

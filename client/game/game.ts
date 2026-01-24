@@ -11,6 +11,7 @@ import Camera from "./camera.ts";
 import EntityRenderSystem from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
+import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -227,8 +228,12 @@ class Game extends EventTarget implements InputReceiver {
       localEntity.updateComponent(componentId, data);
 
       // Dispatch inventory update event if this is the player's inventory
-      if (componentId === "inventory" && entityId === this.myPlayerId) {
+      if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
         this.dispatchEvent(new InventoryUpdateEvent());
+      }
+
+      if (componentId === "combatlog" && entityId === this.myPlayerId) {
+        this.dispatchEvent(new CombatLogUpdateEvent());
       }
     }
 
@@ -299,6 +304,22 @@ class Game extends EventTarget implements InputReceiver {
       createCommand("interact", {
         entityId,
         option,
+      })
+    );
+  }
+
+  handleEquipItem(itemId: string) {
+    this.wsClient.sendMessage(
+      createCommand("equip", {
+        itemId,
+      })
+    );
+  }
+
+  handleUnequipSlot(slot: string) {
+    this.wsClient.sendMessage(
+      createCommand("unequip", {
+        slot,
       })
     );
   }
