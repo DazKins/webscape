@@ -51,10 +51,20 @@ func (s *PathingSystem) Update() {
 		}
 		distance := dx + dy
 
-		// For entity targets, stop when 1 tile away (adjacent). For position targets, stop when at exact position.
+		// For entity targets, stop at combat range if in combat, otherwise stop when adjacent.
+		// For position targets, stop when at exact position.
 		shouldStop := false
 		if isEntityTarget {
-			shouldStop = distance <= 1
+			stopDistance := 1
+			if s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil {
+				if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
+					attackRange := combatStatsComponent.(*component.CCombatStats).GetAttackRange()
+					if attackRange > stopDistance {
+						stopDistance = attackRange
+					}
+				}
+			}
+			shouldStop = distance <= stopDistance
 		} else {
 			shouldStop = distance == 0
 		}
