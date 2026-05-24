@@ -2,7 +2,6 @@ package game
 
 import (
 	"log"
-	"math/rand"
 	"time"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
@@ -31,10 +30,11 @@ type Game struct {
 	prevSerialisedComponents map[component.ComponentId]map[model.EntityId]util.Json
 }
 
-var NAMES = []string{"Bob", "Alice", "Charlie", "David", "Eve", "Frank", "George", "Hannah", "Isaac", "Jack"}
-
 func NewGame() *Game {
-	world := world.NewWorld(10, 10)
+	world, err := world.LoadStarterWorld()
+	if err != nil {
+		panic(err)
+	}
 
 	game := &Game{
 		clientIdToEntityId: util.NewBiMap[string, model.EntityId](),
@@ -47,18 +47,7 @@ func NewGame() *Game {
 		prevSerialisedComponents: make(map[component.ComponentId]map[model.EntityId]util.Json),
 	}
 
-	for i := range 3 {
-		position := math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}
-		for world.GetWall(position.X, position.Y) {
-			position = math.Vec2{X: rand.Intn(10) - 5, Y: rand.Intn(10) - 5}
-		}
-
-		components := entity.CreateDudeEntity(
-			NAMES[i],
-			position,
-		)
-		game.componentManager.CreateNewEntity(components...)
-	}
+	game.loadWorldEntities()
 
 	game.RegisterSystem(&system.PathingSystem{
 		SystemBase: system.SystemBase{
@@ -96,6 +85,31 @@ func NewGame() *Game {
 	})
 
 	return game
+}
+
+func (g *Game) loadWorldEntities() {
+	for _, object := range g.world.GetObjects() {
+		components := entity.CreateWorldObjectEntity(object)
+		g.componentManager.CreateNewEntity(components...)
+	}
+
+	for _, spawn := range g.world.GetSpawns() {
+		if spawn.Type == "player" {
+			continue
+		}
+		name := spawn.Name
+		if name == "" {
+			name = spawn.EntityType
+		}
+		if name == "" {
+			name = spawn.Type
+		}
+		components := entity.CreateDudeEntity(
+			name,
+			math.Vec2{X: spawn.X, Y: spawn.Y},
+		)
+		g.componentManager.CreateNewEntity(components...)
+	}
 }
 
 func (g *Game) RegisterSystem(system system.System) {
@@ -229,14 +243,12 @@ func (g *Game) RegisterSender(messageSender MessageSender) {
 }
 
 func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
-	rand.Seed(time.Now().UnixNano())
-
 	if _, ok := g.clientIdToEntityId.Get(clientID); ok {
 		g.sendMessage(clientID, message.NewJoinFailedMessage("you are already connected in another session"))
 		return
 	}
 
-	components := entity.CreatePlayerEntity(id, name)
+	components := entity.CreatePlayerEntity(id, name, g.world.GetPlayerSpawn())
 	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)

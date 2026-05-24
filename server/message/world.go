@@ -3,18 +3,20 @@ package message
 import "webscape/server/game/world"
 
 type worldData struct {
-	SizeX int      `json:"sizeX"`
-	SizeY int      `json:"sizeY"`
-	Walls [][]bool `json:"walls"`
+	SizeX   int      `json:"sizeX"`
+	SizeY   int      `json:"sizeY"`
+	Terrain []string `json:"terrain"`
+	Walls   [][]bool `json:"walls"`
 }
 
 func NewWorldMessage(world *world.World) Message {
 	return newMessage(
 		MessageTypeWorld,
 		worldData{
-			SizeX: world.GetSizeX(),
-			SizeY: world.GetSizeY(),
-			Walls: world.GetWalls(),
+			SizeX:   world.GetSizeX(),
+			SizeY:   world.GetSizeY(),
+			Terrain: world.GetTerrain(),
+			Walls:   world.GetWalls(),
 		},
 	)
 }

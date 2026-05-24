@@ -4,6 +4,12 @@ import RendererChatMessage from "./renderer/rendererChatMessage";
 import RendererCombatText from "./renderer/rendererCombatText";
 import EntityRenderer from "./renderer/renderer";
 import Entity from "./entity/entity";
+import RendererBuilding from "./renderer/rendererBuilding";
+import RendererChest from "./renderer/rendererChest";
+import RendererDoor from "./renderer/rendererDoor";
+import RendererError from "./renderer/rendererError";
+import RendererRock from "./renderer/rendererRock";
+import RendererTree from "./renderer/rendererTree";
 
 export default class EntityRenderSystem {
   scene: THREE.Scene;
@@ -18,6 +24,16 @@ export default class EntityRenderSystem {
     switch (renderableType) {
       case "human":
         return new RendererHuman(this.scene, entity);
+      case "tree":
+        return new RendererTree(this.scene, entity);
+      case "door":
+        return new RendererDoor(this.scene, entity);
+      case "chest":
+        return new RendererChest(this.scene, entity);
+      case "rock":
+        return new RendererRock(this.scene, entity);
+      case "building":
+        return new RendererBuilding(this.scene, entity);
       case "chatmessage":
         const parentRenderer = this.renderers[entity.getComponent("chatmessage").fromEntityId];
         if (!parentRenderer) {
@@ -34,7 +50,7 @@ export default class EntityRenderSystem {
         return new RendererCombatText(this.scene, entity, combatTextParent);
     }
     console.error("unknown renderer type:", renderableType);
-    return null;
+    return new RendererError(this.scene, entity);
   }
 
   update(entities: Entity[]) {

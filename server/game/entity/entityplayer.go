@@ -7,8 +7,8 @@ import (
 	"webscape/server/util"
 )
 
-func CreatePlayerEntity(id model.EntityId, name string) []component.Component {
-	positionComponent := component.NewCPosition(math.Vec2{X: 0, Y: 0})
+func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []component.Component {
+	positionComponent := component.NewCPosition(position)
 
 	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
 		"name": util.JString(name),
