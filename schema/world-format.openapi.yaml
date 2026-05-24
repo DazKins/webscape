@@ -1,0 +1,226 @@
+openapi: 3.1.0
+info:
+  title: Webscape World Format
+  version: 0.1.0
+  description: |
+    Schema for authoring Webscape worlds.
+
+    Tile arrays use row-major order. Given a tile at coordinate (x, y), its
+    index is `y * size.x + x`. The total number of entries in each tile layer
+    must be `size.x * size.y`.
+paths: {}
+components:
+  schemas:
+    WorldFormat:
+      type: object
+      additionalProperties: false
+      required:
+        - formatVersion
+        - id
+        - size
+        - terrain
+      properties:
+        formatVersion:
+          type: integer
+          const: 1
+          description: Version of this world document format.
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - starter
+        displayName:
+          type: string
+          examples:
+            - Starter Island
+        size:
+          $ref: "#/components/schemas/WorldSize"
+        terrain:
+          type: array
+          description: |
+            Flat row-major terrain layer. Coordinate (x, y) is stored at
+            `terrain[y * size.x + x]`.
+          items:
+            $ref: "#/components/schemas/TerrainType"
+        collision:
+          type: array
+          description: |
+            Optional flat row-major collision override layer. Coordinate (x, y)
+            is stored at `collision[y * size.x + x]`. `true` blocks movement.
+            If omitted, collision can be derived from terrain and objects.
+          items:
+            type: boolean
+        objects:
+          type: array
+          description: Authored map objects. The server decides which objects become ECS entities.
+          default: []
+          items:
+            $ref: "#/components/schemas/WorldObject"
+        spawns:
+          type: array
+          default: []
+          items:
+            $ref: "#/components/schemas/SpawnPoint"
+
+    WorldSize:
+      type: object
+      additionalProperties: false
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: integer
+          minimum: 1
+          examples:
+            - 64
+        y:
+          type: integer
+          minimum: 1
+          examples:
+            - 64
+
+    TerrainType:
+      type: string
+      description: Freeform tile terrain identifier, such as `grass`, `road`, or `water`.
+
+    WorldObject:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - x
+        - y
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - tree_001
+        type:
+          $ref: "#/components/schemas/ObjectType"
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
+        width:
+          type: integer
+          minimum: 1
+          default: 1
+        height:
+          type: integer
+          minimum: 1
+          default: 1
+        blocksMovement:
+          type: boolean
+          default: false
+        interactable:
+          type: array
+          default: []
+          items:
+            $ref: "#/components/schemas/InteractionOption"
+        state:
+          type: object
+          description: Object-specific initial state, such as door lock/open state.
+          additionalProperties: true
+
+    ObjectType:
+      type: string
+      description: Freeform authored object identifier, such as `tree`, `door`, or `chest`.
+
+    InteractionOption:
+      type: string
+      enum:
+        - attack
+        - chop
+        - examine
+        - open
+        - close
+        - talk
+        - trade
+
+    SpawnPoint:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - x
+        - y
+      properties:
+        type:
+          $ref: "#/components/schemas/SpawnType"
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
+        entityType:
+          type: string
+          description: Entity archetype to create for non-player spawns.
+          examples:
+            - dude
+        name:
+          type: string
+
+    SpawnType:
+      type: string
+      enum:
+        - player
+        - npc
+        - monster
+
+  examples:
+    TinyWorld:
+      summary: A 3 by 2 world using flat row-major tile arrays.
+      value:
+        formatVersion: 1
+        id: starter
+        displayName: Starter Island
+        size:
+          x: 3
+          y: 2
+        terrain:
+          - grass
+          - grass
+          - road
+          - water
+          - grass
+          - road
+        collision:
+          - false
+          - false
+          - false
+          - true
+          - false
+          - false
+        objects:
+          - id: tree_001
+            type: tree
+            x: 1
+            y: 1
+            blocksMovement: true
+            interactable:
+              - chop
+          - id: door_001
+            type: door
+            x: 2
+            y: 0
+            blocksMovement: true
+            interactable:
+              - open
+            state:
+              open: false
+              locked: false
+        spawns:
+          - type: player
+            x: 0
+            y: 0
+          - type: npc
+            entityType: dude
+            name: Bob
+            x: 2
+            y: 1
