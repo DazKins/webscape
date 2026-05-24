@@ -26,6 +26,16 @@ func (s *RandomWalkSystem) Update() {
 	entityIds := s.ComponentManager.GetEntitiesWithComponents(component.ComponentIdPosition, component.ComponentIdRandomWalk)
 
 	for _, entityId := range entityIds {
+		if s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil {
+			continue
+		}
+		if s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId) != nil {
+			continue
+		}
+		if s.ComponentManager.GetEntityComponent(component.ComponentIdPathing, entityId) != nil {
+			continue
+		}
+
 		randomwalkComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdRandomWalk, entityId).(*component.CRandomWalk)
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
 

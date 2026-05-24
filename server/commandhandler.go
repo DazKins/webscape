@@ -35,6 +35,10 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleChatCommand(clientID, cmd)
 	case command.CommandTypeInteract:
 		h.handleInteractCommand(clientID, cmd)
+	case command.CommandTypeEquip:
+		h.handleEquipCommand(clientID, cmd)
+	case command.CommandTypeUnequip:
+		h.handleUnequipCommand(clientID, cmd)
 	}
 }
 
@@ -78,4 +82,31 @@ func (h *ClientCommandHandler) handleInteractCommand(clientID string, cmd comman
 	}
 
 	h.game.HandleInteract(clientID, model.EntityId(uuid), component.InteractionOption(option))
+}
+
+func (h *ClientCommandHandler) handleEquipCommand(clientID string, cmd command.Command) {
+	itemId := cmd.Data["itemId"].(string)
+	uuidValue, err := uuid.Parse(itemId)
+	if err != nil {
+		log.Printf("Invalid item UUID: %v", err)
+		return
+	}
+
+	h.game.HandleEquip(clientID, model.ItemId(uuidValue))
+}
+
+func (h *ClientCommandHandler) handleUnequipCommand(clientID string, cmd command.Command) {
+	slotValue, ok := cmd.Data["slot"].(string)
+	if !ok {
+		log.Printf("Invalid equipment slot")
+		return
+	}
+
+	slot, valid := model.ParseEquipmentSlot(slotValue)
+	if !valid {
+		log.Printf("Invalid equipment slot: %s", slotValue)
+		return
+	}
+
+	h.game.HandleUnequip(clientID, slot)
 }

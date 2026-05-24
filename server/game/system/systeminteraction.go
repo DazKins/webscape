@@ -15,6 +15,7 @@ type InteractionSystem struct {
 }
 
 func (s *InteractionSystem) processInteraction(
+	entityId model.EntityId,
 	interacting *component.CInteracting,
 ) {
 	switch interacting.GetOption() {
@@ -24,24 +25,9 @@ func (s *InteractionSystem) processInteraction(
 			interacting.GetTargetEntityId(), "Hello!")
 
 	case component.InteractionOptionAttack:
-		// Handle attack interaction - reduce target's health
-		healthComponent := s.ComponentManager.GetEntityComponent(
-			component.ComponentIdHealth, interacting.GetTargetEntityId())
-		if healthComponent != nil {
-			health := healthComponent.(*component.CHealth)
-			// Deal 10 damage per attack
-			newHealth := health.GetCurrentHealth() - 10
-			if newHealth < 0 {
-				newHealth = 0
-			}
-			health.SetCurrentHealth(newHealth)
-			// Update the health component
-			s.ComponentManager.SetEntityComponent(interacting.GetTargetEntityId(), health)
-
-			// The target entity says "Ow!" when hit
-			s.ChatMessageSender.SendChatMessageEntityFor(
-				interacting.GetTargetEntityId(), "Ow!")
-		}
+		// Start combat with the target entity
+		combatState := component.NewCCombatState(interacting.GetTargetEntityId())
+		s.ComponentManager.SetEntityComponent(entityId, combatState)
 	}
 }
 
@@ -86,7 +72,7 @@ func (s *InteractionSystem) Update() {
 		// Check if in range (1 tile away for interactions)
 		if distance <= 1 {
 			// Ready to interact! Process the interaction
-			s.processInteraction(interacting)
+			s.processInteraction(entityId, interacting)
 
 			// Remove the interacting component after processing
 			s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)

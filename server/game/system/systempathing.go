@@ -3,6 +3,7 @@ package system
 import (
 	"log"
 	"webscape/server/game/component"
+	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
 )
@@ -29,6 +30,7 @@ func (s *PathingSystem) Update() {
 
 		pathToPosition := math.Vec2{}
 		isEntityTarget := false
+		inCombat := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil
 
 		if target.Position.IsPresent() {
 			pathToPosition = target.Position.Unwrap()
@@ -51,10 +53,39 @@ func (s *PathingSystem) Update() {
 		}
 		distance := dx + dy
 
-		// For entity targets, stop when 1 tile away (adjacent). For position targets, stop when at exact position.
+		if isEntityTarget && distance == 0 {
+			s.resolveOverlap(entityId, pathToPosition)
+			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
+			continue
+		}
+
+		if isEntityTarget && inCombat {
+			attackRange := s.getAttackRange(entityId)
+			if attackRange < 1 {
+				attackRange = 1
+			}
+			stopPosition, ok := s.findCombatStopPosition(positionPos, pathToPosition, attackRange)
+			if ok {
+				pathToPosition = stopPosition
+				isEntityTarget = false
+				distance = manhattanDistance(positionPos, pathToPosition)
+			}
+		}
+
+		// For entity targets, stop at combat range if in combat, otherwise stop when adjacent.
+		// For position targets, stop when at exact position.
 		shouldStop := false
 		if isEntityTarget {
-			shouldStop = distance <= 1
+			stopDistance := 1
+			if inCombat {
+				if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
+					attackRange := combatStatsComponent.(*component.CCombatStats).GetAttackRange()
+					if attackRange > stopDistance {
+						stopDistance = attackRange
+					}
+				}
+			}
+			shouldStop = distance <= stopDistance
 		} else {
 			shouldStop = distance == 0
 		}
@@ -74,6 +105,93 @@ func (s *PathingSystem) Update() {
 		path = &newPath
 
 		nextPosition := path.Pop()
-		positionComponent.SetPosition(*nextPosition)
+		if nextPosition != nil {
+			positionComponent.SetPosition(*nextPosition)
+		}
 	}
+}
+
+func (s *PathingSystem) resolveOverlap(
+	entityId model.EntityId,
+	targetPosition math.Vec2,
+) {
+	directions := []math.Vec2{
+		{X: 1, Y: 0},
+		{X: -1, Y: 0},
+		{X: 0, Y: 1},
+		{X: 0, Y: -1},
+	}
+
+	for _, direction := range directions {
+		candidate := targetPosition.Add(direction)
+		if s.World.GetWall(candidate.X, candidate.Y) {
+			continue
+		}
+		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
+		positionComponent.SetPosition(candidate)
+		return
+	}
+}
+
+func (s *PathingSystem) getAttackRange(entityId model.EntityId) int {
+	if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
+		return combatStatsComponent.(*component.CCombatStats).GetAttackRange()
+	}
+	return 1
+}
+
+func (s *PathingSystem) findCombatStopPosition(
+	currentPosition math.Vec2,
+	targetPosition math.Vec2,
+	attackRange int,
+) (math.Vec2, bool) {
+	bestPos := math.Vec2{}
+	bestLen := -1
+
+	for dx := -attackRange; dx <= attackRange; dx++ {
+		for dy := -attackRange; dy <= attackRange; dy++ {
+			if absInt(dx)+absInt(dy) > attackRange {
+				continue
+			}
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			candidate := math.Vec2{X: targetPosition.X + dx, Y: targetPosition.Y + dy}
+			if s.World.GetWall(candidate.X, candidate.Y) {
+				continue
+			}
+			path, err := s.World.GetPath(currentPosition, candidate)
+			if err != nil {
+				continue
+			}
+			if bestLen == -1 || path.Size() < bestLen {
+				bestLen = path.Size()
+				bestPos = candidate
+			}
+		}
+	}
+
+	if bestLen == -1 {
+		return math.Vec2{}, false
+	}
+	return bestPos, true
+}
+
+func manhattanDistance(a math.Vec2, b math.Vec2) int {
+	dx := a.X - b.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := b.Y - a.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	return dx + dy
+}
+
+func absInt(value int) int {
+	if value < 0 {
+		return -value
+	}
+	return value
 }
