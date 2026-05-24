@@ -17,7 +17,6 @@ const (
 type CombatSystem struct {
 	SystemBase
 	World        *world.World
-	entryCounter int
 }
 
 func (s *CombatSystem) Update() {
@@ -115,6 +114,12 @@ func (s *CombatSystem) updateCombatStates() {
 			continue
 		}
 
+		if manhattanDistance(attackerPosition, targetPosition) == 0 {
+			if s.stepOutFromTarget(attackerId, targetPosition) {
+				continue
+			}
+		}
+
 		if combatState.GetCooldownRemaining() > 0 {
 			continue
 		}
@@ -205,7 +210,6 @@ func (s *CombatSystem) addCombatLog(entityId model.EntityId, text string, kind s
 	if combatLog == nil {
 		return
 	}
-	s.entryCounter++
 	combatLogComponent := combatLog.(*component.CCombatLog)
 	combatLogComponent.AddEntry(component.NewCombatLogEntry(text, kind))
 	s.ComponentManager.SetEntityComponent(entityId, combatLogComponent)
@@ -265,16 +269,24 @@ func (s *CombatSystem) setPathingToPosition(entityId model.EntityId, target math
 	s.ComponentManager.SetEntityComponent(entityId, pathingComponent)
 }
 
-func manhattanDistance(a math.Vec2, b math.Vec2) int {
-	dx := a.X - b.X
-	if dx < 0 {
-		dx = -dx
+func (s *CombatSystem) stepOutFromTarget(attackerId model.EntityId, targetPosition math.Vec2) bool {
+	directions := []math.Vec2{
+		{X: 1, Y: 0},
+		{X: -1, Y: 0},
+		{X: 0, Y: 1},
+		{X: 0, Y: -1},
 	}
-	dy := a.Y - b.Y
-	if dy < 0 {
-		dy = -dy
+
+	for _, direction := range directions {
+		candidate := targetPosition.Add(direction)
+		if s.World.GetWall(candidate.X, candidate.Y) {
+			continue
+		}
+		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, attackerId).(*component.CPosition)
+		positionComponent.SetPosition(candidate)
+		return true
 	}
-	return dx + dy
+	return false
 }
 
 func toEquipped(componentValue component.Component) *component.CEquipped {
