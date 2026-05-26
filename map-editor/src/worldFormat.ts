@@ -4,7 +4,8 @@ export type WorldFormat = {
   displayName?: string;
   size: WorldSize;
   terrain: string[];
-  collision?: boolean[];
+  blockers?: boolean[];
+  walls: WorldWall[];
   objects: WorldObject[];
   spawns: SpawnPoint[];
 };
@@ -24,6 +25,13 @@ export type WorldObject = {
   blocksMovement?: boolean;
   interactable?: string[];
   state?: Record<string, unknown>;
+};
+
+export type WorldWall = {
+  id: string;
+  type: string;
+  x: number;
+  y: number;
 };
 
 export type SpawnPoint = {
@@ -48,7 +56,8 @@ export function createBlankWorld(): WorldFormat {
     displayName: "New World",
     size: DEFAULT_SIZE,
     terrain: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill("grass"),
-    collision: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(false),
+    blockers: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(false),
+    walls: [],
     objects: [],
     spawns: [],
   };
@@ -79,7 +88,8 @@ export function normalizeWorld(value: unknown): WorldFormat {
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
     size,
     terrain: Array.isArray(value.terrain) ? value.terrain.map(String) : [],
-    collision: Array.isArray(value.collision) ? value.collision.map(Boolean) : undefined,
+    blockers: Array.isArray(value.blockers) ? value.blockers.map(Boolean) : undefined,
+    walls: Array.isArray(value.walls) ? value.walls.map(normalizeWall) : [],
     objects: Array.isArray(value.objects) ? value.objects.map(normalizeObject) : [],
     spawns: Array.isArray(value.spawns) ? value.spawns.map(normalizeSpawn) : [],
   };
@@ -116,8 +126,20 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     errors.push(`terrain length must be ${tileCount}`);
   }
 
-  if (world.collision && world.collision.length !== tileCount) {
-    errors.push(`collision length must be ${tileCount}`);
+  if (world.blockers && world.blockers.length !== tileCount) {
+    errors.push(`blockers length must be ${tileCount}`);
+  }
+
+  for (const wall of world.walls) {
+    if (!wall.id || !/^[a-z0-9][a-z0-9_-]*$/.test(wall.id)) {
+      errors.push(`wall id "${wall.id}" is invalid`);
+    }
+    if (!wall.type) {
+      errors.push(`wall "${wall.id}" must have a type`);
+    }
+    if (!isInBounds(world.size, wall.x, wall.y)) {
+      errors.push(`wall "${wall.id}" is out of bounds`);
+    }
   }
 
   for (const object of world.objects) {
@@ -152,12 +174,12 @@ export function validateWorld(world: WorldFormat): ValidationResult {
 
 export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain: string): WorldFormat {
   const terrain = new Array(nextSize.x * nextSize.y).fill(fillTerrain || "grass");
-  const collision = new Array(nextSize.x * nextSize.y).fill(false);
+  const blockers = new Array(nextSize.x * nextSize.y).fill(false);
 
   for (let y = 0; y < Math.min(world.size.y, nextSize.y); y += 1) {
     for (let x = 0; x < Math.min(world.size.x, nextSize.x); x += 1) {
       terrain[tileIndex(nextSize, x, y)] = world.terrain[tileIndex(world.size, x, y)];
-      collision[tileIndex(nextSize, x, y)] = Boolean(world.collision?.[tileIndex(world.size, x, y)]);
+      blockers[tileIndex(nextSize, x, y)] = Boolean(world.blockers?.[tileIndex(world.size, x, y)]);
     }
   }
 
@@ -165,7 +187,8 @@ export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain
     ...world,
     size: nextSize,
     terrain,
-    collision,
+    blockers,
+    walls: world.walls.filter((wall) => isInBounds(nextSize, wall.x, wall.y)),
     objects: world.objects.filter((object) => isInBounds(nextSize, object.x, object.y)),
     spawns: world.spawns.filter((spawn) => isInBounds(nextSize, spawn.x, spawn.y)),
   };
@@ -175,13 +198,27 @@ export function serializeWorld(world: WorldFormat): string {
   return `${JSON.stringify(
     {
       ...world,
-      collision: world.collision ?? new Array(world.size.x * world.size.y).fill(false),
+      blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
+      walls: world.walls,
       objects: world.objects,
       spawns: world.spawns,
     },
     null,
     2
   )}\n`;
+}
+
+function normalizeWall(value: unknown): WorldWall {
+  if (!isObject(value)) {
+    return { id: "wall_invalid", type: "stone", x: 0, y: 0 };
+  }
+
+  return {
+    id: typeof value.id === "string" ? value.id : "wall_invalid",
+    type: typeof value.type === "string" ? value.type : "stone",
+    x: Number(value.x),
+    y: Number(value.y),
+  };
 }
 
 function normalizeObject(value: unknown): WorldObject {

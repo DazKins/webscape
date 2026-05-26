@@ -42,14 +42,19 @@ components:
             `terrain[y * size.x + x]`.
           items:
             $ref: "#/components/schemas/TerrainType"
-        collision:
+        blockers:
           type: array
           description: |
-            Optional flat row-major collision override layer. Coordinate (x, y)
-            is stored at `collision[y * size.x + x]`. `true` blocks movement.
-            If omitted, collision can be derived from terrain and objects.
+            Optional flat row-major invisible blocker layer. Coordinate (x, y)
+            is stored at `blockers[y * size.x + x]`. `true` blocks movement.
           items:
             type: boolean
+        walls:
+          type: array
+          description: Visible wall objects that are rendered above tiles and block movement.
+          default: []
+          items:
+            $ref: "#/components/schemas/WorldWall"
         objects:
           type: array
           description: Authored map objects. The server decides which objects become ECS entities.
@@ -127,6 +132,30 @@ components:
           description: Object-specific initial state, such as door lock/open state.
           additionalProperties: true
 
+    WorldWall:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - type
+        - x
+        - y
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - wall_001
+        type:
+          type: string
+          description: Freeform wall type identifier, such as `stone` or `wood`.
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
+
     ObjectType:
       type: string
       description: Freeform authored object identifier, such as `tree`, `door`, or `chest`.
@@ -190,13 +219,18 @@ components:
           - water
           - grass
           - road
-        collision:
+        blockers:
           - false
           - false
           - false
           - true
           - false
           - false
+        walls:
+          - id: wall_001
+            type: stone
+            x: 2
+            y: 0
         objects:
           - id: tree_001
             type: tree

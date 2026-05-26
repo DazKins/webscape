@@ -248,6 +248,7 @@ label {
   outline-offset: -4px;
 }
 
+.wallBadge,
 .objectBadge,
 .spawnBadge {
   position: absolute;
@@ -259,6 +260,12 @@ label {
   font-size: 10px;
   line-height: 1;
   color: #ffffff;
+}
+
+.wallBadge {
+  left: 4px;
+  bottom: 4px;
+  background: #6b6f76;
 }
 
 .objectBadge {

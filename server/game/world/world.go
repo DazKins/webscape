@@ -17,11 +17,13 @@ type World struct {
 	sizeX int
 	sizeY int
 
-	terrain  []string
-	walls    [][]bool
-	blockers [][]bool
-	objects  []WorldObject
-	spawns   []WorldSpawn
+	terrain        []string
+	blockers       [][]bool
+	wallBlockers   [][]bool
+	objectBlockers [][]bool
+	walls          []WorldWall
+	objects        []WorldObject
+	spawns         []WorldSpawn
 }
 
 type worldFormat struct {
@@ -30,7 +32,8 @@ type worldFormat struct {
 	DisplayName   string        `json:"displayName"`
 	Size          worldSize     `json:"size"`
 	Terrain       []string      `json:"terrain"`
-	Collision     []bool        `json:"collision"`
+	Blockers      []bool        `json:"blockers"`
+	Walls         []WorldWall   `json:"walls"`
 	Objects       []WorldObject `json:"objects"`
 	Spawns        []WorldSpawn  `json:"spawns"`
 }
@@ -50,6 +53,13 @@ type WorldObject struct {
 	BlocksMovement bool           `json:"blocksMovement"`
 	Interactable   []string       `json:"interactable"`
 	State          map[string]any `json:"state"`
+}
+
+type WorldWall struct {
+	Id   string `json:"id"`
+	Type string `json:"type"`
+	X    int    `json:"x"`
+	Y    int    `json:"y"`
 }
 
 type WorldSpawn struct {
@@ -79,8 +89,13 @@ func loadWorldFromEmbeddedFile(path string) (*World, error) {
 		return nil, err
 	}
 
-	walls := makeWalls(format.Size.X, format.Size.Y, format.Collision)
-	blockers := makeWalls(format.Size.X, format.Size.Y, nil)
+	blockers := makeBlockerGrid(format.Size.X, format.Size.Y, format.Blockers)
+	wallBlockers := makeBlockerGrid(format.Size.X, format.Size.Y, nil)
+	for _, wall := range format.Walls {
+		wallBlockers[wall.X][wall.Y] = true
+	}
+
+	objectBlockers := makeBlockerGrid(format.Size.X, format.Size.Y, nil)
 	for _, object := range format.Objects {
 		if !object.BlocksMovement {
 			continue
@@ -95,38 +110,37 @@ func loadWorldFromEmbeddedFile(path string) (*World, error) {
 		}
 		for x := object.X; x < object.X+width; x++ {
 			for y := object.Y; y < object.Y+height; y++ {
-				blockers[x][y] = true
+				objectBlockers[x][y] = true
 			}
 		}
 	}
 
 	return &World{
-		sizeX:    format.Size.X,
-		sizeY:    format.Size.Y,
-		terrain:  format.Terrain,
-		walls:    walls,
-		blockers: blockers,
-		objects:  format.Objects,
-		spawns:   format.Spawns,
+		sizeX:          format.Size.X,
+		sizeY:          format.Size.Y,
+		terrain:        format.Terrain,
+		blockers:       blockers,
+		wallBlockers:   wallBlockers,
+		objectBlockers: objectBlockers,
+		walls:          format.Walls,
+		objects:        format.Objects,
+		spawns:         format.Spawns,
 	}, nil
 }
 
 func NewWorld(sizeX int, sizeY int) *World {
-	walls := make([][]bool, sizeX)
-	for i := range walls {
-		walls[i] = make([]bool, sizeY)
-	}
 	terrain := make([]string, sizeX*sizeY)
 	for i := range terrain {
 		terrain[i] = "grass"
 	}
 
 	return &World{
-		sizeX:    sizeX,
-		sizeY:    sizeY,
-		terrain:  terrain,
-		walls:    walls,
-		blockers: makeWalls(sizeX, sizeY, nil),
+		sizeX:          sizeX,
+		sizeY:          sizeY,
+		terrain:        terrain,
+		blockers:       makeBlockerGrid(sizeX, sizeY, nil),
+		wallBlockers:   makeBlockerGrid(sizeX, sizeY, nil),
+		objectBlockers: makeBlockerGrid(sizeX, sizeY, nil),
 	}
 }
 
@@ -143,11 +157,11 @@ func (w *World) GetWall(x int, y int) bool {
 		return true
 	}
 
-	return w.walls[x][y] || w.blockers[x][y]
+	return w.blockers[x][y] || w.wallBlockers[x][y] || w.objectBlockers[x][y]
 }
 
-func (w *World) GetWalls() [][]bool {
-	return w.walls
+func (w *World) GetBlockers() [][]bool {
+	return w.blockers
 }
 
 func (w *World) GetTerrain() []string {
@@ -159,6 +173,12 @@ func (w *World) GetTerrain() []string {
 func (w *World) GetObjects() []WorldObject {
 	result := make([]WorldObject, len(w.objects))
 	copy(result, w.objects)
+	return result
+}
+
+func (w *World) GetWalls() []WorldWall {
+	result := make([]WorldWall, len(w.walls))
+	copy(result, w.walls)
 	return result
 }
 
@@ -267,8 +287,16 @@ func validateWorldFormat(format worldFormat) error {
 	if len(format.Terrain) != tileCount {
 		return fmt.Errorf("terrain length must be %d", tileCount)
 	}
-	if len(format.Collision) > 0 && len(format.Collision) != tileCount {
-		return fmt.Errorf("collision length must be %d", tileCount)
+	if len(format.Blockers) > 0 && len(format.Blockers) != tileCount {
+		return fmt.Errorf("blockers length must be %d", tileCount)
+	}
+	for _, wall := range format.Walls {
+		if wall.Id == "" || wall.Type == "" {
+			return errors.New("world walls must have id and type")
+		}
+		if wall.X < 0 || wall.Y < 0 || wall.X >= format.Size.X || wall.Y >= format.Size.Y {
+			return fmt.Errorf("wall %q is out of bounds", wall.Id)
+		}
 	}
 	for _, object := range format.Objects {
 		width := object.Width
@@ -297,14 +325,14 @@ func validateWorldFormat(format worldFormat) error {
 	return nil
 }
 
-func makeWalls(sizeX int, sizeY int, collision []bool) [][]bool {
-	walls := make([][]bool, sizeX)
-	for x := range walls {
-		walls[x] = make([]bool, sizeY)
-		for y := range walls[x] {
+func makeBlockerGrid(sizeX int, sizeY int, blockers []bool) [][]bool {
+	grid := make([][]bool, sizeX)
+	for x := range grid {
+		grid[x] = make([]bool, sizeY)
+		for y := range grid[x] {
 			index := y*sizeX + x
-			walls[x][y] = index < len(collision) && collision[index]
+			grid[x][y] = index < len(blockers) && blockers[index]
 		}
 	}
-	return walls
+	return grid
 }

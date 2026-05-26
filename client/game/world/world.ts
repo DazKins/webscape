@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import Input from "../../input";
 import Camera from "../camera";
+import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
 
 class World {
   sizeX: number;
   sizeY: number;
   terrain: string[];
-  walls: boolean[][];
+  blockers: boolean[][];
+  walls: WorldWall[];
   input: Input;
   mesh: THREE.Mesh;
   highlightMesh: THREE.Mesh;
@@ -16,7 +18,8 @@ class World {
     sizeX: number,
     sizeY: number,
     terrain: string[],
-    walls: boolean[][],
+    blockers: boolean[][],
+    walls: WorldWall[],
     input: Input
   ) {
     console.log("Creating world", sizeX, sizeY);
@@ -24,6 +27,7 @@ class World {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
     this.terrain = terrain;
+    this.blockers = blockers;
     this.walls = walls;
     this.input = input;
 
@@ -69,39 +73,7 @@ class World {
       scene.add(terrainMesh);
     });
 
-    this.walls.forEach((row, x) => {
-      row.forEach((wall, y) => {
-        if (wall === false) return;
-
-        // Create the main wall mesh with pastel grey color
-        const wallMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(1, 1, 1),
-          new THREE.MeshPhongMaterial({ color: 0xd3d3d3 })
-        );
-
-        // Create wireframe for black edges
-        // const wireframeGeometry = new THREE.EdgesGeometry(
-        //   new THREE.BoxGeometry(1, 1, 1)
-        // );
-        // const wireframeMaterial = new THREE.LineBasicMaterial({
-        //   color: 0x000000,
-        //   linewidth: 2,
-        //   transparent: true,
-        //   opacity: 1.0,
-        // });
-        // const wireframe = new THREE.LineSegments(
-        //   wireframeGeometry,
-        //   wireframeMaterial
-        // );
-
-        // // Add wireframe to the wall mesh
-        // wallMesh.add(wireframe);
-        wallMesh.position.x = x + 0.5;
-        wallMesh.position.z = y + 0.5;
-        wallMesh.position.y = 0.5;
-        scene.add(wallMesh);
-      });
-    });
+    addWallGeometry(scene, this.walls);
   }
 
   getHoveredTile(camera: Camera) {

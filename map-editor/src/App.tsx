@@ -7,6 +7,7 @@ import {
   validateWorld,
   type SpawnPoint,
   type WorldFormat,
+  type WorldWall,
   type WorldObject,
 } from "./worldFormat.ts";
 import {
@@ -17,14 +18,16 @@ import {
   type WorldFileHandle,
 } from "./fileSystem.ts";
 
-type Tool = "terrain" | "collision" | "object" | "spawn" | "select";
+type Tool = "terrain" | "blocker" | "wall" | "object" | "spawn" | "select";
 type Selection =
+  | { type: "wall"; id: string }
   | { type: "object"; id: string }
   | { type: "spawn"; index: number }
   | { type: "tile"; x: number; y: number }
   | null;
 
 const TERRAIN_SWATCHES = ["grass", "dirt", "road", "water", "stone"];
+const WALL_TYPES = ["stone", "wood"];
 const OBJECT_TYPES = ["tree", "door", "building", "chest", "rock"];
 const SPAWN_TYPES: SpawnPoint["type"][] = ["player", "npc", "monster"];
 
@@ -37,13 +40,16 @@ function App() {
   const [tool, setTool] = useState<Tool>("terrain");
   const [selection, setSelection] = useState<Selection>(null);
   const [terrainType, setTerrainType] = useState("grass");
-  const [collisionValue, setCollisionValue] = useState(true);
+  const [blockerValue, setBlockerValue] = useState(true);
+  const [wallType, setWallType] = useState("stone");
   const [objectType, setObjectType] = useState("tree");
   const [objectBlocksMovement, setObjectBlocksMovement] = useState(true);
   const [spawnType, setSpawnType] = useState<SpawnPoint["type"]>("player");
   const [stateText, setStateText] = useState("{}");
 
   const validation = useMemo(() => validateWorld(world), [world]);
+  const selectedWall =
+    selection?.type === "wall" ? world.walls.find((wall) => wall.id === selection.id) : undefined;
   const selectedObject =
     selection?.type === "object" ? world.objects.find((object) => object.id === selection.id) : undefined;
   const selectedSpawn = selection?.type === "spawn" ? world.spawns[selection.index] : undefined;
@@ -126,13 +132,13 @@ function App() {
       return;
     }
 
-    if (tool === "collision") {
+    if (tool === "blocker") {
       updateWorld((current) => {
-        const collision = current.collision
-          ? [...current.collision]
+        const blockers = current.blockers
+          ? [...current.blockers]
           : new Array(current.size.x * current.size.y).fill(false);
-        collision[index] = collisionValue;
-        return { ...current, collision };
+        blockers[index] = blockerValue;
+        return { ...current, blockers };
       });
       setSelection({ type: "tile", x, y });
       return;
@@ -143,6 +149,13 @@ function App() {
       updateWorld((current) => ({ ...current, objects: [...current.objects, object] }));
       setSelection({ type: "object", id: object.id });
       setStateText(JSON.stringify(object.state ?? {}, null, 2));
+      return;
+    }
+
+    if (tool === "wall") {
+      const wall = createWall(world, wallType, x, y);
+      updateWorld((current) => ({ ...current, walls: [...current.walls, wall] }));
+      setSelection({ type: "wall", id: wall.id });
       return;
     }
 
@@ -157,6 +170,14 @@ function App() {
   }
 
   function selectTile(x: number, y: number) {
+    const wall = [...world.walls]
+      .reverse()
+      .find((candidate) => coversTile(candidate, x, y));
+    if (wall) {
+      setSelection({ type: "wall", id: wall.id });
+      return;
+    }
+
     const object = [...world.objects]
       .reverse()
       .find((candidate) => coversTile(candidate, x, y));
@@ -204,6 +225,19 @@ function App() {
     }
   }
 
+  function updateSelectedWall(patch: Partial<WorldWall>) {
+    if (!selectedWall) {
+      return;
+    }
+    updateWorld((current) => ({
+      ...current,
+      walls: current.walls.map((wall) => (wall.id === selectedWall.id ? { ...wall, ...patch } : wall)),
+    }));
+    if (patch.id) {
+      setSelection({ type: "wall", id: patch.id });
+    }
+  }
+
   function updateSelectedSpawn(patch: Partial<SpawnPoint>) {
     if (selection?.type !== "spawn") {
       return;
@@ -217,7 +251,12 @@ function App() {
   }
 
   function deleteSelection() {
-    if (selection?.type === "object") {
+    if (selection?.type === "wall") {
+      updateWorld((current) => ({
+        ...current,
+        walls: current.walls.filter((wall) => wall.id !== selection.id),
+      }));
+    } else if (selection?.type === "object") {
       updateWorld((current) => ({
         ...current,
         objects: current.objects.filter((object) => object.id !== selection.id),
@@ -312,7 +351,7 @@ function App() {
           <section>
             <h2>Tools</h2>
             <div className="segmented">
-              {(["terrain", "collision", "object", "spawn", "select"] as Tool[]).map((item) => (
+              {(["terrain", "blocker", "wall", "object", "spawn", "select"] as Tool[]).map((item) => (
                 <button
                   key={item}
                   type="button"
@@ -346,16 +385,32 @@ function App() {
               </div>
             ) : null}
 
-            {tool === "collision" ? (
+            {tool === "blocker" ? (
               <div className="toolSettings">
                 <label className="checkboxLabel">
                   <input
                     type="checkbox"
-                    checked={collisionValue}
-                    onChange={(event) => setCollisionValue(event.target.checked)}
+                    checked={blockerValue}
+                    onChange={(event) => setBlockerValue(event.target.checked)}
                   />
                   blocked
                 </label>
+              </div>
+            ) : null}
+
+            {tool === "wall" ? (
+              <div className="toolSettings">
+                <label>
+                  Wall type
+                  <input value={wallType} onChange={(event) => setWallType(event.target.value)} />
+                </label>
+                <div className="quickPicks">
+                  {WALL_TYPES.map((type) => (
+                    <button key={type} type="button" onClick={() => setWallType(type)}>
+                      {type}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
 
@@ -418,10 +473,11 @@ function App() {
               {world.terrain.map((terrain, index) => {
                 const x = index % world.size.x;
                 const y = Math.floor(index / world.size.x);
+                const wall = world.walls.find((candidate) => coversTile(candidate, x, y));
                 const object = world.objects.find((candidate) => coversTile(candidate, x, y));
                 const spawn = world.spawns.find((candidate) => candidate.x === x && candidate.y === y);
-                const blocked = Boolean(world.collision?.[index]);
-                const selected = isTileSelected(selection, x, y, object, spawn, world.spawns);
+                const blocked = Boolean(world.blockers?.[index]);
+                const selected = isTileSelected(selection, x, y, wall, object, spawn, world.spawns);
 
                 return (
                   <button
@@ -432,6 +488,7 @@ function App() {
                     title={`${x}, ${y}: ${terrain}`}
                     onClick={() => handleTileClick(x, y)}
                   >
+                    {wall ? <span className="wallBadge">{wall.type.slice(0, 2)}</span> : null}
                     {object ? <span className="objectBadge">{object.type.slice(0, 2)}</span> : null}
                     {spawn ? <span className="spawnBadge">{spawn.type.slice(0, 1)}</span> : null}
                   </button>
@@ -446,6 +503,30 @@ function App() {
             <h2>Selection</h2>
             {selection?.type === "tile" ? (
               <TileDetails world={world} x={selection.x} y={selection.y} />
+            ) : null}
+
+            {selectedWall ? (
+              <div className="details">
+                <label>
+                  Id
+                  <input value={selectedWall.id} onChange={(event) => updateSelectedWall({ id: event.target.value })} />
+                </label>
+                <label>
+                  Type
+                  <input value={selectedWall.type} onChange={(event) => updateSelectedWall({ type: event.target.value })} />
+                </label>
+                <div className="fieldRow">
+                  <label>
+                    X
+                    <input type="number" value={selectedWall.x} onChange={(event) => updateSelectedWall({ x: Number(event.target.value) })} />
+                  </label>
+                  <label>
+                    Y
+                    <input type="number" value={selectedWall.y} onChange={(event) => updateSelectedWall({ y: Number(event.target.value) })} />
+                  </label>
+                </div>
+                <button type="button" className="danger" onClick={deleteSelection}>Delete</button>
+              </div>
             ) : null}
 
             {selectedObject ? (
@@ -566,9 +647,27 @@ function TileDetails({ world, x, y }: { world: WorldFormat; x: number; y: number
       <p className="metric">x {x}</p>
       <p className="metric">y {y}</p>
       <p className="metric">terrain {world.terrain[index]}</p>
-      <p className="metric">blocked {world.collision?.[index] ? "yes" : "no"}</p>
+      <p className="metric">blocked {world.blockers?.[index] ? "yes" : "no"}</p>
     </div>
   );
+}
+
+function createWall(world: WorldFormat, rawType: string, x: number, y: number): WorldWall {
+  const type = sanitizeToken(rawType || "wall");
+  let nextNumber = 1;
+  let id = `wall_${String(nextNumber).padStart(3, "0")}`;
+
+  while (world.walls.some((wall) => wall.id === id)) {
+    nextNumber += 1;
+    id = `wall_${String(nextNumber).padStart(3, "0")}`;
+  }
+
+  return {
+    id,
+    type,
+    x,
+    y,
+  };
 }
 
 function createObject(
@@ -600,16 +699,17 @@ function createObject(
   };
 }
 
-function coversTile(object: WorldObject, x: number, y: number): boolean {
-  const width = object.width ?? 1;
-  const height = object.height ?? 1;
-  return x >= object.x && y >= object.y && x < object.x + width && y < object.y + height;
+function coversTile(item: WorldObject | WorldWall, x: number, y: number): boolean {
+  const width = "width" in item ? item.width ?? 1 : 1;
+  const height = "height" in item ? item.height ?? 1 : 1;
+  return x >= item.x && y >= item.y && x < item.x + width && y < item.y + height;
 }
 
 function isTileSelected(
   selection: Selection,
   x: number,
   y: number,
+  wall: WorldWall | undefined,
   object: WorldObject | undefined,
   spawn: SpawnPoint | undefined,
   spawns: SpawnPoint[]
@@ -619,6 +719,9 @@ function isTileSelected(
   }
   if (selection?.type === "object") {
     return object?.id === selection.id;
+  }
+  if (selection?.type === "wall") {
+    return wall?.id === selection.id;
   }
   if (selection?.type === "spawn") {
     return Boolean(spawn && spawns[selection.index] === spawn);
