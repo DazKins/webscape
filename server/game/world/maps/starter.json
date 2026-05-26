@@ -1215,175 +1215,377 @@
       "id": "wall_001",
       "type": "wood",
       "x": 1,
-      "y": 4
+      "y": 4,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_002",
       "type": "wood",
       "x": 1,
-      "y": 3
+      "y": 3,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_003",
       "type": "wood",
       "x": 1,
-      "y": 2
+      "y": 2,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_004",
       "type": "wood",
       "x": 1,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_005",
       "type": "wood",
       "x": 2,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_006",
       "type": "wood",
       "x": 3,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_007",
       "type": "wood",
       "x": 4,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_008",
       "type": "wood",
       "x": 5,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_009",
       "type": "wood",
       "x": 6,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_011",
       "type": "wood",
       "x": 7,
-      "y": 2
+      "y": 2,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_012",
       "type": "wood",
       "x": 7,
-      "y": 3
+      "y": 3,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_013",
       "type": "wood",
       "x": 7,
-      "y": 4
+      "y": 4,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_014",
       "type": "wood",
       "x": 7,
-      "y": 5
+      "y": 5,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_015",
       "type": "wood",
       "x": 7,
-      "y": 6
+      "y": 6,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_016",
       "type": "wood",
       "x": 7,
-      "y": 7
+      "y": 7,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_017",
       "type": "wood",
       "x": 7,
-      "y": 8
+      "y": 8,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_018",
       "type": "wood",
       "x": 6,
-      "y": 8
+      "y": 8,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_019",
       "type": "wood",
       "x": 6,
-      "y": 9
+      "y": 9,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_020",
       "type": "wood",
       "x": 1,
-      "y": 4
+      "y": 4,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_021",
       "type": "wood",
       "x": 1,
-      "y": 5
+      "y": 5,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_022",
       "type": "wood",
       "x": 1,
-      "y": 6
+      "y": 6,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_023",
       "type": "wood",
       "x": 1,
-      "y": 7
+      "y": 7,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_024",
       "type": "wood",
       "x": 1,
-      "y": 7
+      "y": 7,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_025",
       "type": "wood",
       "x": 1,
-      "y": 8
+      "y": 8,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_026",
       "type": "wood",
       "x": 2,
-      "y": 8
+      "y": 8,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_027",
       "type": "wood",
       "x": 2,
-      "y": 9
+      "y": 9,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_028",
       "type": "wood",
       "x": 3,
-      "y": 9
+      "y": 9,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_029",
       "type": "wood",
       "x": 5,
-      "y": 9
+      "y": 9,
+      "width": 1,
+      "height": 1
     },
     {
       "id": "wall_030",
       "type": "wood",
       "x": 7,
-      "y": 1
+      "y": 1,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "id": "wall_010",
+      "type": "stone",
+      "x": 1,
+      "y": 16
+    },
+    {
+      "id": "wall_031",
+      "type": "stone",
+      "x": 2,
+      "y": 16
+    },
+    {
+      "id": "wall_032",
+      "type": "stone",
+      "x": 3,
+      "y": 16
+    },
+    {
+      "id": "wall_033",
+      "type": "stone",
+      "x": 3,
+      "y": 17
+    },
+    {
+      "id": "wall_034",
+      "type": "stone",
+      "x": 3,
+      "y": 18
+    },
+    {
+      "id": "wall_035",
+      "type": "stone",
+      "x": 2,
+      "y": 18
+    },
+    {
+      "id": "wall_036",
+      "type": "stone",
+      "x": 1,
+      "y": 18
+    },
+    {
+      "id": "wall_037",
+      "type": "stone",
+      "x": 1,
+      "y": 17
+    },
+    {
+      "id": "wall_038",
+      "type": "stone",
+      "x": 8,
+      "y": 16
+    },
+    {
+      "id": "wall_039",
+      "type": "stone",
+      "x": 7,
+      "y": 16
+    },
+    {
+      "id": "wall_040",
+      "type": "stone",
+      "x": 7,
+      "y": 17
+    },
+    {
+      "id": "wall_041",
+      "type": "stone",
+      "x": 7,
+      "y": 18
+    },
+    {
+      "id": "wall_042",
+      "type": "stone",
+      "x": 8,
+      "y": 18
+    },
+    {
+      "id": "wall_043",
+      "type": "stone",
+      "x": 9,
+      "y": 18
+    },
+    {
+      "id": "wall_044",
+      "type": "stone",
+      "x": 9,
+      "y": 17
+    },
+    {
+      "id": "wall_045",
+      "type": "stone",
+      "x": 9,
+      "y": 16
+    },
+    {
+      "id": "wall_046",
+      "type": "stone",
+      "x": 13,
+      "y": 16
+    },
+    {
+      "id": "wall_047",
+      "type": "stone",
+      "x": 14,
+      "y": 16
+    },
+    {
+      "id": "wall_048",
+      "type": "stone",
+      "x": 15,
+      "y": 16
+    },
+    {
+      "id": "wall_049",
+      "type": "stone",
+      "x": 15,
+      "y": 17
+    },
+    {
+      "id": "wall_050",
+      "type": "stone",
+      "x": 15,
+      "y": 18
+    },
+    {
+      "id": "wall_051",
+      "type": "stone",
+      "x": 14,
+      "y": 18
+    },
+    {
+      "id": "wall_052",
+      "type": "stone",
+      "x": 13,
+      "y": 18
+    },
+    {
+      "id": "wall_053",
+      "type": "stone",
+      "x": 13,
+      "y": 17
     }
   ],
   "objects": [
@@ -1705,12 +1907,14 @@
     {
       "type": "npc",
       "x": 14,
-      "y": 2
+      "y": 2,
+      "name": "DazKins"
     },
     {
       "type": "npc",
       "x": 28,
-      "y": 9
+      "y": 9,
+      "name": "Bains"
     }
   ]
 }
