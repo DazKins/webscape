@@ -1131,7 +1131,13 @@ function App() {
                   Type
                   <select
                     value={selectedSpawn.type}
-                    onChange={(event) => updateSelectedSpawn({ type: event.target.value as SpawnPoint["type"] })}
+                    onChange={(event) => {
+                      const type = event.target.value as SpawnPoint["type"];
+                      updateSelectedSpawn({
+                        type,
+                        conversationId: type === "npc" ? selectedSpawn.conversationId : undefined,
+                      });
+                    }}
                   >
                     {SPAWN_TYPES.map((type) => (
                       <option key={type} value={type}>{type}</option>
@@ -1156,6 +1162,22 @@ function App() {
                   Name
                   <input value={selectedSpawn.name ?? ""} onChange={(event) => updateSelectedSpawn({ name: event.target.value || undefined })} />
                 </label>
+                {selectedSpawn.type === "npc" ? (
+                  <label>
+                    Conversation
+                    <select
+                      value={selectedSpawn.conversationId ?? ""}
+                      onChange={(event) => updateSelectedSpawn({ conversationId: event.target.value || undefined })}
+                    >
+                      <option value="">none</option>
+                      {conversationSummaries.map((summary) => (
+                        <option key={`${summary.path}:${summary.conversationId}`} value={summary.conversationId}>
+                          {summary.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
                 <button type="button" className="danger" onClick={deleteSelection}>Delete</button>
               </div>
             ) : null}

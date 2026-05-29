@@ -54,7 +54,7 @@ func NewGameWithWorld(world *world.World) *Game {
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		ChatMessageSender: game,
+		ConversationStarter: game,
 	})
 	game.RegisterSystem(&system.CombatSystem{
 		SystemBase: system.SystemBase{
@@ -103,6 +103,24 @@ func (g *Game) loadWorldEntities() {
 			name,
 			math.Vec2{X: spawn.X, Y: spawn.Y},
 		)
+		if spawn.ConversationId != "" {
+			if _, ok := g.world.GetConversation(spawn.ConversationId); ok {
+				components = append(components, component.NewCConversation(spawn.ConversationId))
+				for _, comp := range components {
+					interactable, ok := comp.(*component.CInteractable)
+					if ok {
+						interactable.SetInteractionOptions([]component.InteractionOption{
+							component.InteractionOptionTalk,
+							component.InteractionOptionTrade,
+							component.InteractionOptionAttack,
+						})
+						break
+					}
+				}
+			} else {
+				log.Printf("spawn references unknown conversation %q", spawn.ConversationId)
+			}
+		}
 		g.componentManager.CreateNewEntity(components...)
 	}
 }
@@ -334,16 +352,26 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {
-	interactableComponent := g.componentManager.GetEntityComponent(component.ComponentIdInteractable, entityId).(*component.CInteractable)
-	if interactableComponent == nil {
-		panic("interactable component not found")
+	interactable := g.componentManager.GetEntityComponent(component.ComponentIdInteractable, entityId)
+	if interactable == nil {
+		return
 	}
 
-	// TODO check actual options in the future
-	// for _, interactionOption := range interactableComponent.InteractionOptions {
-	// 	if interactionOption == option {
-	// 	}
-	// }
+	interactableComponent := interactable.(*component.CInteractable)
+	optionAllowed := false
+	for _, interactionOption := range interactableComponent.GetInteractionOptions() {
+		if interactionOption == option {
+			optionAllowed = true
+			break
+		}
+	}
+	if !optionAllowed {
+		return
+	}
+	if option == component.InteractionOptionTalk &&
+		g.componentManager.GetEntityComponent(component.ComponentIdConversation, entityId) == nil {
+		return
+	}
 
 	interactingEntityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
@@ -360,6 +388,105 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	// Set interacting component to track the interaction
 	interactingComponent := component.NewCInteracting(entityId, option)
 	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
+}
+
+func (g *Game) StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId) {
+	conversationComponent := g.componentManager.GetEntityComponent(
+		component.ComponentIdConversation,
+		targetEntityId,
+	)
+	if conversationComponent == nil {
+		return
+	}
+
+	conversationId := conversationComponent.(*component.CConversation).GetConversationId()
+	conversation, ok := g.world.GetConversation(conversationId)
+	if !ok {
+		return
+	}
+
+	activeConversation := component.NewCActiveConversation(
+		conversationId,
+		targetEntityId,
+		conversation.StartNodeId,
+	)
+	g.componentManager.SetEntityComponent(playerEntityId, activeConversation)
+	g.sendConversationNode(playerEntityId, conversationId, conversation.StartNodeId)
+}
+
+func (g *Game) HandleConversationOption(
+	clientID string,
+	conversationId string,
+	nodeId string,
+	optionId string,
+) {
+	entityId, ok := g.clientIdToEntityId.Get(clientID)
+	if !ok {
+		log.Println("Client ID not found in clientIdToEntityId")
+		return
+	}
+
+	active := g.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, entityId)
+	if active == nil {
+		return
+	}
+
+	activeConversation := active.(*component.CActiveConversation)
+	if activeConversation.GetConversationId() != conversationId ||
+		activeConversation.GetCurrentNodeId() != nodeId {
+		return
+	}
+
+	conversation, ok := g.world.GetConversation(conversationId)
+	if !ok {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
+		return
+	}
+
+	node, ok := conversation.GetNode(nodeId)
+	if !ok {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
+		return
+	}
+
+	for _, option := range node.Options {
+		if option.Id != optionId {
+			continue
+		}
+
+		activeConversation.SetCurrentNodeId(option.NextNodeId)
+		g.componentManager.SetEntityComponent(entityId, activeConversation)
+		g.sendConversationNode(entityId, conversationId, option.NextNodeId)
+		return
+	}
+}
+
+func (g *Game) sendConversationNode(
+	playerEntityId model.EntityId,
+	conversationId string,
+	nodeId string,
+) {
+	conversation, ok := g.world.GetConversation(conversationId)
+	if !ok {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, playerEntityId)
+		return
+	}
+
+	node, ok := conversation.GetNode(nodeId)
+	if !ok {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, playerEntityId)
+		return
+	}
+
+	clientID, ok := g.clientIdToEntityId.GetKey(playerEntityId)
+	if !ok {
+		return
+	}
+
+	g.sendMessage(clientID, message.NewConversationMessage(conversationId, *node))
+	if node.EndConversation {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, playerEntityId)
+	}
 }
 
 func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {

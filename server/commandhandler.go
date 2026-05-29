@@ -39,6 +39,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleEquipCommand(clientID, cmd)
 	case command.CommandTypeUnequip:
 		h.handleUnequipCommand(clientID, cmd)
+	case command.CommandTypeConversationOption:
+		h.handleConversationOptionCommand(clientID, cmd)
 	}
 }
 
@@ -109,4 +111,24 @@ func (h *ClientCommandHandler) handleUnequipCommand(clientID string, cmd command
 	}
 
 	h.game.HandleUnequip(clientID, slot)
+}
+
+func (h *ClientCommandHandler) handleConversationOptionCommand(clientID string, cmd command.Command) {
+	conversationId, ok := cmd.Data["conversationId"].(string)
+	if !ok {
+		log.Printf("Invalid conversation id")
+		return
+	}
+	nodeId, ok := cmd.Data["nodeId"].(string)
+	if !ok {
+		log.Printf("Invalid conversation node id")
+		return
+	}
+	optionId, ok := cmd.Data["optionId"].(string)
+	if !ok {
+		log.Printf("Invalid conversation option id")
+		return
+	}
+
+	h.game.HandleConversationOption(clientID, conversationId, nodeId, optionId)
 }

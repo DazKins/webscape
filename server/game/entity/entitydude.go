@@ -20,7 +20,6 @@ func CreateDudeEntity(
 	}))
 
 	interactableComponent := component.NewCInteractable([]component.InteractionOption{
-		component.InteractionOptionTalk,
 		component.InteractionOptionTrade,
 		component.InteractionOptionAttack,
 	})

@@ -12,6 +12,7 @@ import EntityRenderSystem from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
+import { ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -306,6 +307,25 @@ class Game extends EventTarget implements InputReceiver {
       createCommand("interact", {
         entityId,
         option,
+      })
+    );
+  }
+
+  handleConversation(conversation: ConversationPayload) {
+    console.log("Conversation", conversation);
+    this.dispatchEvent(new ConversationEvent(conversation));
+  }
+
+  handleConversationOptionClick(
+    conversationId: string,
+    nodeId: string,
+    optionId: string
+  ) {
+    this.wsClient.sendMessage(
+      createCommand("conversationOption", {
+        conversationId,
+        nodeId,
+        optionId,
       })
     );
   }

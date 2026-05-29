@@ -51,6 +51,9 @@ const wsClient = new WebSocketClient({
       case "joinFailed":
         window.alert(`JOIN FAILED: ${data.reason}`);
         break;
+      case "conversation":
+        game.handleConversation(data);
+        break;
       default:
         console.log("Unknown message type:", type);
     }

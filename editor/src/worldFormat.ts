@@ -40,6 +40,7 @@ export type SpawnPoint = {
   y: number;
   entityType?: string;
   name?: string;
+  conversationId?: string;
 };
 
 export type ValidationResult = {
@@ -252,6 +253,7 @@ function normalizeSpawn(value: unknown): SpawnPoint {
     y: Number(value.y),
     entityType: typeof value.entityType === "string" ? value.entityType : undefined,
     name: typeof value.name === "string" ? value.name : undefined,
+    conversationId: typeof value.conversationId === "string" ? value.conversationId : undefined,
   };
 }
 

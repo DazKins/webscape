@@ -1850,7 +1850,8 @@
       "type": "npc",
       "x": 14,
       "y": 2,
-      "name": "DazKins"
+      "name": "DazKins",
+      "conversationId": "new_conversation"
     },
     {
       "type": "npc",

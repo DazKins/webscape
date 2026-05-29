@@ -22,6 +22,7 @@ type World struct {
 	walls          []WorldWall
 	objects        []WorldObject
 	spawns         []WorldSpawn
+	conversations  *ConversationRegistry
 }
 
 type worldFormat struct {
@@ -74,11 +75,12 @@ type WorldWall struct {
 }
 
 type WorldSpawn struct {
-	Type       string `json:"type"`
-	X          int    `json:"x"`
-	Y          int    `json:"y"`
-	EntityType string `json:"entityType"`
-	Name       string `json:"name"`
+	Type           string `json:"type"`
+	X              int    `json:"x"`
+	Y              int    `json:"y"`
+	EntityType     string `json:"entityType"`
+	Name           string `json:"name"`
+	ConversationId string `json:"conversationId"`
 }
 
 func LoadFromGameFolder(path string) (*World, error) {
@@ -99,13 +101,23 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 		return nil, err
 	}
 
+	conversations, err := loadConversationRegistry(gameFS, format.Files.Conversations)
+	if err != nil {
+		return nil, err
+	}
+
 	mapPath := format.Files.Maps[0]
 	mapData, err := fs.ReadFile(gameFS, mapPath)
 	if err != nil {
 		return nil, fmt.Errorf("read map %q: %w", mapPath, err)
 	}
 
-	return loadWorldFromBytes(mapData)
+	world, err := loadWorldFromBytes(mapData)
+	if err != nil {
+		return nil, err
+	}
+	world.conversations = conversations
+	return world, nil
 }
 
 func loadWorldFromBytes(data []byte) (*World, error) {
@@ -215,6 +227,14 @@ func (w *World) GetSpawns() []WorldSpawn {
 	result := make([]WorldSpawn, len(w.spawns))
 	copy(result, w.spawns)
 	return result
+}
+
+func (w *World) GetConversation(id string) (*Conversation, bool) {
+	return w.conversations.Get(id)
+}
+
+func (w *World) GetConversationRegistry() *ConversationRegistry {
+	return w.conversations
 }
 
 func (w *World) GetPlayerSpawn() math.Vec2 {

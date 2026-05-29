@@ -5,13 +5,13 @@ import (
 	"webscape/server/game/model"
 )
 
-type ChatMessageSender interface {
-	SendChatMessageEntityFor(fromEntityId model.EntityId, message string) model.EntityId
+type ConversationStarter interface {
+	StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
 type InteractionSystem struct {
 	SystemBase
-	ChatMessageSender ChatMessageSender
+	ConversationStarter ConversationStarter
 }
 
 func (s *InteractionSystem) processInteraction(
@@ -20,9 +20,8 @@ func (s *InteractionSystem) processInteraction(
 ) {
 	switch interacting.GetOption() {
 	case component.InteractionOptionTalk:
-		// Handle talk interaction - target entity says "Hello!"
-		s.ChatMessageSender.SendChatMessageEntityFor(
-			interacting.GetTargetEntityId(), "Hello!")
+		s.ConversationStarter.StartConversationFor(
+			entityId, interacting.GetTargetEntityId())
 
 	case component.InteractionOptionAttack:
 		// Start combat with the target entity

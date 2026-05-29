@@ -3,6 +3,7 @@ import ChatBox from "./components/chatBox";
 import InteractionMenu from "./components/interactionMenu";
 import Inventory from "./components/inventory";
 import CombatLog from "./components/combatLog";
+import ConversationPanel from "./components/conversationPanel";
 
 type Props = {
   game: Game;
@@ -22,6 +23,7 @@ export default function UiRoot(props: Props) {
     >
       <ChatBox game={props.game} />
       <InteractionMenu game={props.game} />
+      <ConversationPanel game={props.game} />
       <Inventory game={props.game} />
       <CombatLog game={props.game} />
     </div>

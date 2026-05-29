@@ -12,6 +12,7 @@ const (
 	MessageTypeMove         = "move"
 	MessageTypeEntityRemove = "entityRemove"
 	MessageTypeChat         = "chat"
+	MessageTypeConversation = "conversation"
 )
 
 func (m MessageType) String() string {
