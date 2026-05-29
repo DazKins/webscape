@@ -1,0 +1,9 @@
+.git
+.vscode
+.DS_Store
+**/.DS_Store
+**/node_modules
+**/dist
+__debug_bin*
+editor
+map-editor
