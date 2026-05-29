@@ -30,12 +30,7 @@ type Game struct {
 	prevSerialisedComponents map[component.ComponentId]map[model.EntityId]util.Json
 }
 
-func NewGame() *Game {
-	world, err := world.LoadStarterWorld()
-	if err != nil {
-		panic(err)
-	}
-
+func NewGameWithWorld(world *world.World) *Game {
 	game := &Game{
 		clientIdToEntityId: util.NewBiMap[string, model.EntityId](),
 		world:              world,

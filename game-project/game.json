@@ -1,0 +1,14 @@
+{
+  "formatVersion": 1,
+  "id": "new_game",
+  "displayName": "New Game",
+  "files": {
+    "maps": [
+      "maps/starter.json"
+    ],
+    "conversations": [
+      "conversations/new_conversation.json"
+    ],
+    "quests": []
+  }
+}

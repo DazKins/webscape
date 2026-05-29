@@ -69,7 +69,7 @@ export function tileIndex(size: WorldSize, x: number, y: number): number {
 
 export function normalizeWorld(value: unknown): WorldFormat {
   if (!isObject(value)) {
-    throw new Error("world file must contain a JSON object");
+    throw new Error("map data must contain a JSON object");
   }
 
   const sizeValue = value.size;

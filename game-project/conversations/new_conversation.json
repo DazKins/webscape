@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "id": "new_conversation",
+  "displayName": "New Conversation",
+  "conversations": [
+    {
+      "id": "new_conversation",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "speaker": "npc",
+              "text": "Hello."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    }
+  ]
+}

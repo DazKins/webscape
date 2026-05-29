@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Webscape Conversation Format
+  version: 0.1.0
+  description: |
+    Schema for authoring Webscape NPC conversations.
+
+    A conversation contains a flat list of nodes. Runtime starts at
+    `startNodeId`, plays each message in the node in order, then either ends
+    the conversation or presents player options. Each option points to another
+    node by `nextNodeId`.
+paths: {}
+components:
+  schemas:
+    ConversationFormat:
+      type: object
+      additionalProperties: false
+      required:
+        - formatVersion
+        - id
+        - conversations
+      properties:
+        formatVersion:
+          type: integer
+          const: 1
+          description: Version of this conversation document format.
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - starter_conversations
+        displayName:
+          type: string
+          examples:
+            - Starter Conversations
+        conversations:
+          type: array
+          description: Conversations that can be attached to NPCs or other interactable entities.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Conversation"
+
+    Conversation:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - startNodeId
+        - nodes
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - guide_intro
+        startNodeId:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - start
+        nodes:
+          type: array
+          description: Flat node list. Node ids must be unique within this conversation.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ConversationNode"
+
+    ConversationNode:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - messages
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - start
+        messages:
+          type: array
+          description: Messages shown one-by-one before options are presented or the conversation ends.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ConversationMessage"
+        options:
+          type: array
+          description: Player choices shown after all messages in this node have been read.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ConversationOption"
+        endConversation:
+          type: boolean
+          description: True when this node ends the conversation after its messages.
+        tags:
+          type: array
+          description: Freeform authoring tags for editor filtering or analytics.
+          default: []
+          items:
+            type: string
+      oneOf:
+        - required:
+            - options
+          not:
+            required:
+              - endConversation
+        - required:
+            - endConversation
+          properties:
+            endConversation:
+              const: true
+          not:
+            required:
+              - options
+
+    ConversationMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        speaker:
+          type: string
+          description: Speaker key used by the client for nameplates, portraits, or styling. Defaults to the conversation NPC.
+          examples:
+            - npc
+            - player
+            - narrator
+        text:
+          type: string
+          minLength: 1
+          examples:
+            - Welcome to Webscape.
+        portrait:
+          type: string
+          description: Optional portrait or expression identifier for the client.
+          examples:
+            - guide_smile
+
+    ConversationOption:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - text
+        - nextNodeId
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - ask_work
+        text:
+          type: string
+          minLength: 1
+          examples:
+            - Do you have any work for me?
+        nextNodeId:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          examples:
+            - work
+
+  examples:
+    StarterConversation:
+      summary: A simple branching NPC conversation.
+      value:
+        formatVersion: 1
+        id: starter_conversations
+        displayName: Starter Conversations
+        conversations:
+          - id: guide_intro
+            startNodeId: start
+            nodes:
+              - id: start
+                messages:
+                  - speaker: npc
+                    text: Welcome to Starter Field.
+                  - speaker: npc
+                    text: Keep an eye on the path. It is safer than the tall grass.
+                options:
+                  - id: ask_work
+                    text: Do you have any work for me?
+                    nextNodeId: work
+                  - id: ask_place
+                    text: What is this place?
+                    nextNodeId: place
+                  - id: goodbye
+                    text: I should go.
+                    nextNodeId: goodbye
+              - id: work
+                messages:
+                  - speaker: npc
+                    text: Bring back three logs and I can show you how trading works.
+                options:
+                  - id: ask_place
+                    text: What is this place?
+                    nextNodeId: place
+                  - id: goodbye
+                    text: I will come back later.
+                    nextNodeId: goodbye
+              - id: place
+                messages:
+                  - speaker: npc
+                    text: This field is where new adventurers learn the basics.
+                options:
+                  - id: ask_work
+                    text: Do you have any work for me?
+                    nextNodeId: work
+                  - id: goodbye
+                    text: Thanks.
+                    nextNodeId: goodbye
+              - id: goodbye
+                messages:
+                  - speaker: npc
+                    text: Safe travels.
+                endConversation: true

@@ -1,0 +1,95 @@
+{
+  "formatVersion": 1,
+  "id": "starter_conversations",
+  "displayName": "Starter Conversations",
+  "conversations": [
+    {
+      "id": "guide_intro",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "speaker": "npc",
+              "text": "Welcome to Starter Field."
+            },
+            {
+              "speaker": "npc",
+              "text": "Keep an eye on the path. It is safer than the tall grass."
+            }
+          ],
+          "options": [
+            {
+              "id": "ask_work",
+              "text": "Do you have any work for me?",
+              "nextNodeId": "work"
+            },
+            {
+              "id": "ask_place",
+              "text": "What is this place?",
+              "nextNodeId": "place"
+            },
+            {
+              "id": "goodbye",
+              "text": "I should go.",
+              "nextNodeId": "goodbye"
+            }
+          ]
+        },
+        {
+          "id": "work",
+          "messages": [
+            {
+              "speaker": "npc",
+              "text": "Bring back three logs and I can show you how trading works."
+            }
+          ],
+          "options": [
+            {
+              "id": "ask_place",
+              "text": "What is this place?",
+              "nextNodeId": "place"
+            },
+            {
+              "id": "goodbye",
+              "text": "I will come back later.",
+              "nextNodeId": "goodbye"
+            }
+          ]
+        },
+        {
+          "id": "place",
+          "messages": [
+            {
+              "speaker": "npc",
+              "text": "This field is where new adventurers learn the basics."
+            }
+          ],
+          "options": [
+            {
+              "id": "ask_work",
+              "text": "Do you have any work for me?",
+              "nextNodeId": "work"
+            },
+            {
+              "id": "goodbye",
+              "text": "Thanks.",
+              "nextNodeId": "goodbye"
+            }
+          ]
+        },
+        {
+          "id": "goodbye",
+          "messages": [
+            {
+              "speaker": "npc",
+              "text": "Safe travels."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    }
+  ]
+}

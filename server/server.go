@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"webscape/server/command"
 	"webscape/server/game"
+	"webscape/server/game/world"
 )
 
-func Start(distFS fs.FS) {
+func Start(distFS fs.FS, gameWorld *world.World) {
 	http.Handle("/", http.FileServer(http.FS(distFS)))
 
-	game := game.NewGame()
+	game := game.NewGameWithWorld(gameWorld)
 
 	clientCommandHandler := NewClientCommandHandler(game)
 

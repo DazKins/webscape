@@ -1215,233 +1215,175 @@
       "id": "wall_001",
       "type": "wood",
       "x": 1,
-      "y": 4,
-      "width": 1,
-      "height": 1
+      "y": 4
     },
     {
       "id": "wall_002",
       "type": "wood",
       "x": 1,
-      "y": 3,
-      "width": 1,
-      "height": 1
+      "y": 3
     },
     {
       "id": "wall_003",
       "type": "wood",
       "x": 1,
-      "y": 2,
-      "width": 1,
-      "height": 1
+      "y": 2
     },
     {
       "id": "wall_004",
       "type": "wood",
       "x": 1,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_005",
       "type": "wood",
       "x": 2,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_006",
       "type": "wood",
       "x": 3,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_007",
       "type": "wood",
       "x": 4,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_008",
       "type": "wood",
       "x": 5,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_009",
       "type": "wood",
       "x": 6,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_011",
       "type": "wood",
       "x": 7,
-      "y": 2,
-      "width": 1,
-      "height": 1
+      "y": 2
     },
     {
       "id": "wall_012",
       "type": "wood",
       "x": 7,
-      "y": 3,
-      "width": 1,
-      "height": 1
+      "y": 3
     },
     {
       "id": "wall_013",
       "type": "wood",
       "x": 7,
-      "y": 4,
-      "width": 1,
-      "height": 1
+      "y": 4
     },
     {
       "id": "wall_014",
       "type": "wood",
       "x": 7,
-      "y": 5,
-      "width": 1,
-      "height": 1
+      "y": 5
     },
     {
       "id": "wall_015",
       "type": "wood",
       "x": 7,
-      "y": 6,
-      "width": 1,
-      "height": 1
+      "y": 6
     },
     {
       "id": "wall_016",
       "type": "wood",
       "x": 7,
-      "y": 7,
-      "width": 1,
-      "height": 1
+      "y": 7
     },
     {
       "id": "wall_017",
       "type": "wood",
       "x": 7,
-      "y": 8,
-      "width": 1,
-      "height": 1
+      "y": 8
     },
     {
       "id": "wall_018",
       "type": "wood",
       "x": 6,
-      "y": 8,
-      "width": 1,
-      "height": 1
+      "y": 8
     },
     {
       "id": "wall_019",
       "type": "wood",
       "x": 6,
-      "y": 9,
-      "width": 1,
-      "height": 1
+      "y": 9
     },
     {
       "id": "wall_020",
       "type": "wood",
       "x": 1,
-      "y": 4,
-      "width": 1,
-      "height": 1
+      "y": 4
     },
     {
       "id": "wall_021",
       "type": "wood",
       "x": 1,
-      "y": 5,
-      "width": 1,
-      "height": 1
+      "y": 5
     },
     {
       "id": "wall_022",
       "type": "wood",
       "x": 1,
-      "y": 6,
-      "width": 1,
-      "height": 1
+      "y": 6
     },
     {
       "id": "wall_023",
       "type": "wood",
       "x": 1,
-      "y": 7,
-      "width": 1,
-      "height": 1
+      "y": 7
     },
     {
       "id": "wall_024",
       "type": "wood",
       "x": 1,
-      "y": 7,
-      "width": 1,
-      "height": 1
+      "y": 7
     },
     {
       "id": "wall_025",
       "type": "wood",
       "x": 1,
-      "y": 8,
-      "width": 1,
-      "height": 1
+      "y": 8
     },
     {
       "id": "wall_026",
       "type": "wood",
       "x": 2,
-      "y": 8,
-      "width": 1,
-      "height": 1
+      "y": 8
     },
     {
       "id": "wall_027",
       "type": "wood",
       "x": 2,
-      "y": 9,
-      "width": 1,
-      "height": 1
+      "y": 9
     },
     {
       "id": "wall_028",
       "type": "wood",
       "x": 3,
-      "y": 9,
-      "width": 1,
-      "height": 1
+      "y": 9
     },
     {
       "id": "wall_029",
       "type": "wood",
       "x": 5,
-      "y": 9,
-      "width": 1,
-      "height": 1
+      "y": 9
     },
     {
       "id": "wall_030",
       "type": "wood",
       "x": 7,
-      "y": 1,
-      "width": 1,
-      "height": 1
+      "y": 1
     },
     {
       "id": "wall_010",

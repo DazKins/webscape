@@ -1,17 +1,15 @@
 package world
 
 import (
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
+	"os"
 	"webscape/server/math"
 	"webscape/server/util"
 )
-
-//go:embed maps/starter.json
-var worldFiles embed.FS
 
 type World struct {
 	sizeX int
@@ -36,6 +34,19 @@ type worldFormat struct {
 	Walls         []WorldWall   `json:"walls"`
 	Objects       []WorldObject `json:"objects"`
 	Spawns        []WorldSpawn  `json:"spawns"`
+}
+
+type gameFormat struct {
+	FormatVersion int             `json:"formatVersion"`
+	Id            string          `json:"id"`
+	DisplayName   string          `json:"displayName"`
+	Files         gameFormatFiles `json:"files"`
+}
+
+type gameFormatFiles struct {
+	Maps          []string `json:"maps"`
+	Conversations []string `json:"conversations"`
+	Quests        []string `json:"quests"`
 }
 
 type worldSize struct {
@@ -70,16 +81,34 @@ type WorldSpawn struct {
 	Name       string `json:"name"`
 }
 
-func LoadStarterWorld() (*World, error) {
-	return loadWorldFromEmbeddedFile("maps/starter.json")
+func LoadFromGameFolder(path string) (*World, error) {
+	return LoadFromGameFS(os.DirFS(path))
 }
 
-func loadWorldFromEmbeddedFile(path string) (*World, error) {
-	data, err := worldFiles.ReadFile(path)
+func LoadFromGameFS(gameFS fs.FS) (*World, error) {
+	data, err := fs.ReadFile(gameFS, "game.json")
 	if err != nil {
+		return nil, fmt.Errorf("read game.json: %w", err)
+	}
+
+	var format gameFormat
+	if err := json.Unmarshal(data, &format); err != nil {
+		return nil, fmt.Errorf("parse game.json: %w", err)
+	}
+	if err := validateGameFormat(format); err != nil {
 		return nil, err
 	}
 
+	mapPath := format.Files.Maps[0]
+	mapData, err := fs.ReadFile(gameFS, mapPath)
+	if err != nil {
+		return nil, fmt.Errorf("read map %q: %w", mapPath, err)
+	}
+
+	return loadWorldFromBytes(mapData)
+}
+
+func loadWorldFromBytes(data []byte) (*World, error) {
 	var format worldFormat
 	if err := json.Unmarshal(data, &format); err != nil {
 		return nil, err
@@ -320,6 +349,34 @@ func validateWorldFormat(format worldFormat) error {
 		}
 		if spawn.X < 0 || spawn.X >= format.Size.X || spawn.Y < 0 || spawn.Y >= format.Size.Y {
 			return fmt.Errorf("spawn %q at (%d, %d) is out of bounds", spawn.Type, spawn.X, spawn.Y)
+		}
+	}
+	return nil
+}
+
+func validateGameFormat(format gameFormat) error {
+	if format.FormatVersion != 1 {
+		return fmt.Errorf("unsupported game format version %d", format.FormatVersion)
+	}
+	if format.Id == "" {
+		return errors.New("game id is required")
+	}
+	if len(format.Files.Maps) == 0 {
+		return errors.New("game must include at least one map")
+	}
+	for _, mapPath := range format.Files.Maps {
+		if !fs.ValidPath(mapPath) || mapPath == "." {
+			return fmt.Errorf("invalid map path %q", mapPath)
+		}
+	}
+	for _, conversationPath := range format.Files.Conversations {
+		if !fs.ValidPath(conversationPath) || conversationPath == "." {
+			return fmt.Errorf("invalid conversation path %q", conversationPath)
+		}
+	}
+	for _, questPath := range format.Files.Quests {
+		if !fs.ValidPath(questPath) || questPath == "." {
+			return fmt.Errorf("invalid quest path %q", questPath)
 		}
 	}
 	return nil
