@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "new_conversation",
-  "displayName": "New Conversation",
+  "displayName": "DazKins Field Briefing",
   "conversations": [
     {
       "id": "new_conversation",
@@ -11,8 +11,171 @@
           "id": "start",
           "messages": [
             {
-              "speaker": "npc",
-              "text": "Hello."
+              "text": "You there. Keep your boots on the road unless you like arguing with shrubs."
+            },
+            {
+              "text": "Name's DazKins. I watch this field, count the stones, and pretend that is a real job."
+            }
+          ],
+          "options": [
+            {
+              "id": "ask_field",
+              "text": "What is this place?",
+              "nextNodeId": "field"
+            },
+            {
+              "id": "ask_work",
+              "text": "Need help with anything?",
+              "nextNodeId": "work"
+            },
+            {
+              "id": "ask_stones",
+              "text": "Why count stones?",
+              "nextNodeId": "stones"
+            },
+            {
+              "id": "leave",
+              "text": "I'll be going.",
+              "nextNodeId": "goodbye"
+            }
+          ]
+        },
+        {
+          "id": "field",
+          "messages": [
+            {
+              "text": "Starter Field. Looks peaceful from far away, which is how it gets you."
+            },
+            {
+              "text": "The road is quick, the grass is slow, and the rocks mark old survey lines from before anyone remembered why they cared."
+            }
+          ],
+          "options": [
+            {
+              "id": "ask_work",
+              "text": "So what needs doing?",
+              "nextNodeId": "work"
+            },
+            {
+              "id": "ask_bains",
+              "text": "Who is Bains?",
+              "nextNodeId": "bains"
+            },
+            {
+              "id": "back",
+              "text": "I had another question.",
+              "nextNodeId": "start"
+            }
+          ]
+        },
+        {
+          "id": "work",
+          "messages": [
+            {
+              "text": "If you want useful work, walk the road east and make sure Bains is still awake."
+            },
+            {
+              "text": "If you want dangerous work, poke around the tall grass and tell me which bushes poke back."
+            }
+          ],
+          "options": [
+            {
+              "id": "accept_bains",
+              "text": "I'll check on Bains.",
+              "nextNodeId": "check_bains"
+            },
+            {
+              "id": "ask_stones",
+              "text": "Tell me about the stones first.",
+              "nextNodeId": "stones"
+            },
+            {
+              "id": "back",
+              "text": "Another question.",
+              "nextNodeId": "start"
+            }
+          ]
+        },
+        {
+          "id": "stones",
+          "messages": [
+            {
+              "text": "Every morning there are twenty-seven stones by the ridge."
+            },
+            {
+              "text": "Every evening there are twenty-eight."
+            },
+            {
+              "text": "I do not like that kind of arithmetic."
+            }
+          ],
+          "options": [
+            {
+              "id": "offer_help",
+              "text": "I can investigate.",
+              "nextNodeId": "investigate"
+            },
+            {
+              "id": "ask_field",
+              "text": "Maybe this field has a history.",
+              "nextNodeId": "field"
+            },
+            {
+              "id": "leave",
+              "text": "That sounds like your problem.",
+              "nextNodeId": "goodbye"
+            }
+          ]
+        },
+        {
+          "id": "bains",
+          "messages": [
+            {
+              "text": "Bains is the other sentry. Stands east, talks little, notices plenty."
+            },
+            {
+              "text": "If Bains waves, wave back. If Bains runs, run first and ask later."
+            }
+          ],
+          "options": [
+            {
+              "id": "accept_bains",
+              "text": "I'll go check on Bains.",
+              "nextNodeId": "check_bains"
+            },
+            {
+              "id": "back",
+              "text": "I had another question.",
+              "nextNodeId": "start"
+            }
+          ]
+        },
+        {
+          "id": "check_bains",
+          "messages": [
+            {
+              "text": "Good. Follow the road east. If Bains complains that I sent you, say I used the word patrol. Sounds official."
+            }
+          ],
+          "endConversation": true
+        },
+        {
+          "id": "investigate",
+          "messages": [
+            {
+              "text": "Brave, bored, or new. Hard to tell the difference from here."
+            },
+            {
+              "text": "Check the stones near the broken grass, then come back with anything stranger than my current theory."
+            }
+          ],
+          "endConversation": true
+        },
+        {
+          "id": "goodbye",
+          "messages": [
+            {
+              "text": "Keep your eyes open. If the field waves first, do not wave back."
             }
           ],
           "endConversation": true

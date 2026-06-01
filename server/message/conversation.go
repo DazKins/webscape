@@ -1,9 +1,11 @@
 package message
 
-import "webscape/server/game/world"
+import (
+	"webscape/server/game/model"
+	"webscape/server/game/world"
+)
 
 type conversationMessageData struct {
-	Speaker  string `json:"speaker,omitempty"`
 	Text     string `json:"text"`
 	Portrait string `json:"portrait,omitempty"`
 }
@@ -15,17 +17,17 @@ type conversationOptionData struct {
 
 type conversationData struct {
 	ConversationId  string                    `json:"conversationId"`
+	TargetEntityId  string                    `json:"targetEntityId"`
 	NodeId          string                    `json:"nodeId"`
 	Messages        []conversationMessageData `json:"messages"`
 	Options         []conversationOptionData  `json:"options,omitempty"`
 	EndConversation bool                      `json:"endConversation"`
 }
 
-func NewConversationMessage(conversationId string, node world.ConversationNode) Message {
+func NewConversationMessage(conversationId string, targetEntityId model.EntityId, node world.ConversationNode) Message {
 	messages := make([]conversationMessageData, len(node.Messages))
 	for i, message := range node.Messages {
 		messages[i] = conversationMessageData{
-			Speaker:  message.Speaker,
 			Text:     message.Text,
 			Portrait: message.Portrait,
 		}
@@ -43,6 +45,7 @@ func NewConversationMessage(conversationId string, node world.ConversationNode) 
 		MessageTypeConversation,
 		conversationData{
 			ConversationId:  conversationId,
+			TargetEntityId:  targetEntityId.String(),
 			NodeId:          node.Id,
 			Messages:        messages,
 			Options:         options,

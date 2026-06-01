@@ -33,7 +33,6 @@ type ConversationNode struct {
 }
 
 type ConversationMessage struct {
-	Speaker  string `json:"speaker"`
 	Text     string `json:"text"`
 	Portrait string `json:"portrait"`
 }

@@ -213,9 +213,7 @@ class Game extends EventTarget implements InputReceiver {
           continue;
         }
 
-        this.dispatchEvent(
-          new ChatMessageEvent(data.message, fromEntityMetadata.name ?? "Unknown")
-        );
+        this.dispatchEvent(new ChatMessageEvent(data.message, this.getEntityName(fromEntityId)));
       }
 
       if (data === null) {
@@ -300,6 +298,12 @@ class Game extends EventTarget implements InputReceiver {
 
   getMyEntity(): Entity | undefined {
     return this.entities.find((e) => e.getId() === this.myPlayerId);
+  }
+
+  getEntityName(entityId: string, fallback = "Unknown"): string {
+    const entity = this.entities.find((e) => e.getId() === entityId);
+    const name = entity?.getComponent("metadata")?.name;
+    return typeof name === "string" && name.length > 0 ? name : fallback;
   }
 
   handleInteractionOptionClick(entityId: string, option: string) {

@@ -11,11 +11,9 @@
           "id": "start",
           "messages": [
             {
-              "speaker": "npc",
               "text": "Welcome to Starter Field."
             },
             {
-              "speaker": "npc",
               "text": "Keep an eye on the path. It is safer than the tall grass."
             }
           ],
@@ -41,7 +39,6 @@
           "id": "work",
           "messages": [
             {
-              "speaker": "npc",
               "text": "Bring back three logs and I can show you how trading works."
             }
           ],
@@ -62,7 +59,6 @@
           "id": "place",
           "messages": [
             {
-              "speaker": "npc",
               "text": "This field is where new adventurers learn the basics."
             }
           ],
@@ -83,7 +79,6 @@
           "id": "goodbye",
           "messages": [
             {
-              "speaker": "npc",
               "text": "Safe travels."
             }
           ],

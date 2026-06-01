@@ -35,6 +35,7 @@ export default function ConversationPanel(props: Props) {
   const messages = conversation.messages.length > 0 ? conversation.messages : [{ text: "" }];
   const currentMessage = messages[Math.min(messageIndex, messages.length - 1)];
   const showingOptions = messageIndex >= messages.length - 1;
+  const entityName = props.game.getEntityName(conversation.targetEntityId, "Conversation");
 
   function handleContinue() {
     if (!conversation) {
@@ -67,12 +68,9 @@ export default function ConversationPanel(props: Props) {
       onClick={(event) => event.stopPropagation()}
       onMouseMove={(event) => event.stopPropagation()}
     >
-      <div className={panelStyles.panelHeader}>Conversation</div>
+      <div className={panelStyles.panelHeader}>{entityName}</div>
       <div className={`${panelStyles.panelContent} ${styles.content}`}>
         <div className={styles.message}>
-          {currentMessage.speaker ? (
-            <div className={styles.speaker}>{currentMessage.speaker}</div>
-          ) : null}
           <div className={styles.text}>{currentMessage.text}</div>
         </div>
 

@@ -46,12 +46,12 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 						"nodes": [
 							{
 								"id": "start",
-								"messages": [{ "speaker": "npc", "text": "Hello." }],
+								"messages": [{ "text": "Hello." }],
 								"options": [{ "id": "bye", "text": "Bye.", "nextNodeId": "end" }]
 							},
 							{
 								"id": "end",
-								"messages": [{ "speaker": "npc", "text": "Goodbye." }],
+								"messages": [{ "text": "Goodbye." }],
 								"endConversation": true
 							}
 						]
@@ -89,7 +89,7 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 	if active == nil {
 		t.Fatal("player does not have active conversation after talk")
 	}
-	assertConversationMessage(t, sent, "greeting", "start", false)
+	assertConversationMessage(t, sent, "greeting", targetEntityId.String(), "start", false)
 
 	game.HandleConversationOption("client-1", "greeting", "start", "missing")
 	if len(sent) != 1 {
@@ -104,7 +104,7 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 	}
 
 	game.HandleConversationOption("client-1", "greeting", "start", "bye")
-	assertConversationMessage(t, sent, "greeting", "end", true)
+	assertConversationMessage(t, sent, "greeting", targetEntityId.String(), "end", true)
 	if active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId); active != nil {
 		t.Fatal("active conversation was not removed on end node")
 	}
@@ -121,6 +121,7 @@ func assertConversationMessage(
 	t *testing.T,
 	messages []message.Message,
 	conversationId string,
+	targetEntityId string,
 	nodeId string,
 	endConversation bool,
 ) {
@@ -136,6 +137,7 @@ func assertConversationMessage(
 		} `json:"metadata"`
 		Data struct {
 			ConversationId  string `json:"conversationId"`
+			TargetEntityId  string `json:"targetEntityId"`
 			NodeId          string `json:"nodeId"`
 			EndConversation bool   `json:"endConversation"`
 		} `json:"data"`
@@ -148,14 +150,17 @@ func assertConversationMessage(
 		t.Fatalf("message type = %q, want conversation", payload.Metadata.Type)
 	}
 	if payload.Data.ConversationId != conversationId ||
+		payload.Data.TargetEntityId != targetEntityId ||
 		payload.Data.NodeId != nodeId ||
 		payload.Data.EndConversation != endConversation {
 		t.Fatalf(
-			"conversation message = (%q, %q, %v), want (%q, %q, %v)",
+			"conversation message = (%q, %q, %q, %v), want (%q, %q, %q, %v)",
 			payload.Data.ConversationId,
+			payload.Data.TargetEntityId,
 			payload.Data.NodeId,
 			payload.Data.EndConversation,
 			conversationId,
+			targetEntityId,
 			nodeId,
 			endConversation,
 		)

@@ -514,7 +514,7 @@ function App() {
   function addMessage() {
     updateSelectedNode((node) => ({
       ...node,
-      messages: [...node.messages, { speaker: "npc", text: "" }],
+      messages: [...node.messages, { text: "" }],
     }));
   }
 
@@ -1436,13 +1436,6 @@ function ConversationsWorkspace({
                   {selectedNode.messages.map((message, index) => (
                     <div key={index} className="subEditor">
                       <div className="fieldRow">
-                        <label>
-                          Speaker
-                          <input
-                            value={message.speaker ?? ""}
-                            onChange={(event) => onUpdateMessage(index, { speaker: event.target.value || undefined })}
-                          />
-                        </label>
                         <label>
                           Portrait
                           <input

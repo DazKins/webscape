@@ -20,7 +20,6 @@ export type ConversationNode = {
 };
 
 export type ConversationMessage = {
-  speaker?: string;
   text: string;
   portrait?: string;
 };
@@ -58,7 +57,6 @@ export function createBlankConversation(id: string): Conversation {
         id: "start",
         messages: [
           {
-            speaker: "npc",
             text: "Hello.",
           },
         ],
@@ -74,7 +72,6 @@ export function createBlankConversationNode(existingNodes: ConversationNode[]): 
     id,
     messages: [
       {
-        speaker: "npc",
         text: "",
       },
     ],
@@ -228,7 +225,6 @@ function normalizeConversationMessage(value: unknown): ConversationMessage {
   }
 
   return {
-    speaker: typeof value.speaker === "string" ? value.speaker : undefined,
     text: typeof value.text === "string" ? value.text : "",
     portrait: typeof value.portrait === "string" ? value.portrait : undefined,
   };

@@ -411,7 +411,7 @@ func (g *Game) StartConversationFor(playerEntityId model.EntityId, targetEntityI
 		conversation.StartNodeId,
 	)
 	g.componentManager.SetEntityComponent(playerEntityId, activeConversation)
-	g.sendConversationNode(playerEntityId, conversationId, conversation.StartNodeId)
+	g.sendConversationNode(playerEntityId, targetEntityId, conversationId, conversation.StartNodeId)
 }
 
 func (g *Game) HandleConversationOption(
@@ -456,13 +456,19 @@ func (g *Game) HandleConversationOption(
 
 		activeConversation.SetCurrentNodeId(option.NextNodeId)
 		g.componentManager.SetEntityComponent(entityId, activeConversation)
-		g.sendConversationNode(entityId, conversationId, option.NextNodeId)
+		g.sendConversationNode(
+			entityId,
+			activeConversation.GetTargetEntityId(),
+			conversationId,
+			option.NextNodeId,
+		)
 		return
 	}
 }
 
 func (g *Game) sendConversationNode(
 	playerEntityId model.EntityId,
+	targetEntityId model.EntityId,
 	conversationId string,
 	nodeId string,
 ) {
@@ -483,7 +489,7 @@ func (g *Game) sendConversationNode(
 		return
 	}
 
-	g.sendMessage(clientID, message.NewConversationMessage(conversationId, *node))
+	g.sendMessage(clientID, message.NewConversationMessage(conversationId, targetEntityId, *node))
 	if node.EndConversation {
 		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, playerEntityId)
 	}

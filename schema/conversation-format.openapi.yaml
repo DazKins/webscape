@@ -119,13 +119,6 @@ components:
       required:
         - text
       properties:
-        speaker:
-          type: string
-          description: Speaker key used by the client for nameplates, portraits, or styling. Defaults to the conversation NPC.
-          examples:
-            - npc
-            - player
-            - narrator
         text:
           type: string
           minLength: 1
@@ -174,10 +167,8 @@ components:
             nodes:
               - id: start
                 messages:
-                  - speaker: npc
-                    text: Welcome to Starter Field.
-                  - speaker: npc
-                    text: Keep an eye on the path. It is safer than the tall grass.
+                  - text: Welcome to Starter Field.
+                  - text: Keep an eye on the path. It is safer than the tall grass.
                 options:
                   - id: ask_work
                     text: Do you have any work for me?
@@ -190,8 +181,7 @@ components:
                     nextNodeId: goodbye
               - id: work
                 messages:
-                  - speaker: npc
-                    text: Bring back three logs and I can show you how trading works.
+                  - text: Bring back three logs and I can show you how trading works.
                 options:
                   - id: ask_place
                     text: What is this place?
@@ -201,8 +191,7 @@ components:
                     nextNodeId: goodbye
               - id: place
                 messages:
-                  - speaker: npc
-                    text: This field is where new adventurers learn the basics.
+                  - text: This field is where new adventurers learn the basics.
                 options:
                   - id: ask_work
                     text: Do you have any work for me?
@@ -212,6 +201,5 @@ components:
                     nextNodeId: goodbye
               - id: goodbye
                 messages:
-                  - speaker: npc
-                    text: Safe travels.
+                  - text: Safe travels.
                 endConversation: true

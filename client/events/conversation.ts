@@ -1,7 +1,6 @@
 export const ConversationEventName = "conversation";
 
 export type ConversationMessage = {
-  speaker?: string;
   text: string;
   portrait?: string;
 };
@@ -13,6 +12,7 @@ export type ConversationOption = {
 
 export type ConversationPayload = {
   conversationId: string;
+  targetEntityId: string;
   nodeId: string;
   messages: ConversationMessage[];
   options?: ConversationOption[];

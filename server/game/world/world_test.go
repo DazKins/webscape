@@ -102,7 +102,7 @@ func TestLoadFromGameFSLoadsConversationsAndSpawnConversationId(t *testing.T) {
 						"nodes": [
 							{
 								"id": "start",
-								"messages": [{ "speaker": "npc", "text": "Hello." }],
+								"messages": [{ "text": "Hello." }],
 								"endConversation": true
 							}
 						]
