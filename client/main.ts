@@ -22,12 +22,9 @@ root.render(React.createElement(UiRoot, { game: game }));
 
 const wsClient = new WebSocketClient({
   onConnect: () => {
-    console.log("Connected to WebSocket server");
     wsClient.sendMessage(createCommand("join", { id: myPlayerId }));
   },
-  onDisconnect: () => {
-    console.log("Disconnected from WebSocket server");
-  },
+  onDisconnect: () => {},
   onError: (error) => {
     console.error("WebSocket error:", error);
   },
@@ -55,7 +52,7 @@ const wsClient = new WebSocketClient({
         game.handleConversation(data);
         break;
       default:
-        console.log("Unknown message type:", type);
+        console.warn("Unknown message type:", type);
     }
   },
 });

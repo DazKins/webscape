@@ -22,60 +22,7 @@ type CombatSystem struct {
 }
 
 func (s *CombatSystem) Update() {
-	s.updateCombatAI()
 	s.updateCombatStates()
-}
-
-func (s *CombatSystem) updateCombatAI() {
-	aiEntities := s.ComponentManager.GetEntitiesWithComponents(
-		component.ComponentIdCombatAI,
-		component.ComponentIdPosition,
-	)
-	playerEntities := s.ComponentManager.GetEntitiesWithComponents(
-		component.ComponentIdPlayer,
-		component.ComponentIdPosition,
-	)
-
-	for _, entityId := range aiEntities {
-		aiComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatAI, entityId).(*component.CCombatAI)
-		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
-		combatState := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId)
-
-		if combatState != nil {
-			state := combatState.(*component.CCombatState)
-			targetId := state.GetTargetId()
-			targetPositionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, targetId)
-			if targetPositionComponent == nil {
-				s.clearCombatState(entityId)
-				continue
-			}
-
-			targetPosition := targetPositionComponent.(*component.CPosition).GetPosition()
-			if manhattanDistance(positionComponent.GetPosition(), targetPosition) > aiComponent.GetLeashRadius() {
-				s.clearCombatState(entityId)
-				s.setPathingToPosition(entityId, aiComponent.GetHomePosition())
-			}
-			continue
-		}
-
-		var closestPlayer model.EntityId
-		closestDistance := aiComponent.GetAggroRadius() + 1
-		foundTarget := false
-		for _, playerId := range playerEntities {
-			playerPosition := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, playerId).(*component.CPosition).GetPosition()
-			distance := manhattanDistance(positionComponent.GetPosition(), playerPosition)
-			if distance <= aiComponent.GetAggroRadius() && distance < closestDistance {
-				closestDistance = distance
-				closestPlayer = playerId
-				foundTarget = true
-			}
-		}
-
-		if foundTarget {
-			s.ComponentManager.SetEntityComponent(entityId, component.NewCCombatState(closestPlayer))
-			s.setPathingToEntity(entityId, closestPlayer)
-		}
-	}
 }
 
 func (s *CombatSystem) updateCombatStates() {
@@ -292,13 +239,6 @@ func (s *CombatSystem) clearCombatState(entityId model.EntityId) {
 func (s *CombatSystem) setPathingToEntity(entityId model.EntityId, targetId model.EntityId) {
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		EntityId: util.OptionalSome(targetId),
-	})
-	s.ComponentManager.SetEntityComponent(entityId, pathingComponent)
-}
-
-func (s *CombatSystem) setPathingToPosition(entityId model.EntityId, target math.Vec2) {
-	pathingComponent := component.NewCPathing(component.PathingTarget{
-		Position: util.OptionalSome(target),
 	})
 	s.ComponentManager.SetEntityComponent(entityId, pathingComponent)
 }

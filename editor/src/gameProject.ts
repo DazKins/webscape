@@ -1,3 +1,7 @@
+import { ID_PATTERN, isObject, serializeJson, type ValidationResult } from "./formatUtils";
+
+export type { ValidationResult } from "./formatUtils";
+
 export type GameProject = {
   formatVersion: 1;
   id: string;
@@ -9,11 +13,6 @@ export type GameProjectFiles = {
   maps: string[];
   conversations: string[];
   quests: string[];
-};
-
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
 };
 
 export const DEFAULT_WORLD_PATH = "maps/new_world.json";
@@ -66,7 +65,7 @@ export function validateGameProject(project: GameProject): ValidationResult {
     errors.push("project formatVersion must be 1");
   }
 
-  if (!/^[a-z0-9][a-z0-9_-]*$/.test(project.id)) {
+  if (!ID_PATTERN.test(project.id)) {
     errors.push("project id must use lowercase letters, numbers, underscores, or dashes");
   }
 
@@ -82,7 +81,7 @@ export function validateGameProject(project: GameProject): ValidationResult {
 }
 
 export function serializeGameProject(project: GameProject): string {
-  return `${JSON.stringify(project, null, 2)}\n`;
+  return serializeJson(project);
 }
 
 export function ensureProjectMapPath(project: GameProject, mapPath: string): GameProject {
@@ -185,8 +184,4 @@ function validatePathList(errors: string[], label: string, paths: string[]) {
     }
     seen.add(path);
   }
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

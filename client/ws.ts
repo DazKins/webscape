@@ -30,8 +30,7 @@ export class WebSocketClient {
     this.onDisconnect = options.onDisconnect || (() => {});
     this.onError =
       options.onError || ((error) => console.error("WebSocket error:", error));
-    this.onMessage =
-      options.onMessage || ((data) => console.log("Received message:", data));
+    this.onMessage = options.onMessage || (() => {});
   }
 
   connect() {
@@ -51,7 +50,6 @@ export class WebSocketClient {
     }
 
     this.ws.onopen = () => {
-      console.log("WebSocket connection established");
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.onConnect();
@@ -67,7 +65,6 @@ export class WebSocketClient {
     };
 
     this.ws.onclose = () => {
-      console.log("WebSocket connection closed");
       this.isConnected = false;
       this.onDisconnect();
       this.handleReconnect();
@@ -81,9 +78,6 @@ export class WebSocketClient {
   handleReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(
-        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
-      );
       setTimeout(() => this.connect(), this.reconnectDelay);
     } else {
       console.error("Max reconnection attempts reached");
@@ -98,8 +92,6 @@ export class WebSocketClient {
     if (!this.ws) {
       throw new Error("WebSocket is not initialized");
     }
-
-    console.log("Sending message", message);
 
     try {
       const messageString = JSON.stringify(message);

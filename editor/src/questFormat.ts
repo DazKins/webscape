@@ -1,3 +1,7 @@
+import { ID_PATTERN, isObject, serializeJson, titleFromId, type ValidationResult } from "./formatUtils";
+
+export type { ValidationResult } from "./formatUtils";
+
 export type QuestDocument = {
   formatVersion: 1;
   id: string;
@@ -23,13 +27,6 @@ export type QuestRequirement = {
   eventId: string;
   count: number;
 };
-
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
-};
-
-const ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
 
 export function createBlankQuestDocument(id: string): QuestDocument {
   const questId = sanitizeQuestId(id);
@@ -134,7 +131,7 @@ export function validateQuestDocument(document: QuestDocument): ValidationResult
 }
 
 export function serializeQuestDocument(document: QuestDocument): string {
-  return `${JSON.stringify(document, null, 2)}\n`;
+  return serializeJson(document);
 }
 
 export function sanitizeQuestId(value: string): string {
@@ -185,16 +182,4 @@ function nextUniqueId(base: string, existing: string[]): string {
     index += 1;
   }
   return `${safeBase}_${index}`;
-}
-
-function titleFromId(id: string): string {
-  return id
-    .split(/[_-]+/)
-    .filter(Boolean)
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

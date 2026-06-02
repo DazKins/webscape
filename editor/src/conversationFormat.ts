@@ -1,3 +1,7 @@
+import { ID_PATTERN, isObject, serializeJson, titleFromId, type ValidationResult } from "./formatUtils";
+
+export type { ValidationResult } from "./formatUtils";
+
 export type ConversationDocument = {
   formatVersion: 1;
   id: string;
@@ -29,13 +33,6 @@ export type ConversationOption = {
   text: string;
   nextNodeId: string;
 };
-
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
-};
-
-const ID_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
 
 export function createBlankConversationDocument(id: string): ConversationDocument {
   const conversationId = sanitizeConversationId(id);
@@ -182,7 +179,7 @@ export function validateConversationDocument(document: ConversationDocument): Va
 }
 
 export function serializeConversationDocument(document: ConversationDocument): string {
-  return `${JSON.stringify(document, null, 2)}\n`;
+  return serializeJson(document);
 }
 
 export function sanitizeConversationId(value: string): string {
@@ -251,16 +248,4 @@ function nextUniqueId(prefix: string, existingIds: string[]): string {
     id = `${prefix}_${String(index).padStart(2, "0")}`;
   }
   return id;
-}
-
-function titleFromId(id: string): string {
-  return id
-    .split(/[_-]+/)
-    .filter(Boolean)
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

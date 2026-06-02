@@ -115,31 +115,6 @@ func (g *Game) RegisterSystem(system system.System) {
 	g.systems = append(g.systems, system)
 }
 
-func (g *Game) GetEntitiesWithComponents(componentIds ...component.ComponentId) []model.EntityId {
-	if len(componentIds) == 0 {
-		return []model.EntityId{}
-	}
-
-	// Count how many of the requested components each entity has
-	entityCounts := make(map[model.EntityId]int)
-	for _, componentId := range componentIds {
-		for entityId := range g.componentManager.GetComponent(componentId) {
-			entityCounts[entityId]++
-		}
-	}
-
-	// Only keep entities that have all requested components
-	result := make([]model.EntityId, 0)
-	requiredCount := len(componentIds)
-	for entityId, count := range entityCounts {
-		if count == requiredCount {
-			result = append(result, entityId)
-		}
-	}
-
-	return result
-}
-
 func (g *Game) StartUpdateLoop() {
 	g.ticker = time.NewTicker(500 * time.Millisecond)
 	go func() {

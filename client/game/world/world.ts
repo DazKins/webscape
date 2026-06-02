@@ -22,8 +22,6 @@ class World {
     walls: WorldWall[],
     input: Input
   ) {
-    console.log("Creating world", sizeX, sizeY);
-
     this.sizeX = sizeX;
     this.sizeY = sizeY;
     this.terrain = terrain;

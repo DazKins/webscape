@@ -204,8 +204,6 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   handleGameUpdate(gameUpdate: any) {
-    console.log("Game update");
-
     const entityComponentsUpdates = gameUpdate.entities;
 
     for (const entityComponentUpdate of entityComponentsUpdates) {
@@ -215,7 +213,6 @@ class Game extends EventTarget implements InputReceiver {
 
       let localEntity = this.entities.find((e) => e.getId() === entityId);
       if (!localEntity) {
-        console.log("Adding new entity", entityId);
         localEntity = new Entity(entityId);
         this.entities.push(localEntity);
       }
@@ -227,19 +224,15 @@ class Game extends EventTarget implements InputReceiver {
       );
 
       if (componentId === "chatmessage" && data) {
-        console.log("Chat message", data.message);
-
         const fromEntityId = data.fromEntityId;
 
         const fromEntity = this.entities.find((e) => e.getId() === fromEntityId);
         if (!fromEntity) {
-          console.log("From entity not found", fromEntityId);
           continue;
         }
 
         const fromEntityMetadata = fromEntity.getComponent("metadata");
         if (!fromEntityMetadata) {
-          console.log("From entity metadata not found", fromEntityId);
           continue;
         }
 
@@ -247,12 +240,9 @@ class Game extends EventTarget implements InputReceiver {
       }
 
       if (data === null) {
-        console.log("Removing component", { entityId, componentId });
         localEntity.removeComponent(componentId);
         continue;
       }
-
-      console.log(`Updating component`, { entityId, componentId, data });
 
       localEntity.updateComponent(componentId, data);
 
@@ -272,18 +262,14 @@ class Game extends EventTarget implements InputReceiver {
 
     const emptyEntities = this.entities.filter((e) => e.isEmpty());
     if (emptyEntities.length > 0) {
-      console.log("Removing empty entities", emptyEntities.map((e) => e.getId()));
       this.entities = this.entities.filter((e) => !e.isEmpty());
     }
   }
 
   handleEntityRemove(entityId: string) {
-    console.log("Removing entity", entityId);
     const entity = this.entities.find((e) => e.getId() === entityId);
     if (entity) {
       this.entities = this.entities.filter((e) => e.getId() !== entityId);
-    } else {
-      console.log("Entity not found", entityId);
     }
   }
 
@@ -355,7 +341,6 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   handleConversation(conversation: ConversationPayload) {
-    console.log("Conversation", conversation);
     this.dispatchEvent(new ConversationEvent(conversation));
   }
 

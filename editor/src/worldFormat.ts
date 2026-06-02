@@ -1,3 +1,7 @@
+import { ID_PATTERN, isObject, serializeJson, type ValidationResult } from "./formatUtils";
+
+export type { ValidationResult } from "./formatUtils";
+
 export type WorldFormat = {
   formatVersion: 1;
   id: string;
@@ -24,11 +28,6 @@ export type WorldWall = {
   type: string;
   x: number;
   y: number;
-};
-
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
 };
 
 const DEFAULT_SIZE: WorldSize = { x: 12, y: 8 };
@@ -92,7 +91,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     errors.push("formatVersion must be 1");
   }
 
-  if (!/^[a-z0-9][a-z0-9_-]*$/.test(world.id)) {
+  if (!ID_PATTERN.test(world.id)) {
     errors.push("id must use lowercase letters, numbers, underscores, or dashes");
   }
 
@@ -113,7 +112,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
   }
 
   for (const wall of world.walls) {
-    if (!wall.id || !/^[a-z0-9][a-z0-9_-]*$/.test(wall.id)) {
+    if (!wall.id || !ID_PATTERN.test(wall.id)) {
       errors.push(`wall id "${wall.id}" is invalid`);
     }
     if (!wall.type) {
@@ -126,7 +125,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
 
   for (const entity of world.entities) {
     const position = entityPosition(entity);
-    if (!entity.id || !/^[a-z0-9][a-z0-9_-]*$/.test(entity.id)) {
+    if (!entity.id || !ID_PATTERN.test(entity.id)) {
       errors.push(`entity id "${entity.id}" is invalid`);
     }
     if (!position) {
@@ -164,16 +163,12 @@ export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain
 }
 
 export function serializeWorld(world: WorldFormat): string {
-  return `${JSON.stringify(
-    {
-      ...world,
-      blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
-      walls: world.walls,
-      entities: world.entities,
-    },
-    null,
-    2
-  )}\n`;
+  return serializeJson({
+    ...world,
+    blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
+    walls: world.walls,
+    entities: world.entities,
+  });
 }
 
 function normalizeEntity(value: unknown): WorldEntity {
@@ -225,8 +220,4 @@ export function entitySize(entity: WorldEntity): { width: number; height: number
 
 function isInBounds(size: WorldSize, x: number, y: number): boolean {
   return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < size.x && y < size.y;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

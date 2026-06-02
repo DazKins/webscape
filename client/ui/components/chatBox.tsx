@@ -19,7 +19,6 @@ export default function ChatBox(props: Props) {
 
   useEffect(() => {
     const handler = (event: ChatMessageEvent) => {
-      console.log("Chat message event", event);
       setChats((prevChats) => [
         ...prevChats, {
           message: event.message,

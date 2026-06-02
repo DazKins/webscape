@@ -3,15 +3,11 @@ package message
 type MessageType string
 
 const (
-	MessageTypeEntityUpdate = "entityUpdate"
 	MessageTypeGameUpdate   = "gameUpdate"
-	MessageTypeJoin         = "join"
 	MessageTypeJoined       = "joined"
 	MessageTypeJoinFailed   = "joinFailed"
 	MessageTypeWorld        = "world"
-	MessageTypeMove         = "move"
 	MessageTypeEntityRemove = "entityRemove"
-	MessageTypeChat         = "chat"
 	MessageTypeConversation = "conversation"
 )
 
