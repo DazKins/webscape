@@ -1,0 +1,117 @@
+openapi: 3.1.0
+info:
+  title: Webscape Quest Format
+  version: 0.1.0
+  description: |
+    Schema for linear Webscape quests.
+
+    Quest steps reference stable gameplay event ids. Runtime systems emit
+    generic events such as `kill:entity:rat` or
+    `conversation:node:guide_intro:start`; the quest runtime advances the
+    current player step when an emitted id matches the step requirement.
+paths: {}
+components:
+  schemas:
+    QuestFormat:
+      type: object
+      additionalProperties: false
+      required:
+        - formatVersion
+        - id
+        - quests
+      properties:
+        formatVersion:
+          type: integer
+          const: 1
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+        displayName:
+          type: string
+        quests:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Quest"
+
+    Quest:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - steps
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+        displayName:
+          type: string
+        description:
+          type: string
+        startEventId:
+          type: string
+          description: Event id that starts this quest if it is not active or completed.
+        steps:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/QuestStep"
+
+    QuestStep:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - description
+        - requirement
+      properties:
+        id:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+        description:
+          type: string
+          minLength: 1
+        requirement:
+          $ref: "#/components/schemas/QuestRequirement"
+
+    QuestRequirement:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - count
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+          examples:
+            - kill:entity:rat
+            - collect:name:mysterious_key
+            - interact:object:old_chest:open
+            - conversation:node:guide_intro:start
+        count:
+          type: integer
+          minimum: 1
+
+  examples:
+    FirstErrand:
+      summary: A linear quest driven by generic event ids.
+      value:
+        formatVersion: 1
+        id: first_errand_quests
+        displayName: First Errand Quests
+        quests:
+          - id: first_errand
+            displayName: First Errand
+            startEventId: conversation:node:guide_intro:start
+            steps:
+              - id: talk_to_guide
+                description: Talk to the guide.
+                requirement:
+                  eventId: conversation:node:guide_intro:start
+                  count: 1
+              - id: clear_rats
+                description: Kill three rats.
+                requirement:
+                  eventId: kill:entity:rat
+                  count: 3

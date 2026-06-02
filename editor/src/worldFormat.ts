@@ -6,8 +6,7 @@ export type WorldFormat = {
   terrain: string[];
   blockers?: boolean[];
   walls: WorldWall[];
-  objects: WorldObject[];
-  spawns: SpawnPoint[];
+  entities: WorldEntity[];
 };
 
 export type WorldSize = {
@@ -15,16 +14,9 @@ export type WorldSize = {
   y: number;
 };
 
-export type WorldObject = {
+export type WorldEntity = {
   id: string;
-  type: string;
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
-  blocksMovement?: boolean;
-  interactable?: string[];
-  state?: Record<string, unknown>;
+  components: Record<string, unknown>;
 };
 
 export type WorldWall = {
@@ -32,15 +24,6 @@ export type WorldWall = {
   type: string;
   x: number;
   y: number;
-};
-
-export type SpawnPoint = {
-  type: "player" | "npc" | "monster";
-  x: number;
-  y: number;
-  entityType?: string;
-  name?: string;
-  conversationId?: string;
 };
 
 export type ValidationResult = {
@@ -59,8 +42,7 @@ export function createBlankWorld(): WorldFormat {
     terrain: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill("grass"),
     blockers: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(false),
     walls: [],
-    objects: [],
-    spawns: [],
+    entities: [],
   };
 }
 
@@ -91,8 +73,7 @@ export function normalizeWorld(value: unknown): WorldFormat {
     terrain: Array.isArray(value.terrain) ? value.terrain.map(String) : [],
     blockers: Array.isArray(value.blockers) ? value.blockers.map(Boolean) : undefined,
     walls: Array.isArray(value.walls) ? value.walls.map(normalizeWall) : [],
-    objects: Array.isArray(value.objects) ? value.objects.map(normalizeObject) : [],
-    spawns: Array.isArray(value.spawns) ? value.spawns.map(normalizeSpawn) : [],
+    entities: Array.isArray(value.entities) ? value.entities.map(normalizeEntity) : [],
   };
 
   const validation = validateWorld(world);
@@ -143,30 +124,15 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     }
   }
 
-  for (const object of world.objects) {
-    if (!object.id || !/^[a-z0-9][a-z0-9_-]*$/.test(object.id)) {
-      errors.push(`object id "${object.id}" is invalid`);
+  for (const entity of world.entities) {
+    const position = entityPosition(entity);
+    if (!entity.id || !/^[a-z0-9][a-z0-9_-]*$/.test(entity.id)) {
+      errors.push(`entity id "${entity.id}" is invalid`);
     }
-    if (!object.type) {
-      errors.push(`object "${object.id}" must have a type`);
-    }
-    if (!isInBounds(world.size, object.x, object.y)) {
-      errors.push(`object "${object.id}" is out of bounds`);
-    }
-    if (object.width !== undefined && (!Number.isInteger(object.width) || object.width < 1)) {
-      errors.push(`object "${object.id}" width must be a positive integer`);
-    }
-    if (object.height !== undefined && (!Number.isInteger(object.height) || object.height < 1)) {
-      errors.push(`object "${object.id}" height must be a positive integer`);
-    }
-  }
-
-  for (const spawn of world.spawns) {
-    if (!spawn.type) {
-      errors.push("spawn type is required");
-    }
-    if (!isInBounds(world.size, spawn.x, spawn.y)) {
-      errors.push(`spawn "${spawn.type}" at (${spawn.x}, ${spawn.y}) is out of bounds`);
+    if (!position) {
+      errors.push(`entity "${entity.id}" must include a position component`);
+    } else if (!isInBounds(world.size, position.x, position.y)) {
+      errors.push(`entity "${entity.id}" is out of bounds`);
     }
   }
 
@@ -190,8 +156,10 @@ export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain
     terrain,
     blockers,
     walls: world.walls.filter((wall) => isInBounds(nextSize, wall.x, wall.y)),
-    objects: world.objects.filter((object) => isInBounds(nextSize, object.x, object.y)),
-    spawns: world.spawns.filter((spawn) => isInBounds(nextSize, spawn.x, spawn.y)),
+    entities: world.entities.filter((entity) => {
+      const position = entityPosition(entity);
+      return Boolean(position && isInBounds(nextSize, position.x, position.y));
+    }),
   };
 }
 
@@ -201,12 +169,22 @@ export function serializeWorld(world: WorldFormat): string {
       ...world,
       blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
       walls: world.walls,
-      objects: world.objects,
-      spawns: world.spawns,
+      entities: world.entities,
     },
     null,
     2
   )}\n`;
+}
+
+function normalizeEntity(value: unknown): WorldEntity {
+  if (!isObject(value)) {
+    return { id: "entity_invalid", components: {} };
+  }
+
+  return {
+    id: typeof value.id === "string" ? value.id : "entity_invalid",
+    components: isObject(value.components) ? value.components : {},
+  };
 }
 
 function normalizeWall(value: unknown): WorldWall {
@@ -222,38 +200,26 @@ function normalizeWall(value: unknown): WorldWall {
   };
 }
 
-function normalizeObject(value: unknown): WorldObject {
-  if (!isObject(value)) {
-    return { id: "object_invalid", type: "object", x: 0, y: 0 };
+export function entityPosition(entity: WorldEntity): { x: number; y: number } | null {
+  const position = isObject(entity.components.position) ? entity.components.position : null;
+  if (!position) {
+    return null;
   }
-
-  return {
-    id: typeof value.id === "string" ? value.id : "object_invalid",
-    type: typeof value.type === "string" ? value.type : "object",
-    x: Number(value.x),
-    y: Number(value.y),
-    width: value.width === undefined ? undefined : Number(value.width),
-    height: value.height === undefined ? undefined : Number(value.height),
-    blocksMovement: value.blocksMovement === undefined ? undefined : Boolean(value.blocksMovement),
-    interactable: Array.isArray(value.interactable) ? value.interactable.map(String) : [],
-    state: isObject(value.state) ? value.state : undefined,
-  };
+  const x = Number(position.x);
+  const y = Number(position.y);
+  if (!Number.isInteger(x) || !Number.isInteger(y)) {
+    return null;
+  }
+  return { x, y };
 }
 
-function normalizeSpawn(value: unknown): SpawnPoint {
-  if (!isObject(value)) {
-    return { type: "player", x: 0, y: 0 };
-  }
-
-  const type = value.type === "npc" || value.type === "monster" ? value.type : "player";
-
+export function entitySize(entity: WorldEntity): { width: number; height: number } {
+  const metadata = isObject(entity.components.metadata) ? entity.components.metadata : {};
+  const width = Number(metadata.width);
+  const height = Number(metadata.height);
   return {
-    type,
-    x: Number(value.x),
-    y: Number(value.y),
-    entityType: typeof value.entityType === "string" ? value.entityType : undefined,
-    name: typeof value.name === "string" ? value.name : undefined,
-    conversationId: typeof value.conversationId === "string" ? value.conversationId : undefined,
+    width: Number.isInteger(width) && width > 0 ? width : 1,
+    height: Number.isInteger(height) && height > 0 ? height : 1,
   };
 }
 

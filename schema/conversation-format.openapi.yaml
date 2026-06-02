@@ -35,7 +35,7 @@ components:
             - Starter Conversations
         conversations:
           type: array
-          description: Conversations that can be attached to NPCs or other interactable entities.
+          description: Conversations that can be attached to NPCs or other entities through a conversation component.
           minItems: 1
           items:
             $ref: "#/components/schemas/Conversation"

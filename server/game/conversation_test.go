@@ -29,9 +29,21 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
-				"spawns": [
-					{ "type": "player", "x": 0, "y": 0 },
-					{ "type": "npc", "x": 1, "y": 0, "conversationId": "greeting" }
+				"entities": [
+					{
+						"id": "player_spawn",
+						"components": {
+							"position": { "x": 0, "y": 0 },
+							"playerSpawn": {}
+						}
+					},
+					{
+						"id": "greeter",
+						"components": {
+							"position": { "x": 1, "y": 0 },
+							"conversation": { "conversationId": "greeting" }
+						}
+					}
 				]
 			}`),
 		},

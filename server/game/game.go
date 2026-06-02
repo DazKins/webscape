@@ -5,6 +5,7 @@ import (
 	"time"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/system"
 	"webscape/server/game/world"
@@ -55,12 +56,15 @@ func NewGameWithWorld(world *world.World) *Game {
 			ComponentManager: game.componentManager,
 		},
 		ConversationStarter: game,
+		EventEmitter:        game,
+		LootHandler:         game,
 	})
 	game.RegisterSystem(&system.CombatSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		World: world,
+		World:        world,
+		EventEmitter: game,
 	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
@@ -83,46 +87,28 @@ func NewGameWithWorld(world *world.World) *Game {
 }
 
 func (g *Game) loadWorldEntities() {
-	for _, object := range g.world.GetObjects() {
-		components := entity.CreateWorldObjectEntity(object)
-		g.componentManager.CreateNewEntity(components...)
-	}
-
-	for _, spawn := range g.world.GetSpawns() {
-		if spawn.Type == "player" {
+	for _, authoredEntity := range g.world.GetEntities() {
+		if _, ok := authoredEntity.Components["playerSpawn"]; ok {
 			continue
 		}
-		name := spawn.Name
-		if name == "" {
-			name = spawn.EntityType
-		}
-		if name == "" {
-			name = spawn.Type
-		}
-		components := entity.CreateDudeEntity(
-			name,
-			math.Vec2{X: spawn.X, Y: spawn.Y},
-		)
-		if spawn.ConversationId != "" {
-			if _, ok := g.world.GetConversation(spawn.ConversationId); ok {
-				components = append(components, component.NewCConversation(spawn.ConversationId))
-				for _, comp := range components {
-					interactable, ok := comp.(*component.CInteractable)
-					if ok {
-						interactable.SetInteractionOptions([]component.InteractionOption{
-							component.InteractionOptionTalk,
-							component.InteractionOptionTrade,
-							component.InteractionOptionAttack,
-						})
-						break
-					}
-				}
-			} else {
-				log.Printf("spawn references unknown conversation %q", spawn.ConversationId)
+		if conversation := authoredConversationId(authoredEntity); conversation != "" {
+			if _, ok := g.world.GetConversation(conversation); !ok {
+				log.Printf("entity %q references unknown conversation %q", authoredEntity.Id, conversation)
+				continue
 			}
 		}
+		components := entity.CreateAuthoredEntity(authoredEntity)
 		g.componentManager.CreateNewEntity(components...)
 	}
+}
+
+func authoredConversationId(entity world.WorldEntity) string {
+	conversation, ok := entity.Components["conversation"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	conversationId, _ := conversation["conversationId"].(string)
+	return conversationId
 }
 
 func (g *Game) RegisterSystem(system system.System) {
@@ -234,7 +220,11 @@ func (g *Game) update() {
 	}
 
 	if len(updatedComponents) > 0 || len(removedComponents) > 0 {
-		g.broadcastMessage(message.NewGameUpdateMessage(updatedComponents, removedComponents))
+		g.broadcastMessage(message.NewGameUpdateMessage(
+			updatedComponents,
+			removedComponents,
+			g.availableInteractionsForGameUpdate(updatedComponents, removedComponents),
+		))
 	}
 
 	// Send entity removal messages for completely removed entities
@@ -253,6 +243,66 @@ func (g *Game) RegisterBroadcaster(messageBroadcaster MessageBroadcaster) {
 
 func (g *Game) RegisterSender(messageSender MessageSender) {
 	g.sendMessage = messageSender
+}
+
+func (g *Game) EmitGameEvent(event gameevent.Event) {
+	if event.Count < 1 {
+		event.Count = 1
+	}
+	log.Printf(
+		"game event id=%q actor=%s target=%s count=%d metadata=%v",
+		event.Id,
+		event.ActorEntityId.String(),
+		event.TargetEntityId.String(),
+		event.Count,
+		event.Metadata,
+	)
+
+	questLogComponent := g.componentManager.GetEntityComponent(component.ComponentIdQuestLog, event.ActorEntityId)
+	if questLogComponent == nil {
+		return
+	}
+
+	questLog := questLogComponent.(*component.CQuestLog)
+	for _, quest := range g.world.GetQuestRegistry().All() {
+		if quest.StartEventId == "" || quest.StartEventId != event.Id {
+			continue
+		}
+		if questLog.IsActive(quest.Id) || questLog.IsCompleted(quest.Id) || len(quest.Steps) == 0 {
+			continue
+		}
+		questLog.StartQuest(quest.Id, quest.Steps[0].Id)
+	}
+
+	for _, progress := range questLog.GetActiveProgress() {
+		quest, ok := g.world.GetQuest(progress.QuestId)
+		if !ok || progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
+			questLog.CompleteQuest(progress.QuestId)
+			continue
+		}
+
+		step := quest.Steps[progress.CurrentStepIndex]
+		if step.Requirement.EventId != event.Id {
+			continue
+		}
+
+		nextCount := progress.CurrentCount + event.Count
+		if nextCount < step.Requirement.Count {
+			questLog.SetProgress(progress.QuestId, progress.CurrentStepIndex, step.Id, nextCount)
+			continue
+		}
+
+		nextStepIndex := progress.CurrentStepIndex + 1
+		if nextStepIndex >= len(quest.Steps) {
+			questLog.CompleteQuest(progress.QuestId)
+			continue
+		}
+
+		nextStep := quest.Steps[nextStepIndex]
+		questLog.SetProgress(progress.QuestId, nextStepIndex, nextStep.Id, 0)
+	}
+
+	g.componentManager.SetEntityComponent(event.ActorEntityId, questLog)
 }
 
 func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
@@ -289,10 +339,50 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 	// This seems hacky. Could be race conditions if we try
 	// to send the new client the state of all entities while
 	// a game tick is in progress. Works for now.
+	snapshot := g.serializedComponentsSnapshot()
 	g.sendMessage(clientID, message.NewGameUpdateMessage(
-		g.prevSerialisedComponents,
+		snapshot,
 		make(map[component.ComponentId][]model.EntityId),
+		g.availableInteractionsForGameUpdate(
+			snapshot,
+			make(map[component.ComponentId][]model.EntityId),
+		),
 	))
+}
+
+func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) {
+	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId)
+	if inventory == nil || item == nil {
+		return
+	}
+
+	inventoryComponent := inventory.(*component.CInventory)
+	inventoryComponent.AddItem(item)
+	g.componentManager.SetEntityComponent(playerEntityId, inventoryComponent)
+
+	if item.Type != "" {
+		g.EmitGameEvent(gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type), playerEntityId))
+	}
+	if item.Name != "" {
+		g.EmitGameEvent(gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId))
+	}
+}
+
+func (g *Game) serializedComponentsSnapshot() map[component.ComponentId]map[model.EntityId]util.Json {
+	result := make(map[component.ComponentId]map[model.EntityId]util.Json)
+	for componentId, entities := range g.componentManager.GetAllComponents() {
+		for entityId, comp := range entities {
+			serializeableComponent, ok := comp.(component.SerializeableComponent)
+			if !ok {
+				continue
+			}
+			if result[componentId] == nil {
+				result[componentId] = make(map[model.EntityId]util.Json)
+			}
+			result[componentId][entityId] = serializeableComponent.Serialize()
+		}
+	}
+	return result
 }
 
 func (g *Game) HandleMove(clientID string, x int, y int) {
@@ -352,14 +442,8 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {
-	interactable := g.componentManager.GetEntityComponent(component.ComponentIdInteractable, entityId)
-	if interactable == nil {
-		return
-	}
-
-	interactableComponent := interactable.(*component.CInteractable)
 	optionAllowed := false
-	for _, interactionOption := range interactableComponent.GetInteractionOptions() {
+	for _, interactionOption := range g.getInteractionOptionsForEntity(entityId) {
 		if interactionOption == option {
 			optionAllowed = true
 			break
@@ -388,6 +472,34 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	// Set interacting component to track the interaction
 	interactingComponent := component.NewCInteracting(entityId, option)
 	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
+}
+
+func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId) {
+	lootable := g.componentManager.GetEntityComponent(component.ComponentIdLootable, targetEntityId)
+	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId)
+	if lootable == nil || inventory == nil {
+		return
+	}
+
+	lootableComponent := lootable.(*component.CLootable)
+	if !lootableComponent.CanLoot() {
+		return
+	}
+
+	for _, lootItem := range lootableComponent.GetItems() {
+		count := lootItem.Count
+		if count < 1 {
+			count = 1
+		}
+		for i := 0; i < count; i++ {
+			g.AddItemToPlayerInventory(playerEntityId, lootItem.CreateItem())
+		}
+	}
+
+	if lootableComponent.IsOnce() {
+		lootableComponent.SetLooted(true)
+		g.componentManager.SetEntityComponent(targetEntityId, lootableComponent)
+	}
 }
 
 func (g *Game) StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId) {
@@ -490,6 +602,10 @@ func (g *Game) sendConversationNode(
 	}
 
 	g.sendMessage(clientID, message.NewConversationMessage(conversationId, targetEntityId, *node))
+	g.EmitGameEvent(gameevent.New(
+		"conversation:node:"+gameevent.NormalizeToken(conversationId)+":"+gameevent.NormalizeToken(node.Id),
+		playerEntityId,
+	))
 	if node.EndConversation {
 		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, playerEntityId)
 	}
@@ -560,4 +676,48 @@ func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
 
 	combatStats := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
 	g.componentManager.SetEntityComponent(entityId, combatStats)
+}
+
+func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []component.InteractionOption {
+	options := []component.InteractionOption{}
+
+	if g.componentManager.GetEntityComponent(component.ComponentIdConversation, entityId) != nil {
+		options = append(options, component.InteractionOptionTalk)
+	}
+
+	lootable := g.componentManager.GetEntityComponent(component.ComponentIdLootable, entityId)
+	if lootable != nil && lootable.(*component.CLootable).CanLoot() {
+		options = append(options, component.InteractionOptionLoot)
+	}
+
+	if g.componentManager.GetEntityComponent(component.ComponentIdPlayer, entityId) == nil &&
+		g.componentManager.GetEntityComponent(component.ComponentIdHealth, entityId) != nil &&
+		g.componentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId) != nil {
+		options = append(options, component.InteractionOptionAttack)
+	}
+
+	return options
+}
+
+func (g *Game) availableInteractionsForGameUpdate(
+	updatedComponents map[component.ComponentId]map[model.EntityId]util.Json,
+	removedComponents map[component.ComponentId][]model.EntityId,
+) map[model.EntityId][]component.InteractionOption {
+	entityIds := make(map[model.EntityId]bool)
+	for _, entities := range updatedComponents {
+		for entityId := range entities {
+			entityIds[entityId] = true
+		}
+	}
+	for _, entities := range removedComponents {
+		for _, entityId := range entities {
+			entityIds[entityId] = true
+		}
+	}
+
+	result := make(map[model.EntityId][]component.InteractionOption, len(entityIds))
+	for entityId := range entityIds {
+		result[entityId] = g.getInteractionOptionsForEntity(entityId)
+	}
+	return result
 }

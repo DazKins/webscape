@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"webscape/server/game/component"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -17,6 +18,7 @@ const (
 type CombatSystem struct {
 	SystemBase
 	World        *world.World
+	EventEmitter GameEventEmitter
 }
 
 func (s *CombatSystem) Update() {
@@ -127,15 +129,39 @@ func (s *CombatSystem) updateCombatStates() {
 		attackResult := s.resolveAttack(attackerId, targetId, attackerStats, targetStats)
 		if attackResult.DidHit {
 			targetHealthComponent := targetHealth.(*component.CHealth)
+			previousHealth := targetHealthComponent.GetCurrentHealth()
 			newHealth := targetHealthComponent.GetCurrentHealth() - attackResult.Damage
 			if newHealth < 0 {
 				newHealth = 0
 			}
 			targetHealthComponent.SetCurrentHealth(newHealth)
 			s.ComponentManager.SetEntityComponent(targetId, targetHealthComponent)
+			if previousHealth > 0 && newHealth == 0 {
+				s.emitKillEvents(attackerId, targetId)
+			}
 		}
 
 		combatState.SetCooldownRemaining(attackerStats.GetAttackSpeedTicks())
+	}
+}
+
+func (s *CombatSystem) emitKillEvents(attackerId model.EntityId, targetId model.EntityId) {
+	if s.EventEmitter == nil {
+		return
+	}
+	if s.ComponentManager.GetEntityComponent(component.ComponentIdPlayer, attackerId) == nil {
+		return
+	}
+
+	if entityType := s.getMetadataString(targetId, "entityType"); entityType != "" {
+		event := gameevent.New("kill:entity:"+gameevent.NormalizeToken(entityType), attackerId)
+		event.TargetEntityId = targetId
+		s.EventEmitter.EmitGameEvent(event)
+	}
+	if name := s.getMetadataString(targetId, "name"); name != "" {
+		event := gameevent.New("kill:name:"+gameevent.NormalizeToken(name), attackerId)
+		event.TargetEntityId = targetId
+		s.EventEmitter.EmitGameEvent(event)
 	}
 }
 
@@ -216,20 +242,28 @@ func (s *CombatSystem) addCombatLog(entityId model.EntityId, text string, kind s
 }
 
 func (s *CombatSystem) getEntityName(entityId model.EntityId) string {
+	name := s.getMetadataString(entityId, "name")
+	if name != "" {
+		return name
+	}
+	return "Unknown"
+}
+
+func (s *CombatSystem) getMetadataString(entityId model.EntityId, key string) string {
 	metadata := s.ComponentManager.GetEntityComponent(component.ComponentIdMetadata, entityId)
 	if metadata == nil {
-		return "Unknown"
+		return ""
 	}
 	metadataComponent := metadata.(*component.CMetadata)
 	metadataObject, ok := metadataComponent.GetMetadata().(util.JObject)
 	if !ok {
-		return "Unknown"
+		return ""
 	}
-	nameValue, ok := metadataObject["name"].(util.JString)
+	value, ok := metadataObject[key].(util.JString)
 	if !ok {
-		return "Unknown"
+		return ""
 	}
-	return string(nameValue)
+	return string(value)
 }
 
 func (s *CombatSystem) ensureCombatStats(entityId model.EntityId) *component.CCombatStats {

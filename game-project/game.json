@@ -9,6 +9,8 @@
     "conversations": [
       "conversations/new_conversation.json"
     ],
-    "quests": []
+    "quests": [
+      "quests/first_errand.json"
+    ]
   }
 }

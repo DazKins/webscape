@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "tutorial_quests",
+  "displayName": "Tutorial Quests",
+  "quests": [
+    {
+      "id": "first_errand",
+      "displayName": "First Errand",
+      "description": "Learn how event-driven quest steps advance.",
+      "startEventId": "conversation:node:guide_intro:start",
+      "steps": [
+        {
+          "id": "talk_to_guide",
+          "description": "Talk to the guide.",
+          "requirement": {
+            "eventId": "conversation:node:guide_intro:start",
+            "count": 1
+          }
+        },
+        {
+          "id": "clear_rats",
+          "description": "Kill three rats.",
+          "requirement": {
+            "eventId": "kill:entity:rat",
+            "count": 3
+          }
+        }
+      ]
+    }
+  ]
+}

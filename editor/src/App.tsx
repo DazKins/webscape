@@ -13,6 +13,16 @@ import {
   type ValidationResult as ConversationValidationResult,
 } from "./conversationFormat.ts";
 import {
+  createBlankQuestDocument,
+  createBlankQuestStep,
+  sanitizeQuestId,
+  validateQuestDocument,
+  type Quest,
+  type QuestDocument,
+  type QuestStep,
+  type ValidationResult as QuestValidationResult,
+} from "./questFormat.ts";
+import {
   conversationPathFromFilename,
   createBlankGameProject,
   DEFAULT_WORLD_PATH,
@@ -20,18 +30,20 @@ import {
   isValidProjectPath,
   isValidProjectFilename,
   mapPathFromFilename,
+  questPathFromFilename,
   validateGameProject,
   type GameProject,
 } from "./gameProject.ts";
 import {
   createBlankWorld,
+  entityPosition,
+  entitySize,
   resizeWorld,
   tileIndex,
   validateWorld,
-  type SpawnPoint,
+  type WorldEntity,
   type WorldFormat,
   type WorldWall,
-  type WorldObject,
   type ValidationResult as WorldValidationResult,
 } from "./worldFormat.ts";
 import {
@@ -41,22 +53,21 @@ import {
   supportsProjectFolders,
   type ConversationDocuments,
   type ProjectDirectoryHandle,
+  type QuestDocuments,
   type WorldDocuments,
 } from "./fileSystem.ts";
 
-type Tool = "terrain" | "blocker" | "wall" | "object" | "spawn" | "select";
+type Tool = "terrain" | "blocker" | "wall" | "entity" | "select";
 type EditorTab = "map" | "conversations" | "quests";
 type Selection =
   | { type: "wall"; id: string }
-  | { type: "object"; id: string }
-  | { type: "spawn"; index: number }
+  | { type: "entity"; id: string }
   | { type: "tile"; x: number; y: number }
   | null;
 
 const TERRAIN_SWATCHES = ["grass", "dirt", "road", "water", "stone"];
 const WALL_TYPES = ["stone", "wood"];
-const OBJECT_TYPES = ["tree", "door", "building", "chest", "rock"];
-const SPAWN_TYPES: SpawnPoint["type"][] = ["player", "npc", "monster"];
+const ENTITY_TYPES = ["tree", "door", "building", "chest", "rock", "human"];
 
 function App() {
   const defaultWorld = createBlankWorld();
@@ -67,6 +78,8 @@ function App() {
   const [deletedWorldPaths, setDeletedWorldPaths] = useState<string[]>([]);
   const [conversationDocuments, setConversationDocuments] = useState<ConversationDocuments>({});
   const [deletedConversationPaths, setDeletedConversationPaths] = useState<string[]>([]);
+  const [questDocuments, setQuestDocuments] = useState<QuestDocuments>({});
+  const [deletedQuestPaths, setDeletedQuestPaths] = useState<string[]>([]);
   const [projectHandle, setProjectHandle] = useState<ProjectDirectoryHandle | null>(null);
   const [projectFolderName, setProjectFolderName] = useState<string>("unsaved project");
   const [worldPath, setWorldPath] = useState<string>(DEFAULT_WORLD_PATH);
@@ -78,36 +91,42 @@ function App() {
   const [terrainType, setTerrainType] = useState("grass");
   const [blockerValue, setBlockerValue] = useState(true);
   const [wallType, setWallType] = useState("stone");
-  const [objectType, setObjectType] = useState("tree");
-  const [objectBlocksMovement, setObjectBlocksMovement] = useState(true);
-  const [spawnType, setSpawnType] = useState<SpawnPoint["type"]>("player");
-  const [stateText, setStateText] = useState("{}");
+  const [entityType, setEntityType] = useState("tree");
+  const [entityBlocksMovement, setEntityBlocksMovement] = useState(true);
+  const [componentText, setComponentText] = useState("{}");
   const [mapNameInput, setMapNameInput] = useState("New Map");
   const [conversationNameInput, setConversationNameInput] = useState("New Conversation");
+  const [questNameInput, setQuestNameInput] = useState("New Quest");
   const [selectedConversationPath, setSelectedConversationPath] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedQuestPath, setSelectedQuestPath] = useState<string | null>(null);
+  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
 
   const projectValidation = useMemo(() => validateGameProject(project), [project]);
   const worldValidations = useMemo(() => validateWorldDocuments(worldDocuments), [worldDocuments]);
   const conversationValidations = useMemo(() => validateConversationDocuments(conversationDocuments), [conversationDocuments]);
+  const questValidations = useMemo(() => validateQuestDocuments(questDocuments), [questDocuments]);
   const worldPathValid = isValidProjectPath(worldPath);
   const worldsValid = worldValidations.every((validation) => validation.result.valid);
   const conversationsValid = conversationValidations.every((validation) => validation.result.valid);
-  const canSave = projectValidation.valid && worldsValid && conversationsValid && worldPathValid;
+  const questsValid = questValidations.every((validation) => validation.result.valid);
+  const canSave = projectValidation.valid && worldsValid && conversationsValid && questsValid && worldPathValid;
   const mapSummaries = useMemo(() => summarizeWorlds(project, worldDocuments), [project, worldDocuments]);
   const currentMapName = world.displayName || world.id || "Untitled Map";
   const conversationSummaries = useMemo(() => summarizeConversations(project, conversationDocuments), [project, conversationDocuments]);
+  const questSummaries = useMemo(() => summarizeQuests(project, questDocuments), [project, questDocuments]);
   const selectedConversationDocument = selectedConversationPath ? conversationDocuments[selectedConversationPath] : undefined;
   const selectedConversation = selectedConversationDocument?.conversations.find(
     (conversation) => conversation.id === selectedConversationId
   );
   const selectedNode = selectedConversation?.nodes.find((node) => node.id === selectedNodeId);
+  const selectedQuestDocument = selectedQuestPath ? questDocuments[selectedQuestPath] : undefined;
+  const selectedQuest = selectedQuestDocument?.quests.find((quest) => quest.id === selectedQuestId);
   const selectedWall =
     selection?.type === "wall" ? world.walls.find((wall) => wall.id === selection.id) : undefined;
-  const selectedObject =
-    selection?.type === "object" ? world.objects.find((object) => object.id === selection.id) : undefined;
-  const selectedSpawn = selection?.type === "spawn" ? world.spawns[selection.index] : undefined;
+  const selectedEntity =
+    selection?.type === "entity" ? world.entities.find((entity) => entity.id === selection.id) : undefined;
 
   async function handleNew() {
     const nextWorld = createBlankWorld();
@@ -117,6 +136,8 @@ function App() {
     setDeletedWorldPaths([]);
     setConversationDocuments({});
     setDeletedConversationPaths([]);
+    setQuestDocuments({});
+    setDeletedQuestPaths([]);
     setProjectHandle(null);
     setProjectFolderName("unsaved project");
     setWorldPath(DEFAULT_WORLD_PATH);
@@ -124,6 +145,8 @@ function App() {
     setSelectedConversationPath(null);
     setSelectedConversationId(null);
     setSelectedNodeId(null);
+    setSelectedQuestPath(null);
+    setSelectedQuestId(null);
     setDirty(false);
     setStatus("created new project");
   }
@@ -137,6 +160,8 @@ function App() {
       setDeletedWorldPaths([]);
       setConversationDocuments(opened.conversations);
       setDeletedConversationPaths([]);
+      setQuestDocuments(opened.quests);
+      setDeletedQuestPaths([]);
       setProjectHandle(opened.handle);
       setProjectFolderName(opened.handle.name);
       setWorldPath(opened.worldPath);
@@ -145,6 +170,9 @@ function App() {
       setSelectedConversationPath(firstConversation?.path ?? null);
       setSelectedConversationId(firstConversation?.conversationId ?? null);
       setSelectedNodeId(firstConversation?.startNodeId ?? null);
+      const firstQuest = summarizeQuests(opened.project, opened.quests)[0];
+      setSelectedQuestPath(firstQuest?.path ?? null);
+      setSelectedQuestId(firstQuest?.questId ?? null);
       setDirty(false);
       setStatus("opened project");
     } catch (error) {
@@ -165,19 +193,23 @@ function App() {
           worldDocuments,
           worldPath,
           conversationDocuments,
+          questDocuments,
           deletedWorldPaths,
-          deletedConversationPaths
+          deletedConversationPaths,
+          deletedQuestPaths
         );
         setProject(savedProject);
         setDeletedWorldPaths([]);
         setDeletedConversationPaths([]);
+        setDeletedQuestPaths([]);
       } else {
-        const saved = await saveGameProjectFolderAs(project, worldDocuments, worldPath, conversationDocuments);
+        const saved = await saveGameProjectFolderAs(project, worldDocuments, worldPath, conversationDocuments, questDocuments);
         setProject(saved.project);
         setProjectHandle(saved.handle);
         setProjectFolderName(saved.handle.name);
         setDeletedWorldPaths([]);
         setDeletedConversationPaths([]);
+        setDeletedQuestPaths([]);
       }
       setDirty(false);
       setStatus("saved project");
@@ -192,12 +224,13 @@ function App() {
         setStatus("fix validation errors before saving");
         return;
       }
-      const saved = await saveGameProjectFolderAs(project, worldDocuments, worldPath, conversationDocuments);
+      const saved = await saveGameProjectFolderAs(project, worldDocuments, worldPath, conversationDocuments, questDocuments);
       setProject(saved.project);
       setProjectHandle(saved.handle);
       setProjectFolderName(saved.handle.name);
       setDeletedWorldPaths([]);
       setDeletedConversationPaths([]);
+      setDeletedQuestPaths([]);
       setDirty(false);
       setStatus("saved project");
     } catch (error) {
@@ -560,6 +593,176 @@ function App() {
     }));
   }
 
+  function createQuest() {
+    const name = questNameInput.trim();
+    const id = sanitizeQuestId(name);
+    const filename = `${id}.json`;
+    if (!isValidProjectFilename(filename)) {
+      setStatus("quest name is invalid");
+      return;
+    }
+    const path = questPathFromFilename(filename);
+    if (project.files.quests.includes(path)) {
+      setStatus("quest already exists");
+      return;
+    }
+
+    setProject((current) => ({
+      ...current,
+      files: {
+        ...current.files,
+        quests: [...current.files.quests, path],
+      },
+    }));
+    setQuestDocuments((current) => ({
+      ...current,
+      [path]: {
+        ...createBlankQuestDocument(id),
+        displayName: name,
+      },
+    }));
+    setDeletedQuestPaths((current) => current.filter((candidate) => candidate !== path));
+    setSelectedQuestPath(path);
+    setSelectedQuestId(id);
+    setDirty(true);
+    setStatus("quest created");
+  }
+
+  function deleteQuest(path: string, questId: string) {
+    const document = questDocuments[path];
+    const removesWholeDocument = !document || document.quests.length <= 1;
+
+    setProject((current) => ({
+      ...current,
+      files: {
+        ...current.files,
+        quests: removesWholeDocument
+          ? current.files.quests.filter((candidate) => candidate !== path)
+          : current.files.quests,
+      },
+    }));
+    setQuestDocuments((current) => {
+      if (removesWholeDocument) {
+        const next = { ...current };
+        delete next[path];
+        return next;
+      }
+
+      return {
+        ...current,
+        [path]: {
+          ...document,
+          quests: document.quests.filter((quest) => quest.id !== questId),
+        },
+      };
+    });
+    if (removesWholeDocument) {
+      setDeletedQuestPaths((current) => [...new Set([...current, path])]);
+    }
+    if (selectedQuestPath === path && selectedQuestId === questId) {
+      const nextQuest = questSummaries.find((summary) => summary.path !== path || summary.questId !== questId);
+      setSelectedQuestPath(nextQuest?.path ?? null);
+      setSelectedQuestId(nextQuest?.questId ?? null);
+    }
+    setDirty(true);
+    setStatus("quest deleted");
+  }
+
+  function selectQuest(path: string, questId: string) {
+    setSelectedQuestPath(path);
+    setSelectedQuestId(questId);
+  }
+
+  function updateSelectedQuest(updater: (quest: Quest) => Quest) {
+    if (!selectedQuestPath || !selectedQuestId) {
+      return;
+    }
+
+    setQuestDocuments((current) => {
+      const document = current[selectedQuestPath];
+      if (!document) {
+        return current;
+      }
+
+      let nextSelectedId = selectedQuestId;
+      const quests = document.quests.map((quest) => {
+        if (quest.id !== selectedQuestId) {
+          return quest;
+        }
+        const nextQuest = updater(quest);
+        nextSelectedId = nextQuest.id;
+        return nextQuest;
+      });
+      setSelectedQuestId(nextSelectedId);
+      return {
+        ...current,
+        [selectedQuestPath]: {
+          ...document,
+          quests,
+        },
+      };
+    });
+    setDirty(true);
+  }
+
+  function updateSelectedQuestDocument(patch: Partial<QuestDocument>) {
+    if (!selectedQuestPath) {
+      return;
+    }
+
+    setQuestDocuments((current) => {
+      const document = current[selectedQuestPath];
+      if (!document) {
+        return current;
+      }
+      return {
+        ...current,
+        [selectedQuestPath]: {
+          ...document,
+          ...patch,
+        },
+      };
+    });
+    setDirty(true);
+  }
+
+  function addQuestStep() {
+    updateSelectedQuest((quest) => ({
+      ...quest,
+      steps: [...quest.steps, createBlankQuestStep(quest.steps, "step")],
+    }));
+  }
+
+  function updateQuestStep(index: number, patch: Partial<QuestStep>) {
+    updateSelectedQuest((quest) => ({
+      ...quest,
+      steps: quest.steps.map((step, stepIndex) =>
+        stepIndex === index ? { ...step, ...patch } : step
+      ),
+    }));
+  }
+
+  function updateQuestStepRequirement(index: number, patch: Partial<QuestStep["requirement"]>) {
+    updateSelectedQuest((quest) => ({
+      ...quest,
+      steps: quest.steps.map((step, stepIndex) =>
+        stepIndex === index ? { ...step, requirement: { ...step.requirement, ...patch } } : step
+      ),
+    }));
+  }
+
+  function deleteQuestStep(index: number) {
+    updateSelectedQuest((quest) => {
+      if (quest.steps.length <= 1) {
+        return quest;
+      }
+      return {
+        ...quest,
+        steps: quest.steps.filter((_, stepIndex) => stepIndex !== index),
+      };
+    });
+  }
+
   function updateWorld(updater: (current: WorldFormat) => WorldFormat) {
     setWorld((current) => {
       const nextWorld = updater(current);
@@ -597,11 +800,11 @@ function App() {
       return;
     }
 
-    if (tool === "object") {
-      const object = createObject(world, objectType, x, y, objectBlocksMovement);
-      updateWorld((current) => ({ ...current, objects: [...current.objects, object] }));
-      setSelection({ type: "object", id: object.id });
-      setStateText(JSON.stringify(object.state ?? {}, null, 2));
+    if (tool === "entity") {
+      const entity = createEntity(world, entityType, x, y, entityBlocksMovement);
+      updateWorld((current) => ({ ...current, entities: [...current.entities, entity] }));
+      setSelection({ type: "entity", id: entity.id });
+      setComponentText(JSON.stringify(entity.components ?? {}, null, 2));
       return;
     }
 
@@ -609,13 +812,6 @@ function App() {
       const wall = createWall(world, wallType, x, y);
       updateWorld((current) => ({ ...current, walls: [...current.walls, wall] }));
       setSelection({ type: "wall", id: wall.id });
-      return;
-    }
-
-    if (tool === "spawn") {
-      const spawn: SpawnPoint = { type: spawnType, x, y };
-      updateWorld((current) => ({ ...current, spawns: [...current.spawns, spawn] }));
-      setSelection({ type: "spawn", index: world.spawns.length });
       return;
     }
 
@@ -631,18 +827,12 @@ function App() {
       return;
     }
 
-    const object = [...world.objects]
+    const entity = [...world.entities]
       .reverse()
       .find((candidate) => coversTile(candidate, x, y));
-    if (object) {
-      setSelection({ type: "object", id: object.id });
-      setStateText(JSON.stringify(object.state ?? {}, null, 2));
-      return;
-    }
-
-    const spawnIndex = world.spawns.findIndex((spawn) => spawn.x === x && spawn.y === y);
-    if (spawnIndex >= 0) {
-      setSelection({ type: "spawn", index: spawnIndex });
+    if (entity) {
+      setSelection({ type: "entity", id: entity.id });
+      setComponentText(JSON.stringify(entity.components ?? {}, null, 2));
       return;
     }
 
@@ -663,18 +853,18 @@ function App() {
     setSelection(null);
   }
 
-  function updateSelectedObject(patch: Partial<WorldObject>) {
-    if (!selectedObject) {
+  function updateSelectedEntity(patch: Partial<WorldEntity>) {
+    if (!selectedEntity) {
       return;
     }
     updateWorld((current) => ({
       ...current,
-      objects: current.objects.map((object) =>
-        object.id === selectedObject.id ? { ...object, ...patch } : object
+      entities: current.entities.map((entity) =>
+        entity.id === selectedEntity.id ? { ...entity, ...patch } : entity
       ),
     }));
     if (patch.id) {
-      setSelection({ type: "object", id: patch.id });
+      setSelection({ type: "entity", id: patch.id });
     }
   }
 
@@ -691,50 +881,33 @@ function App() {
     }
   }
 
-  function updateSelectedSpawn(patch: Partial<SpawnPoint>) {
-    if (selection?.type !== "spawn") {
-      return;
-    }
-    updateWorld((current) => ({
-      ...current,
-      spawns: current.spawns.map((spawn, index) =>
-        index === selection.index ? { ...spawn, ...patch } : spawn
-      ),
-    }));
-  }
-
   function deleteSelection() {
     if (selection?.type === "wall") {
       updateWorld((current) => ({
         ...current,
         walls: current.walls.filter((wall) => wall.id !== selection.id),
       }));
-    } else if (selection?.type === "object") {
+    } else if (selection?.type === "entity") {
       updateWorld((current) => ({
         ...current,
-        objects: current.objects.filter((object) => object.id !== selection.id),
-      }));
-    } else if (selection?.type === "spawn") {
-      updateWorld((current) => ({
-        ...current,
-        spawns: current.spawns.filter((_, index) => index !== selection.index),
+        entities: current.entities.filter((entity) => entity.id !== selection.id),
       }));
     }
     setSelection(null);
   }
 
-  function applyObjectState() {
-    if (!selectedObject) {
+  function applyEntityComponents() {
+    if (!selectedEntity) {
       return;
     }
     try {
-      const parsed = JSON.parse(stateText) as unknown;
+      const parsed = JSON.parse(componentText) as unknown;
       if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-        setStatus("object state must be a JSON object");
+        setStatus("entity components must be a JSON object");
         return;
       }
-      updateSelectedObject({ state: parsed as Record<string, unknown> });
-      setStatus("object state updated");
+      updateSelectedEntity({ components: parsed as Record<string, unknown> });
+      setStatus("entity components updated");
     } catch (error) {
       setStatus(errorMessage(error));
     }
@@ -878,7 +1051,7 @@ function App() {
           <section>
             <h2>Tools</h2>
             <div className="segmented">
-              {(["terrain", "blocker", "wall", "object", "spawn", "select"] as Tool[]).map((item) => (
+              {(["terrain", "blocker", "wall", "entity", "select"] as Tool[]).map((item) => (
                 <button
                   key={item}
                   type="button"
@@ -941,15 +1114,15 @@ function App() {
               </div>
             ) : null}
 
-            {tool === "object" ? (
+            {tool === "entity" ? (
               <div className="toolSettings">
                 <label>
-                  Object type
-                  <input value={objectType} onChange={(event) => setObjectType(event.target.value)} />
+                  Entity type
+                  <input value={entityType} onChange={(event) => setEntityType(event.target.value)} />
                 </label>
                 <div className="quickPicks">
-                  {OBJECT_TYPES.map((type) => (
-                    <button key={type} type="button" onClick={() => setObjectType(type)}>
+                  {ENTITY_TYPES.map((type) => (
+                    <button key={type} type="button" onClick={() => setEntityType(type)}>
                       {type}
                     </button>
                   ))}
@@ -957,26 +1130,10 @@ function App() {
                 <label className="checkboxLabel">
                   <input
                     type="checkbox"
-                    checked={objectBlocksMovement}
-                    onChange={(event) => setObjectBlocksMovement(event.target.checked)}
+                    checked={entityBlocksMovement}
+                    onChange={(event) => setEntityBlocksMovement(event.target.checked)}
                   />
                   blocks movement
-                </label>
-              </div>
-            ) : null}
-
-            {tool === "spawn" ? (
-              <div className="toolSettings">
-                <label>
-                  Spawn type
-                  <select
-                    value={spawnType}
-                    onChange={(event) => setSpawnType(event.target.value as SpawnPoint["type"])}
-                  >
-                    {SPAWN_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
                 </label>
               </div>
             ) : null}
@@ -1007,10 +1164,9 @@ function App() {
                 const x = index % world.size.x;
                 const y = Math.floor(index / world.size.x);
                 const wall = world.walls.find((candidate) => coversTile(candidate, x, y));
-                const object = world.objects.find((candidate) => coversTile(candidate, x, y));
-                const spawn = world.spawns.find((candidate) => candidate.x === x && candidate.y === y);
+                const entity = world.entities.find((candidate) => coversTile(candidate, x, y));
                 const blocked = Boolean(world.blockers?.[index]);
-                const selected = isTileSelected(selection, x, y, wall, object, spawn, world.spawns);
+                const selected = isTileSelected(selection, x, y, wall, entity);
 
                 return (
                   <button
@@ -1022,8 +1178,7 @@ function App() {
                     onClick={() => handleTileClick(x, y)}
                   >
                     {wall ? <span className="wallBadge">{wall.type.slice(0, 2)}</span> : null}
-                    {object ? <span className="objectBadge">{object.type.slice(0, 2)}</span> : null}
-                    {spawn ? <span className="spawnBadge">{spawn.type.slice(0, 1)}</span> : null}
+                    {entity ? <span className="objectBadge">{entityLabel(entity).slice(0, 2)}</span> : null}
                   </button>
                 );
               })}
@@ -1062,123 +1217,20 @@ function App() {
               </div>
             ) : null}
 
-            {selectedObject ? (
+            {selectedEntity ? (
               <div className="details">
                 <label>
                   Id
-                  <input value={selectedObject.id} onChange={(event) => updateSelectedObject({ id: event.target.value })} />
+                  <input value={selectedEntity.id} onChange={(event) => updateSelectedEntity({ id: event.target.value })} />
                 </label>
                 <label>
-                  Type
-                  <input value={selectedObject.type} onChange={(event) => updateSelectedObject({ type: event.target.value })} />
-                </label>
-                <div className="fieldRow">
-                  <label>
-                    X
-                    <input type="number" value={selectedObject.x} onChange={(event) => updateSelectedObject({ x: Number(event.target.value) })} />
-                  </label>
-                  <label>
-                    Y
-                    <input type="number" value={selectedObject.y} onChange={(event) => updateSelectedObject({ y: Number(event.target.value) })} />
-                  </label>
-                </div>
-                <div className="fieldRow">
-                  <label>
-                    Width
-                    <input type="number" min="1" value={selectedObject.width ?? 1} onChange={(event) => updateSelectedObject({ width: Number(event.target.value) })} />
-                  </label>
-                  <label>
-                    Height
-                    <input type="number" min="1" value={selectedObject.height ?? 1} onChange={(event) => updateSelectedObject({ height: Number(event.target.value) })} />
-                  </label>
-                </div>
-                <label className="checkboxLabel">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(selectedObject.blocksMovement)}
-                    onChange={(event) => updateSelectedObject({ blocksMovement: event.target.checked })}
-                  />
-                  blocks movement
-                </label>
-                <label>
-                  Interactions
-                  <input
-                    value={(selectedObject.interactable ?? []).join(", ")}
-                    onChange={(event) =>
-                      updateSelectedObject({
-                        interactable: event.target.value
-                          .split(",")
-                          .map((value) => value.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  State JSON
-                  <textarea value={stateText} onChange={(event) => setStateText(event.target.value)} />
+                  Components JSON
+                  <textarea value={componentText} onChange={(event) => setComponentText(event.target.value)} />
                 </label>
                 <div className="buttonRow">
-                  <button type="button" onClick={applyObjectState}>Apply State</button>
+                  <button type="button" onClick={applyEntityComponents}>Apply Components</button>
                   <button type="button" className="danger" onClick={deleteSelection}>Delete</button>
                 </div>
-              </div>
-            ) : null}
-
-            {selectedSpawn ? (
-              <div className="details">
-                <label>
-                  Type
-                  <select
-                    value={selectedSpawn.type}
-                    onChange={(event) => {
-                      const type = event.target.value as SpawnPoint["type"];
-                      updateSelectedSpawn({
-                        type,
-                        conversationId: type === "npc" ? selectedSpawn.conversationId : undefined,
-                      });
-                    }}
-                  >
-                    {SPAWN_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="fieldRow">
-                  <label>
-                    X
-                    <input type="number" value={selectedSpawn.x} onChange={(event) => updateSelectedSpawn({ x: Number(event.target.value) })} />
-                  </label>
-                  <label>
-                    Y
-                    <input type="number" value={selectedSpawn.y} onChange={(event) => updateSelectedSpawn({ y: Number(event.target.value) })} />
-                  </label>
-                </div>
-                <label>
-                  Entity type
-                  <input value={selectedSpawn.entityType ?? ""} onChange={(event) => updateSelectedSpawn({ entityType: event.target.value || undefined })} />
-                </label>
-                <label>
-                  Name
-                  <input value={selectedSpawn.name ?? ""} onChange={(event) => updateSelectedSpawn({ name: event.target.value || undefined })} />
-                </label>
-                {selectedSpawn.type === "npc" ? (
-                  <label>
-                    Conversation
-                    <select
-                      value={selectedSpawn.conversationId ?? ""}
-                      onChange={(event) => updateSelectedSpawn({ conversationId: event.target.value || undefined })}
-                    >
-                      <option value="">none</option>
-                      {conversationSummaries.map((summary) => (
-                        <option key={`${summary.path}:${summary.conversationId}`} value={summary.conversationId}>
-                          {summary.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-                <button type="button" className="danger" onClick={deleteSelection}>Delete</button>
               </div>
             ) : null}
 
@@ -1221,7 +1273,26 @@ function App() {
           onDeleteOption={deleteOption}
         />
       ) : (
-        <QuestsWorkspace project={project} status={status} />
+        <QuestsWorkspace
+          project={project}
+          quests={questDocuments}
+          summaries={questSummaries}
+          selectedQuestPath={selectedQuestPath}
+          selectedQuest={selectedQuest}
+          nameInput={questNameInput}
+          validations={questValidations}
+          status={status}
+          onNameInputChange={setQuestNameInput}
+          onCreateQuest={createQuest}
+          onDeleteQuest={deleteQuest}
+          onSelectQuest={selectQuest}
+          onUpdateQuestDocument={updateSelectedQuestDocument}
+          onUpdateQuest={updateSelectedQuest}
+          onAddStep={addQuestStep}
+          onUpdateStep={updateQuestStep}
+          onUpdateStepRequirement={updateQuestStepRequirement}
+          onDeleteStep={deleteQuestStep}
+        />
       )}
     </div>
   );
@@ -1519,13 +1590,93 @@ function ConversationsWorkspace({
   );
 }
 
-function QuestsWorkspace({ project, status }: { project: GameProject; status: string }) {
+function QuestsWorkspace({
+  project,
+  quests,
+  summaries,
+  selectedQuestPath,
+  selectedQuest,
+  nameInput,
+  validations,
+  status,
+  onNameInputChange,
+  onCreateQuest,
+  onDeleteQuest,
+  onSelectQuest,
+  onUpdateQuestDocument,
+  onUpdateQuest,
+  onAddStep,
+  onUpdateStep,
+  onUpdateStepRequirement,
+  onDeleteStep,
+}: {
+  project: GameProject;
+  quests: QuestDocuments;
+  summaries: QuestSummary[];
+  selectedQuestPath: string | null;
+  selectedQuest: Quest | undefined;
+  nameInput: string;
+  validations: QuestValidationEntry[];
+  status: string;
+  onNameInputChange: (value: string) => void;
+  onCreateQuest: () => void;
+  onDeleteQuest: (path: string, questId: string) => void;
+  onSelectQuest: (path: string, questId: string) => void;
+  onUpdateQuestDocument: (patch: Partial<QuestDocument>) => void;
+  onUpdateQuest: (updater: (quest: Quest) => Quest) => void;
+  onAddStep: () => void;
+  onUpdateStep: (index: number, patch: Partial<QuestStep>) => void;
+  onUpdateStepRequirement: (index: number, patch: Partial<QuestStep["requirement"]>) => void;
+  onDeleteStep: (index: number) => void;
+}) {
+  const selectedDocument = selectedQuestPath ? quests[selectedQuestPath] : undefined;
+
   return (
     <main className="workspace singleWorkspace">
       <aside className="panel">
         <section>
           <h2>Quests</h2>
-          <p className="muted">TBD</p>
+          <label>
+            Name
+            <input value={nameInput} onChange={(event) => onNameInputChange(event.target.value)} />
+          </label>
+          <button type="button" onClick={onCreateQuest}>Create Quest</button>
+        </section>
+
+        <section>
+          <h2>List</h2>
+          {summaries.length > 0 ? (
+            <div className="stack">
+              {summaries.map((summary) => (
+                <button
+                  key={`${summary.path}:${summary.questId}`}
+                  type="button"
+                  className={
+                    selectedQuestPath === summary.path && selectedQuest?.id === summary.questId
+                      ? "listButton active"
+                      : "listButton"
+                  }
+                  onClick={() => onSelectQuest(summary.path, summary.questId)}
+                >
+                  {summary.name}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">none</p>
+          )}
+        </section>
+
+        <section>
+          <h2>Validation</h2>
+          {validations.length === 0 || validations.every((validation) => validation.result.valid) ? (
+            <p className="ok">valid</p>
+          ) : null}
+          {validations.flatMap((validation) =>
+            validation.result.errors.map((error) => (
+              <p key={`${validation.path}:${error}`} className="error">{error}</p>
+            ))
+          )}
         </section>
 
         <section>
@@ -1539,7 +1690,122 @@ function QuestsWorkspace({ project, status }: { project: GameProject; status: st
           <h2>Quests</h2>
           <p>{project.files.quests.length} quests</p>
         </div>
-        <p className="emptyState">Quest editing is not implemented yet.</p>
+        {selectedQuest && selectedDocument && selectedQuestPath ? (
+          <div className="conversationEditor">
+            <section className="editorSection">
+              <div className="sectionHeader">
+                <h3>Details</h3>
+                <button
+                  type="button"
+                  className="danger"
+                  onClick={() => onDeleteQuest(selectedQuestPath, selectedQuest.id)}
+                >
+                  Delete
+                </button>
+              </div>
+              <div className="fieldRow">
+                <label>
+                  Name
+                  <input
+                    value={selectedQuest.displayName ?? selectedDocument.displayName ?? ""}
+                    onChange={(event) =>
+                      onUpdateQuest((quest) => ({ ...quest, displayName: event.target.value || undefined }))
+                    }
+                  />
+                </label>
+                <label>
+                  Id
+                  <input
+                    value={selectedQuest.id}
+                    onChange={(event) => onUpdateQuest((quest) => ({ ...quest, id: event.target.value }))}
+                  />
+                </label>
+              </div>
+              <label>
+                Document name
+                <input
+                  value={selectedDocument.displayName ?? ""}
+                  onChange={(event) => onUpdateQuestDocument({ displayName: event.target.value })}
+                />
+              </label>
+              <label>
+                Start event id
+                <input
+                  value={selectedQuest.startEventId ?? ""}
+                  onChange={(event) =>
+                    onUpdateQuest((quest) => ({ ...quest, startEventId: event.target.value || undefined }))
+                  }
+                />
+              </label>
+              <label>
+                Description
+                <textarea
+                  value={selectedQuest.description ?? ""}
+                  onChange={(event) =>
+                    onUpdateQuest((quest) => ({ ...quest, description: event.target.value || undefined }))
+                  }
+                />
+              </label>
+            </section>
+
+            <section className="editorSection">
+              <div className="sectionHeader">
+                <h3>Steps</h3>
+                <button type="button" onClick={onAddStep}>Add Step</button>
+              </div>
+              <div className="stack">
+                {selectedQuest.steps.map((step, index) => (
+                  <div key={index} className="subEditor">
+                    <div className="sectionHeader compact">
+                      <h3>{index + 1}. {step.id}</h3>
+                      <button
+                        type="button"
+                        className="danger"
+                        disabled={selectedQuest.steps.length <= 1}
+                        onClick={() => onDeleteStep(index)}
+                      >
+                        Delete Step
+                      </button>
+                    </div>
+                    <div className="fieldRow">
+                      <label>
+                        Id
+                        <input value={step.id} onChange={(event) => onUpdateStep(index, { id: event.target.value })} />
+                      </label>
+                      <label>
+                        Count
+                        <input
+                          type="number"
+                          min="1"
+                          value={step.requirement.count}
+                          onChange={(event) =>
+                            onUpdateStepRequirement(index, { count: Math.max(1, Number(event.target.value)) })
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label>
+                      Event id
+                      <input
+                        value={step.requirement.eventId}
+                        onChange={(event) => onUpdateStepRequirement(index, { eventId: event.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Description
+                      <textarea
+                        value={step.description}
+                        onChange={(event) => onUpdateStep(index, { description: event.target.value })}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        ) : (
+          <p className="emptyState">No quest is selected.</p>
+        )}
       </section>
     </main>
   );
@@ -1565,6 +1831,17 @@ type ConversationSummary = {
 type ConversationValidationEntry = {
   path: string;
   result: ConversationValidationResult;
+};
+
+type QuestSummary = {
+  path: string;
+  questId: string;
+  name: string;
+};
+
+type QuestValidationEntry = {
+  path: string;
+  result: QuestValidationResult;
 };
 
 function summarizeWorlds(project: GameProject, worlds: WorldDocuments): WorldSummary[] {
@@ -1614,6 +1891,28 @@ function validateConversationDocuments(conversations: ConversationDocuments): Co
   }));
 }
 
+function summarizeQuests(project: GameProject, quests: QuestDocuments): QuestSummary[] {
+  return project.files.quests.flatMap((path) => {
+    const document = quests[path];
+    if (!document) {
+      return [];
+    }
+
+    return document.quests.map((quest) => ({
+      path,
+      questId: quest.id,
+      name: quest.displayName || document.displayName || quest.id || titleFromStorageName(filenameFromProjectPath(path)),
+    }));
+  });
+}
+
+function validateQuestDocuments(quests: QuestDocuments): QuestValidationEntry[] {
+  return Object.entries(quests).map(([path, document]) => ({
+    path,
+    result: validateQuestDocument(document),
+  }));
+}
+
 function titleFromStorageName(filename: string): string {
   return filename
     .replace(/\.json$/i, "")
@@ -1653,39 +1952,48 @@ function createWall(world: WorldFormat, rawType: string, x: number, y: number): 
   };
 }
 
-function createObject(
+function createEntity(
   world: WorldFormat,
   rawType: string,
   x: number,
   y: number,
   blocksMovement: boolean
-): WorldObject {
-  const type = sanitizeToken(rawType || "object");
+): WorldEntity {
+  const type = sanitizeToken(rawType || "entity");
   let nextNumber = 1;
   let id = `${type}_${String(nextNumber).padStart(3, "0")}`;
 
-  while (world.objects.some((object) => object.id === id)) {
+  while (world.entities.some((entity) => entity.id === id)) {
     nextNumber += 1;
     id = `${type}_${String(nextNumber).padStart(3, "0")}`;
   }
 
   return {
     id,
-    type,
-    x,
-    y,
-    width: 1,
-    height: 1,
-    blocksMovement,
-    interactable: [],
-    state: {},
+    components: {
+      position: { x, y },
+      metadata: {
+        name: id,
+        type,
+        width: 1,
+        height: 1,
+        blocksMovement,
+      },
+      renderable: { type },
+    },
   };
 }
 
-function coversTile(item: WorldObject | WorldWall, x: number, y: number): boolean {
-  const width = "width" in item ? item.width ?? 1 : 1;
-  const height = "height" in item ? item.height ?? 1 : 1;
-  return x >= item.x && y >= item.y && x < item.x + width && y < item.y + height;
+function coversTile(item: WorldEntity | WorldWall, x: number, y: number): boolean {
+  if ("components" in item) {
+    const position = entityPosition(item);
+    if (!position) {
+      return false;
+    }
+    const size = entitySize(item);
+    return x >= position.x && y >= position.y && x < position.x + size.width && y < position.y + size.height;
+  }
+  return x === item.x && y === item.y;
 }
 
 function isTileSelected(
@@ -1693,23 +2001,25 @@ function isTileSelected(
   x: number,
   y: number,
   wall: WorldWall | undefined,
-  object: WorldObject | undefined,
-  spawn: SpawnPoint | undefined,
-  spawns: SpawnPoint[]
+  entity: WorldEntity | undefined
 ): boolean {
   if (selection?.type === "tile") {
     return selection.x === x && selection.y === y;
   }
-  if (selection?.type === "object") {
-    return object?.id === selection.id;
+  if (selection?.type === "entity") {
+    return entity?.id === selection.id;
   }
   if (selection?.type === "wall") {
     return wall?.id === selection.id;
   }
-  if (selection?.type === "spawn") {
-    return Boolean(spawn && spawns[selection.index] === spawn);
-  }
   return false;
+}
+
+function entityLabel(entity: WorldEntity): string {
+  const metadata = isRecord(entity.components.metadata) ? entity.components.metadata : {};
+  const renderable = isRecord(entity.components.renderable) ? entity.components.renderable : {};
+  const type = metadata.type ?? metadata.entityType ?? renderable.type ?? entity.id;
+  return String(type);
 }
 
 function terrainColor(terrain: string): string {
@@ -1735,7 +2045,11 @@ function terrainColor(terrain: string): string {
 
 function sanitizeToken(value: string): string {
   const token = value.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "");
-  return token || "object";
+  return token || "entity";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function errorMessage(error: unknown): string {

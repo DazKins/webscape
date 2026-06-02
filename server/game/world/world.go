@@ -20,9 +20,9 @@ type World struct {
 	wallBlockers   [][]bool
 	objectBlockers [][]bool
 	walls          []WorldWall
-	objects        []WorldObject
-	spawns         []WorldSpawn
+	entities       []WorldEntity
 	conversations  *ConversationRegistry
+	quests         *QuestRegistry
 }
 
 type worldFormat struct {
@@ -33,8 +33,7 @@ type worldFormat struct {
 	Terrain       []string      `json:"terrain"`
 	Blockers      []bool        `json:"blockers"`
 	Walls         []WorldWall   `json:"walls"`
-	Objects       []WorldObject `json:"objects"`
-	Spawns        []WorldSpawn  `json:"spawns"`
+	Entities      []WorldEntity `json:"entities"`
 }
 
 type gameFormat struct {
@@ -55,16 +54,9 @@ type worldSize struct {
 	Y int `json:"y"`
 }
 
-type WorldObject struct {
-	Id             string         `json:"id"`
-	Type           string         `json:"type"`
-	X              int            `json:"x"`
-	Y              int            `json:"y"`
-	Width          int            `json:"width"`
-	Height         int            `json:"height"`
-	BlocksMovement bool           `json:"blocksMovement"`
-	Interactable   []string       `json:"interactable"`
-	State          map[string]any `json:"state"`
+type WorldEntity struct {
+	Id         string         `json:"id"`
+	Components map[string]any `json:"components"`
 }
 
 type WorldWall struct {
@@ -72,15 +64,6 @@ type WorldWall struct {
 	Type string `json:"type"`
 	X    int    `json:"x"`
 	Y    int    `json:"y"`
-}
-
-type WorldSpawn struct {
-	Type           string `json:"type"`
-	X              int    `json:"x"`
-	Y              int    `json:"y"`
-	EntityType     string `json:"entityType"`
-	Name           string `json:"name"`
-	ConversationId string `json:"conversationId"`
 }
 
 func LoadFromGameFolder(path string) (*World, error) {
@@ -105,6 +88,10 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	if err != nil {
 		return nil, err
 	}
+	quests, err := loadQuestRegistry(gameFS, format.Files.Quests)
+	if err != nil {
+		return nil, err
+	}
 
 	mapPath := format.Files.Maps[0]
 	mapData, err := fs.ReadFile(gameFS, mapPath)
@@ -117,6 +104,7 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 		return nil, err
 	}
 	world.conversations = conversations
+	world.quests = quests
 	return world, nil
 }
 
@@ -136,21 +124,21 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 		wallBlockers[wall.X][wall.Y] = true
 	}
 
+	entities := make([]WorldEntity, 0, len(format.Entities))
+	entities = append(entities, format.Entities...)
+
 	objectBlockers := makeBlockerGrid(format.Size.X, format.Size.Y, nil)
-	for _, object := range format.Objects {
-		if !object.BlocksMovement {
+	for _, entity := range entities {
+		position, ok := entityPosition(entity)
+		if !ok {
 			continue
 		}
-		width := object.Width
-		if width == 0 {
-			width = 1
+		width, height := entitySize(entity)
+		if !entityBlocksMovement(entity) {
+			continue
 		}
-		height := object.Height
-		if height == 0 {
-			height = 1
-		}
-		for x := object.X; x < object.X+width; x++ {
-			for y := object.Y; y < object.Y+height; y++ {
+		for x := position.X; x < position.X+width; x++ {
+			for y := position.Y; y < position.Y+height; y++ {
 				objectBlockers[x][y] = true
 			}
 		}
@@ -164,8 +152,7 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 		wallBlockers:   wallBlockers,
 		objectBlockers: objectBlockers,
 		walls:          format.Walls,
-		objects:        format.Objects,
-		spawns:         format.Spawns,
+		entities:       entities,
 	}, nil
 }
 
@@ -211,21 +198,15 @@ func (w *World) GetTerrain() []string {
 	return result
 }
 
-func (w *World) GetObjects() []WorldObject {
-	result := make([]WorldObject, len(w.objects))
-	copy(result, w.objects)
+func (w *World) GetEntities() []WorldEntity {
+	result := make([]WorldEntity, len(w.entities))
+	copy(result, w.entities)
 	return result
 }
 
 func (w *World) GetWalls() []WorldWall {
 	result := make([]WorldWall, len(w.walls))
 	copy(result, w.walls)
-	return result
-}
-
-func (w *World) GetSpawns() []WorldSpawn {
-	result := make([]WorldSpawn, len(w.spawns))
-	copy(result, w.spawns)
 	return result
 }
 
@@ -237,10 +218,22 @@ func (w *World) GetConversationRegistry() *ConversationRegistry {
 	return w.conversations
 }
 
+func (w *World) GetQuest(id string) (*Quest, bool) {
+	return w.quests.Get(id)
+}
+
+func (w *World) GetQuestRegistry() *QuestRegistry {
+	return w.quests
+}
+
 func (w *World) GetPlayerSpawn() math.Vec2 {
-	for _, spawn := range w.spawns {
-		if spawn.Type == "player" {
-			return math.Vec2{X: spawn.X, Y: spawn.Y}
+	for _, entity := range w.entities {
+		if !hasComponent(entity, "playerSpawn") {
+			continue
+		}
+		position, ok := entityPosition(entity)
+		if ok {
+			return position
 		}
 	}
 	return math.Vec2Zero()
@@ -347,28 +340,17 @@ func validateWorldFormat(format worldFormat) error {
 			return fmt.Errorf("wall %q is out of bounds", wall.Id)
 		}
 	}
-	for _, object := range format.Objects {
-		width := object.Width
-		if width == 0 {
-			width = 1
+	for _, entity := range format.Entities {
+		if entity.Id == "" {
+			return errors.New("world entities must have id")
 		}
-		height := object.Height
-		if height == 0 {
-			height = 1
+		position, ok := entityPosition(entity)
+		if !ok {
+			return fmt.Errorf("entity %q must include a position component", entity.Id)
 		}
-		if object.Id == "" || object.Type == "" {
-			return errors.New("world objects must have id and type")
-		}
-		if object.X < 0 || object.Y < 0 || object.X+width > format.Size.X || object.Y+height > format.Size.Y {
-			return fmt.Errorf("object %q is out of bounds", object.Id)
-		}
-	}
-	for _, spawn := range format.Spawns {
-		if spawn.Type == "" {
-			return errors.New("world spawns must have type")
-		}
-		if spawn.X < 0 || spawn.X >= format.Size.X || spawn.Y < 0 || spawn.Y >= format.Size.Y {
-			return fmt.Errorf("spawn %q at (%d, %d) is out of bounds", spawn.Type, spawn.X, spawn.Y)
+		width, height := entitySize(entity)
+		if position.X < 0 || position.Y < 0 || position.X+width > format.Size.X || position.Y+height > format.Size.Y {
+			return fmt.Errorf("entity %q is out of bounds", entity.Id)
 		}
 	}
 	return nil
@@ -412,4 +394,61 @@ func makeBlockerGrid(sizeX int, sizeY int, blockers []bool) [][]bool {
 		}
 	}
 	return grid
+}
+
+func hasComponent(entity WorldEntity, componentId string) bool {
+	if entity.Components == nil {
+		return false
+	}
+	_, ok := entity.Components[componentId]
+	return ok
+}
+
+func entityPosition(entity WorldEntity) (math.Vec2, bool) {
+	component, ok := entity.Components["position"].(map[string]any)
+	if !ok {
+		return math.Vec2Zero(), false
+	}
+	x, okX := numberToInt(component["x"])
+	y, okY := numberToInt(component["y"])
+	if !okX || !okY {
+		return math.Vec2Zero(), false
+	}
+	return math.Vec2{X: x, Y: y}, true
+}
+
+func entitySize(entity WorldEntity) (int, int) {
+	metadata, ok := entity.Components["metadata"].(map[string]any)
+	if !ok {
+		return 1, 1
+	}
+	width, ok := numberToInt(metadata["width"])
+	if !ok || width < 1 {
+		width = 1
+	}
+	height, ok := numberToInt(metadata["height"])
+	if !ok || height < 1 {
+		height = 1
+	}
+	return width, height
+}
+
+func entityBlocksMovement(entity WorldEntity) bool {
+	metadata, ok := entity.Components["metadata"].(map[string]any)
+	if !ok {
+		return false
+	}
+	blocksMovement, _ := metadata["blocksMovement"].(bool)
+	return blocksMovement
+}
+
+func numberToInt(value any) (int, bool) {
+	switch value := value.(type) {
+	case float64:
+		return int(value), true
+	case int:
+		return value, true
+	default:
+		return 0, false
+	}
 }

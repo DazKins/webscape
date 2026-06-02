@@ -55,17 +55,12 @@ components:
           default: []
           items:
             $ref: "#/components/schemas/WorldWall"
-        objects:
+        entities:
           type: array
-          description: Authored map objects. The server decides which objects become ECS entities.
+          description: Authored map entities. Each entity is defined by component JSON parsed into ECS components.
           default: []
           items:
-            $ref: "#/components/schemas/WorldObject"
-        spawns:
-          type: array
-          default: []
-          items:
-            $ref: "#/components/schemas/SpawnPoint"
+            $ref: "#/components/schemas/WorldEntity"
 
     WorldSize:
       type: object
@@ -89,47 +84,21 @@ components:
       type: string
       description: Freeform tile terrain identifier, such as `grass`, `road`, or `water`.
 
-    WorldObject:
+    WorldEntity:
       type: object
       additionalProperties: false
       required:
         - id
-        - type
-        - x
-        - y
+        - components
       properties:
         id:
           type: string
           pattern: "^[a-z0-9][a-z0-9_-]*$"
           examples:
-            - tree_001
-        type:
-          $ref: "#/components/schemas/ObjectType"
-        x:
-          type: integer
-          minimum: 0
-        y:
-          type: integer
-          minimum: 0
-        width:
-          type: integer
-          minimum: 1
-          default: 1
-        height:
-          type: integer
-          minimum: 1
-          default: 1
-        blocksMovement:
-          type: boolean
-          default: false
-        interactable:
-          type: array
-          default: []
-          items:
-            $ref: "#/components/schemas/InteractionOption"
-        state:
+            - chest_001
+        components:
           type: object
-          description: Object-specific initial state, such as door lock/open state.
+          description: Freeform authored ECS component data, keyed by component id.
           additionalProperties: true
 
     WorldWall:
@@ -155,52 +124,6 @@ components:
         y:
           type: integer
           minimum: 0
-
-    ObjectType:
-      type: string
-      description: Freeform authored object identifier, such as `tree`, `door`, or `chest`.
-
-    InteractionOption:
-      type: string
-      enum:
-        - attack
-        - chop
-        - examine
-        - open
-        - close
-        - talk
-        - trade
-
-    SpawnPoint:
-      type: object
-      additionalProperties: false
-      required:
-        - type
-        - x
-        - y
-      properties:
-        type:
-          $ref: "#/components/schemas/SpawnType"
-        x:
-          type: integer
-          minimum: 0
-        y:
-          type: integer
-          minimum: 0
-        entityType:
-          type: string
-          description: Entity archetype to create for non-player spawns.
-          examples:
-            - dude
-        name:
-          type: string
-
-    SpawnType:
-      type: string
-      enum:
-        - player
-        - npc
-        - monster
 
   examples:
     TinyWorld:
@@ -231,30 +154,40 @@ components:
             type: stone
             x: 2
             y: 0
-        objects:
-          - id: tree_001
-            type: tree
-            x: 1
-            y: 1
-            blocksMovement: true
-            interactable:
-              - chop
-          - id: door_001
-            type: door
-            x: 2
-            y: 0
-            blocksMovement: true
-            interactable:
-              - open
-            state:
-              open: false
-              locked: false
-        spawns:
-          - type: player
-            x: 0
-            y: 0
-          - type: npc
-            entityType: dude
-            name: Bob
-            x: 2
-            y: 1
+        entities:
+          - id: player_spawn
+            components:
+              position:
+                x: 0
+                y: 0
+              playerSpawn: {}
+          - id: chest_001
+            components:
+              position:
+                x: 0
+                y: 1
+              metadata:
+                name: chest_001
+                type: chest
+                width: 1
+                height: 1
+                blocksMovement: true
+              renderable:
+                type: chest
+              lootable:
+                once: true
+                items:
+                  - name: Mysterious Key
+                    type: quest
+          - id: bob
+            components:
+              position:
+                x: 2
+                y: 1
+              metadata:
+                name: Bob
+                entityType: dude
+              renderable:
+                type: human
+              conversation:
+                conversationId: guide_intro

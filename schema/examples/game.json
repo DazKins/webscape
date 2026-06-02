@@ -9,6 +9,8 @@
     "conversations": [
       "conversations/starter-conversations.json"
     ],
-    "quests": []
+    "quests": [
+      "quests/tutorial.json"
+    ]
   }
 }

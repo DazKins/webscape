@@ -1,6 +1,9 @@
 package component
 
-import "webscape/server/game/model"
+import (
+	"webscape/server/game/model"
+	"webscape/server/util"
+)
 
 const ComponentIdConversation = ComponentId("conversation")
 const ComponentIdActiveConversation = ComponentId("activeconversation")
@@ -21,6 +24,12 @@ func (c *CConversation) GetId() ComponentId {
 
 func (c *CConversation) GetConversationId() string {
 	return c.conversationId
+}
+
+func (c *CConversation) Serialize() util.Json {
+	return util.JObject(map[string]util.Json{
+		"conversationId": util.JString(c.conversationId),
+	})
 }
 
 type CActiveConversation struct {

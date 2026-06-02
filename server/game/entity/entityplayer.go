@@ -25,13 +25,13 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 	inventoryComponent.AddItem(model.CreateHealthPotion())
 	inventoryComponent.AddItem(model.CreateBread())
 	inventoryComponent.AddItem(model.CreateIronOre())
-	inventoryComponent.AddItem(model.CreateMysteriousKey())
 
 	equippedComponent := component.NewCEquipped()
 	baseStatsComponent := component.NewCBaseStats(8, 7, 7)
 	combatStatsComponent := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
 	playerComponent := component.NewCPlayer(name)
 	combatLogComponent := component.NewCCombatLog(10)
+	questLogComponent := component.NewCQuestLog()
 
 	return []component.Component{
 		positionComponent,
@@ -44,5 +44,6 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 		combatStatsComponent,
 		playerComponent,
 		combatLogComponent,
+		questLogComponent,
 	}
 }

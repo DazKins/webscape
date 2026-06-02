@@ -24,8 +24,14 @@ func TestLoadFromGameFSLoadsFirstMap(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
-				"spawns": [
-					{ "type": "player", "x": 1, "y": 0 }
+				"entities": [
+					{
+						"id": "player_spawn",
+						"components": {
+							"position": { "x": 1, "y": 0 },
+							"playerSpawn": {}
+						}
+					}
 				]
 			}`),
 		},
@@ -66,7 +72,7 @@ func TestLoadFromGameFSRejectsInvalidMapPath(t *testing.T) {
 	}
 }
 
-func TestLoadFromGameFSLoadsConversationsAndSpawnConversationId(t *testing.T) {
+func TestLoadFromGameFSLoadsConversationsAndAuthoredConversationComponent(t *testing.T) {
 	gameFS := fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
@@ -85,9 +91,21 @@ func TestLoadFromGameFSLoadsConversationsAndSpawnConversationId(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
-				"spawns": [
-					{ "type": "player", "x": 0, "y": 0 },
-					{ "type": "npc", "x": 1, "y": 0, "conversationId": "greeting" }
+				"entities": [
+					{
+						"id": "player_spawn",
+						"components": {
+							"position": { "x": 0, "y": 0 },
+							"playerSpawn": {}
+						}
+					},
+					{
+						"id": "greeter",
+						"components": {
+							"position": { "x": 1, "y": 0 },
+							"conversation": { "conversationId": "greeting" }
+						}
+					}
 				]
 			}`),
 		},
@@ -117,16 +135,122 @@ func TestLoadFromGameFSLoadsConversationsAndSpawnConversationId(t *testing.T) {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}
 
-	conversation, ok := world.GetConversation("greeting")
+	loadedConversation, ok := world.GetConversation("greeting")
 	if !ok {
 		t.Fatal("conversation greeting was not loaded")
 	}
-	if conversation.StartNodeId != "start" {
-		t.Fatalf("conversation startNodeId = %q, want start", conversation.StartNodeId)
+	if loadedConversation.StartNodeId != "start" {
+		t.Fatalf("conversation startNodeId = %q, want start", loadedConversation.StartNodeId)
 	}
 
-	spawns := world.GetSpawns()
-	if len(spawns) != 2 || spawns[1].ConversationId != "greeting" {
-		t.Fatalf("spawns = %#v, want npc conversationId greeting", spawns)
+	entities := world.GetEntities()
+	if len(entities) != 2 {
+		t.Fatalf("entities = %#v, want two authored entities", entities)
+	}
+	conversationComponent, ok := entities[1].Components["conversation"].(map[string]any)
+	if !ok || conversationComponent["conversationId"] != "greeting" {
+		t.Fatalf("entity conversation = %#v, want conversationId greeting", entities[1].Components["conversation"])
+	}
+}
+
+func TestLoadFromGameFSLoadsQuests(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": ["quests/tutorial.json"]
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"]
+			}`),
+		},
+		"quests/tutorial.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "tutorial_quests",
+				"quests": [
+					{
+						"id": "first_errand",
+						"startEventId": "conversation:node:guide:start",
+						"steps": [
+							{
+								"id": "talk",
+								"description": "Talk to the guide.",
+								"requirement": { "eventId": "conversation:node:guide:start", "count": 1 }
+							}
+						]
+					}
+				]
+			}`),
+		},
+	}
+
+	world, err := LoadFromGameFS(gameFS)
+	if err != nil {
+		t.Fatalf("LoadFromGameFS returned error: %v", err)
+	}
+
+	quest, ok := world.GetQuest("first_errand")
+	if !ok {
+		t.Fatal("quest first_errand was not loaded")
+	}
+	if quest.Steps[0].Requirement.EventId != "conversation:node:guide:start" {
+		t.Fatalf("quest event id = %q, want conversation:node:guide:start", quest.Steps[0].Requirement.EventId)
+	}
+}
+
+func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": ["quests/tutorial.json"]
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"]
+			}`),
+		},
+		"quests/tutorial.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "tutorial_quests",
+				"quests": [
+					{
+						"id": "broken",
+						"steps": [
+							{
+								"id": "missing_event",
+								"description": "Broken.",
+								"requirement": { "eventId": "", "count": 1 }
+							}
+						]
+					}
+				]
+			}`),
+		},
+	}
+
+	if _, err := LoadFromGameFS(gameFS); err == nil {
+		t.Fatal("LoadFromGameFS returned nil error for invalid quest")
 	}
 }

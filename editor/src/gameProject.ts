@@ -19,6 +19,7 @@ export type ValidationResult = {
 export const DEFAULT_WORLD_PATH = "maps/new_world.json";
 export const MAP_FILE_DIRECTORY = "maps";
 export const CONVERSATION_FILE_DIRECTORY = "conversations";
+export const QUEST_FILE_DIRECTORY = "quests";
 
 export function createBlankGameProject(): GameProject {
   return {
@@ -134,6 +135,10 @@ export function mapPathFromFilename(filename: string): string {
 
 export function conversationPathFromFilename(filename: string): string {
   return projectPathFromFilename(CONVERSATION_FILE_DIRECTORY, filename);
+}
+
+export function questPathFromFilename(filename: string): string {
+  return projectPathFromFilename(QUEST_FILE_DIRECTORY, filename);
 }
 
 export function isValidProjectFilename(filename: string): boolean {

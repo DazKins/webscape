@@ -1530,334 +1530,678 @@
       "y": 17
     }
   ],
-  "objects": [
+  "entities": [
     {
       "id": "tree_001",
-      "type": "tree",
-      "x": 20,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "tree_001",
+          "name": "tree_001",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_002",
-      "type": "tree",
-      "x": 23,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 23,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "tree_002",
+          "name": "tree_002",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_003",
-      "type": "tree",
-      "x": 21,
-      "y": 1,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 1
+        },
+        "metadata": {
+          "objectId": "tree_003",
+          "name": "tree_003",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_004",
-      "type": "tree",
-      "x": 25,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "tree_004",
+          "name": "tree_004",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_005",
-      "type": "tree",
-      "x": 23,
-      "y": 4,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 23,
+          "y": 4
+        },
+        "metadata": {
+          "objectId": "tree_005",
+          "name": "tree_005",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_006",
-      "type": "tree",
-      "x": 22,
-      "y": 4,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 4
+        },
+        "metadata": {
+          "objectId": "tree_006",
+          "name": "tree_006",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_007",
-      "type": "tree",
-      "x": 28,
-      "y": 1,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 1
+        },
+        "metadata": {
+          "objectId": "tree_007",
+          "name": "tree_007",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_008",
-      "type": "tree",
-      "x": 26,
-      "y": 3,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 3
+        },
+        "metadata": {
+          "objectId": "tree_008",
+          "name": "tree_008",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_009",
-      "type": "tree",
-      "x": 26,
-      "y": 4,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 4
+        },
+        "metadata": {
+          "objectId": "tree_009",
+          "name": "tree_009",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_010",
-      "type": "tree",
-      "x": 23,
-      "y": 7,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 23,
+          "y": 7
+        },
+        "metadata": {
+          "objectId": "tree_010",
+          "name": "tree_010",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_011",
-      "type": "tree",
-      "x": 20,
-      "y": 5,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 5
+        },
+        "metadata": {
+          "objectId": "tree_011",
+          "name": "tree_011",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_012",
-      "type": "tree",
-      "x": 20,
-      "y": 4,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 4
+        },
+        "metadata": {
+          "objectId": "tree_012",
+          "name": "tree_012",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_013",
-      "type": "tree",
-      "x": 17,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "tree_013",
+          "name": "tree_013",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_014",
-      "type": "tree",
-      "x": 18,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "tree_014",
+          "name": "tree_014",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_015",
-      "type": "tree",
-      "x": 18,
-      "y": 5,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 5
+        },
+        "metadata": {
+          "objectId": "tree_015",
+          "name": "tree_015",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "tree_016",
-      "type": "tree",
-      "x": 21,
-      "y": 7,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 7
+        },
+        "metadata": {
+          "objectId": "tree_016",
+          "name": "tree_016",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        }
+      }
     },
     {
       "id": "door_001",
-      "type": "door",
-      "x": 4,
-      "y": 9,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 9
+        },
+        "metadata": {
+          "objectId": "door_001",
+          "name": "door_001",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door"
+        }
+      }
     },
     {
       "id": "chest_001",
-      "type": "chest",
-      "x": 2,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 2,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "chest_001",
+          "name": "chest_001",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Mysterious Key",
+              "type": "quest"
+            }
+          ]
+        }
+      }
     },
     {
       "id": "chest_002",
-      "type": "chest",
-      "x": 3,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "chest_002",
+          "name": "chest_002",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        }
+      }
     },
     {
       "id": "rock_001",
-      "type": "rock",
-      "x": 16,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 16,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "rock_001",
+          "name": "rock_001",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_002",
-      "type": "rock",
-      "x": 17,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "rock_002",
+          "name": "rock_002",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_003",
-      "type": "rock",
-      "x": 24,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "rock_003",
+          "name": "rock_003",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_004",
-      "type": "rock",
-      "x": 26,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "rock_004",
+          "name": "rock_004",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_005",
-      "type": "rock",
-      "x": 29,
-      "y": 2,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 2
+        },
+        "metadata": {
+          "objectId": "rock_005",
+          "name": "rock_005",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_006",
-      "type": "rock",
-      "x": 29,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "rock_006",
+          "name": "rock_006",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_007",
-      "type": "rock",
-      "x": 27,
-      "y": 0,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 0
+        },
+        "metadata": {
+          "objectId": "rock_007",
+          "name": "rock_007",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_008",
-      "type": "rock",
-      "x": 27,
-      "y": 3,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 3
+        },
+        "metadata": {
+          "objectId": "rock_008",
+          "name": "rock_008",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
       "id": "rock_009",
-      "type": "rock",
-      "x": 28,
-      "y": 4,
-      "width": 1,
-      "height": 1,
-      "blocksMovement": true,
-      "interactable": [],
-      "state": {}
-    }
-  ],
-  "spawns": [
-    {
-      "type": "player",
-      "x": 12,
-      "y": 14
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 4
+        },
+        "metadata": {
+          "objectId": "rock_009",
+          "name": "rock_009",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
     },
     {
-      "type": "npc",
-      "x": 14,
-      "y": 2,
-      "name": "DazKins",
-      "conversationId": "new_conversation"
+      "id": "player_spawn",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 14
+        },
+        "playerSpawn": {}
+      }
     },
     {
-      "type": "npc",
-      "x": 28,
-      "y": 9,
-      "name": "Bains"
+      "id": "npc_001",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 2
+        },
+        "metadata": {
+          "name": "DazKins",
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "randomwalk": {
+          "walkTimer": 10
+        },
+        "health": {
+          "maxHealth": 100,
+          "currentHealth": 100
+        },
+        "basestats": {
+          "strength": 6,
+          "dexterity": 5,
+          "vitality": 6
+        },
+        "equipped": {},
+        "combatstats": {},
+        "conversation": {
+          "conversationId": "new_conversation"
+        }
+      }
+    },
+    {
+      "id": "npc_002",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 9
+        },
+        "metadata": {
+          "name": "Bains",
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "randomwalk": {
+          "walkTimer": 10
+        },
+        "health": {
+          "maxHealth": 100,
+          "currentHealth": 100
+        },
+        "basestats": {
+          "strength": 6,
+          "dexterity": 5,
+          "vitality": 6
+        },
+        "equipped": {},
+        "combatstats": {}
+      }
+    },
+    {
+      "id": "rat_001",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Rat",
+          "entityType": "rat"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "randomwalk": {
+          "walkTimer": 10
+        },
+        "health": {
+          "maxHealth": 100,
+          "currentHealth": 100
+        },
+        "basestats": {
+          "strength": 6,
+          "dexterity": 5,
+          "vitality": 6
+        },
+        "equipped": {},
+        "combatstats": {}
+      }
     }
   ]
 }

@@ -1,0 +1,39 @@
+{
+  "formatVersion": 1,
+  "id": "first_errand_quests",
+  "displayName": "First Errand Quests",
+  "quests": [
+    {
+      "id": "first_errand",
+      "displayName": "First Errand",
+      "description": "Help the guide test the basics of quest progress.",
+      "startEventId": "conversation:node:new_conversation:start",
+      "steps": [
+        {
+          "id": "talk_to_guide",
+          "description": "Talk to the guide.",
+          "requirement": {
+            "eventId": "conversation:node:new_conversation:start",
+            "count": 1
+          }
+        },
+        {
+          "id": "find_key",
+          "description": "Find a mysterious key.",
+          "requirement": {
+            "eventId": "collect:name:mysterious_key",
+            "count": 1
+          }
+        },
+        {
+          "id": "defeat_rat",
+          "description": "Defeat a rat.",
+          "requirement": {
+            "eventId": "kill:entity:rat",
+            "count": 1
+          }
+        }
+      ]
+    }
+  ]
+}

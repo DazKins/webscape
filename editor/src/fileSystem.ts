@@ -9,6 +9,11 @@ import {
   serializeConversationDocument,
   type ConversationDocument,
 } from "./conversationFormat.ts";
+import {
+  normalizeQuestDocument,
+  serializeQuestDocument,
+  type QuestDocument,
+} from "./questFormat.ts";
 import { normalizeWorld, serializeWorld, type WorldFormat } from "./worldFormat.ts";
 
 type WritableFile = {
@@ -30,6 +35,7 @@ export type ProjectDirectoryHandle = {
 };
 
 export type ConversationDocuments = Record<string, ConversationDocument>;
+export type QuestDocuments = Record<string, QuestDocument>;
 export type WorldDocuments = Record<string, WorldFormat>;
 
 export type OpenedGameProject = {
@@ -39,6 +45,7 @@ export type OpenedGameProject = {
   worldPath: string;
   worlds: WorldDocuments;
   conversations: ConversationDocuments;
+  quests: QuestDocuments;
 };
 
 declare global {
@@ -68,7 +75,8 @@ export async function openGameProjectFolder(): Promise<OpenedGameProject> {
   const worlds = await readWorldDocuments(handle, project.files.maps);
   const world = worlds[worldPath];
   const conversations = await readConversationDocuments(handle, project.files.conversations);
-  return { handle, project, world, worldPath, worlds, conversations };
+  const quests = await readQuestDocuments(handle, project.files.quests);
+  return { handle, project, world, worldPath, worlds, conversations, quests };
 }
 
 export async function saveGameProjectFolder(
@@ -77,8 +85,10 @@ export async function saveGameProjectFolder(
   worlds: WorldDocuments,
   worldPath: string,
   conversations: ConversationDocuments,
+  quests: QuestDocuments,
   deletedWorldPaths: string[],
-  deletedConversationPaths: string[]
+  deletedConversationPaths: string[],
+  deletedQuestPaths: string[]
 ): Promise<GameProject> {
   const projectToSave = ensureProjectMapPath(project, worldPath);
   await writeTextFile(handle, MANIFEST_PATH, serializeGameProject(projectToSave));
@@ -98,8 +108,17 @@ export async function saveGameProjectFolder(
       }
     })
   );
+  await Promise.all(
+    projectToSave.files.quests.map(async (path) => {
+      const quest = quests[path];
+      if (quest) {
+        await writeTextFile(handle, path, serializeQuestDocument(quest));
+      }
+    })
+  );
   await Promise.all(deletedWorldPaths.map((path) => removeTextFile(handle, path)));
   await Promise.all(deletedConversationPaths.map((path) => removeTextFile(handle, path)));
+  await Promise.all(deletedQuestPaths.map((path) => removeTextFile(handle, path)));
   return projectToSave;
 }
 
@@ -107,14 +126,15 @@ export async function saveGameProjectFolderAs(
   project: GameProject,
   worlds: WorldDocuments,
   worldPath: string,
-  conversations: ConversationDocuments
+  conversations: ConversationDocuments,
+  quests: QuestDocuments
 ): Promise<{ handle: ProjectDirectoryHandle; project: GameProject }> {
   if (!window.showDirectoryPicker) {
     throw new Error("File System Access API is not available in this browser");
   }
 
   const handle = await window.showDirectoryPicker({ mode: "readwrite" });
-  const savedProject = await saveGameProjectFolder(handle, project, worlds, worldPath, conversations, [], []);
+  const savedProject = await saveGameProjectFolder(handle, project, worlds, worldPath, conversations, quests, [], [], []);
   return { handle, project: savedProject };
 }
 
@@ -136,6 +156,17 @@ async function readConversationDocuments(
   const entries = await Promise.all(
     paths.map(async (path) => {
       const document = normalizeConversationDocument(JSON.parse(await readTextFile(root, path)));
+      return [path, document] as const;
+    })
+  );
+
+  return Object.fromEntries(entries);
+}
+
+async function readQuestDocuments(root: ProjectDirectoryHandle, paths: string[]): Promise<QuestDocuments> {
+  const entries = await Promise.all(
+    paths.map(async (path) => {
+      const document = normalizeQuestDocument(JSON.parse(await readTextFile(root, path)));
       return [path, document] as const;
     })
   );

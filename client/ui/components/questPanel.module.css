@@ -1,0 +1,41 @@
+.container {
+  top: 20px;
+  left: 20px;
+  width: 280px;
+  max-height: 220px;
+  z-index: 100;
+}
+
+.quest {
+  border-bottom: 1px solid rgba(230, 230, 230, 0.25);
+  padding: 8px 0;
+}
+
+.quest:last-child {
+  border-bottom: 0;
+}
+
+.questName {
+  color: rgba(255, 255, 255, 1.0);
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.stepText {
+  color: rgba(210, 210, 210, 1.0);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.progress {
+  color: rgba(180, 220, 255, 1.0);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.empty {
+  color: rgba(150, 150, 150, 1.0);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}

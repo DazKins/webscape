@@ -13,6 +13,24 @@ import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 import { ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
+import { QuestLogUpdateEvent } from "../events/questlog.ts";
+
+export type QuestDefinition = {
+  id: string;
+  displayName?: string;
+  description?: string;
+  startEventId?: string;
+  steps: QuestStepDefinition[];
+};
+
+export type QuestStepDefinition = {
+  id: string;
+  description: string;
+  requirement: {
+    eventId: string;
+    count: number;
+  };
+};
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -24,6 +42,7 @@ class Game extends EventTarget implements InputReceiver {
   myLocationHighlightMesh: THREE.Mesh;
   entities: Entity[];
   entityRenderSystem: EntityRenderSystem;
+  quests: QuestDefinition[];
 
   input: Input;
   world!: World;
@@ -37,6 +56,7 @@ class Game extends EventTarget implements InputReceiver {
     this.input = new Input();
     this.camera = new Camera(this.input);
     this.entityRenderSystem = new EntityRenderSystem(this.scene);
+    this.quests = [];
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -116,11 +136,15 @@ class Game extends EventTarget implements InputReceiver {
         const entityId = hitMesh.userData.entityId;
         const entity = this.entities.find((e) => e.getId() === entityId);
         if (entity) {
+          const interactionOptions = entity.getAvailableInteractions();
+          if (interactionOptions.length === 0) {
+            return;
+          }
           this.dispatchEvent(
             new InteractionMenuOpenEvent(
               entity.getId(),
               entity.getComponent("metadata")?.name || "Unnamed?!?!",
-              entity.getComponent("interactable")?.interactionOptions || [],
+              interactionOptions,
               event.clientX,
               event.clientY
             )
@@ -196,6 +220,12 @@ class Game extends EventTarget implements InputReceiver {
         this.entities.push(localEntity);
       }
 
+      localEntity.setAvailableInteractions(
+        Array.isArray(entityComponentUpdate.availableInteractions)
+          ? entityComponentUpdate.availableInteractions
+          : []
+      );
+
       if (componentId === "chatmessage" && data) {
         console.log("Chat message", data.message);
 
@@ -233,6 +263,10 @@ class Game extends EventTarget implements InputReceiver {
 
       if (componentId === "combatlog" && entityId === this.myPlayerId) {
         this.dispatchEvent(new CombatLogUpdateEvent());
+      }
+
+      if (componentId === "questlog" && entityId === this.myPlayerId) {
+        this.dispatchEvent(new QuestLogUpdateEvent());
       }
     }
 
@@ -285,6 +319,7 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   registerWorld(worldUpdate: any) {
+    this.quests = worldUpdate.quests ?? [];
     this.world = new World(
       this.scene,
       worldUpdate.sizeX,
@@ -298,6 +333,10 @@ class Game extends EventTarget implements InputReceiver {
 
   getMyEntity(): Entity | undefined {
     return this.entities.find((e) => e.getId() === this.myPlayerId);
+  }
+
+  getQuestDefinitions(): QuestDefinition[] {
+    return this.quests;
   }
 
   getEntityName(entityId: string, fallback = "Unknown"): string {

@@ -10,19 +10,16 @@ import (
 
 func CreateDudeEntity(
 	name string,
+	entityType string,
 	position math.Vec2,
 ) []component.Component {
 	positionComponent := component.NewCPosition(position)
 
 	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
-		"name":  util.JString(name),
-		"color": util.JString("#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16)),
+		"name":       util.JString(name),
+		"entityType": util.JString(entityType),
+		"color":      util.JString("#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16)),
 	}))
-
-	interactableComponent := component.NewCInteractable([]component.InteractionOption{
-		component.InteractionOptionTrade,
-		component.InteractionOptionAttack,
-	})
 
 	randomwalkComponent := component.NewCRandomWalk(10)
 
@@ -36,7 +33,6 @@ func CreateDudeEntity(
 	return []component.Component{
 		positionComponent,
 		metadataComponent,
-		interactableComponent,
 		randomwalkComponent,
 		renderableComponent,
 		healthComponent,

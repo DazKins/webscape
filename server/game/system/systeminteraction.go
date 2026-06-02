@@ -2,16 +2,28 @@ package system
 
 import (
 	"webscape/server/game/component"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
+	"webscape/server/util"
 )
 
 type ConversationStarter interface {
 	StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
+type GameEventEmitter interface {
+	EmitGameEvent(event gameevent.Event)
+}
+
+type LootHandler interface {
+	LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
+}
+
 type InteractionSystem struct {
 	SystemBase
 	ConversationStarter ConversationStarter
+	EventEmitter        GameEventEmitter
+	LootHandler         LootHandler
 }
 
 func (s *InteractionSystem) processInteraction(
@@ -27,7 +39,14 @@ func (s *InteractionSystem) processInteraction(
 		// Start combat with the target entity
 		combatState := component.NewCCombatState(interacting.GetTargetEntityId())
 		s.ComponentManager.SetEntityComponent(entityId, combatState)
+
+	case component.InteractionOptionLoot:
+		if s.LootHandler != nil {
+			s.LootHandler.LootEntityFor(entityId, interacting.GetTargetEntityId())
+		}
 	}
+
+	s.emitInteractEvent(entityId, interacting)
 }
 
 func (s *InteractionSystem) Update() {
@@ -78,4 +97,29 @@ func (s *InteractionSystem) Update() {
 		}
 		// If not in range, keep the component and let pathing system handle movement
 	}
+}
+
+func (s *InteractionSystem) emitInteractEvent(entityId model.EntityId, interacting *component.CInteracting) {
+	if s.EventEmitter == nil {
+		return
+	}
+	metadata := s.ComponentManager.GetEntityComponent(component.ComponentIdMetadata, interacting.GetTargetEntityId())
+	if metadata == nil {
+		return
+	}
+	metadataObject, ok := metadata.(*component.CMetadata).GetMetadata().(util.JObject)
+	if !ok {
+		return
+	}
+	objectId, ok := metadataObject["objectId"].(util.JString)
+	if !ok || objectId == "" {
+		return
+	}
+
+	event := gameevent.New(
+		"interact:object:"+gameevent.NormalizeToken(string(objectId))+":"+gameevent.NormalizeToken(string(interacting.GetOption())),
+		entityId,
+	)
+	event.TargetEntityId = interacting.GetTargetEntityId()
+	s.EventEmitter.EmitGameEvent(event)
 }
