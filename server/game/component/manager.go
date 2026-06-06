@@ -58,6 +58,15 @@ func (c *ComponentManager) GetEntitiesWithComponents(componentIds ...ComponentId
 	return result
 }
 
+func (c *ComponentManager) HasEntity(entityId model.EntityId) bool {
+	for _, components := range c.components {
+		if _, exists := components[entityId]; exists {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *ComponentManager) SetEntityComponent(entityId model.EntityId, component Component) {
 	entities := c.GetComponent(component.GetId())
 	entities[entityId] = component

@@ -352,6 +352,11 @@ func validateWorldFormat(format worldFormat) error {
 		if position.X < 0 || position.Y < 0 || position.X+width > format.Size.X || position.Y+height > format.Size.Y {
 			return fmt.Errorf("entity %q is out of bounds", entity.Id)
 		}
+		if spawnTemplateComponents, ok := entitySpawnTemplateComponents(entity); ok {
+			if _, hasPosition := spawnTemplateComponents["position"]; hasPosition {
+				return fmt.Errorf("spawn entity %q child template must not include a position component", entity.Id)
+			}
+		}
 	}
 	return nil
 }
@@ -440,6 +445,19 @@ func entityBlocksMovement(entity WorldEntity) bool {
 	}
 	blocksMovement, _ := metadata["blocksMovement"].(bool)
 	return blocksMovement
+}
+
+func entitySpawnTemplateComponents(entity WorldEntity) (map[string]any, bool) {
+	spawn, ok := entity.Components["spawn"].(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	rawTemplate, ok := spawn["entity"].(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	templateComponents, ok := rawTemplate["components"].(map[string]any)
+	return templateComponents, ok
 }
 
 func numberToInt(value any) (int, bool) {

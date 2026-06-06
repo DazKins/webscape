@@ -72,6 +72,51 @@ func TestLoadFromGameFSRejectsInvalidMapPath(t *testing.T) {
 	}
 }
 
+func TestLoadFromGameFSRejectsSpawnTemplatePosition(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": []
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"],
+				"entities": [
+					{
+						"id": "rat_spawn_001",
+						"components": {
+							"position": { "x": 0, "y": 0 },
+							"spawn": {
+								"respawnTicks": 20,
+								"entity": {
+									"components": {
+										"position": { "x": 0, "y": 0 },
+										"metadata": { "name": "Rat", "entityType": "rat" }
+									}
+								}
+							}
+						}
+					}
+				]
+			}`),
+		},
+	}
+
+	if _, err := LoadFromGameFS(gameFS); err == nil {
+		t.Fatal("LoadFromGameFS returned nil error for spawn child template with position")
+	}
+}
+
 func TestLoadFromGameFSLoadsConversationsAndAuthoredConversationComponent(t *testing.T) {
 	gameFS := fstest.MapFS{
 		"game.json": {

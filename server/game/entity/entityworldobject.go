@@ -9,8 +9,12 @@ import (
 
 func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	components := []component.Component{}
-	if position := createPositionComponent(entity.Components); position != nil {
+	position := createPositionComponent(entity.Components)
+	if position != nil {
 		components = append(components, position)
+	}
+	if spawn := createSpawnComponent(entity.Id, entity.Components, position); spawn != nil {
+		components = append(components, spawn)
 	}
 	if metadata := createMetadataComponent(entity.Id, entity.Components); metadata != nil {
 		components = append(components, metadata)
@@ -55,6 +59,34 @@ func createPositionComponent(components map[string]any) *component.CPosition {
 		return nil
 	}
 	return component.NewCPosition(math.Vec2{X: x, Y: y})
+}
+
+func createSpawnComponent(entityId string, components map[string]any, position *component.CPosition) *component.CSpawn {
+	if position == nil {
+		return nil
+	}
+	raw, ok := components["spawn"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	respawnTicks, ok := numberToInt(raw["respawnTicks"])
+	if !ok {
+		respawnTicks = 0
+	}
+	rawTemplate, ok := raw["entity"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	templateComponents, ok := rawTemplate["components"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	return component.NewCSpawn(
+		position.GetPosition(),
+		respawnTicks,
+		entityId+"_child",
+		templateComponents,
+	)
 }
 
 func createMetadataComponent(entityId string, components map[string]any) *component.CMetadata {

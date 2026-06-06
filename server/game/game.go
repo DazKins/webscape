@@ -82,6 +82,13 @@ func NewGameWithWorld(world *world.World) *Game {
 			ComponentManager: game.componentManager,
 		},
 	})
+	spawnSystem := &system.SpawnSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	}
+	game.RegisterSystem(spawnSystem)
+	spawnSystem.Update()
 
 	return game
 }
@@ -97,6 +104,12 @@ func (g *Game) loadWorldEntities() {
 				continue
 			}
 		}
+		if spawnChildConversation := authoredSpawnChildConversationId(authoredEntity); spawnChildConversation != "" {
+			if _, ok := g.world.GetConversation(spawnChildConversation); !ok {
+				log.Printf("spawn entity %q references unknown conversation %q", authoredEntity.Id, spawnChildConversation)
+				continue
+			}
+		}
 		components := entity.CreateAuthoredEntity(authoredEntity)
 		g.componentManager.CreateNewEntity(components...)
 	}
@@ -109,6 +122,22 @@ func authoredConversationId(entity world.WorldEntity) string {
 	}
 	conversationId, _ := conversation["conversationId"].(string)
 	return conversationId
+}
+
+func authoredSpawnChildConversationId(entity world.WorldEntity) string {
+	spawn, ok := entity.Components["spawn"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	rawTemplate, ok := spawn["entity"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	components, ok := rawTemplate["components"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	return authoredConversationId(world.WorldEntity{Components: components})
 }
 
 func (g *Game) RegisterSystem(system system.System) {
