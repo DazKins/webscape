@@ -97,9 +97,45 @@ components:
           examples:
             - chest_001
         components:
-          type: object
-          description: Freeform authored ECS component data, keyed by component id.
-          additionalProperties: true
+          $ref: "#/components/schemas/EntityComponents"
+
+    EntityComponents:
+      type: object
+      description: Freeform authored ECS component data, keyed by component id.
+      additionalProperties: true
+      properties:
+        renderable:
+          $ref: "#/components/schemas/RenderableComponent"
+        openable:
+          $ref: "#/components/schemas/OpenableComponent"
+
+    RenderableComponent:
+      type: object
+      additionalProperties: true
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Renderer type, such as `door`, `chest`, or `human`.
+        orientation:
+          type: string
+          enum:
+            - north
+            - east
+            - south
+            - west
+          default: north
+          description: Optional visual rotation for tile-aligned renderers.
+
+    OpenableComponent:
+      type: object
+      additionalProperties: false
+      properties:
+        isOpen:
+          type: boolean
+          default: false
+          description: Whether the entity starts open. Missing or false starts closed.
 
     WorldWall:
       type: object
@@ -179,6 +215,22 @@ components:
                 items:
                   - name: Mysterious Key
                     type: quest
+          - id: door_001
+            components:
+              position:
+                x: 1
+                y: 0
+              metadata:
+                name: door_001
+                type: door
+                width: 1
+                height: 1
+                blocksMovement: true
+              renderable:
+                type: door
+                orientation: east
+              openable:
+                isOpen: false
           - id: bob
             components:
               position:

@@ -1,6 +1,7 @@
 package system
 
 import (
+	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
 	"webscape/server/game/model"
@@ -61,24 +62,11 @@ func (s *PathingSystem) Update() {
 			continue
 		}
 
-		if isEntityTarget && inCombat {
-			attackRange := s.getAttackRange(entityId)
-			if attackRange < 1 {
-				attackRange = 1
-			}
-			stopPosition, ok := s.findCombatStopPosition(positionPos, pathToPosition, attackRange)
-			if ok {
-				pathToPosition = stopPosition
-				isEntityTarget = false
-				distance = manhattanDistance(positionPos, pathToPosition)
-			}
-		}
-
 		// For entity targets, stop at combat range if in combat, otherwise stop when adjacent.
 		// For position targets, stop when at exact position.
 		shouldStop := false
+		stopDistance := 1
 		if isEntityTarget {
-			stopDistance := 1
 			if inCombat {
 				if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
 					attackRange := combatStatsComponent.(*component.CCombatStats).GetAttackRange()
@@ -97,8 +85,15 @@ func (s *PathingSystem) Update() {
 			continue
 		}
 
+		if isEntityTarget {
+			stopPosition, ok := s.findEntityStopPosition(positionPos, pathToPosition, stopDistance)
+			if ok {
+				pathToPosition = stopPosition
+			}
+		}
+
 		// It's easiest just to recompute the path every time for now...
-		newPath, err := s.World.GetPath(positionPos, pathToPosition)
+		newPath, err := s.collision().GetPath(positionPos, pathToPosition)
 		if err != nil {
 			s.rejectPathing(entityId)
 			continue
@@ -145,7 +140,7 @@ func (s *PathingSystem) resolveOverlap(
 
 	for _, direction := range directions {
 		candidate := targetPosition.Add(direction)
-		if s.World.GetWall(candidate.X, candidate.Y) {
+		if s.collision().IsBlocked(candidate.X, candidate.Y) {
 			continue
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
@@ -154,34 +149,27 @@ func (s *PathingSystem) resolveOverlap(
 	}
 }
 
-func (s *PathingSystem) getAttackRange(entityId model.EntityId) int {
-	if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
-		return combatStatsComponent.(*component.CCombatStats).GetAttackRange()
-	}
-	return 1
-}
-
-func (s *PathingSystem) findCombatStopPosition(
+func (s *PathingSystem) findEntityStopPosition(
 	currentPosition math.Vec2,
 	targetPosition math.Vec2,
-	attackRange int,
+	stopDistance int,
 ) (math.Vec2, bool) {
 	bestPos := math.Vec2{}
 	bestLen := -1
 
-	for dx := -attackRange; dx <= attackRange; dx++ {
-		for dy := -attackRange; dy <= attackRange; dy++ {
-			if absInt(dx)+absInt(dy) > attackRange {
+	for dx := -stopDistance; dx <= stopDistance; dx++ {
+		for dy := -stopDistance; dy <= stopDistance; dy++ {
+			if absInt(dx)+absInt(dy) > stopDistance {
 				continue
 			}
 			if dx == 0 && dy == 0 {
 				continue
 			}
 			candidate := math.Vec2{X: targetPosition.X + dx, Y: targetPosition.Y + dy}
-			if s.World.GetWall(candidate.X, candidate.Y) {
+			if s.collision().IsBlocked(candidate.X, candidate.Y) {
 				continue
 			}
-			path, err := s.World.GetPath(currentPosition, candidate)
+			path, err := s.collision().GetPath(currentPosition, candidate)
 			if err != nil {
 				continue
 			}
@@ -196,6 +184,13 @@ func (s *PathingSystem) findCombatStopPosition(
 		return math.Vec2{}, false
 	}
 	return bestPos, true
+}
+
+func (s *PathingSystem) collision() collision.Checker {
+	return collision.Checker{
+		World:            s.World,
+		ComponentManager: s.ComponentManager,
+	}
 }
 
 func manhattanDistance(a math.Vec2, b math.Vec2) int {

@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"math/rand"
+	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
@@ -253,7 +254,7 @@ func (s *CombatSystem) stepOutFromTarget(attackerId model.EntityId, targetPositi
 
 	for _, direction := range directions {
 		candidate := targetPosition.Add(direction)
-		if s.World.GetWall(candidate.X, candidate.Y) {
+		if s.collision().IsBlocked(candidate.X, candidate.Y) {
 			continue
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, attackerId).(*component.CPosition)
@@ -261,6 +262,13 @@ func (s *CombatSystem) stepOutFromTarget(attackerId model.EntityId, targetPositi
 		return true
 	}
 	return false
+}
+
+func (s *CombatSystem) collision() collision.Checker {
+	return collision.Checker{
+		World:            s.World,
+		ComponentManager: s.ComponentManager,
+	}
 }
 
 func toEquipped(componentValue component.Component) *component.CEquipped {

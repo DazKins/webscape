@@ -22,6 +22,9 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	if renderable := createRenderableComponent(entity.Components); renderable != nil {
 		components = append(components, renderable)
 	}
+	if openable := createOpenableComponent(entity.Components); openable != nil {
+		components = append(components, openable)
+	}
 	if lootable := createLootableComponent(entity.Components); lootable != nil {
 		components = append(components, lootable)
 	}
@@ -113,7 +116,17 @@ func createRenderableComponent(components map[string]any) *component.CRenderable
 	if renderType == "" {
 		return nil
 	}
-	return component.NewCRenderable(renderType)
+	orientation, _ := raw["orientation"].(string)
+	return component.NewCRenderable(renderType, orientation)
+}
+
+func createOpenableComponent(components map[string]any) *component.COpenable {
+	raw, ok := components["openable"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	isOpen, _ := raw["isOpen"].(bool)
+	return component.NewCOpenable(isOpen)
 }
 
 func createLootableComponent(components map[string]any) *component.CLootable {

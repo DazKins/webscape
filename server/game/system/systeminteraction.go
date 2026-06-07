@@ -44,9 +44,30 @@ func (s *InteractionSystem) processInteraction(
 		if s.LootHandler != nil {
 			s.LootHandler.LootEntityFor(entityId, interacting.GetTargetEntityId())
 		}
+
+	case component.InteractionOptionOpen:
+		if !s.setOpenableState(interacting.GetTargetEntityId(), true) {
+			return
+		}
+
+	case component.InteractionOptionClose:
+		if !s.setOpenableState(interacting.GetTargetEntityId(), false) {
+			return
+		}
 	}
 
 	s.emitInteractEvent(entityId, interacting)
+}
+
+func (s *InteractionSystem) setOpenableState(targetEntityId model.EntityId, isOpen bool) bool {
+	openable := s.ComponentManager.GetEntityComponent(component.ComponentIdOpenable, targetEntityId)
+	if openable == nil {
+		return false
+	}
+	openableComponent := openable.(*component.COpenable)
+	openableComponent.SetOpen(isOpen)
+	s.ComponentManager.SetEntityComponent(targetEntityId, openableComponent)
+	return true
 }
 
 func (s *InteractionSystem) Update() {

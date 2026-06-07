@@ -249,6 +249,10 @@ func (g *Game) RegisterSender(messageSender MessageSender) {
 	g.sendMessage = messageSender
 }
 
+func questCompletedEventId(questId string) string {
+	return "quest:completed:" + gameevent.NormalizeToken(questId)
+}
+
 func (g *Game) EmitGameEvent(event gameevent.Event) {
 	if event.Count < 1 {
 		event.Count = 1
@@ -268,6 +272,18 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 	}
 
 	questLog := questLogComponent.(*component.CQuestLog)
+	completedQuestEvents := []gameevent.Event{}
+	completeQuest := func(quest world.Quest) {
+		if questLog.IsCompleted(quest.Id) {
+			return
+		}
+		questLog.CompleteQuest(quest.Id)
+		completedEvent := gameevent.New(questCompletedEventId(quest.Id), event.ActorEntityId)
+		completedEvent.TargetEntityId = event.TargetEntityId
+		completedEvent.Metadata["questId"] = quest.Id
+		completedQuestEvents = append(completedQuestEvents, completedEvent)
+	}
+
 	for _, quest := range g.world.GetQuestRegistry().All() {
 		if quest.StartEventId == "" || quest.StartEventId != event.Id {
 			continue
@@ -280,8 +296,12 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 
 	for _, progress := range questLog.GetActiveProgress() {
 		quest, ok := g.world.GetQuest(progress.QuestId)
-		if !ok || progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
+		if !ok {
 			questLog.CompleteQuest(progress.QuestId)
+			continue
+		}
+		if progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
+			completeQuest(*quest)
 			continue
 		}
 
@@ -298,7 +318,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 
 		nextStepIndex := progress.CurrentStepIndex + 1
 		if nextStepIndex >= len(quest.Steps) {
-			questLog.CompleteQuest(progress.QuestId)
+			completeQuest(*quest)
 			continue
 		}
 
@@ -307,6 +327,9 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 	}
 
 	g.componentManager.SetEntityComponent(event.ActorEntityId, questLog)
+	for _, completedEvent := range completedQuestEvents {
+		g.EmitGameEvent(completedEvent)
+	}
 }
 
 func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
@@ -692,6 +715,15 @@ func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []compone
 	lootable := g.componentManager.GetEntityComponent(component.ComponentIdLootable, entityId)
 	if lootable != nil && lootable.(*component.CLootable).CanLoot() {
 		options = append(options, component.InteractionOptionLoot)
+	}
+
+	openable := g.componentManager.GetEntityComponent(component.ComponentIdOpenable, entityId)
+	if openable != nil {
+		if openable.(*component.COpenable).IsOpen() {
+			options = append(options, component.InteractionOptionClose)
+		} else {
+			options = append(options, component.InteractionOptionOpen)
+		}
 	}
 
 	if g.componentManager.GetEntityComponent(component.ComponentIdPlayer, entityId) == nil &&

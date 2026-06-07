@@ -91,6 +91,17 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 								"requirement": { "eventId": "collect:name:ancient_scroll", "count": 1 }
 							}
 						]
+					},
+					{
+						"id": "celebrate_errand",
+						"startEventId": "quest:completed:first_errand",
+						"steps": [
+							{
+								"id": "finish",
+								"description": "Celebrate finishing the errand.",
+								"requirement": { "eventId": "quest:completed:first_errand", "count": 1 }
+							}
+						]
 					}
 				]
 			}`),
@@ -127,6 +138,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 
 	game.AddItemToPlayerInventory(playerEntityId, model.CreateAncientScroll())
 	assertQuestProgress(t, game, playerEntityId, "first_errand", "", 0, 0, true)
+	assertQuestProgress(t, game, playerEntityId, "celebrate_errand", "", 0, 0, true)
 }
 
 func assertQuestProgress(

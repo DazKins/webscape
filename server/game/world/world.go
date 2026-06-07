@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"webscape/server/math"
-	"webscape/server/util"
 )
 
 type World struct {
@@ -17,7 +16,6 @@ type World struct {
 	terrain        []string
 	blockers       [][]bool
 	wallBlockers   [][]bool
-	objectBlockers [][]bool
 	walls          []WorldWall
 	entities       []WorldEntity
 	conversations  *ConversationRegistry
@@ -126,32 +124,14 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 	entities := make([]WorldEntity, 0, len(format.Entities))
 	entities = append(entities, format.Entities...)
 
-	objectBlockers := makeBlockerGrid(format.Size.X, format.Size.Y, nil)
-	for _, entity := range entities {
-		position, ok := entityPosition(entity)
-		if !ok {
-			continue
-		}
-		width, height := entitySize(entity)
-		if !entityBlocksMovement(entity) {
-			continue
-		}
-		for x := position.X; x < position.X+width; x++ {
-			for y := position.Y; y < position.Y+height; y++ {
-				objectBlockers[x][y] = true
-			}
-		}
-	}
-
 	return &World{
-		sizeX:          format.Size.X,
-		sizeY:          format.Size.Y,
-		terrain:        format.Terrain,
-		blockers:       blockers,
-		wallBlockers:   wallBlockers,
-		objectBlockers: objectBlockers,
-		walls:          format.Walls,
-		entities:       entities,
+		sizeX:        format.Size.X,
+		sizeY:        format.Size.Y,
+		terrain:      format.Terrain,
+		blockers:     blockers,
+		wallBlockers: wallBlockers,
+		walls:        format.Walls,
+		entities:     entities,
 	}, nil
 }
 
@@ -162,12 +142,11 @@ func NewWorld(sizeX int, sizeY int) *World {
 	}
 
 	return &World{
-		sizeX:          sizeX,
-		sizeY:          sizeY,
-		terrain:        terrain,
-		blockers:       makeBlockerGrid(sizeX, sizeY, nil),
-		wallBlockers:   makeBlockerGrid(sizeX, sizeY, nil),
-		objectBlockers: makeBlockerGrid(sizeX, sizeY, nil),
+		sizeX:        sizeX,
+		sizeY:        sizeY,
+		terrain:      terrain,
+		blockers:     makeBlockerGrid(sizeX, sizeY, nil),
+		wallBlockers: makeBlockerGrid(sizeX, sizeY, nil),
 	}
 }
 
@@ -180,11 +159,15 @@ func (w *World) GetSizeY() int {
 }
 
 func (w *World) GetWall(x int, y int) bool {
+	return w.GetStaticWall(x, y)
+}
+
+func (w *World) GetStaticWall(x int, y int) bool {
 	if x < 0 || x >= w.sizeX || y < 0 || y >= w.sizeY {
 		return true
 	}
 
-	return w.blockers[x][y] || w.wallBlockers[x][y] || w.objectBlockers[x][y]
+	return w.blockers[x][y] || w.wallBlockers[x][y]
 }
 
 func (w *World) GetBlockers() [][]bool {
@@ -236,84 +219,6 @@ func (w *World) GetPlayerSpawn() math.Vec2 {
 		}
 	}
 	return math.Vec2Zero()
-}
-
-func (w *World) GetPath(from math.Vec2, to math.Vec2) (util.Path, error) {
-	frontier := util.NewQueue[math.Vec2]()
-	cameFrom := make(map[math.Vec2]math.Vec2)
-	costSoFar := make(map[math.Vec2]float64)
-
-	frontier.Enqueue(from)
-	costSoFar[from] = 0.0
-
-	for frontier.Size() > 0 {
-		current := frontier.Dequeue()
-
-		if current.X == to.X && current.Y == to.Y {
-			break
-		}
-
-		canEast := !w.GetWall(current.X+1, current.Y)
-		canWest := !w.GetWall(current.X-1, current.Y)
-		canNorth := !w.GetWall(current.X, current.Y+1)
-		canSouth := !w.GetWall(current.X, current.Y-1)
-
-		checkStepXMin := -1
-		checkStepXMax := 1
-		checkStepYMin := -1
-		checkStepYMax := 1
-		if !canEast {
-			checkStepXMax = 0
-		}
-		if !canWest {
-			checkStepXMin = 0
-		}
-		if !canNorth {
-			checkStepYMax = 0
-		}
-		if !canSouth {
-			checkStepYMin = 0
-		}
-
-		for x := checkStepXMin; x <= checkStepXMax; x++ {
-			for y := checkStepYMin; y <= checkStepYMax; y++ {
-				if x == 0 && y == 0 {
-					continue
-				}
-
-				posX := current.X + x
-				posY := current.Y + y
-
-				if w.GetWall(posX, posY) {
-					continue
-				}
-
-				neighbor := math.Vec2{X: posX, Y: posY}
-				dist := 1.0
-				if x != 0 && y != 0 {
-					dist = 1.0001 // slightly prefer straight line movement
-				}
-				newCost := costSoFar[current] + dist
-				if _, ok := costSoFar[neighbor]; !ok || newCost < costSoFar[neighbor] {
-					costSoFar[neighbor] = newCost
-					frontier.Enqueue(neighbor)
-					cameFrom[neighbor] = current
-				}
-			}
-		}
-	}
-
-	path := util.Path{}
-	current := to
-	for current != from {
-		path.Append(current)
-		cameFrom, ok := cameFrom[current]
-		if !ok {
-			return util.Path{}, errors.New("no path found")
-		}
-		current = cameFrom
-	}
-	return path.Reversed(), nil
 }
 
 func validateWorldFormat(format worldFormat) error {
@@ -434,15 +339,6 @@ func entitySize(entity WorldEntity) (int, int) {
 		height = 1
 	}
 	return width, height
-}
-
-func entityBlocksMovement(entity WorldEntity) bool {
-	metadata, ok := entity.Components["metadata"].(map[string]any)
-	if !ok {
-		return false
-	}
-	blocksMovement, _ := metadata["blocksMovement"].(bool)
-	return blocksMovement
 }
 
 func entitySpawnTemplateComponents(entity WorldEntity) (map[string]any, bool) {

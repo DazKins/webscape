@@ -1968,19 +1968,25 @@ function createEntity(
     id = `${type}_${String(nextNumber).padStart(3, "0")}`;
   }
 
+  const components: Record<string, unknown> = {
+    position: { x, y },
+    metadata: {
+      name: id,
+      type,
+      width: 1,
+      height: 1,
+      blocksMovement,
+    },
+    renderable: type === "door" ? { type, orientation: "north" } : { type },
+  };
+
+  if (type === "door") {
+    components.openable = { isOpen: false };
+  }
+
   return {
     id,
-    components: {
-      position: { x, y },
-      metadata: {
-        name: id,
-        type,
-        width: 1,
-        height: 1,
-        blocksMovement,
-      },
-      renderable: { type },
-    },
+    components,
   };
 }
 

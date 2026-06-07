@@ -7,4 +7,6 @@ const (
 	InteractionOptionTrade  = "trade"
 	InteractionOptionAttack = "attack"
 	InteractionOptionLoot   = "loot"
+	InteractionOptionOpen   = "open"
+	InteractionOptionClose  = "close"
 )

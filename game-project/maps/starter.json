@@ -1867,7 +1867,11 @@
           "blocksMovement": true
         },
         "renderable": {
-          "type": "door"
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
         }
       }
     },

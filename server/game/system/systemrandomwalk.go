@@ -2,6 +2,7 @@ package system
 
 import (
 	"math/rand"
+	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -46,11 +47,18 @@ func (s *RandomWalkSystem) Update() {
 			currentPos := positionComponent.GetPosition()
 			newPosition := currentPos.Add(direction)
 
-			if !s.World.GetWall(newPosition.X, newPosition.Y) {
+			if !s.collision().IsBlocked(newPosition.X, newPosition.Y) {
 				positionComponent.SetPosition(newPosition)
 			}
 
 			randomwalkComponent.SetWalkTimer(WALK_TIMER + rand.Intn(WALK_TIMER_VARIANCE*2) - WALK_TIMER_VARIANCE)
 		}
+	}
+}
+
+func (s *RandomWalkSystem) collision() collision.Checker {
+	return collision.Checker{
+		World:            s.World,
+		ComponentManager: s.ComponentManager,
 	}
 }
