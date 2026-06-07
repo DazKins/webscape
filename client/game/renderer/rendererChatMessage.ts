@@ -22,7 +22,7 @@ export default class RendererChatMessage extends EntityRenderer {
     this.parentEntityRenderer.getObject3D()?.add(this.overheadChat);
   }
 
-  update() { }
+  update(_deltaSeconds: number) { }
 
   onRemove() {
     this.parentEntityRenderer.getObject3D()?.remove(this.overheadChat);

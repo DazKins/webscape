@@ -1,13 +1,19 @@
-import { lerp } from "../../math/lerp";
 import Entity from "../entity/entity";
 import EntityRenderer from "./renderer";
 import * as THREE from "three";
 import { createReactCss2dObject, ReactCss2dObject } from "../../util/reactCss2dObject";
 import EntityHealthBar from "../../ui/components/entityHealthBar";
 
+const SERVER_TICK_SECONDS = 0.52;
+
 export default class RendererHuman extends EntityRenderer {
   mesh: THREE.Group;
   healthBar: ReactCss2dObject<{ currentHealth: number; maxHealth: number }> | null = null;
+  private segmentStartX: number;
+  private segmentStartZ: number;
+  private segmentTargetX: number;
+  private segmentTargetZ: number;
+  private segmentElapsedSeconds = SERVER_TICK_SECONDS;
 
   constructor(scene: THREE.Scene, entity: Entity) {
     super(scene, entity);
@@ -43,20 +49,37 @@ export default class RendererHuman extends EntityRenderer {
 
     const positionComponent = this.entity.getComponent("position");
     this.mesh.position.set(positionComponent.x, 0, positionComponent.y);
+    this.segmentStartX = positionComponent.x;
+    this.segmentStartZ = positionComponent.y;
+    this.segmentTargetX = positionComponent.x;
+    this.segmentTargetZ = positionComponent.y;
 
     this.scene.add(this.mesh);
   }
 
-  update() {
+  update(deltaSeconds: number) {
     const positionComponent = this.entity.getComponent("position");
     if (!positionComponent) {
       return;
     }
 
+    const targetX = positionComponent.x;
+    const targetZ = positionComponent.y;
+
+    if (targetX !== this.segmentTargetX || targetZ !== this.segmentTargetZ) {
+      this.segmentStartX = this.mesh.position.x;
+      this.segmentStartZ = this.mesh.position.z;
+      this.segmentTargetX = targetX;
+      this.segmentTargetZ = targetZ;
+      this.segmentElapsedSeconds = 0;
+    }
+
+    this.segmentElapsedSeconds += deltaSeconds;
+    const progress = Math.min(this.segmentElapsedSeconds / SERVER_TICK_SECONDS, 1);
     this.mesh.position.set(
-      lerp(this.mesh.position.x, positionComponent.x, 0.05),
+      this.segmentStartX + (this.segmentTargetX - this.segmentStartX) * progress,
       0,
-      lerp(this.mesh.position.z, positionComponent.y, 0.05),
+      this.segmentStartZ + (this.segmentTargetZ - this.segmentStartZ) * progress,
     );
 
     // Update health bar if health component exists

@@ -1,12 +1,14 @@
 package system
 
 import (
-	"log"
 	"webscape/server/game/component"
+	"webscape/server/game/entity"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
 )
+
+const pathNotFoundMessage = "I can't find a way there!"
 
 type PathingSystem struct {
 	SystemBase
@@ -98,7 +100,7 @@ func (s *PathingSystem) Update() {
 		// It's easiest just to recompute the path every time for now...
 		newPath, err := s.World.GetPath(positionPos, pathToPosition)
 		if err != nil {
-			log.Printf("failed to get path: %v\n", err)
+			s.rejectPathing(entityId)
 			continue
 		}
 		pathingComponent.SetPath(&newPath)
@@ -109,6 +111,25 @@ func (s *PathingSystem) Update() {
 			positionComponent.SetPosition(*nextPosition)
 		}
 	}
+}
+
+func (s *PathingSystem) rejectPathing(entityId model.EntityId) {
+	s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
+	s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+	s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
+	s.sendChatMessage(entityId, pathNotFoundMessage)
+}
+
+func (s *PathingSystem) sendChatMessage(fromEntityId model.EntityId, message string) {
+	chatMessageEntities := s.ComponentManager.GetComponent(component.ComponentIdChatMessage)
+	for existingEntityId, comp := range chatMessageEntities {
+		chatMessageComp := comp.(*component.CChatMessage)
+		if chatMessageComp.GetFromEntityId() == fromEntityId {
+			s.ComponentManager.RemoveEntity(existingEntityId)
+		}
+	}
+
+	s.ComponentManager.CreateNewEntity(entity.CreateChatMessageEntity(fromEntityId, message)...)
 }
 
 func (s *PathingSystem) resolveOverlap(

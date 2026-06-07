@@ -13,7 +13,7 @@ export default class PositionedEntityRenderer extends EntityRenderer {
     this.updatePosition();
   }
 
-  update() {
+  update(_deltaSeconds: number) {
     this.updatePosition();
   }
 

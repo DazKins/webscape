@@ -273,7 +273,7 @@ class Game extends EventTarget implements InputReceiver {
     }
   }
 
-  update() {
+  update(deltaSeconds: number) {
     this.updateCamera();
 
     const myEntity = this.getMyEntity();
@@ -285,7 +285,7 @@ class Game extends EventTarget implements InputReceiver {
       }
     }
 
-    this.entityRenderSystem.update(this.entities);
+    this.entityRenderSystem.update(this.entities, deltaSeconds);
 
     this.renderer.render(this.scene, this.camera.getInnerCamera());
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());

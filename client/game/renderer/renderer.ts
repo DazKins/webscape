@@ -10,7 +10,7 @@ export default class EntityRenderer {
     this.entity = entity;
   }
 
-  update() {
+  update(_deltaSeconds: number) {
     throw Error("update not implemented");
   }
 

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"webscape/server/math"
 	"webscape/server/util"
@@ -310,7 +309,6 @@ func (w *World) GetPath(from math.Vec2, to math.Vec2) (util.Path, error) {
 		path.Append(current)
 		cameFrom, ok := cameFrom[current]
 		if !ok {
-			log.Println("no path found")
 			return util.Path{}, errors.New("no path found")
 		}
 		current = cameFrom

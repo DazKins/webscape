@@ -53,7 +53,7 @@ export default class EntityRenderSystem {
     return new RendererError(this.scene, entity);
   }
 
-  update(entities: Entity[]) {
+  update(entities: Entity[], deltaSeconds: number) {
     for (const entity of entities) {
       const renderableComponent = entity.getComponent("renderable");
       if (!renderableComponent) {
@@ -70,7 +70,7 @@ export default class EntityRenderSystem {
         }
       }
 
-      renderer!.update();
+      renderer!.update(deltaSeconds);
     }
 
     for (const entityId of Object.keys(this.renderers)) {

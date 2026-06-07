@@ -61,10 +61,16 @@ game.registerWsClient(wsClient);
 
 wsClient.connect();
 
-function animate() {
+let previousFrameTime: number | null = null;
+
+function animate(frameTime: number) {
   requestAnimationFrame(animate);
 
-  game.update();
+  const deltaSeconds =
+    previousFrameTime === null ? 0 : Math.min((frameTime - previousFrameTime) / 1000, 0.1);
+  previousFrameTime = frameTime;
+
+  game.update(deltaSeconds);
 }
 
-animate();
+requestAnimationFrame(animate);

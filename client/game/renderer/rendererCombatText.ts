@@ -25,7 +25,7 @@ export default class RendererCombatText extends EntityRenderer {
     this.parentEntityRenderer.getObject3D()?.add(this.combatText);
   }
 
-  update() {}
+  update(_deltaSeconds: number) {}
 
   onRemove() {
     this.parentEntityRenderer.getObject3D()?.remove(this.combatText);

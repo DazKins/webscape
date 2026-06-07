@@ -2129,7 +2129,7 @@
         },
         "health": {
           "maxHealth": 100,
-          "currentHealth": 100
+          "currentHealth": 50
         },
         "basestats": {
           "strength": 6,
