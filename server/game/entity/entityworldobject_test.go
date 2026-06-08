@@ -84,6 +84,30 @@ func TestCreateAuthoredEntityDefaultsOpenableClosed(t *testing.T) {
 	}
 }
 
+func TestCreateAuthoredEntityParsesRandomWalkMaxDistanceAndOrigin(t *testing.T) {
+	components := CreateAuthoredEntity(world.WorldEntity{
+		Id: "npc_001",
+		Components: map[string]any{
+			"position":   map[string]any{"x": 3, "y": 4},
+			"randomwalk": map[string]any{"walkTimer": 10, "maxDistance": 6},
+		},
+	})
+
+	randomWalk := findRandomWalk(components)
+	if randomWalk == nil {
+		t.Fatal("randomwalk component was not created")
+	}
+	if randomWalk.GetMaxDistance() != 6 {
+		t.Fatalf("maxDistance = %d, want 6", randomWalk.GetMaxDistance())
+	}
+	if !randomWalk.HasOrigin() {
+		t.Fatal("randomwalk origin was not set")
+	}
+	if randomWalk.GetOrigin().X != 3 || randomWalk.GetOrigin().Y != 4 {
+		t.Fatalf("origin = %#v, want {X:3 Y:4}", randomWalk.GetOrigin())
+	}
+}
+
 func findOpenable(components []component.Component) *component.COpenable {
 	for _, comp := range components {
 		if openable, ok := comp.(*component.COpenable); ok {
@@ -97,6 +121,15 @@ func findRenderable(components []component.Component) *component.CRenderable {
 	for _, comp := range components {
 		if renderable, ok := comp.(*component.CRenderable); ok {
 			return renderable
+		}
+	}
+	return nil
+}
+
+func findRandomWalk(components []component.Component) *component.CRandomWalk {
+	for _, comp := range components {
+		if randomWalk, ok := comp.(*component.CRandomWalk); ok {
+			return randomWalk
 		}
 	}
 	return nil

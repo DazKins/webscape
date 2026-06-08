@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Game from "../../game/game";
 import {
+  ConversationCloseEventName,
   ConversationEvent,
   ConversationEventName,
   type ConversationPayload,
@@ -21,10 +22,16 @@ export default function ConversationPanel(props: Props) {
       setConversation(event.payload);
       setMessageIndex(0);
     };
+    const closeHandler = () => {
+      setConversation(null);
+      setMessageIndex(0);
+    };
 
     props.game.addEventListener(ConversationEventName, handler as EventListener);
+    props.game.addEventListener(ConversationCloseEventName, closeHandler);
     return () => {
       props.game.removeEventListener(ConversationEventName, handler as EventListener);
+      props.game.removeEventListener(ConversationCloseEventName, closeHandler);
     };
   }, [props.game]);
 
@@ -46,6 +53,7 @@ export default function ConversationPanel(props: Props) {
       return;
     }
     if (conversation.endConversation) {
+      props.game.handleConversationClose(conversation.conversationId, conversation.nodeId);
       setConversation(null);
     }
   }

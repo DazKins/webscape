@@ -31,7 +31,7 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	if conversation := createConversationComponent(entity.Components); conversation != nil {
 		components = append(components, conversation)
 	}
-	if randomWalk := createRandomWalkComponent(entity.Components); randomWalk != nil {
+	if randomWalk := createRandomWalkComponent(entity.Components, position); randomWalk != nil {
 		components = append(components, randomWalk)
 	}
 	if health := createHealthComponent(entity.Components); health != nil {
@@ -183,7 +183,7 @@ func createConversationComponent(components map[string]any) *component.CConversa
 	return component.NewCConversation(conversationId)
 }
 
-func createRandomWalkComponent(components map[string]any) *component.CRandomWalk {
+func createRandomWalkComponent(components map[string]any, position *component.CPosition) *component.CRandomWalk {
 	raw, ok := components["randomwalk"].(map[string]any)
 	if !ok {
 		return nil
@@ -192,7 +192,15 @@ func createRandomWalkComponent(components map[string]any) *component.CRandomWalk
 	if !ok {
 		walkTimer = 10
 	}
-	return component.NewCRandomWalk(walkTimer)
+	maxDistance, ok := numberToInt(raw["maxDistance"])
+	if !ok {
+		maxDistance = 5
+	}
+	randomWalk := component.NewCRandomWalk(walkTimer, maxDistance)
+	if position != nil {
+		randomWalk.SetOrigin(position.GetPosition())
+	}
+	return randomWalk
 }
 
 func createHealthComponent(components map[string]any) *component.CHealth {

@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
+	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
 )
@@ -30,6 +31,9 @@ func (s *RandomWalkSystem) Update() {
 		if s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil {
 			continue
 		}
+		if s.isConversationTarget(entityId) {
+			continue
+		}
 		if s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId) != nil {
 			continue
 		}
@@ -39,6 +43,9 @@ func (s *RandomWalkSystem) Update() {
 
 		randomwalkComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdRandomWalk, entityId).(*component.CRandomWalk)
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
+		if !randomwalkComponent.HasOrigin() {
+			randomwalkComponent.SetOrigin(positionComponent.GetPosition())
+		}
 
 		newTimer := randomwalkComponent.GetWalkTimer() - 1
 		randomwalkComponent.SetWalkTimer(newTimer)
@@ -47,7 +54,8 @@ func (s *RandomWalkSystem) Update() {
 			currentPos := positionComponent.GetPosition()
 			newPosition := currentPos.Add(direction)
 
-			if !s.collision().IsBlocked(newPosition.X, newPosition.Y) {
+			if s.isWithinRandomWalkBounds(randomwalkComponent, newPosition) &&
+				!s.collision().IsBlocked(newPosition.X, newPosition.Y) {
 				positionComponent.SetPosition(newPosition)
 			}
 
@@ -61,4 +69,27 @@ func (s *RandomWalkSystem) collision() collision.Checker {
 		World:            s.World,
 		ComponentManager: s.ComponentManager,
 	}
+}
+
+func (s *RandomWalkSystem) isConversationTarget(entityId model.EntityId) bool {
+	for _, active := range s.ComponentManager.GetComponent(component.ComponentIdActiveConversation) {
+		activeConversation := active.(*component.CActiveConversation)
+		if activeConversation.GetTargetEntityId() == entityId {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *RandomWalkSystem) isWithinRandomWalkBounds(randomWalk *component.CRandomWalk, position math.Vec2) bool {
+	origin := randomWalk.GetOrigin()
+	dx := position.X - origin.X
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := position.Y - origin.Y
+	if dy < 0 {
+		dy = -dy
+	}
+	return dx+dy <= randomWalk.GetMaxDistance()
 }

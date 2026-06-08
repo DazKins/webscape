@@ -11,6 +11,61 @@ import (
 )
 
 func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
+	game, sent, targetEntityId, playerEntityId := setupConversationTestGame(t)
+
+	game.HandleInteract("client-1", targetEntityId, component.InteractionOptionTalk)
+	game.update()
+
+	active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId)
+	if active == nil {
+		t.Fatal("player does not have active conversation after talk")
+	}
+	assertConversationMessage(t, *sent, "greeting", targetEntityId.String(), "start", false)
+
+	game.HandleConversationOption("client-1", "greeting", "start", "missing")
+	if len(*sent) != 1 {
+		t.Fatalf("stale option sent %d conversation messages, want 1", len(*sent))
+	}
+	activeConversation := game.componentManager.GetEntityComponent(
+		component.ComponentIdActiveConversation,
+		playerEntityId,
+	).(*component.CActiveConversation)
+	if activeConversation.GetCurrentNodeId() != "start" {
+		t.Fatalf("current node = %q, want start", activeConversation.GetCurrentNodeId())
+	}
+
+	game.HandleConversationOption("client-1", "greeting", "start", "bye")
+	assertConversationMessage(t, *sent, "greeting", targetEntityId.String(), "end", true)
+	if active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId); active != nil {
+		t.Fatal("active conversation was not removed on end node")
+	}
+}
+
+func TestMoveCancelsActiveConversation(t *testing.T) {
+	game, sent, targetEntityId, playerEntityId := setupConversationTestGame(t)
+
+	game.HandleInteract("client-1", targetEntityId, component.InteractionOptionTalk)
+	game.update()
+
+	if active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId); active == nil {
+		t.Fatal("player does not have active conversation after talk")
+	}
+
+	game.HandleMove("client-1", 0, 0)
+	if active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId); active != nil {
+		t.Fatal("active conversation was not removed after move")
+	}
+
+	sentCount := len(*sent)
+	game.HandleConversationOption("client-1", "greeting", "start", "bye")
+	if len(*sent) != sentCount {
+		t.Fatalf("cancelled conversation sent %d new messages, want 0", len(*sent)-sentCount)
+	}
+}
+
+func setupConversationTestGame(t *testing.T) (*Game, *[]message.Message, model.EntityId, model.EntityId) {
+	t.Helper()
+
 	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
@@ -94,32 +149,7 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 	game.HandleJoin("client-1", playerEntityId, "player")
 	sent = nil
 
-	game.HandleInteract("client-1", targetEntityId, component.InteractionOptionTalk)
-	game.update()
-
-	active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId)
-	if active == nil {
-		t.Fatal("player does not have active conversation after talk")
-	}
-	assertConversationMessage(t, sent, "greeting", targetEntityId.String(), "start", false)
-
-	game.HandleConversationOption("client-1", "greeting", "start", "missing")
-	if len(sent) != 1 {
-		t.Fatalf("stale option sent %d conversation messages, want 1", len(sent))
-	}
-	activeConversation := game.componentManager.GetEntityComponent(
-		component.ComponentIdActiveConversation,
-		playerEntityId,
-	).(*component.CActiveConversation)
-	if activeConversation.GetCurrentNodeId() != "start" {
-		t.Fatalf("current node = %q, want start", activeConversation.GetCurrentNodeId())
-	}
-
-	game.HandleConversationOption("client-1", "greeting", "start", "bye")
-	assertConversationMessage(t, sent, "greeting", targetEntityId.String(), "end", true)
-	if active := game.componentManager.GetEntityComponent(component.ComponentIdActiveConversation, playerEntityId); active != nil {
-		t.Fatal("active conversation was not removed on end node")
-	}
+	return game, &sent, targetEntityId, playerEntityId
 }
 
 func firstEntityWithComponent(game *Game, componentId component.ComponentId) (model.EntityId, bool) {

@@ -108,6 +108,8 @@ components:
           $ref: "#/components/schemas/RenderableComponent"
         openable:
           $ref: "#/components/schemas/OpenableComponent"
+        randomwalk:
+          $ref: "#/components/schemas/RandomWalkComponent"
 
     RenderableComponent:
       type: object
@@ -136,6 +138,20 @@ components:
           type: boolean
           default: false
           description: Whether the entity starts open. Missing or false starts closed.
+
+    RandomWalkComponent:
+      type: object
+      additionalProperties: false
+      properties:
+        walkTimer:
+          type: integer
+          default: 10
+          description: Initial ticks before the entity attempts a random walk step.
+        maxDistance:
+          type: integer
+          minimum: 0
+          default: 5
+          description: Maximum Manhattan distance the entity may random walk from its spawn position.
 
     WorldWall:
       type: object
@@ -259,6 +275,7 @@ components:
                       type: human
                     randomwalk:
                       walkTimer: 10
+                      maxDistance: 5
                     health:
                       maxHealth: 100
                     basestats:

@@ -21,7 +21,8 @@ func CreateDudeEntity(
 		"color":      util.JString("#" + strconv.FormatInt(int64(rand.Intn(0xffffff+1)), 16)),
 	}))
 
-	randomwalkComponent := component.NewCRandomWalk(10)
+	randomwalkComponent := component.NewCRandomWalk(10, 5)
+	randomwalkComponent.SetOrigin(position)
 
 	renderableComponent := component.NewCRenderable("human")
 

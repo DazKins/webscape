@@ -12,7 +12,7 @@ import EntityRenderSystem from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
-import { ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
+import { ConversationCloseEvent, ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 import { QuestLogUpdateEvent } from "../events/questlog.ts";
 
 export type QuestDefinition = {
@@ -43,6 +43,7 @@ class Game extends EventTarget implements InputReceiver {
   entities: Entity[];
   entityRenderSystem: EntityRenderSystem;
   quests: QuestDefinition[];
+  activeConversation: ConversationPayload | null;
 
   input: Input;
   world!: World;
@@ -57,6 +58,7 @@ class Game extends EventTarget implements InputReceiver {
     this.camera = new Camera(this.input);
     this.entityRenderSystem = new EntityRenderSystem(this.scene);
     this.quests = [];
+    this.activeConversation = null;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -98,12 +100,7 @@ class Game extends EventTarget implements InputReceiver {
     this.input.registerClickCallback(() => {
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
-        this.wsClient.sendMessage(
-          createCommand("move", {
-            x: hoveredTile.x,
-            y: hoveredTile.y,
-          })
-        );
+        this.handleMoveClick(hoveredTile.x, hoveredTile.y);
       }
     });
 
@@ -191,16 +188,21 @@ class Game extends EventTarget implements InputReceiver {
     const myEntity = this.getMyEntity();
     if (!myEntity) return;
 
-    const myEntityRenderer = this.entityRenderSystem.getRenderers()[myEntity.getId()];
-    if (!myEntityRenderer) {
+    const myFocusPoint = this.getEntityFocusPoint(myEntity.getId());
+    if (!myFocusPoint) {
       return;
     }
 
-    const myObject3D = myEntityRenderer.getObject3D()!;
+    const conversationTarget = this.getConversationTargetFocusPoint();
+    if (conversationTarget) {
+      this.camera.update(myFocusPoint.clone().add(conversationTarget).multiplyScalar(0.5), {
+        distance: 3,
+        height: 3,
+      });
+      return;
+    }
 
-    this.camera.update(
-      new THREE.Vector3(myObject3D.position.x + 0.5, 0, myObject3D.position.z + 0.5)
-    );
+    this.camera.update(myFocusPoint);
   }
 
   handleGameUpdate(gameUpdate: any) {
@@ -340,8 +342,70 @@ class Game extends EventTarget implements InputReceiver {
     );
   }
 
+  handleMoveClick(x: number, y: number) {
+    this.closeActiveConversation();
+    this.wsClient.sendMessage(
+      createCommand("move", {
+        x,
+        y,
+      })
+    );
+  }
+
   handleConversation(conversation: ConversationPayload) {
+    this.activeConversation = conversation;
     this.dispatchEvent(new ConversationEvent(conversation));
+  }
+
+  handleConversationClose(conversationId: string, nodeId: string) {
+    if (
+      this.activeConversation?.conversationId === conversationId &&
+      this.activeConversation.nodeId === nodeId
+    ) {
+      this.closeActiveConversation();
+    }
+  }
+
+  getActiveConversation(): ConversationPayload | null {
+    return this.activeConversation;
+  }
+
+  isInConversation(): boolean {
+    return this.activeConversation !== null;
+  }
+
+  getConversationTargetEntityId(): string | null {
+    return this.activeConversation?.targetEntityId ?? null;
+  }
+
+  private closeActiveConversation() {
+    if (!this.activeConversation) {
+      return;
+    }
+
+    this.activeConversation = null;
+    this.dispatchEvent(new ConversationCloseEvent());
+  }
+
+  private getConversationTargetFocusPoint(): THREE.Vector3 | null {
+    const targetEntityId = this.getConversationTargetEntityId();
+    return targetEntityId ? this.getEntityFocusPoint(targetEntityId) : null;
+  }
+
+  private getEntityFocusPoint(entityId: string): THREE.Vector3 | null {
+    const renderer = this.entityRenderSystem.getRenderers()[entityId];
+    const object3D = renderer?.getObject3D();
+    if (object3D) {
+      return new THREE.Vector3(object3D.position.x + 0.5, 0, object3D.position.z + 0.5);
+    }
+
+    const entity = this.entities.find((candidate) => candidate.getId() === entityId);
+    const position = entity?.getComponent("position");
+    if (position && typeof position.x === "number" && typeof position.y === "number") {
+      return new THREE.Vector3(position.x + 0.5, 0, position.y + 0.5);
+    }
+
+    return null;
   }
 
   handleConversationOptionClick(

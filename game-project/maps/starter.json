@@ -2129,7 +2129,8 @@
           "type": "human"
         },
         "randomwalk": {
-          "walkTimer": 10
+          "walkTimer": 10,
+          "maxDistance": 5
         },
         "health": {
           "maxHealth": 100,
@@ -2162,7 +2163,8 @@
           "type": "human"
         },
         "randomwalk": {
-          "walkTimer": 10
+          "walkTimer": 10,
+          "maxDistance": 5
         },
         "health": {
           "maxHealth": 100,
@@ -2196,7 +2198,8 @@
                 "type": "human"
               },
               "randomwalk": {
-                "walkTimer": 10
+                "walkTimer": 10,
+                "maxDistance": 5
               },
               "health": {
                 "maxHealth": 100,

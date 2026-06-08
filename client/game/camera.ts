@@ -6,8 +6,10 @@ export default class Camera {
   private input: Input;
 
   private distance: number;
+  private renderedDistance: number;
   private angle: number;
   private height: number;
+  private renderedHeight: number;
   private orbitSpeed: number;
   private heightSpeed: number;
   private minHeight: number;
@@ -26,8 +28,10 @@ export default class Camera {
     this.input = input;
 
     this.distance = 5;
+    this.renderedDistance = this.distance;
     this.angle = 0;
     this.height = 5;
+    this.renderedHeight = this.height;
     this.orbitSpeed = 0.05;
     this.heightSpeed = 0.1;
     this.minHeight = 2;
@@ -43,7 +47,7 @@ export default class Camera {
     return this.camera;
   }
 
-  update(target: THREE.Vector3) {
+  update(target: THREE.Vector3, options: { distance?: number; height?: number } = {}) {
     if (this.input.getKey("arrowleft")) {
       this.angle += this.orbitSpeed;
     }
@@ -58,13 +62,18 @@ export default class Camera {
       this.height = Math.max(this.height - this.heightSpeed, this.minHeight);
     }
 
+    const desiredDistance = options.distance ?? this.distance;
+    const desiredHeight = options.height ?? this.height;
+
     this.cameraTarget.lerp(target, 0.1);
+    this.renderedDistance += (desiredDistance - this.renderedDistance) * 0.1;
+    this.renderedHeight += (desiredHeight - this.renderedHeight) * 0.1;
 
     this.camera.position.x =
-      this.cameraTarget.x + Math.cos(this.angle) * this.distance;
-    this.camera.position.y = this.height;
+      this.cameraTarget.x + Math.cos(this.angle) * this.renderedDistance;
+    this.camera.position.y = this.renderedHeight;
     this.camera.position.z =
-      this.cameraTarget.z + Math.sin(this.angle) * this.distance;
+      this.cameraTarget.z + Math.sin(this.angle) * this.renderedDistance;
 
     this.camera.lookAt(this.cameraTarget);
   }

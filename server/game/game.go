@@ -426,6 +426,8 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
 	})
+	g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
+	g.componentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
 	g.componentManager.SetEntityComponent(entityId, pathingComponent)
 }
 
