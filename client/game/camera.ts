@@ -48,6 +48,8 @@ export default class Camera {
   }
 
   update(target: THREE.Vector3, options: { distance?: number; height?: number } = {}) {
+    let heightChangedByInput = false;
+
     if (this.input.getKey("arrowleft")) {
       this.angle += this.orbitSpeed;
     }
@@ -57,9 +59,11 @@ export default class Camera {
 
     if (this.input.getKey("arrowup")) {
       this.height = Math.min(this.height + this.heightSpeed, this.maxHeight);
+      heightChangedByInput = true;
     }
     if (this.input.getKey("arrowdown")) {
       this.height = Math.max(this.height - this.heightSpeed, this.minHeight);
+      heightChangedByInput = true;
     }
 
     const desiredDistance = options.distance ?? this.distance;
@@ -67,7 +71,11 @@ export default class Camera {
 
     this.cameraTarget.lerp(target, 0.1);
     this.renderedDistance += (desiredDistance - this.renderedDistance) * 0.1;
-    this.renderedHeight += (desiredHeight - this.renderedHeight) * 0.1;
+    if (heightChangedByInput && options.height === undefined) {
+      this.renderedHeight = desiredHeight;
+    } else {
+      this.renderedHeight += (desiredHeight - this.renderedHeight) * 0.1;
+    }
 
     this.camera.position.x =
       this.cameraTarget.x + Math.cos(this.angle) * this.renderedDistance;
