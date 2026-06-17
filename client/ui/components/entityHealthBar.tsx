@@ -6,6 +6,10 @@ type Props = {
 };
 
 export default function EntityHealthBar(props: Props) {
+  if (props.maxHealth <= 0 || props.currentHealth >= props.maxHealth) {
+    return null;
+  }
+
   const healthPercentage = Math.max(0, Math.min(100, (props.currentHealth / props.maxHealth) * 100));
 
   return (
@@ -19,4 +23,3 @@ export default function EntityHealthBar(props: Props) {
     </div>
   );
 }
-

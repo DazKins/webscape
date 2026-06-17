@@ -1,5 +1,5 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "tutorial_quests",
   "displayName": "Tutorial Quests",
   "quests": [
@@ -25,7 +25,16 @@
             "count": 3
           }
         }
-      ]
+      ],
+      "rewards": {
+        "items": [
+          {
+            "name": "Ancient Scroll",
+            "type": "quest",
+            "count": 1
+          }
+        ]
+      }
     }
   ]
 }

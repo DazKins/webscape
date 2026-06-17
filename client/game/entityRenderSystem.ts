@@ -10,6 +10,7 @@ import RendererDoor from "./renderer/rendererDoor";
 import RendererError from "./renderer/rendererError";
 import RendererRock from "./renderer/rendererRock";
 import RendererTree from "./renderer/rendererTree";
+import RendererRewardDrop from "./renderer/rendererRewardDrop";
 
 export default class EntityRenderSystem {
   scene: THREE.Scene;
@@ -34,6 +35,8 @@ export default class EntityRenderSystem {
         return new RendererRock(this.scene, entity);
       case "building":
         return new RendererBuilding(this.scene, entity);
+      case "rewarddrop":
+        return new RendererRewardDrop(this.scene, entity);
       case "chatmessage":
         const parentRenderer = this.renderers[entity.getComponent("chatmessage").fromEntityId];
         if (!parentRenderer) {

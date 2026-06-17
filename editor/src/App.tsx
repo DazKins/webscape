@@ -14,11 +14,13 @@ import {
 } from "./conversationFormat.ts";
 import {
   createBlankQuestDocument,
+  createBlankQuestRewardItem,
   createBlankQuestStep,
   sanitizeQuestId,
   validateQuestDocument,
   type Quest,
   type QuestDocument,
+  type QuestRewardItem,
   type QuestStep,
   type ValidationResult as QuestValidationResult,
 } from "./questFormat.ts";
@@ -751,6 +753,40 @@ function App() {
     }));
   }
 
+  function addQuestRewardItem() {
+    updateSelectedQuest((quest) => ({
+      ...quest,
+      rewards: {
+        items: [...quest.rewards.items, createBlankQuestRewardItem()],
+      },
+    }));
+  }
+
+  function updateQuestRewardItem(index: number, patch: Partial<QuestRewardItem>) {
+    updateSelectedQuest((quest) => ({
+      ...quest,
+      rewards: {
+        items: quest.rewards.items.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, ...patch } : item
+        ),
+      },
+    }));
+  }
+
+  function deleteQuestRewardItem(index: number) {
+    updateSelectedQuest((quest) => {
+      if (quest.rewards.items.length <= 1) {
+        return quest;
+      }
+      return {
+        ...quest,
+        rewards: {
+          items: quest.rewards.items.filter((_, itemIndex) => itemIndex !== index),
+        },
+      };
+    });
+  }
+
   function deleteQuestStep(index: number) {
     updateSelectedQuest((quest) => {
       if (quest.steps.length <= 1) {
@@ -1291,6 +1327,9 @@ function App() {
           onAddStep={addQuestStep}
           onUpdateStep={updateQuestStep}
           onUpdateStepRequirement={updateQuestStepRequirement}
+          onAddRewardItem={addQuestRewardItem}
+          onUpdateRewardItem={updateQuestRewardItem}
+          onDeleteRewardItem={deleteQuestRewardItem}
           onDeleteStep={deleteQuestStep}
         />
       )}
@@ -1608,6 +1647,9 @@ function QuestsWorkspace({
   onAddStep,
   onUpdateStep,
   onUpdateStepRequirement,
+  onAddRewardItem,
+  onUpdateRewardItem,
+  onDeleteRewardItem,
   onDeleteStep,
 }: {
   project: GameProject;
@@ -1627,6 +1669,9 @@ function QuestsWorkspace({
   onAddStep: () => void;
   onUpdateStep: (index: number, patch: Partial<QuestStep>) => void;
   onUpdateStepRequirement: (index: number, patch: Partial<QuestStep["requirement"]>) => void;
+  onAddRewardItem: () => void;
+  onUpdateRewardItem: (index: number, patch: Partial<QuestRewardItem>) => void;
+  onDeleteRewardItem: (index: number) => void;
   onDeleteStep: (index: number) => void;
 }) {
   const selectedDocument = selectedQuestPath ? quests[selectedQuestPath] : undefined;
@@ -1746,6 +1791,57 @@ function QuestsWorkspace({
                   }
                 />
               </label>
+            </section>
+
+            <section className="editorSection">
+              <div className="sectionHeader">
+                <h3>Rewards</h3>
+                <button type="button" onClick={onAddRewardItem}>Add Reward</button>
+              </div>
+              <div className="stack">
+                {selectedQuest.rewards.items.map((reward, index) => (
+                  <div key={index} className="subEditor">
+                    <div className="sectionHeader compact">
+                      <h3>{reward.name || "Reward"}</h3>
+                      <button
+                        type="button"
+                        className="danger"
+                        disabled={selectedQuest.rewards.items.length <= 1}
+                        onClick={() => onDeleteRewardItem(index)}
+                      >
+                        Delete Reward
+                      </button>
+                    </div>
+                    <div className="fieldRow">
+                      <label>
+                        Name
+                        <input
+                          value={reward.name}
+                          onChange={(event) => onUpdateRewardItem(index, { name: event.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Type
+                        <input
+                          value={reward.type}
+                          onChange={(event) => onUpdateRewardItem(index, { type: event.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Count
+                        <input
+                          type="number"
+                          min="1"
+                          value={reward.count}
+                          onChange={(event) =>
+                            onUpdateRewardItem(index, { count: Math.max(1, Number(event.target.value)) })
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </section>
 
             <section className="editorSection">

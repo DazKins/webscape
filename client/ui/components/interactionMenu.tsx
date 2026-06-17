@@ -34,6 +34,7 @@ export default function InteractionMenu(props: Props) {
   const onWindowClick = (event: MouseEvent) => {
     const element = ref.current;
     if (element && !element.contains(event.target as Node)) {
+      props.game.setPointerOverUi(false);
       setInteractionMenuOpen(false);
     } else {
       event.stopPropagation();
@@ -58,6 +59,7 @@ export default function InteractionMenu(props: Props) {
 
   const handleInteractionOptionClick = (option: string): void => {
     props.game.handleInteractionOptionClick(entityId, option);
+    props.game.setPointerOverUi(false);
     setInteractionMenuOpen(false);
   };
 

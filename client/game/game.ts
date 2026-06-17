@@ -14,6 +14,7 @@ import { InventoryUpdateEvent } from "../events/inventory.ts";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 import { ConversationCloseEvent, ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 import { QuestLogUpdateEvent } from "../events/questlog.ts";
+import { QuestCompletedEvent, type QuestCompletedPayload } from "../events/questCompleted.ts";
 
 export type QuestDefinition = {
   id: string;
@@ -21,6 +22,9 @@ export type QuestDefinition = {
   description?: string;
   startEventId?: string;
   steps: QuestStepDefinition[];
+  rewards: {
+    items: QuestRewardDefinition[];
+  };
 };
 
 export type QuestStepDefinition = {
@@ -30,6 +34,12 @@ export type QuestStepDefinition = {
     eventId: string;
     count: number;
   };
+};
+
+export type QuestRewardDefinition = {
+  name: string;
+  type: string;
+  count: number;
 };
 
 class Game extends EventTarget implements InputReceiver {
@@ -342,6 +352,10 @@ class Game extends EventTarget implements InputReceiver {
   handleConversation(conversation: ConversationPayload) {
     this.activeConversation = conversation;
     this.dispatchEvent(new ConversationEvent(conversation));
+  }
+
+  handleQuestCompleted(payload: QuestCompletedPayload) {
+    this.dispatchEvent(new QuestCompletedEvent(payload));
   }
 
   handleConversationClose(conversationId: string, nodeId: string) {

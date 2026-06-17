@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"time"
+	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
 	"webscape/server/game/gameevent"
@@ -273,14 +274,11 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 
 	questLog := questLogComponent.(*component.CQuestLog)
 	completedQuestEvents := []gameevent.Event{}
-	completeQuest := func(quest world.Quest) {
-		if questLog.IsCompleted(quest.Id) {
+	completeQuest := func(quest world.Quest, completedStep world.QuestStep) {
+		completedEvent, ok := g.completeQuestForPlayer(event.ActorEntityId, event.TargetEntityId, questLog, quest, completedStep)
+		if !ok {
 			return
 		}
-		questLog.CompleteQuest(quest.Id)
-		completedEvent := gameevent.New(questCompletedEventId(quest.Id), event.ActorEntityId)
-		completedEvent.TargetEntityId = event.TargetEntityId
-		completedEvent.Metadata["questId"] = quest.Id
 		completedQuestEvents = append(completedQuestEvents, completedEvent)
 	}
 
@@ -301,7 +299,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 			continue
 		}
 		if progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
-			completeQuest(*quest)
+			completeQuest(*quest, world.QuestStep{})
 			continue
 		}
 
@@ -318,7 +316,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 
 		nextStepIndex := progress.CurrentStepIndex + 1
 		if nextStepIndex >= len(quest.Steps) {
-			completeQuest(*quest)
+			completeQuest(*quest, step)
 			continue
 		}
 
@@ -330,6 +328,81 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 	for _, completedEvent := range completedQuestEvents {
 		g.EmitGameEvent(completedEvent)
 	}
+}
+
+func (g *Game) completeQuestForPlayer(
+	playerEntityId model.EntityId,
+	targetEntityId model.EntityId,
+	questLog *component.CQuestLog,
+	quest world.Quest,
+	completedStep world.QuestStep,
+) (gameevent.Event, bool) {
+	if questLog.IsCompleted(quest.Id) {
+		return gameevent.Event{}, false
+	}
+
+	questLog.CompleteQuest(quest.Id)
+	rewardDeliveries := g.deliverQuestRewards(playerEntityId, quest.Rewards.Items)
+	if clientID, ok := g.clientIdToEntityId.GetKey(playerEntityId); ok {
+		g.sendMessage(clientID, message.NewQuestCompletedMessage(quest, completedStep, rewardDeliveries))
+	}
+
+	completedEvent := gameevent.New(questCompletedEventId(quest.Id), playerEntityId)
+	completedEvent.TargetEntityId = targetEntityId
+	completedEvent.Metadata["questId"] = quest.Id
+	return completedEvent, true
+}
+
+func (g *Game) deliverQuestRewards(
+	playerEntityId model.EntityId,
+	rewardItems []world.QuestRewardItem,
+) []message.QuestRewardDelivery {
+	droppedItems := []component.LootItem{}
+	deliveries := []message.QuestRewardDelivery{}
+
+	for _, rewardItem := range rewardItems {
+		count := rewardItem.Count
+		if count < 1 {
+			count = 1
+		}
+
+		addedCount := 0
+		droppedCount := 0
+		for i := 0; i < count; i++ {
+			item := model.NewItem(rewardItem.Name, rewardItem.Type)
+			if g.addItemToPlayerInventory(playerEntityId, item, false) {
+				addedCount++
+				continue
+			}
+			droppedCount++
+		}
+		if addedCount > 0 {
+			deliveries = append(deliveries, message.QuestRewardDelivery{
+				Name:     rewardItem.Name,
+				Type:     rewardItem.Type,
+				Count:    addedCount,
+				Delivery: message.QuestRewardDeliveryInventory,
+			})
+		}
+		if droppedCount > 0 {
+			droppedItems = append(droppedItems, component.LootItem{
+				Name:  rewardItem.Name,
+				Type:  rewardItem.Type,
+				Count: droppedCount,
+			})
+			deliveries = append(deliveries, message.QuestRewardDelivery{
+				Name:     rewardItem.Name,
+				Type:     rewardItem.Type,
+				Count:    droppedCount,
+				Delivery: message.QuestRewardDeliveryDropped,
+			})
+		}
+	}
+
+	if len(droppedItems) > 0 {
+		g.spawnRewardDrop(playerEntityId, droppedItems)
+	}
+	return deliveries
 }
 
 func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
@@ -378,6 +451,10 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 }
 
 func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) bool {
+	return g.addItemToPlayerInventory(playerEntityId, item, true)
+}
+
+func (g *Game) addItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item, emitEvents bool) bool {
 	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId)
 	if inventory == nil || item == nil {
 		return false
@@ -389,13 +466,57 @@ func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *mod
 	}
 	g.componentManager.SetEntityComponent(playerEntityId, inventoryComponent)
 
-	if item.Type != "" {
+	if emitEvents && item.Type != "" {
 		g.EmitGameEvent(gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type), playerEntityId))
 	}
-	if item.Name != "" {
+	if emitEvents && item.Name != "" {
 		g.EmitGameEvent(gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId))
 	}
 	return true
+}
+
+func (g *Game) spawnRewardDrop(playerEntityId model.EntityId, items []component.LootItem) model.EntityId {
+	position := g.rewardDropPosition(playerEntityId)
+	metadata := util.JObject(map[string]util.Json{
+		"name":           util.JString("Reward Parcel"),
+		"type":           util.JString("rewarddrop"),
+		"width":          util.JNumber(1),
+		"height":         util.JNumber(1),
+		"blocksMovement": util.JBool(false),
+	})
+	return g.componentManager.CreateNewEntity(
+		component.NewCPosition(position),
+		component.NewCMetadata(metadata),
+		component.NewCRenderable("rewarddrop"),
+		component.NewCLootable(true, items),
+		component.NewCRewardDrop(),
+	)
+}
+
+func (g *Game) rewardDropPosition(playerEntityId model.EntityId) math.Vec2 {
+	positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerEntityId)
+	if positionComponent == nil {
+		return g.world.GetPlayerSpawn()
+	}
+
+	playerPosition := positionComponent.(*component.CPosition).GetPosition()
+	checker := collision.Checker{
+		World:            g.world,
+		ComponentManager: g.componentManager,
+	}
+	directions := []math.Vec2{
+		{X: 1, Y: 0},
+		{X: -1, Y: 0},
+		{X: 0, Y: 1},
+		{X: 0, Y: -1},
+	}
+	for _, direction := range directions {
+		candidate := playerPosition.Add(direction)
+		if !checker.IsBlocked(candidate.X, candidate.Y) {
+			return candidate
+		}
+	}
+	return playerPosition
 }
 
 func (g *Game) serializedComponentsSnapshot() map[component.ComponentId]map[model.EntityId]util.Json {
@@ -551,6 +672,9 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 	if allItemsAdded && lootableComponent.IsOnce() {
 		lootableComponent.SetLooted(true)
 		g.componentManager.SetEntityComponent(targetEntityId, lootableComponent)
+		if g.componentManager.GetEntityComponent(component.ComponentIdRewardDrop, targetEntityId) != nil {
+			g.componentManager.RemoveEntity(targetEntityId)
+		}
 	}
 }
 

@@ -12,11 +12,12 @@ type worldData struct {
 }
 
 type questData struct {
-	Id           string          `json:"id"`
-	DisplayName  string          `json:"displayName,omitempty"`
-	Description  string          `json:"description,omitempty"`
-	StartEventId string          `json:"startEventId,omitempty"`
-	Steps        []questStepData `json:"steps"`
+	Id           string           `json:"id"`
+	DisplayName  string           `json:"displayName,omitempty"`
+	Description  string           `json:"description,omitempty"`
+	StartEventId string           `json:"startEventId,omitempty"`
+	Steps        []questStepData  `json:"steps"`
+	Rewards      questRewardsData `json:"rewards"`
 }
 
 type questStepData struct {
@@ -28,6 +29,16 @@ type questStepData struct {
 type questRequirementData struct {
 	EventId string `json:"eventId"`
 	Count   int    `json:"count"`
+}
+
+type questRewardsData struct {
+	Items []questRewardItemData `json:"items"`
+}
+
+type questRewardItemData struct {
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Count int    `json:"count"`
 }
 
 func NewWorldMessage(world *world.World) Message {
@@ -64,6 +75,21 @@ func serializeQuests(quests []world.Quest) []questData {
 			Description:  quest.Description,
 			StartEventId: quest.StartEventId,
 			Steps:        steps,
+			Rewards: questRewardsData{
+				Items: serializeQuestRewardItems(quest.Rewards.Items),
+			},
+		}
+	}
+	return result
+}
+
+func serializeQuestRewardItems(items []world.QuestRewardItem) []questRewardItemData {
+	result := make([]questRewardItemData, len(items))
+	for i, item := range items {
+		result[i] = questRewardItemData{
+			Name:  item.Name,
+			Type:  item.Type,
+			Count: item.Count,
 		}
 	}
 	return result

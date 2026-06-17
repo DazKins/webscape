@@ -69,7 +69,7 @@ func loadOpenableTestWorld(t *testing.T, includeQuest bool) *world.World {
 		questPaths = `["quests/open_the_door.json"]`
 		questFile["quests/open_the_door.json"] = &fstest.MapFile{
 			Data: []byte(`{
-				"formatVersion": 1,
+				"formatVersion": 2,
 				"id": "open_the_door_quests",
 				"quests": [
 					{
@@ -81,7 +81,12 @@ func loadOpenableTestWorld(t *testing.T, includeQuest bool) *world.World {
 								"description": "Open the door.",
 								"requirement": { "eventId": "interact:object:door_001:open", "count": 1 }
 							}
-						]
+						],
+						"rewards": {
+							"items": [
+								{ "name": "Door Token", "type": "quest", "count": 1 }
+							]
+						}
 					}
 				]
 			}`),

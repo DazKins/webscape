@@ -11,15 +11,21 @@ type QuestProgress struct {
 	CurrentCount     int
 }
 
+type CompletedQuest struct {
+	QuestId string
+}
+
 type CQuestLog struct {
-	active    map[string]*QuestProgress
-	completed map[string]bool
+	active       map[string]*QuestProgress
+	completed    []CompletedQuest
+	completedSet map[string]bool
 }
 
 func NewCQuestLog() *CQuestLog {
 	return &CQuestLog{
-		active:    map[string]*QuestProgress{},
-		completed: map[string]bool{},
+		active:       map[string]*QuestProgress{},
+		completed:    []CompletedQuest{},
+		completedSet: map[string]bool{},
 	}
 }
 
@@ -39,8 +45,10 @@ func (c *CQuestLog) Serialize() util.Json {
 	}
 
 	completed := make(util.JArray, 0, len(c.completed))
-	for questId := range c.completed {
-		completed = append(completed, util.JString(questId))
+	for _, record := range c.completed {
+		completed = append(completed, util.JObject(map[string]util.Json{
+			"questId": util.JString(record.QuestId),
+		}))
 	}
 
 	return util.JObject(map[string]util.Json{
@@ -55,7 +63,7 @@ func (c *CQuestLog) IsActive(questId string) bool {
 }
 
 func (c *CQuestLog) IsCompleted(questId string) bool {
-	return c.completed[questId]
+	return c.completedSet[questId]
 }
 
 func (c *CQuestLog) StartQuest(questId string, stepId string) {
@@ -78,8 +86,14 @@ func (c *CQuestLog) GetActiveProgress() []*QuestProgress {
 	return result
 }
 
+func (c *CQuestLog) GetCompletedQuests() []CompletedQuest {
+	result := make([]CompletedQuest, len(c.completed))
+	copy(result, c.completed)
+	return result
+}
+
 func (c *CQuestLog) SetProgress(questId string, stepIndex int, stepId string, currentCount int) {
-	if c.completed[questId] {
+	if c.completedSet[questId] {
 		return
 	}
 	c.active[questId] = &QuestProgress{
@@ -91,6 +105,10 @@ func (c *CQuestLog) SetProgress(questId string, stepIndex int, stepId string, cu
 }
 
 func (c *CQuestLog) CompleteQuest(questId string) {
+	if c.completedSet[questId] {
+		return
+	}
 	delete(c.active, questId)
-	c.completed[questId] = true
+	c.completed = append(c.completed, CompletedQuest{QuestId: questId})
+	c.completedSet[questId] = true
 }

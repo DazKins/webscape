@@ -221,7 +221,7 @@ func TestLoadFromGameFSLoadsQuests(t *testing.T) {
 		},
 		"quests/tutorial.json": {
 			Data: []byte(`{
-				"formatVersion": 1,
+				"formatVersion": 2,
 				"id": "tutorial_quests",
 				"quests": [
 					{
@@ -233,7 +233,12 @@ func TestLoadFromGameFSLoadsQuests(t *testing.T) {
 								"description": "Talk to the guide.",
 								"requirement": { "eventId": "conversation:node:guide:start", "count": 1 }
 							}
-						]
+						],
+						"rewards": {
+							"items": [
+								{ "name": "Guide Token", "type": "quest", "count": 1 }
+							]
+						}
 					}
 				]
 			}`),
@@ -277,7 +282,7 @@ func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
 		},
 		"quests/tutorial.json": {
 			Data: []byte(`{
-				"formatVersion": 1,
+				"formatVersion": 2,
 				"id": "tutorial_quests",
 				"quests": [
 					{
@@ -288,7 +293,12 @@ func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
 								"description": "Broken.",
 								"requirement": { "eventId": "", "count": 1 }
 							}
-						]
+						],
+						"rewards": {
+							"items": [
+								{ "name": "Broken Token", "type": "quest", "count": 1 }
+							]
+						}
 					}
 				]
 			}`),
@@ -297,5 +307,102 @@ func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
 
 	if _, err := LoadFromGameFS(gameFS); err == nil {
 		t.Fatal("LoadFromGameFS returned nil error for invalid quest")
+	}
+}
+
+func TestLoadFromGameFSRejectsQuestWithoutRewards(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": ["quests/tutorial.json"]
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"]
+			}`),
+		},
+		"quests/tutorial.json": {
+			Data: []byte(`{
+				"formatVersion": 2,
+				"id": "tutorial_quests",
+				"quests": [
+					{
+						"id": "broken",
+						"steps": [
+							{
+								"id": "talk",
+								"description": "Talk.",
+								"requirement": { "eventId": "talk", "count": 1 }
+							}
+						]
+					}
+				]
+			}`),
+		},
+	}
+
+	if _, err := LoadFromGameFS(gameFS); err == nil {
+		t.Fatal("LoadFromGameFS returned nil error for quest without rewards")
+	}
+}
+
+func TestLoadFromGameFSRejectsInvalidQuestReward(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": ["quests/tutorial.json"]
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"]
+			}`),
+		},
+		"quests/tutorial.json": {
+			Data: []byte(`{
+				"formatVersion": 2,
+				"id": "tutorial_quests",
+				"quests": [
+					{
+						"id": "broken",
+						"steps": [
+							{
+								"id": "talk",
+								"description": "Talk.",
+								"requirement": { "eventId": "talk", "count": 1 }
+							}
+						],
+						"rewards": {
+							"items": [
+								{ "name": "Broken Reward", "type": "quest", "count": 0 }
+							]
+						}
+					}
+				]
+			}`),
+		},
+	}
+
+	if _, err := LoadFromGameFS(gameFS); err == nil {
+		t.Fatal("LoadFromGameFS returned nil error for invalid quest reward")
 	}
 }

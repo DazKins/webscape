@@ -3,7 +3,7 @@ import { ID_PATTERN, isObject, serializeJson, titleFromId, type ValidationResult
 export type { ValidationResult } from "./formatUtils";
 
 export type QuestDocument = {
-  formatVersion: 1;
+  formatVersion: 2;
   id: string;
   displayName?: string;
   quests: Quest[];
@@ -15,6 +15,7 @@ export type Quest = {
   description?: string;
   startEventId?: string;
   steps: QuestStep[];
+  rewards: QuestRewards;
 };
 
 export type QuestStep = {
@@ -28,10 +29,20 @@ export type QuestRequirement = {
   count: number;
 };
 
+export type QuestRewards = {
+  items: QuestRewardItem[];
+};
+
+export type QuestRewardItem = {
+  name: string;
+  type: string;
+  count: number;
+};
+
 export function createBlankQuestDocument(id: string): QuestDocument {
   const questId = sanitizeQuestId(id);
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     id: questId,
     displayName: titleFromId(questId),
     quests: [createBlankQuest(questId)],
@@ -46,6 +57,9 @@ export function createBlankQuest(id: string): Quest {
     description: "",
     startEventId: "",
     steps: [createBlankQuestStep([], "start")],
+    rewards: {
+      items: [createBlankQuestRewardItem()],
+    },
   };
 }
 
@@ -60,6 +74,14 @@ export function createBlankQuestStep(existingSteps: QuestStep[], preferredId = "
   };
 }
 
+export function createBlankQuestRewardItem(): QuestRewardItem {
+  return {
+    name: "Ancient Scroll",
+    type: "quest",
+    count: 1,
+  };
+}
+
 export function normalizeQuestDocument(value: unknown): QuestDocument {
   if (!isObject(value)) {
     throw new Error("quest data must contain a JSON object");
@@ -67,7 +89,7 @@ export function normalizeQuestDocument(value: unknown): QuestDocument {
 
   const id = typeof value.id === "string" ? value.id : "untitled_quests";
   const document: QuestDocument = {
-    formatVersion: 1,
+    formatVersion: 2,
     id,
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
     quests: Array.isArray(value.quests) ? value.quests.map(normalizeQuest) : [],
@@ -83,8 +105,8 @@ export function normalizeQuestDocument(value: unknown): QuestDocument {
 export function validateQuestDocument(document: QuestDocument): ValidationResult {
   const errors: string[] = [];
 
-  if (document.formatVersion !== 1) {
-    errors.push(`quest document "${document.id}" formatVersion must be 1`);
+  if (document.formatVersion !== 2) {
+    errors.push(`quest document "${document.id}" formatVersion must be 2`);
   }
   if (!ID_PATTERN.test(document.id)) {
     errors.push(`quest document id "${document.id}" is invalid`);
@@ -104,6 +126,21 @@ export function validateQuestDocument(document: QuestDocument): ValidationResult
     questIds.add(quest.id);
     if (quest.steps.length === 0) {
       errors.push(`quest "${quest.id}" must contain at least one step`);
+    }
+    if (!quest.rewards || quest.rewards.items.length === 0) {
+      errors.push(`quest "${quest.id}" must contain at least one reward item`);
+    } else {
+      for (const [rewardIndex, reward] of quest.rewards.items.entries()) {
+        if (reward.name.trim().length === 0) {
+          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} must include a name`);
+        }
+        if (reward.type.trim().length === 0) {
+          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} must include a type`);
+        }
+        if (!Number.isFinite(reward.count) || reward.count < 1) {
+          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} count must be at least 1`);
+        }
+      }
     }
 
     const stepIds = new Set<string>();
@@ -153,6 +190,7 @@ function normalizeQuest(value: unknown): Quest {
     description: typeof value.description === "string" ? value.description : undefined,
     startEventId: typeof value.startEventId === "string" ? value.startEventId : undefined,
     steps: Array.isArray(value.steps) ? value.steps.map(normalizeQuestStep) : [],
+    rewards: normalizeQuestRewards(value.rewards),
   };
 }
 
@@ -168,6 +206,26 @@ function normalizeQuestStep(value: unknown): QuestStep {
       eventId: typeof requirement.eventId === "string" ? requirement.eventId : "",
       count: typeof requirement.count === "number" ? requirement.count : 1,
     },
+  };
+}
+
+function normalizeQuestRewards(value: unknown): QuestRewards {
+  if (!isObject(value)) {
+    return { items: [] };
+  }
+  return {
+    items: Array.isArray(value.items) ? value.items.map(normalizeQuestRewardItem) : [],
+  };
+}
+
+function normalizeQuestRewardItem(value: unknown): QuestRewardItem {
+  if (!isObject(value)) {
+    return createBlankQuestRewardItem();
+  }
+  return {
+    name: typeof value.name === "string" ? value.name : "",
+    type: typeof value.type === "string" ? value.type : "",
+    count: typeof value.count === "number" ? value.count : 1,
   };
 }
 

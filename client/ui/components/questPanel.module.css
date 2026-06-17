@@ -37,5 +37,33 @@
   color: rgba(150, 150, 150, 1.0);
   font-style: italic;
   text-align: center;
-  padding: 20px;
+  padding: 12px;
+}
+
+.section {
+  margin-bottom: 14px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  color: rgba(244, 210, 137, 0.95);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rewardList {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.reward {
+  color: rgba(244, 210, 137, 0.95);
+  font-size: 12px;
 }

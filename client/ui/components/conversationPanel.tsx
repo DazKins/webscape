@@ -23,6 +23,7 @@ export default function ConversationPanel(props: Props) {
       setMessageIndex(0);
     };
     const closeHandler = () => {
+      props.game.setPointerOverUi(false);
       setConversation(null);
       setMessageIndex(0);
     };
@@ -54,6 +55,7 @@ export default function ConversationPanel(props: Props) {
     }
     if (conversation.endConversation) {
       props.game.handleConversationClose(conversation.conversationId, conversation.nodeId);
+      props.game.setPointerOverUi(false);
       setConversation(null);
     }
   }

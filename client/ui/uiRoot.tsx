@@ -6,6 +6,7 @@ import { EquipmentContent, InventoryBackpackContent } from "./components/invento
 import { CombatLogContent } from "./components/combatLog";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
+import QuestCompletedOverlay from "./components/questCompletedOverlay";
 import panelStyles from "./components/uiPanel.module.css";
 import styles from "./uiRoot.module.css";
 
@@ -168,6 +169,7 @@ export default function UiRoot(props: Props) {
 
       <InteractionMenu game={props.game} />
       <ConversationPanel game={props.game} />
+      <QuestCompletedOverlay game={props.game} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "first_errand_quests",
   "displayName": "First Errand Quests",
   "quests": [
@@ -33,7 +33,16 @@
             "count": 1
           }
         }
-      ]
+      ],
+      "rewards": {
+        "items": [
+          {
+            "name": "Ancient Scroll",
+            "type": "quest",
+            "count": 1
+          }
+        ]
+      }
     }
   ]
 }

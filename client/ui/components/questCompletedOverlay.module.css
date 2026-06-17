@@ -1,0 +1,88 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+
+.overlay {
+  pointer-events: auto;
+  width: min(520px, calc(100vw - 40px));
+  max-height: min(620px, calc(100vh - 40px));
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 2px solid rgba(244, 210, 137, 0.86);
+  border-radius: 8px;
+  background: rgba(18, 20, 24, 0.94);
+  color: rgba(245, 245, 245, 1);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.48);
+}
+
+.kicker {
+  color: rgba(244, 210, 137, 1);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.overlay h2 {
+  margin: 8px 0 10px;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.description,
+.step {
+  margin: 0 0 12px;
+  color: rgba(220, 220, 220, 0.94);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.step {
+  color: rgba(190, 220, 255, 0.95);
+}
+
+.rewards {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.rewardRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(230, 230, 230, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+}
+
+.rewardRow span:last-child {
+  color: rgba(244, 210, 137, 0.96);
+  white-space: nowrap;
+}
+
+.closeButton {
+  width: 100%;
+  margin-top: 18px;
+  min-height: 38px;
+  border: 1px solid rgba(244, 210, 137, 0.7);
+  border-radius: 6px;
+  background: rgba(94, 74, 38, 0.88);
+  color: rgba(255, 255, 255, 1);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: rgba(118, 93, 45, 0.95);
+}

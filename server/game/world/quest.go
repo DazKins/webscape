@@ -19,11 +19,12 @@ type questDocument struct {
 }
 
 type Quest struct {
-	Id           string      `json:"id"`
-	DisplayName  string      `json:"displayName"`
-	Description  string      `json:"description"`
-	StartEventId string      `json:"startEventId"`
-	Steps        []QuestStep `json:"steps"`
+	Id           string       `json:"id"`
+	DisplayName  string       `json:"displayName"`
+	Description  string       `json:"description"`
+	StartEventId string       `json:"startEventId"`
+	Steps        []QuestStep  `json:"steps"`
+	Rewards      QuestRewards `json:"rewards"`
 }
 
 type QuestStep struct {
@@ -35,6 +36,16 @@ type QuestStep struct {
 type QuestRequirement struct {
 	EventId string `json:"eventId"`
 	Count   int    `json:"count"`
+}
+
+type QuestRewards struct {
+	Items []QuestRewardItem `json:"items"`
+}
+
+type QuestRewardItem struct {
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Count int    `json:"count"`
 }
 
 func NewQuestRegistry() *QuestRegistry {
@@ -98,7 +109,7 @@ func (r *QuestRegistry) Len() int {
 }
 
 func validateQuestDocument(document questDocument) error {
-	if document.FormatVersion != 1 {
+	if document.FormatVersion != 2 {
 		return fmt.Errorf("unsupported quest format version %d", document.FormatVersion)
 	}
 	if document.Id == "" {
@@ -119,6 +130,20 @@ func validateQuestDocument(document questDocument) error {
 		seenQuestIds[quest.Id] = true
 		if len(quest.Steps) == 0 {
 			return fmt.Errorf("quest %q must include at least one step", quest.Id)
+		}
+		if len(quest.Rewards.Items) == 0 {
+			return fmt.Errorf("quest %q must include at least one reward item", quest.Id)
+		}
+		for rewardIndex, reward := range quest.Rewards.Items {
+			if reward.Name == "" {
+				return fmt.Errorf("quest %q reward item %d must include a name", quest.Id, rewardIndex)
+			}
+			if reward.Type == "" {
+				return fmt.Errorf("quest %q reward item %d must include a type", quest.Id, rewardIndex)
+			}
+			if reward.Count < 1 {
+				return fmt.Errorf("quest %q reward item %d count must be at least 1", quest.Id, rewardIndex)
+			}
 		}
 
 		seenStepIds := map[string]bool{}

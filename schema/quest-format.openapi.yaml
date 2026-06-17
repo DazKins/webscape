@@ -22,7 +22,7 @@ components:
       properties:
         formatVersion:
           type: integer
-          const: 1
+          const: 2
         id:
           type: string
           pattern: "^[a-z0-9][a-z0-9_-]*$"
@@ -40,6 +40,7 @@ components:
       required:
         - id
         - steps
+        - rewards
       properties:
         id:
           type: string
@@ -56,6 +57,8 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/QuestStep"
+        rewards:
+          $ref: "#/components/schemas/QuestRewards"
 
     QuestStep:
       type: object
@@ -93,11 +96,41 @@ components:
           type: integer
           minimum: 1
 
+    QuestRewards:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/QuestRewardItem"
+
+    QuestRewardItem:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - type
+        - count
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          minLength: 1
+        count:
+          type: integer
+          minimum: 1
+
   examples:
     FirstErrand:
       summary: A linear quest driven by generic event ids.
       value:
-        formatVersion: 1
+        formatVersion: 2
         id: first_errand_quests
         displayName: First Errand Quests
         quests:
@@ -115,3 +148,8 @@ components:
                 requirement:
                   eventId: kill:entity:rat
                   count: 3
+            rewards:
+              items:
+                - name: Ancient Scroll
+                  type: quest
+                  count: 1

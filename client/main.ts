@@ -37,7 +37,7 @@ const wsClient = new WebSocketClient({
         game.handleGameUpdate(data);
         break;
       case "entityRemove":
-        game.handleEntityRemove(data.entityId);
+        game.handleEntityRemove(data.entityId ?? data.id);
         break;
       case "world":
         game.registerWorld(data);
@@ -50,6 +50,9 @@ const wsClient = new WebSocketClient({
         break;
       case "conversation":
         game.handleConversation(data);
+        break;
+      case "questCompleted":
+        game.handleQuestCompleted(data);
         break;
       default:
         console.warn("Unknown message type:", type);
