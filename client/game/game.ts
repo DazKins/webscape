@@ -39,7 +39,6 @@ class Game extends EventTarget implements InputReceiver {
   camera: Camera;
   renderer: THREE.WebGLRenderer;
   cssRenderer2d: CSS2DRenderer;
-  myLocationHighlightMesh: THREE.Mesh;
   entities: Entity[];
   entityRenderSystem: EntityRenderSystem;
   quests: QuestDefinition[];
@@ -82,22 +81,12 @@ class Game extends EventTarget implements InputReceiver {
     this.onWindowResize = this.onWindowResize.bind(this);
     window.addEventListener("resize", this.onWindowResize, false);
 
-    this.myLocationHighlightMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshBasicMaterial({
-        color: 0x572e05,
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-      })
-    );
-    this.myLocationHighlightMesh.rotation.x = -Math.PI / 2;
-    this.myLocationHighlightMesh.position.y = 0.02;
-    this.scene.add(this.myLocationHighlightMesh);
-
     this.entities = [];
 
     this.input.registerClickCallback(() => {
+      if (this.input.isPointerBlocked()) {
+        return;
+      }
       const hoveredTile = this.world.getHoveredTile(this.camera);
       if (hoveredTile) {
         this.handleMoveClick(hoveredTile.x, hoveredTile.y);
@@ -105,6 +94,9 @@ class Game extends EventTarget implements InputReceiver {
     });
 
     this.input.registerRightClickCallback((event: MouseEvent) => {
+      if (this.input.isPointerBlocked()) {
+        return;
+      }
       const mouse = this.input.getMousePosition();
       const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
       const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
@@ -182,6 +174,10 @@ class Game extends EventTarget implements InputReceiver {
 
   registerWsClient(wsClient: WebSocketClient) {
     this.wsClient = wsClient;
+  }
+
+  setPointerOverUi(isPointerOverUi: boolean) {
+    this.input.setPointerBlocked(isPointerOverUi);
   }
 
   updateCamera() {
@@ -277,15 +273,6 @@ class Game extends EventTarget implements InputReceiver {
 
   update(deltaSeconds: number) {
     this.updateCamera();
-
-    const myEntity = this.getMyEntity();
-    if (myEntity) {
-      const positionComponent = myEntity.getComponent("position");
-      if (positionComponent) {
-        this.myLocationHighlightMesh.position.x = positionComponent.x + 0.5;
-        this.myLocationHighlightMesh.position.z = positionComponent.y + 0.5;
-      }
-    }
 
     this.entityRenderSystem.update(this.entities, deltaSeconds);
 

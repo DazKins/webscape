@@ -75,6 +75,8 @@ export default function ConversationPanel(props: Props) {
       className={`${panelStyles.panel} ${styles.container}`}
       onClick={(event) => event.stopPropagation()}
       onMouseMove={(event) => event.stopPropagation()}
+      onMouseEnter={() => props.game.setPointerOverUi(true)}
+      onMouseLeave={() => props.game.setPointerOverUi(false)}
     >
       <div className={panelStyles.panelHeader}>{entityName}</div>
       <div className={`${panelStyles.panelContent} ${styles.content}`}>

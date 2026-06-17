@@ -44,9 +44,9 @@ class World {
     this.highlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
-        color: 0x572e05,
+        color: 0xd8d8d8,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.32,
         side: THREE.DoubleSide,
       })
     );
@@ -75,6 +75,10 @@ class World {
   }
 
   getHoveredTile(camera: Camera) {
+    if (this.input.isPointerBlocked()) {
+      return undefined;
+    }
+
     const mouse = this.input.getMousePosition();
     const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
     const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
@@ -97,8 +101,11 @@ class World {
   update(camera: Camera) {
     const hoveredTile = this.getHoveredTile(camera);
     if (hoveredTile) {
+      this.highlightMesh.visible = true;
       this.highlightMesh.position.x = hoveredTile.x + 0.5;
       this.highlightMesh.position.z = hoveredTile.y + 0.5;
+    } else {
+      this.highlightMesh.visible = false;
     }
   }
 }

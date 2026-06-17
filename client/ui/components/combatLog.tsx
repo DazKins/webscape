@@ -13,7 +13,7 @@ type CombatLogEntry = {
   kind: string;
 };
 
-export default function CombatLog(props: Props) {
+export function CombatLogContent(props: Props) {
   const [entries, setEntries] = useState<CombatLogEntry[]>([]);
 
   const updateCombatLog = () => {
@@ -46,28 +46,34 @@ export default function CombatLog(props: Props) {
   }, [props.game]);
 
   return (
+    <div className={panelStyles.panelContent}>
+      {entries.length === 0 ? (
+        <div className={styles.empty}>No combat yet</div>
+      ) : (
+        entries.map((entry, index) => (
+          <div
+            key={index}
+            className={`${styles.entry} ${
+              entry.kind === "crit"
+                ? styles.entryCrit
+                : entry.kind === "miss"
+                ? styles.entryMiss
+                : styles.entryHit
+            }`}
+          >
+            {entry.text}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+export default function CombatLog(props: Props) {
+  return (
     <div className={`${panelStyles.panel} ${styles.container}`}>
       <div className={panelStyles.panelHeader}>Combat Log</div>
-      <div className={panelStyles.panelContent}>
-        {entries.length === 0 ? (
-          <div className={styles.empty}>No combat yet</div>
-        ) : (
-          entries.map((entry, index) => (
-            <div
-              key={index}
-              className={`${styles.entry} ${
-                entry.kind === "crit"
-                  ? styles.entryCrit
-                  : entry.kind === "miss"
-                  ? styles.entryMiss
-                  : styles.entryHit
-              }`}
-            >
-              {entry.text}
-            </div>
-          ))
-        )}
-      </div>
+      <CombatLogContent game={props.game} />
     </div>
   );
 }

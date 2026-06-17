@@ -69,6 +69,8 @@ export default function InteractionMenu(props: Props) {
           ref={ref}
           onClick={(e) => e.stopPropagation()}
           onMouseMove={(e) => e.stopPropagation()}
+          onMouseEnter={() => props.game.setPointerOverUi(true)}
+          onMouseLeave={() => props.game.setPointerOverUi(false)}
         >
           <p className={styles.name}>{name}</p>
           <div className={styles.interactionOptions}>

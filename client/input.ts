@@ -6,6 +6,7 @@ class Input {
   keys: Record<string, boolean>;
   mousePosition: { x: number; y: number };
   mouseButtons: Record<number, boolean>;
+  pointerBlocked: boolean;
 
   activeReceiver?: InputReceiver;
 
@@ -13,6 +14,7 @@ class Input {
     this.keys = {};
     this.mousePosition = { x: 0, y: 0 };
     this.mouseButtons = {};
+    this.pointerBlocked = false;
 
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
@@ -74,6 +76,14 @@ class Input {
 
   getMouseButton(button: number) {
     return this.mouseButtons[button] || false;
+  }
+
+  setPointerBlocked(blocked: boolean) {
+    this.pointerBlocked = blocked;
+  }
+
+  isPointerBlocked() {
+    return this.pointerBlocked;
   }
 
   registerClickCallback(callback: () => void) {

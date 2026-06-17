@@ -1,0 +1,72 @@
+.root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hudPanel {
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.leftPanel {
+  left: 20px;
+  bottom: 20px;
+  width: 500px;
+  height: 220px;
+}
+
+.rightPanel {
+  right: 20px;
+  bottom: 20px;
+  width: 300px;
+  height: 480px;
+}
+
+.tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 2px solid rgba(230, 230, 230, 0.5);
+  background-color: rgba(0, 0, 0, 0.34);
+}
+
+.tabButton {
+  height: 36px;
+  min-width: 0;
+  border: 1px solid rgba(150, 150, 150, 0.26);
+  border-radius: 4px;
+  background-color: rgba(35, 35, 35, 0.68);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+}
+
+.tabButton:hover {
+  border-color: rgba(230, 230, 230, 0.6);
+  background-color: rgba(65, 65, 65, 0.78);
+}
+
+.activeTab {
+  border-color: rgba(170, 205, 255, 0.85);
+  background-color: rgba(55, 75, 112, 0.9);
+}
+
+.tabIcon {
+  width: 28px;
+  height: 28px;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.panelBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

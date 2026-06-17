@@ -13,7 +13,7 @@ type Chat = {
   from: string;
 };
 
-export default function ChatBox(props: Props) {
+export function ChatBoxContent(props: Props) {
   const [typedText, setTypedText] = useState("");
   const [chats, setChats] = useState<Chat[]>([]);
 
@@ -49,9 +49,8 @@ export default function ChatBox(props: Props) {
   }, [props.game]);
 
   return (
-    <div className={`${panelStyles.panel} ${styles.container}`}>
-      <div className={panelStyles.panelHeader}>Chat</div>
-      <div className={panelStyles.panelContent}>
+    <>
+      <div className={`${panelStyles.panelContent} ${styles.messages}`}>
         {chats.map((chat, index) => (
           <div key={index} className={styles.chat}>
             <span className={styles.chatFrom}>{chat.from}</span>: {chat.message}
@@ -62,6 +61,15 @@ export default function ChatBox(props: Props) {
         <span className={styles.inputPrefix}>{"> "}</span>
         {typedText}*
       </div>
+    </>
+  );
+}
+
+export default function ChatBox(props: Props) {
+  return (
+    <div className={`${panelStyles.panel} ${styles.container}`}>
+      <div className={panelStyles.panelHeader}>Chat</div>
+      <ChatBoxContent game={props.game} />
     </div>
   );
 }

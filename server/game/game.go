@@ -377,14 +377,16 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 	))
 }
 
-func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) {
+func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) bool {
 	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId)
 	if inventory == nil || item == nil {
-		return
+		return false
 	}
 
 	inventoryComponent := inventory.(*component.CInventory)
-	inventoryComponent.AddItem(item)
+	if !inventoryComponent.AddItem(item) {
+		return false
+	}
 	g.componentManager.SetEntityComponent(playerEntityId, inventoryComponent)
 
 	if item.Type != "" {
@@ -393,6 +395,7 @@ func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *mod
 	if item.Name != "" {
 		g.EmitGameEvent(gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId))
 	}
+	return true
 }
 
 func (g *Game) serializedComponentsSnapshot() map[component.ComponentId]map[model.EntityId]util.Json {
@@ -515,17 +518,37 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 		return
 	}
 
+	inventoryComponent := inventory.(*component.CInventory)
+	totalItemCount := 0
+	for _, lootItem := range lootableComponent.GetItems() {
+		count := lootItem.Count
+		if count < 1 {
+			count = 1
+		}
+		totalItemCount += count
+	}
+	if totalItemCount > inventoryComponent.AvailableSlots() {
+		return
+	}
+
+	allItemsAdded := true
 	for _, lootItem := range lootableComponent.GetItems() {
 		count := lootItem.Count
 		if count < 1 {
 			count = 1
 		}
 		for i := 0; i < count; i++ {
-			g.AddItemToPlayerInventory(playerEntityId, lootItem.CreateItem())
+			if !g.AddItemToPlayerInventory(playerEntityId, lootItem.CreateItem()) {
+				allItemsAdded = false
+				break
+			}
+		}
+		if !allItemsAdded {
+			break
 		}
 	}
 
-	if lootableComponent.IsOnce() {
+	if allItemsAdded && lootableComponent.IsOnce() {
 		lootableComponent.SetLooted(true)
 		g.componentManager.SetEntityComponent(targetEntityId, lootableComponent)
 	}
@@ -664,8 +687,10 @@ func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
 	}
 
 	slot := *item.GetEquipmentSlot()
+	if !inventoryComponent.RemoveItem(itemId) {
+		return
+	}
 	previousItem := equippedComponent.EquipItem(slot, item)
-	inventoryComponent.RemoveItem(itemId)
 	if previousItem != nil {
 		inventoryComponent.AddItem(previousItem)
 	}
@@ -695,10 +720,12 @@ func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
 	equippedComponent := equipped.(*component.CEquipped)
 	baseStatsComponent := baseStats.(*component.CBaseStats)
 
-	item := equippedComponent.UnequipItem(slot)
-	if item != nil {
-		inventoryComponent.AddItem(item)
+	item := equippedComponent.GetEquippedItem(slot)
+	if item == nil || inventoryComponent.IsFull() {
+		return
 	}
+	equippedComponent.UnequipItem(slot)
+	inventoryComponent.AddItem(item)
 
 	g.componentManager.SetEntityComponent(entityId, inventoryComponent)
 	g.componentManager.SetEntityComponent(entityId, equippedComponent)

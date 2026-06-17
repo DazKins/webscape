@@ -1894,7 +1894,7 @@
           "type": "chest"
         },
         "lootable": {
-          "once": true,
+          "once": false,
           "items": [
             {
               "name": "Mysterious Key",

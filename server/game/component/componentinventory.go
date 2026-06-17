@@ -6,6 +6,7 @@ import (
 )
 
 const ComponentIdInventory = ComponentId("inventory")
+const InventoryCapacity = 20
 
 type CInventory struct {
 	items []*model.Item
@@ -31,8 +32,12 @@ func (c *CInventory) Serialize() util.Json {
 	})
 }
 
-func (c *CInventory) AddItem(item *model.Item) {
+func (c *CInventory) AddItem(item *model.Item) bool {
+	if item == nil || c.IsFull() {
+		return false
+	}
 	c.items = append(c.items, item)
+	return true
 }
 
 func (c *CInventory) RemoveItem(itemId model.ItemId) bool {
@@ -67,4 +72,16 @@ func (c *CInventory) GetAllItems() []*model.Item {
 
 func (c *CInventory) GetItemCount() int {
 	return len(c.items)
+}
+
+func (c *CInventory) IsFull() bool {
+	return len(c.items) >= InventoryCapacity
+}
+
+func (c *CInventory) AvailableSlots() int {
+	available := InventoryCapacity - len(c.items)
+	if available < 0 {
+		return 0
+	}
+	return available
 }

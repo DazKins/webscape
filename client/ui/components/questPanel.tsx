@@ -15,7 +15,7 @@ type QuestProgress = {
   currentCount: number;
 };
 
-export default function QuestPanel(props: Props) {
+export function QuestPanelContent(props: Props) {
   const [active, setActive] = useState<QuestProgress[]>([]);
   const [quests, setQuests] = useState<QuestDefinition[]>([]);
 
@@ -45,33 +45,35 @@ export default function QuestPanel(props: Props) {
     };
   }, [props.game]);
 
-  if (quests.length === 0 && active.length === 0) {
-    return null;
-  }
+  return (
+    <div className={panelStyles.panelContent}>
+      {active.length === 0 ? (
+        <div className={styles.empty}>No active quests</div>
+      ) : (
+        active.map((progress) => {
+          const quest = quests.find((candidate) => candidate.id === progress.questId);
+          const step = quest?.steps[progress.currentStepIndex];
+          const requiredCount = step?.requirement.count ?? 1;
+          return (
+            <div key={progress.questId} className={styles.quest}>
+              <div className={styles.questName}>{quest?.displayName || quest?.id || progress.questId}</div>
+              <div className={styles.stepText}>{step?.description || progress.stepId}</div>
+              <div className={styles.progress}>
+                {Math.min(progress.currentCount, requiredCount)} / {requiredCount}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
 
+export default function QuestPanel(props: Props) {
   return (
     <div className={`${panelStyles.panel} ${styles.container}`}>
       <div className={panelStyles.panelHeader}>Quests</div>
-      <div className={panelStyles.panelContent}>
-        {active.length === 0 ? (
-          <div className={styles.empty}>No active quests</div>
-        ) : (
-          active.map((progress) => {
-            const quest = quests.find((candidate) => candidate.id === progress.questId);
-            const step = quest?.steps[progress.currentStepIndex];
-            const requiredCount = step?.requirement.count ?? 1;
-            return (
-              <div key={progress.questId} className={styles.quest}>
-                <div className={styles.questName}>{quest?.displayName || quest?.id || progress.questId}</div>
-                <div className={styles.stepText}>{step?.description || progress.stepId}</div>
-                <div className={styles.progress}>
-                  {Math.min(progress.currentCount, requiredCount)} / {requiredCount}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+      <QuestPanelContent game={props.game} />
     </div>
   );
 }

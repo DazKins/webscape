@@ -9,6 +9,10 @@
 
 /* Content uses panelContent styles, this is just for chat-specific overrides if needed */
 
+.messages {
+  min-height: 0;
+}
+
 .chat {
   padding: 5px;
   box-sizing: border-box;
