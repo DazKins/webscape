@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "new_conversation",
-  "displayName": "DazKins Field Briefing",
+  "displayName": "DazKins' Rat Problem",
   "conversations": [
     {
       "id": "new_conversation",
@@ -11,171 +11,121 @@
           "id": "start",
           "messages": [
             {
-              "text": "You there. Keep your boots on the road unless you like arguing with shrubs."
+              "text": "You there. I could use a steady pair of hands. A rat has been tearing through this field, and I think it has been nosing around an old chest to the west."
             },
             {
-              "text": "Name's DazKins. I watch this field, count the stones, and pretend that is a real job."
+              "text": "Search the chest for anything unusual, then head east and deal with the rat. Find the key before you pick the fight; I want to know what drew the creature here."
             }
           ],
           "options": [
             {
-              "id": "ask_field",
-              "text": "What is this place?",
-              "nextNodeId": "field"
+              "id": "ask_key",
+              "text": "What am I looking for in the chest?",
+              "nextNodeId": "key"
             },
             {
-              "id": "ask_work",
-              "text": "Need help with anything?",
-              "nextNodeId": "work"
+              "id": "ask_rat",
+              "text": "Where can I find the rat?",
+              "nextNodeId": "rat"
             },
             {
-              "id": "ask_stones",
-              "text": "Why count stones?",
-              "nextNodeId": "stones"
+              "id": "ask_reward",
+              "text": "What's in it for me?",
+              "nextNodeId": "reward"
             },
             {
-              "id": "leave",
-              "text": "I'll be going.",
-              "nextNodeId": "goodbye"
+              "id": "accept",
+              "text": "I'll find the key and deal with the rat.",
+              "nextNodeId": "accepted"
             }
           ]
         },
         {
-          "id": "field",
+          "id": "key",
           "messages": [
             {
-              "text": "Starter Field. Looks peaceful from far away, which is how it gets you."
+              "text": "The chest is west of here, near the far edge of the field. It has been sitting there longer than I have."
             },
             {
-              "text": "The road is quick, the grass is slow, and the rocks mark old survey lines from before anyone remembered why they cared."
+              "text": "If there is a key inside, it will not belong to any lock around here. Take it with you. We can worry about what it opens after the field is safe."
             }
           ],
           "options": [
             {
-              "id": "ask_work",
-              "text": "So what needs doing?",
-              "nextNodeId": "work"
+              "id": "ask_rat",
+              "text": "And the rat?",
+              "nextNodeId": "rat"
             },
             {
-              "id": "ask_bains",
-              "text": "Who is Bains?",
-              "nextNodeId": "bains"
+              "id": "ask_reward",
+              "text": "What do I get for this?",
+              "nextNodeId": "reward"
             },
             {
-              "id": "back",
-              "text": "I had another question.",
-              "nextNodeId": "start"
+              "id": "accept",
+              "text": "I'll start with the chest.",
+              "nextNodeId": "accepted"
             }
           ]
         },
         {
-          "id": "work",
+          "id": "rat",
           "messages": [
             {
-              "text": "If you want useful work, walk the road east and make sure Bains is still awake."
+              "text": "It prowls southeast of here, beyond the road. Follow the trampled grass and you should find it before it finds your ankles."
             },
             {
-              "text": "If you want dangerous work, poke around the tall grass and tell me which bushes poke back."
+              "text": "Do not let its size fool you. Find the key first, then put the rat down."
             }
           ],
           "options": [
             {
-              "id": "accept_bains",
-              "text": "I'll check on Bains.",
-              "nextNodeId": "check_bains"
+              "id": "ask_key",
+              "text": "Tell me about the key.",
+              "nextNodeId": "key"
             },
             {
-              "id": "ask_stones",
-              "text": "Tell me about the stones first.",
-              "nextNodeId": "stones"
+              "id": "ask_reward",
+              "text": "What is the reward?",
+              "nextNodeId": "reward"
             },
             {
-              "id": "back",
-              "text": "Another question.",
-              "nextNodeId": "start"
+              "id": "accept",
+              "text": "Understood.",
+              "nextNodeId": "accepted"
             }
           ]
         },
         {
-          "id": "stones",
+          "id": "reward",
           "messages": [
             {
-              "text": "Every morning there are twenty-seven stones by the ridge."
-            },
-            {
-              "text": "Every evening there are twenty-eight."
-            },
-            {
-              "text": "I do not like that kind of arithmetic."
+              "text": "I have an ancient scroll tucked away for someone willing to earn it. Clear up this business with the key and the rat, and it is yours."
             }
           ],
           "options": [
             {
-              "id": "offer_help",
-              "text": "I can investigate.",
-              "nextNodeId": "investigate"
+              "id": "ask_key",
+              "text": "Where is the key?",
+              "nextNodeId": "key"
             },
             {
-              "id": "ask_field",
-              "text": "Maybe this field has a history.",
-              "nextNodeId": "field"
+              "id": "ask_rat",
+              "text": "Where is the rat?",
+              "nextNodeId": "rat"
             },
             {
-              "id": "leave",
-              "text": "That sounds like your problem.",
-              "nextNodeId": "goodbye"
+              "id": "accept",
+              "text": "We have a deal.",
+              "nextNodeId": "accepted"
             }
           ]
         },
         {
-          "id": "bains",
+          "id": "accepted",
           "messages": [
             {
-              "text": "Bains is the other sentry. Stands east, talks little, notices plenty."
-            },
-            {
-              "text": "If Bains waves, wave back. If Bains runs, run first and ask later."
-            }
-          ],
-          "options": [
-            {
-              "id": "accept_bains",
-              "text": "I'll go check on Bains.",
-              "nextNodeId": "check_bains"
-            },
-            {
-              "id": "back",
-              "text": "I had another question.",
-              "nextNodeId": "start"
-            }
-          ]
-        },
-        {
-          "id": "check_bains",
-          "messages": [
-            {
-              "text": "Good. Follow the road east. If Bains complains that I sent you, say I used the word patrol. Sounds official."
-            }
-          ],
-          "endConversation": true
-        },
-        {
-          "id": "investigate",
-          "messages": [
-            {
-              "text": "Brave, bored, or new. Hard to tell the difference from here."
-            },
-            {
-              "text": "Check the stones near the broken grass, then come back with anything stranger than my current theory."
-            }
-          ],
-          "endConversation": true
-        },
-        {
-          "id": "goodbye",
-          "messages": [
-            {
-              "text": "Keep your eyes open. If the field waves first, do not wave back."
+              "text": "Good. Search the old chest to the west for the mysterious key, then head southeast and kill the rat. Come back in one piece; the scroll is no use to a corpse."
             }
           ],
           "endConversation": true
