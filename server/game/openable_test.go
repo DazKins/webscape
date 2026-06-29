@@ -111,6 +111,7 @@ func loadOpenableTestWorld(t *testing.T, includeQuest bool) *world.World {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "grass"],
+				"heights": [0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",

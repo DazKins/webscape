@@ -69,6 +69,7 @@ func loadPathingTestWorld(t *testing.T) *world.World {
 				"id": "test",
 				"size": { "x": 3, "y": 1 },
 				"terrain": ["grass", "grass", "grass"],
+				"heights": [0, 0, 0],
 				"blockers": [false, true, false],
 				"entities": []
 			}`),

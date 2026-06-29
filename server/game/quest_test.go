@@ -31,6 +31,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
+				"heights": [0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",
@@ -435,6 +436,7 @@ func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {
 				"id": "test",
 				"size": { "x": 3, "y": 3 },
 				"terrain": ["grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass", "grass"],
+				"heights": [0, 0, 0, 0, 0, 0, 0, 0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",

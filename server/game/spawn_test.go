@@ -142,6 +142,7 @@ func loadSpawnTestWorld(t *testing.T, respawnTicks int) *world.World {
 				"id": "test",
 				"size": { "x": 4, "y": 1 },
 				"terrain": ["grass", "grass", "grass", "grass"],
+				"heights": [0, 0, 0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",

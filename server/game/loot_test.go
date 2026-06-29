@@ -29,6 +29,7 @@ func TestLootableObjectAddsAuthoredItemsToPlayerInventory(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
+				"heights": [0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",
