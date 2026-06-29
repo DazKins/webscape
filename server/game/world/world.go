@@ -13,24 +13,26 @@ type World struct {
 	sizeX int
 	sizeY int
 
-	terrain        []string
-	blockers       [][]bool
-	wallBlockers   [][]bool
-	walls          []WorldWall
-	entities       []WorldEntity
-	conversations  *ConversationRegistry
-	quests         *QuestRegistry
+	terrain       []string
+	heights       []int
+	blockers      [][]bool
+	wallBlockers  [][]bool
+	walls         []WorldWall
+	entities      []WorldEntity
+	conversations *ConversationRegistry
+	quests        *QuestRegistry
 }
 
 type worldFormat struct {
-	FormatVersion int           `json:"formatVersion"`
-	Id            string        `json:"id"`
-	DisplayName   string        `json:"displayName"`
-	Size          worldSize     `json:"size"`
-	Terrain       []string      `json:"terrain"`
-	Blockers      []bool        `json:"blockers"`
-	Walls         []WorldWall   `json:"walls"`
-	Entities      []WorldEntity `json:"entities"`
+	FormatVersion int               `json:"formatVersion"`
+	Id            string            `json:"id"`
+	DisplayName   string            `json:"displayName"`
+	Size          worldSize         `json:"size"`
+	Terrain       []string          `json:"terrain"`
+	Heights       []json.RawMessage `json:"heights"`
+	Blockers      []bool            `json:"blockers"`
+	Walls         []WorldWall       `json:"walls"`
+	Entities      []WorldEntity     `json:"entities"`
 }
 
 type gameFormat struct {
@@ -120,6 +122,10 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 	for _, wall := range format.Walls {
 		wallBlockers[wall.X][wall.Y] = true
 	}
+	heights, err := parseTerrainHeights(format.Heights, format.Size.X*format.Size.Y)
+	if err != nil {
+		return nil, err
+	}
 
 	entities := make([]WorldEntity, 0, len(format.Entities))
 	entities = append(entities, format.Entities...)
@@ -128,6 +134,7 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 		sizeX:        format.Size.X,
 		sizeY:        format.Size.Y,
 		terrain:      format.Terrain,
+		heights:      heights,
 		blockers:     blockers,
 		wallBlockers: wallBlockers,
 		walls:        format.Walls,
@@ -137,6 +144,7 @@ func loadWorldFromBytes(data []byte) (*World, error) {
 
 func NewWorld(sizeX int, sizeY int) *World {
 	terrain := make([]string, sizeX*sizeY)
+	heights := make([]int, sizeX*sizeY)
 	for i := range terrain {
 		terrain[i] = "grass"
 	}
@@ -145,6 +153,7 @@ func NewWorld(sizeX int, sizeY int) *World {
 		sizeX:        sizeX,
 		sizeY:        sizeY,
 		terrain:      terrain,
+		heights:      heights,
 		blockers:     makeBlockerGrid(sizeX, sizeY, nil),
 		wallBlockers: makeBlockerGrid(sizeX, sizeY, nil),
 	}
@@ -177,6 +186,12 @@ func (w *World) GetBlockers() [][]bool {
 func (w *World) GetTerrain() []string {
 	result := make([]string, len(w.terrain))
 	copy(result, w.terrain)
+	return result
+}
+
+func (w *World) GetHeights() []int {
+	result := make([]int, len(w.heights))
+	copy(result, w.heights)
 	return result
 }
 
@@ -232,6 +247,9 @@ func validateWorldFormat(format worldFormat) error {
 	if len(format.Terrain) != tileCount {
 		return fmt.Errorf("terrain length must be %d", tileCount)
 	}
+	if _, err := parseTerrainHeights(format.Heights, tileCount); err != nil {
+		return err
+	}
 	if len(format.Blockers) > 0 && len(format.Blockers) != tileCount {
 		return fmt.Errorf("blockers length must be %d", tileCount)
 	}
@@ -262,6 +280,22 @@ func validateWorldFormat(format worldFormat) error {
 		}
 	}
 	return nil
+}
+
+func parseTerrainHeights(rawHeights []json.RawMessage, tileCount int) ([]int, error) {
+	if len(rawHeights) != tileCount {
+		return nil, fmt.Errorf("heights length must be %d", tileCount)
+	}
+
+	heights := make([]int, len(rawHeights))
+	for index, rawHeight := range rawHeights {
+		var height int
+		if err := json.Unmarshal(rawHeight, &height); err != nil || height < 0 || height > 10 {
+			return nil, fmt.Errorf("heights[%d] must be an integer from 0 to 10", index)
+		}
+		heights[index] = height
+	}
+	return heights, nil
 }
 
 func validateGameFormat(format gameFormat) error {
