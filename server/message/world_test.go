@@ -25,7 +25,8 @@ func TestWorldMessageIncludesQuestRewards(t *testing.T) {
 				"formatVersion": 1,
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
+				"terrain": ["grass"],
+				"heights": [0]
 			}`),
 		},
 		"quests/tutorial.json": {
