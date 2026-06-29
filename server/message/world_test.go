@@ -2,6 +2,7 @@ package message
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 	"testing/fstest"
 	"webscape/server/game/world"
@@ -80,5 +81,47 @@ func TestWorldMessageIncludesQuestRewards(t *testing.T) {
 	reward := payload.Data.Quests[0].Rewards.Items[0]
 	if reward.Name != "Ancient Scroll" || reward.Type != "quest" || reward.Count != 1 {
 		t.Fatalf("reward = %#v, want Ancient Scroll quest x1", reward)
+	}
+}
+
+func TestWorldMessageIncludesTerrainHeights(t *testing.T) {
+	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": []
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 2, "y": 2 },
+				"terrain": ["grass", "road", "water", "stone"],
+				"heights": [0, 2, 5, 10]
+			}`),
+		},
+	})
+	if err != nil {
+		t.Fatalf("LoadFromGameFS returned error: %v", err)
+	}
+
+	msg := NewWorldMessage(testWorld)
+	var payload struct {
+		Data struct {
+			Heights []int `json:"heights"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(msg.Marshal()), &payload); err != nil {
+		t.Fatalf("unmarshal world message: %v", err)
+	}
+	want := []int{0, 2, 5, 10}
+	if !slices.Equal(payload.Data.Heights, want) {
+		t.Fatalf("heights = %#v, want %#v", payload.Data.Heights, want)
 	}
 }
