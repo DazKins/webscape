@@ -7,6 +7,7 @@ class World {
   sizeX: number;
   sizeY: number;
   terrain: string[];
+  heights: number[];
   blockers: boolean[][];
   walls: WorldWall[];
   input: Input;
@@ -18,6 +19,7 @@ class World {
     sizeX: number,
     sizeY: number,
     terrain: string[],
+    heights: number[],
     blockers: boolean[][],
     walls: WorldWall[],
     input: Input
@@ -25,6 +27,7 @@ class World {
     this.sizeX = sizeX;
     this.sizeY = sizeY;
     this.terrain = terrain;
+    this.heights = heights;
     this.blockers = blockers;
     this.walls = walls;
     this.input = input;

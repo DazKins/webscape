@@ -310,6 +310,7 @@ class Game extends EventTarget implements InputReceiver {
       worldUpdate.sizeX,
       worldUpdate.sizeY,
       worldUpdate.terrain ?? [],
+      worldUpdate.heights ?? [],
       worldUpdate.blockers ?? [],
       worldUpdate.walls ?? [],
       this.input
