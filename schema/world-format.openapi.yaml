@@ -19,6 +19,7 @@ components:
         - id
         - size
         - terrain
+        - heights
       properties:
         formatVersion:
           type: integer
@@ -42,6 +43,16 @@ components:
             `terrain[y * size.x + x]`.
           items:
             $ref: "#/components/schemas/TerrainType"
+        heights:
+          type: array
+          description: |
+            Required flat row-major terrain height layer. Coordinate (x, y) is
+            stored at `heights[y * size.x + x]`. Each value must be an integer
+            from 0 through 10.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 10
         blockers:
           type: array
           description: |
@@ -194,6 +205,13 @@ components:
           - water
           - grass
           - road
+        heights:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
         blockers:
           - false
           - false
