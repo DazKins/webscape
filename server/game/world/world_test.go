@@ -1,6 +1,7 @@
 package world
 
 import (
+	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -24,6 +25,7 @@ func TestLoadFromGameFSLoadsFirstMap(t *testing.T) {
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
+				"heights": [0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",
@@ -49,6 +51,140 @@ func TestLoadFromGameFSLoadsFirstMap(t *testing.T) {
 	terrain := world.GetTerrain()
 	if len(terrain) != 2 || terrain[0] != "grass" || terrain[1] != "road" {
 		t.Fatalf("terrain = %#v, want grass/road", terrain)
+	}
+}
+
+func TestLoadFromGameFSLoadsTerrainHeights(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": []
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 3, "y": 2 },
+				"terrain": ["grass", "road", "water", "stone", "grass", "road"],
+				"heights": [0, 1, 2, 3, 4, 5]
+			}`),
+		},
+	}
+
+	world, err := LoadFromGameFS(gameFS)
+	if err != nil {
+		t.Fatalf("LoadFromGameFS returned error: %v", err)
+	}
+
+	heights := world.GetHeights()
+	if len(heights) != 6 || heights[0] != 0 || heights[1] != 1 || heights[5] != 5 {
+		t.Fatalf("heights = %#v, want row-major [0 1 2 3 4 5]", heights)
+	}
+
+	heights[0] = 10
+	again := world.GetHeights()
+	if again[0] != 0 {
+		t.Fatalf("GetHeights returned mutable storage; got first height %d, want 0", again[0])
+	}
+}
+
+func TestLoadFromGameFSRejectsMissingHeights(t *testing.T) {
+	gameFS := fstest.MapFS{
+		"game.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test_game",
+				"files": {
+					"maps": ["maps/test.json"],
+					"conversations": [],
+					"quests": []
+				}
+			}`),
+		},
+		"maps/test.json": {
+			Data: []byte(`{
+				"formatVersion": 1,
+				"id": "test",
+				"size": { "x": 1, "y": 1 },
+				"terrain": ["grass"]
+			}`),
+		},
+	}
+
+	if _, err := LoadFromGameFS(gameFS); err == nil || !strings.Contains(err.Error(), "heights length must be 1") {
+		t.Fatalf("LoadFromGameFS error = %v, want missing heights length error", err)
+	}
+}
+
+func TestLoadFromGameFSRejectsInvalidHeights(t *testing.T) {
+	tests := []struct {
+		name      string
+		heights   string
+		wantError string
+	}{
+		{
+			name:      "wrong length",
+			heights:   `[0]`,
+			wantError: "heights length must be 2",
+		},
+		{
+			name:      "fractional",
+			heights:   `[1.5, 0]`,
+			wantError: "heights[0] must be an integer from 0 to 10",
+		},
+		{
+			name:      "string",
+			heights:   `["1", 0]`,
+			wantError: "heights[0] must be an integer from 0 to 10",
+		},
+		{
+			name:      "below minimum",
+			heights:   `[-1, 0]`,
+			wantError: "heights[0] must be an integer from 0 to 10",
+		},
+		{
+			name:      "above maximum",
+			heights:   `[11, 0]`,
+			wantError: "heights[0] must be an integer from 0 to 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gameFS := fstest.MapFS{
+				"game.json": {
+					Data: []byte(`{
+						"formatVersion": 1,
+						"id": "test_game",
+						"files": {
+							"maps": ["maps/test.json"],
+							"conversations": [],
+							"quests": []
+						}
+					}`),
+				},
+				"maps/test.json": {
+					Data: []byte(`{
+						"formatVersion": 1,
+						"id": "test",
+						"size": { "x": 2, "y": 1 },
+						"terrain": ["grass", "road"],
+						"heights": ` + tt.heights + `
+					}`),
+				},
+			}
+
+			if _, err := LoadFromGameFS(gameFS); err == nil || !strings.Contains(err.Error(), tt.wantError) {
+				t.Fatalf("LoadFromGameFS error = %v, want %q", err, tt.wantError)
+			}
+		})
 	}
 }
 
@@ -91,6 +227,7 @@ func TestLoadFromGameFSRejectsSpawnTemplatePosition(t *testing.T) {
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
 				"terrain": ["grass"],
+				"heights": [0],
 				"entities": [
 					{
 						"id": "rat_spawn_001",
@@ -136,6 +273,7 @@ func TestLoadFromGameFSLoadsConversationsAndAuthoredConversationComponent(t *tes
 				"id": "test",
 				"size": { "x": 2, "y": 1 },
 				"terrain": ["grass", "road"],
+				"heights": [0, 0],
 				"entities": [
 					{
 						"id": "player_spawn",
@@ -216,7 +354,8 @@ func TestLoadFromGameFSLoadsQuests(t *testing.T) {
 				"formatVersion": 1,
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
+				"terrain": ["grass"],
+				"heights": [0]
 			}`),
 		},
 		"quests/tutorial.json": {
@@ -277,7 +416,8 @@ func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
 				"formatVersion": 1,
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
+				"terrain": ["grass"],
+				"heights": [0]
 			}`),
 		},
 		"quests/tutorial.json": {
@@ -328,7 +468,8 @@ func TestLoadFromGameFSRejectsQuestWithoutRewards(t *testing.T) {
 				"formatVersion": 1,
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
+				"terrain": ["grass"],
+				"heights": [0]
 			}`),
 		},
 		"quests/tutorial.json": {
@@ -374,7 +515,8 @@ func TestLoadFromGameFSRejectsInvalidQuestReward(t *testing.T) {
 				"formatVersion": 1,
 				"id": "test",
 				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
+				"terrain": ["grass"],
+				"heights": [0]
 			}`),
 		},
 		"quests/tutorial.json": {
