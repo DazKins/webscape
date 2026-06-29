@@ -155,12 +155,16 @@ export function validateWorld(world: WorldFormat): ValidationResult {
 
 export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain: string): WorldFormat {
   const terrain = new Array(nextSize.x * nextSize.y).fill(fillTerrain || "grass");
+  const heights = new Array(nextSize.x * nextSize.y).fill(0);
   const blockers = new Array(nextSize.x * nextSize.y).fill(false);
 
   for (let y = 0; y < Math.min(world.size.y, nextSize.y); y += 1) {
     for (let x = 0; x < Math.min(world.size.x, nextSize.x); x += 1) {
-      terrain[tileIndex(nextSize, x, y)] = world.terrain[tileIndex(world.size, x, y)];
-      blockers[tileIndex(nextSize, x, y)] = Boolean(world.blockers?.[tileIndex(world.size, x, y)]);
+      const nextIndex = tileIndex(nextSize, x, y);
+      const previousIndex = tileIndex(world.size, x, y);
+      terrain[nextIndex] = world.terrain[previousIndex];
+      heights[nextIndex] = world.heights[previousIndex];
+      blockers[nextIndex] = Boolean(world.blockers?.[previousIndex]);
     }
   }
 
@@ -168,6 +172,7 @@ export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain
     ...world,
     size: nextSize,
     terrain,
+    heights,
     blockers,
     walls: world.walls.filter((wall) => isInBounds(nextSize, wall.x, wall.y)),
     entities: world.entities.filter((entity) => {
