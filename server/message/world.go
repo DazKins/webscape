@@ -6,6 +6,7 @@ type worldData struct {
 	SizeX    int               `json:"sizeX"`
 	SizeY    int               `json:"sizeY"`
 	Terrain  []string          `json:"terrain"`
+	Heights  []int             `json:"heights"`
 	Blockers [][]bool          `json:"blockers"`
 	Walls    []world.WorldWall `json:"walls"`
 	Quests   []questData       `json:"quests"`
@@ -48,6 +49,7 @@ func NewWorldMessage(world *world.World) Message {
 			SizeX:    world.GetSizeX(),
 			SizeY:    world.GetSizeY(),
 			Terrain:  world.GetTerrain(),
+			Heights:  world.GetHeights(),
 			Blockers: world.GetBlockers(),
 			Walls:    world.GetWalls(),
 			Quests:   serializeQuests(world.GetQuestRegistry().All()),
