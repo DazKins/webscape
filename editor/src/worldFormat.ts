@@ -8,6 +8,7 @@ export type WorldFormat = {
   displayName?: string;
   size: WorldSize;
   terrain: string[];
+  heights: number[];
   blockers?: boolean[];
   walls: WorldWall[];
   entities: WorldEntity[];
@@ -31,6 +32,8 @@ export type WorldWall = {
 };
 
 const DEFAULT_SIZE: WorldSize = { x: 12, y: 8 };
+const MIN_HEIGHT = 0;
+const MAX_HEIGHT = 10;
 
 export function createBlankWorld(): WorldFormat {
   return {
@@ -39,6 +42,7 @@ export function createBlankWorld(): WorldFormat {
     displayName: "New World",
     size: DEFAULT_SIZE,
     terrain: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill("grass"),
+    heights: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(0),
     blockers: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(false),
     walls: [],
     entities: [],
@@ -70,6 +74,7 @@ export function normalizeWorld(value: unknown): WorldFormat {
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
     size,
     terrain: Array.isArray(value.terrain) ? value.terrain.map(String) : [],
+    heights: Array.isArray(value.heights) ? ([...value.heights] as number[]) : [],
     blockers: Array.isArray(value.blockers) ? value.blockers.map(Boolean) : undefined,
     walls: Array.isArray(value.walls) ? value.walls.map(normalizeWall) : [],
     entities: Array.isArray(value.entities) ? value.entities.map(normalizeEntity) : [],
@@ -106,6 +111,16 @@ export function validateWorld(world: WorldFormat): ValidationResult {
   if (world.terrain.length !== tileCount) {
     errors.push(`terrain length must be ${tileCount}`);
   }
+
+  const heights = Array.isArray(world.heights) ? world.heights : [];
+  if (heights.length !== tileCount) {
+    errors.push(`heights length must be ${tileCount}`);
+  }
+  heights.forEach((height, index) => {
+    if (!Number.isInteger(height) || height < MIN_HEIGHT || height > MAX_HEIGHT) {
+      errors.push(`heights[${index}] must be an integer from ${MIN_HEIGHT} to ${MAX_HEIGHT}`);
+    }
+  });
 
   if (world.blockers && world.blockers.length !== tileCount) {
     errors.push(`blockers length must be ${tileCount}`);
@@ -165,6 +180,7 @@ export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain
 export function serializeWorld(world: WorldFormat): string {
   return serializeJson({
     ...world,
+    heights: world.heights,
     blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
     walls: world.walls,
     entities: world.entities,
