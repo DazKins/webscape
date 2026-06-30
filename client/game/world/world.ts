@@ -2,6 +2,12 @@ import * as THREE from "three";
 import Input from "../../input";
 import Camera from "../camera";
 import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
+import {
+  createTerrainSurfaceGeometry,
+  getTileHeight,
+  sampleTerrainHeight,
+  type TerrainHeightGrid,
+} from "./terrainHeight";
 
 class World {
   sizeX: number;
@@ -13,6 +19,7 @@ class World {
   input: Input;
   mesh: THREE.Mesh;
   highlightMesh: THREE.Mesh;
+  heightGrid: TerrainHeightGrid;
 
   constructor(
     scene: THREE.Scene,
@@ -31,17 +38,15 @@ class World {
     this.blockers = blockers;
     this.walls = walls;
     this.input = input;
+    this.heightGrid = { sizeX, sizeY, heights };
 
     this.mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(sizeX, sizeY),
+      createTerrainSurfaceGeometry(this.heightGrid, this.terrain, terrainColor),
       new THREE.MeshPhongMaterial({
-        color: 0xe77d11,
+        vertexColors: true,
         side: THREE.DoubleSide,
       })
     );
-    this.mesh.rotation.x = -Math.PI / 2;
-    this.mesh.position.x = sizeX / 2;
-    this.mesh.position.z = sizeY / 2;
     scene.add(this.mesh);
 
     this.highlightMesh = new THREE.Mesh(
@@ -57,24 +62,15 @@ class World {
     this.highlightMesh.position.y = 0.02;
     scene.add(this.highlightMesh);
 
-    this.terrain.forEach((terrainType, index) => {
-      const x = index % sizeX;
-      const y = Math.floor(index / sizeX);
-      const terrainMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(1, 1),
-        new THREE.MeshPhongMaterial({
-          color: terrainColor(terrainType),
-          side: THREE.DoubleSide,
-        })
-      );
-      terrainMesh.rotation.x = -Math.PI / 2;
-      terrainMesh.position.x = x + 0.5;
-      terrainMesh.position.z = y + 0.5;
-      terrainMesh.position.y = 0.005;
-      scene.add(terrainMesh);
-    });
-
     addWallGeometry(scene, this.walls);
+  }
+
+  getVisualHeightAtWorldPosition(worldX: number, worldZ: number) {
+    return sampleTerrainHeight(this.heightGrid, worldX, worldZ);
+  }
+
+  getVisualHeightAtTile(tileX: number, tileY: number) {
+    return getTileHeight(this.heightGrid, tileX, tileY);
   }
 
   getHoveredTile(camera: Camera) {
