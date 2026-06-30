@@ -65,7 +65,7 @@ class Game extends EventTarget implements InputReceiver {
     this.scene = new THREE.Scene();
     this.input = new Input();
     this.camera = new Camera(this.input);
-    this.entityRenderSystem = new EntityRenderSystem(this.scene);
+    this.entityRenderSystem = new EntityRenderSystem(this.scene, () => this.world);
     this.quests = [];
     this.activeConversation = null;
 
@@ -398,13 +398,20 @@ class Game extends EventTarget implements InputReceiver {
     const renderer = this.entityRenderSystem.getRenderers()[entityId];
     const object3D = renderer?.getObject3D();
     if (object3D) {
-      return new THREE.Vector3(object3D.position.x + 0.5, 0, object3D.position.z + 0.5);
+      return new THREE.Vector3(
+        object3D.position.x + 0.5,
+        object3D.position.y,
+        object3D.position.z + 0.5
+      );
     }
 
     const entity = this.entities.find((candidate) => candidate.getId() === entityId);
     const position = entity?.getComponent("position");
     if (position && typeof position.x === "number" && typeof position.y === "number") {
-      return new THREE.Vector3(position.x + 0.5, 0, position.y + 0.5);
+      const visualHeight = this.world
+        ? this.world.getVisualHeightAtTile(position.x, position.y)
+        : 0;
+      return new THREE.Vector3(position.x + 0.5, visualHeight, position.y + 0.5);
     }
 
     return null;

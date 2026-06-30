@@ -79,7 +79,7 @@ export default class Camera {
 
     this.camera.position.x =
       this.cameraTarget.x + Math.cos(this.angle) * this.renderedDistance;
-    this.camera.position.y = this.renderedHeight;
+    this.camera.position.y = this.cameraTarget.y + this.renderedHeight;
     this.camera.position.z =
       this.cameraTarget.z + Math.sin(this.angle) * this.renderedDistance;
 
