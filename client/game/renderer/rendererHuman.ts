@@ -1,5 +1,5 @@
 import Entity from "../entity/entity";
-import EntityRenderer from "./renderer";
+import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
@@ -109,8 +109,12 @@ export default class RendererHuman extends EntityRenderer {
   private segmentElapsedSeconds = SERVER_TICK_SECONDS;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
 
-  constructor(scene: THREE.Scene, entity: Entity) {
-    super(scene, entity);
+  constructor(
+    scene: THREE.Scene,
+    entity: Entity,
+    terrainHeightSampler?: TerrainHeightSampler
+  ) {
+    super(scene, entity, terrainHeightSampler);
 
     let metadataComponent = entity.getComponent("metadata");
     if (!metadataComponent) {
@@ -130,7 +134,11 @@ export default class RendererHuman extends EntityRenderer {
     void this.loadModel();
 
     const positionComponent = this.entity.getComponent("position");
-    this.mesh.position.set(positionComponent.x, 0, positionComponent.y);
+    this.mesh.position.set(
+      positionComponent.x,
+      this.sampleVisualHeight(positionComponent.x + 0.5, positionComponent.y + 0.5),
+      positionComponent.y
+    );
     this.segmentStartX = positionComponent.x;
     this.segmentStartZ = positionComponent.y;
     this.segmentTargetX = positionComponent.x;
@@ -229,10 +237,14 @@ export default class RendererHuman extends EntityRenderer {
 
     this.segmentElapsedSeconds += deltaSeconds;
     const progress = Math.min(this.segmentElapsedSeconds / SERVER_TICK_SECONDS, 1);
+    const renderedX =
+      this.segmentStartX + (this.segmentTargetX - this.segmentStartX) * progress;
+    const renderedZ =
+      this.segmentStartZ + (this.segmentTargetZ - this.segmentStartZ) * progress;
     this.mesh.position.set(
-      this.segmentStartX + (this.segmentTargetX - this.segmentStartX) * progress,
-      0,
-      this.segmentStartZ + (this.segmentTargetZ - this.segmentStartZ) * progress,
+      renderedX,
+      this.sampleVisualHeight(renderedX + 0.5, renderedZ + 0.5),
+      renderedZ,
     );
     this.updateFacing(deltaSeconds);
     this.updateMovementAnimation(this.isMoving());

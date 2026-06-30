@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
 import PositionedEntityRenderer from "./positionedEntityRenderer";
+import type { TerrainHeightSampler } from "./renderer";
 
 export default class RendererRewardDrop extends PositionedEntityRenderer {
-  constructor(scene: THREE.Scene, entity: Entity) {
-    super(scene, entity);
+  constructor(
+    scene: THREE.Scene,
+    entity: Entity,
+    terrainHeightSampler?: TerrainHeightSampler
+  ) {
+    super(scene, entity, terrainHeightSampler);
 
     const bag = new THREE.Mesh(
       new THREE.SphereGeometry(0.28, 16, 12),

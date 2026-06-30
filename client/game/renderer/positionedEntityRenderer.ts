@@ -1,12 +1,16 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
-import EntityRenderer from "./renderer";
+import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
 
 export default class PositionedEntityRenderer extends EntityRenderer {
   mesh: THREE.Group;
 
-  constructor(scene: THREE.Scene, entity: Entity) {
-    super(scene, entity);
+  constructor(
+    scene: THREE.Scene,
+    entity: Entity,
+    terrainHeightSampler?: TerrainHeightSampler
+  ) {
+    super(scene, entity, terrainHeightSampler);
 
     this.mesh = new THREE.Group();
     this.mesh.userData.entityId = entity.getId();
@@ -34,7 +38,12 @@ export default class PositionedEntityRenderer extends EntityRenderer {
     if (!positionComponent) {
       return;
     }
-    this.mesh.position.set(positionComponent.x, 0, positionComponent.y);
+    const footprintSize = this.getFootprintSize();
+    const visualHeight = this.sampleVisualHeight(
+      positionComponent.x + footprintSize.width / 2,
+      positionComponent.y + footprintSize.height / 2
+    );
+    this.mesh.position.set(positionComponent.x, visualHeight, positionComponent.y);
   }
 
   protected getMetadataValue<T>(key: string, fallback: T): T {

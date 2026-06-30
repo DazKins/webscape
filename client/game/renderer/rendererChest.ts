@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
 import PositionedEntityRenderer from "./positionedEntityRenderer";
+import type { TerrainHeightSampler } from "./renderer";
 
 export default class RendererChest extends PositionedEntityRenderer {
-  constructor(scene: THREE.Scene, entity: Entity) {
-    super(scene, entity);
+  constructor(
+    scene: THREE.Scene,
+    entity: Entity,
+    terrainHeightSampler?: TerrainHeightSampler
+  ) {
+    super(scene, entity, terrainHeightSampler);
 
     const body = new THREE.Mesh(
       new THREE.BoxGeometry(0.72, 0.42, 0.54),

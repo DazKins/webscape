@@ -11,32 +11,40 @@ import RendererError from "./renderer/rendererError";
 import RendererRock from "./renderer/rendererRock";
 import RendererTree from "./renderer/rendererTree";
 import RendererRewardDrop from "./renderer/rendererRewardDrop";
+import type { TerrainHeightSampler } from "./renderer/renderer";
+
+type VisualHeightWorld = {
+  getVisualHeightAtWorldPosition(worldX: number, worldZ: number): number;
+};
 
 export default class EntityRenderSystem {
   scene: THREE.Scene;
   renderers: Record<string, EntityRenderer | null>;
+  private sampleVisualHeight: TerrainHeightSampler;
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: THREE.Scene, getWorld?: () => VisualHeightWorld | undefined) {
     this.scene = scene;
     this.renderers = {};
+    this.sampleVisualHeight = (worldX: number, worldZ: number) =>
+      getWorld?.()?.getVisualHeightAtWorldPosition(worldX, worldZ) ?? 0;
   }
 
   createRenderer(renderableType: string, entity: Entity): EntityRenderer | null {
     switch (renderableType) {
       case "human":
-        return new RendererHuman(this.scene, entity);
+        return new RendererHuman(this.scene, entity, this.sampleVisualHeight);
       case "tree":
-        return new RendererTree(this.scene, entity);
+        return new RendererTree(this.scene, entity, this.sampleVisualHeight);
       case "door":
-        return new RendererDoor(this.scene, entity);
+        return new RendererDoor(this.scene, entity, this.sampleVisualHeight);
       case "chest":
-        return new RendererChest(this.scene, entity);
+        return new RendererChest(this.scene, entity, this.sampleVisualHeight);
       case "rock":
-        return new RendererRock(this.scene, entity);
+        return new RendererRock(this.scene, entity, this.sampleVisualHeight);
       case "building":
-        return new RendererBuilding(this.scene, entity);
+        return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":
-        return new RendererRewardDrop(this.scene, entity);
+        return new RendererRewardDrop(this.scene, entity, this.sampleVisualHeight);
       case "chatmessage":
         const parentRenderer = this.renderers[entity.getComponent("chatmessage").fromEntityId];
         if (!parentRenderer) {
@@ -53,7 +61,7 @@ export default class EntityRenderSystem {
         return new RendererCombatText(this.scene, entity, combatTextParent);
     }
     console.error("unknown renderer type:", renderableType);
-    return new RendererError(this.scene, entity);
+    return new RendererError(this.scene, entity, this.sampleVisualHeight);
   }
 
   update(entities: Entity[], deltaSeconds: number) {

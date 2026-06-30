@@ -1,13 +1,18 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
 import PositionedEntityRenderer from "./positionedEntityRenderer";
+import type { TerrainHeightSampler } from "./renderer";
 
 export default class RendererDoor extends PositionedEntityRenderer {
   private orientationGroup: THREE.Group;
   private doorPivot: THREE.Group;
 
-  constructor(scene: THREE.Scene, entity: Entity) {
-    super(scene, entity);
+  constructor(
+    scene: THREE.Scene,
+    entity: Entity,
+    terrainHeightSampler?: TerrainHeightSampler
+  ) {
+    super(scene, entity, terrainHeightSampler);
 
     this.orientationGroup = new THREE.Group();
     this.orientationGroup.position.set(0.5, 0, 0.5);
