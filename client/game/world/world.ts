@@ -4,6 +4,7 @@ import Camera from "../camera";
 import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
 import {
   createTerrainSurfaceGeometry,
+  createTileHighlightGeometry,
   getTileHeight,
   sampleTerrainHeight,
   type TerrainHeightGrid,
@@ -20,6 +21,7 @@ class World {
   mesh: THREE.Mesh;
   highlightMesh: THREE.Mesh;
   heightGrid: TerrainHeightGrid;
+  highlightedTile: { x: number; y: number } | undefined;
 
   constructor(
     scene: THREE.Scene,
@@ -39,6 +41,7 @@ class World {
     this.walls = walls;
     this.input = input;
     this.heightGrid = { sizeX, sizeY, heights };
+    this.highlightedTile = undefined;
 
     this.mesh = new THREE.Mesh(
       createTerrainSurfaceGeometry(this.heightGrid, this.terrain, terrainColor),
@@ -93,6 +96,10 @@ class World {
       const gridX = Math.floor(point.x);
       const gridY = Math.floor(point.z);
 
+      if (gridX < 0 || gridY < 0 || gridX >= this.sizeX || gridY >= this.sizeY) {
+        return undefined;
+      }
+
       return { x: gridX, y: gridY };
     }
   }
@@ -101,10 +108,22 @@ class World {
     const hoveredTile = this.getHoveredTile(camera);
     if (hoveredTile) {
       this.highlightMesh.visible = true;
-      this.highlightMesh.position.x = hoveredTile.x + 0.5;
-      this.highlightMesh.position.z = hoveredTile.y + 0.5;
+      if (
+        !this.highlightedTile ||
+        this.highlightedTile.x !== hoveredTile.x ||
+        this.highlightedTile.y !== hoveredTile.y
+      ) {
+        this.highlightMesh.geometry.dispose();
+        this.highlightMesh.geometry = createTileHighlightGeometry(
+          this.heightGrid,
+          hoveredTile.x,
+          hoveredTile.y
+        );
+        this.highlightedTile = hoveredTile;
+      }
     } else {
       this.highlightMesh.visible = false;
+      this.highlightedTile = undefined;
     }
   }
 }
