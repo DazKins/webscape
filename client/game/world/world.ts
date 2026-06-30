@@ -61,8 +61,6 @@ class World {
         side: THREE.DoubleSide,
       })
     );
-    this.highlightMesh.rotation.x = -Math.PI / 2;
-    this.highlightMesh.position.y = 0.02;
     scene.add(this.highlightMesh);
 
     addWallGeometry(scene, this.walls);
@@ -114,11 +112,7 @@ class World {
         this.highlightedTile.y !== hoveredTile.y
       ) {
         this.highlightMesh.geometry.dispose();
-        this.highlightMesh.geometry = createTileHighlightGeometry(
-          this.heightGrid,
-          hoveredTile.x,
-          hoveredTile.y
-        );
+        this.highlightMesh.geometry = createTileHighlightGeometry(this.heightGrid, hoveredTile.x, hoveredTile.y);
         this.highlightedTile = hoveredTile;
       }
     } else {
