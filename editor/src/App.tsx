@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { MapViewport3D } from "./MapViewport3D.tsx";
 import {
   createBlankConversationDocument,
   createBlankConversationNode,
@@ -58,8 +59,10 @@ import {
   type QuestDocuments,
   type WorldDocuments,
 } from "./fileSystem.ts";
+import { TERRAIN_SWATCHES, terrainColor } from "./terrainPalette.ts";
 
-type Tool = "terrain" | "blocker" | "wall" | "entity" | "select";
+type Tool = "terrain" | "blocker" | "height" | "wall" | "entity" | "select";
+type HeightBrushMode = "set" | "raise" | "lower";
 type EditorTab = "map" | "conversations" | "quests";
 type Selection =
   | { type: "wall"; id: string }
@@ -67,7 +70,6 @@ type Selection =
   | { type: "tile"; x: number; y: number }
   | null;
 
-const TERRAIN_SWATCHES = ["grass", "dirt", "road", "water", "stone"];
 const WALL_TYPES = ["stone", "wood"];
 const ENTITY_TYPES = ["tree", "door", "building", "chest", "rock", "human"];
 
@@ -92,6 +94,8 @@ function App() {
   const [selection, setSelection] = useState<Selection>(null);
   const [terrainType, setTerrainType] = useState("grass");
   const [blockerValue, setBlockerValue] = useState(true);
+  const [heightBrushMode, setHeightBrushMode] = useState<HeightBrushMode>("set");
+  const [heightBrushValue, setHeightBrushValue] = useState(1);
   const [wallType, setWallType] = useState("stone");
   const [entityType, setEntityType] = useState("tree");
   const [entityBlocksMovement, setEntityBlocksMovement] = useState(true);
@@ -811,6 +815,68 @@ function App() {
     setDirty(true);
   }
 
+  function clampHeight(value: number) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+    return Math.min(10, Math.max(0, Math.floor(value)));
+  }
+
+  function setTileHeight(x: number, y: number, height: number) {
+    updateWorld((current) => {
+      if (x < 0 || y < 0 || x >= current.size.x || y >= current.size.y) {
+        return current;
+      }
+
+      const tileCount = current.size.x * current.size.y;
+      const heights = current.heights.length === tileCount
+        ? [...current.heights]
+        : new Array(tileCount).fill(0);
+      heights[tileIndex(current.size, x, y)] = clampHeight(height);
+      return { ...current, heights };
+    });
+    setSelection({ type: "tile", x, y });
+  }
+
+  function applyHeightBrush(x: number, y: number) {
+    if (heightBrushMode === "set") {
+      setTileHeight(x, y, heightBrushValue);
+      return;
+    }
+
+    updateWorld((current) => {
+      if (x < 0 || y < 0 || x >= current.size.x || y >= current.size.y) {
+        return current;
+      }
+
+      const tileCount = current.size.x * current.size.y;
+      const heights = current.heights.length === tileCount
+        ? [...current.heights]
+        : new Array(tileCount).fill(0);
+      const index = tileIndex(current.size, x, y);
+      const currentHeight = clampHeight(heights[index] ?? 0);
+      const nextHeight = currentHeight + (heightBrushMode === "raise" ? 1 : -1);
+      heights[index] = clampHeight(nextHeight);
+      return { ...current, heights };
+    });
+    setSelection({ type: "tile", x, y });
+  }
+
+  function handleTilePointerDown(x: number, y: number) {
+    if (tool === "height") {
+      applyHeightBrush(x, y);
+      return;
+    }
+
+    handleTileClick(x, y);
+  }
+
+  function handleTilePointerEnter(x: number, y: number, buttons: number) {
+    if (tool === "height" && (buttons & 1) === 1) {
+      applyHeightBrush(x, y);
+    }
+  }
+
   function handleTileClick(x: number, y: number) {
     const index = tileIndex(world.size, x, y);
 
@@ -1087,7 +1153,7 @@ function App() {
           <section>
             <h2>Tools</h2>
             <div className="segmented">
-              {(["terrain", "blocker", "wall", "entity", "select"] as Tool[]).map((item) => (
+              {(["terrain", "blocker", "height", "wall", "entity", "select"] as Tool[]).map((item) => (
                 <button
                   key={item}
                   type="button"
@@ -1131,6 +1197,36 @@ function App() {
                   />
                   blocked
                 </label>
+              </div>
+            ) : null}
+
+            {tool === "height" ? (
+              <div className="toolSettings">
+                <label>
+                  Brush mode
+                  <select
+                    value={heightBrushMode}
+                    onChange={(event) => setHeightBrushMode(event.target.value as HeightBrushMode)}
+                  >
+                    <option value="set">set</option>
+                    <option value="raise">raise</option>
+                    <option value="lower">lower</option>
+                  </select>
+                </label>
+                {heightBrushMode === "set" ? (
+                  <label>
+                    Height
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={heightBrushValue}
+                      onChange={(event) => setHeightBrushValue(clampHeight(Number(event.target.value)))}
+                    />
+                  </label>
+                ) : (
+                  <p className="metric">step 1</p>
+                )}
               </div>
             ) : null}
 
@@ -1191,35 +1287,13 @@ function App() {
         </aside>
 
         <section className="canvasPanel">
-          <div className="gridWrap">
-            <div
-              className="grid"
-              style={{ gridTemplateColumns: `repeat(${world.size.x}, 32px)` }}
-            >
-              {world.terrain.map((terrain, index) => {
-                const x = index % world.size.x;
-                const y = Math.floor(index / world.size.x);
-                const wall = world.walls.find((candidate) => coversTile(candidate, x, y));
-                const entity = world.entities.find((candidate) => coversTile(candidate, x, y));
-                const blocked = Boolean(world.blockers?.[index]);
-                const selected = isTileSelected(selection, x, y, wall, entity);
-
-                return (
-                  <button
-                    key={`${x}:${y}`}
-                    type="button"
-                    className={`tile ${blocked ? "blocked" : ""} ${selected ? "selectedTile" : ""}`}
-                    style={{ backgroundColor: terrainColor(terrain) }}
-                    title={`${x}, ${y}: ${terrain}`}
-                    onClick={() => handleTileClick(x, y)}
-                  >
-                    {wall ? <span className="wallBadge">{wall.type.slice(0, 2)}</span> : null}
-                    {entity ? <span className="objectBadge">{entityLabel(entity).slice(0, 2)}</span> : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <MapViewport3D
+            world={world}
+            selection={selection}
+            tool={tool}
+            onTilePointerDown={handleTilePointerDown}
+            onTilePointerEnter={handleTilePointerEnter}
+          />
         </section>
 
         <aside className="panel">
@@ -2025,6 +2099,7 @@ function TileDetails({ world, x, y }: { world: WorldFormat; x: number; y: number
       <p className="metric">x {x}</p>
       <p className="metric">y {y}</p>
       <p className="metric">terrain {world.terrain[index]}</p>
+      <p className="metric">height {world.heights[index] ?? 0}</p>
       <p className="metric">blocked {world.blockers?.[index] ? "yes" : "no"}</p>
     </div>
   );
@@ -2098,60 +2173,9 @@ function coversTile(item: WorldEntity | WorldWall, x: number, y: number): boolea
   return x === item.x && y === item.y;
 }
 
-function isTileSelected(
-  selection: Selection,
-  x: number,
-  y: number,
-  wall: WorldWall | undefined,
-  entity: WorldEntity | undefined
-): boolean {
-  if (selection?.type === "tile") {
-    return selection.x === x && selection.y === y;
-  }
-  if (selection?.type === "entity") {
-    return entity?.id === selection.id;
-  }
-  if (selection?.type === "wall") {
-    return wall?.id === selection.id;
-  }
-  return false;
-}
-
-function entityLabel(entity: WorldEntity): string {
-  const metadata = isRecord(entity.components.metadata) ? entity.components.metadata : {};
-  const renderable = isRecord(entity.components.renderable) ? entity.components.renderable : {};
-  const type = metadata.type ?? metadata.entityType ?? renderable.type ?? entity.id;
-  return String(type);
-}
-
-function terrainColor(terrain: string): string {
-  const builtIn: Record<string, string> = {
-    grass: "#73964f",
-    dirt: "#9a6b42",
-    road: "#b8ab88",
-    water: "#4f8fb8",
-    stone: "#8b9296",
-  };
-
-  if (builtIn[terrain]) {
-    return builtIn[terrain];
-  }
-
-  let hash = 0;
-  for (let i = 0; i < terrain.length; i += 1) {
-    hash = terrain.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue} 36% 54%)`;
-}
-
 function sanitizeToken(value: string): string {
   const token = value.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "");
   return token || "entity";
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function errorMessage(error: unknown): string {

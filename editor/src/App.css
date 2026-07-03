@@ -267,6 +267,26 @@ label {
   background: #cbc7b8;
 }
 
+.mapViewport3D {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.mapViewport3D.tool-select {
+  cursor: default;
+}
+
+.mapViewport3D canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
 .contentPanel {
   min-width: 0;
   min-height: 0;
@@ -403,79 +423,6 @@ label {
   border-color: #1d5f74;
   background: #d5edf1;
   font-weight: 700;
-}
-
-.gridWrap {
-  height: 100%;
-  overflow: auto;
-  padding: 18px;
-}
-
-.grid {
-  display: grid;
-  grid-auto-rows: 32px;
-  width: max-content;
-  border-top: 1px solid rgba(0, 0, 0, 0.35);
-  border-left: 1px solid rgba(0, 0, 0, 0.35);
-}
-
-.tile {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-right: 1px solid rgba(0, 0, 0, 0.28);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.28);
-  border-radius: 0;
-  position: relative;
-}
-
-.tile:hover {
-  filter: brightness(1.08);
-}
-
-.tile.blocked::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 2px solid rgba(32, 33, 36, 0.7);
-}
-
-.tile.selectedTile {
-  outline: 3px solid #f2f1ed;
-  outline-offset: -4px;
-}
-
-.wallBadge,
-.objectBadge,
-.spawnBadge {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 3px;
-  font-size: 10px;
-  line-height: 1;
-  color: #ffffff;
-}
-
-.wallBadge {
-  left: 4px;
-  bottom: 4px;
-  background: #6b6f76;
-}
-
-.objectBadge {
-  left: 4px;
-  top: 4px;
-  background: #313335;
-}
-
-.spawnBadge {
-  right: 4px;
-  bottom: 4px;
-  background: #1d5f74;
 }
 
 .details {

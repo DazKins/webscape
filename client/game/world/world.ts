@@ -5,10 +5,14 @@ import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
 import {
   createTerrainSurfaceGeometry,
   createTileHighlightGeometry,
+  createWaterSurfaceGeometry,
   getTileHeight,
   sampleTerrainHeight,
   type TerrainHeightGrid,
 } from "./terrainHeight";
+
+const WATER_TEXTURE_SCROLL_X = 0.018;
+const WATER_TEXTURE_SCROLL_Y = 0.032;
 
 class World {
   sizeX: number;
@@ -19,6 +23,9 @@ class World {
   walls: WorldWall[];
   input: Input;
   mesh: THREE.Mesh;
+  waterMesh: THREE.Mesh | undefined;
+  waterTexture: THREE.Texture | undefined;
+  waterAnimationTime: number;
   highlightMesh: THREE.Mesh;
   heightGrid: TerrainHeightGrid;
   highlightedTile: { x: number; y: number } | undefined;
@@ -42,6 +49,7 @@ class World {
     this.input = input;
     this.heightGrid = { sizeX, sizeY, heights };
     this.highlightedTile = undefined;
+    this.waterAnimationTime = 0;
 
     this.mesh = new THREE.Mesh(
       createTerrainSurfaceGeometry(this.heightGrid, this.terrain, terrainColor),
@@ -52,6 +60,26 @@ class World {
     );
     scene.add(this.mesh);
 
+    const waterGeometry = createWaterSurfaceGeometry(this.heightGrid, this.terrain);
+    if ((waterGeometry.getAttribute("position")?.count ?? 0) > 0) {
+      this.waterTexture = createWaterRippleTexture();
+      this.waterMesh = new THREE.Mesh(
+        waterGeometry,
+        new THREE.MeshBasicMaterial({
+          color: 0xd4f5ff,
+          map: this.waterTexture,
+          transparent: true,
+          opacity: 0.34,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      );
+      this.waterMesh.renderOrder = 1;
+      scene.add(this.waterMesh);
+    } else {
+      waterGeometry.dispose();
+    }
+
     this.highlightMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
@@ -61,6 +89,7 @@ class World {
         side: THREE.DoubleSide,
       })
     );
+    this.highlightMesh.renderOrder = 2;
     scene.add(this.highlightMesh);
 
     addWallGeometry(scene, this.walls);
@@ -102,7 +131,9 @@ class World {
     }
   }
 
-  update(camera: Camera) {
+  update(camera: Camera, deltaSeconds: number) {
+    this.updateWaterAnimation(deltaSeconds);
+
     const hoveredTile = this.getHoveredTile(camera);
     if (hoveredTile) {
       this.highlightMesh.visible = true;
@@ -120,6 +151,18 @@ class World {
       this.highlightedTile = undefined;
     }
   }
+
+  private updateWaterAnimation(deltaSeconds: number) {
+    if (!this.waterTexture) {
+      return;
+    }
+
+    this.waterAnimationTime += deltaSeconds;
+    this.waterTexture.offset.set(
+      (this.waterAnimationTime * WATER_TEXTURE_SCROLL_X) % 1,
+      (this.waterAnimationTime * WATER_TEXTURE_SCROLL_Y) % 1
+    );
+  }
 }
 
 function terrainColor(terrainType: string) {
@@ -136,6 +179,55 @@ function terrainColor(terrainType: string) {
       return 0x8b9296;
     default:
       return 0xe77d11;
+  }
+}
+
+function createWaterRippleTexture(): THREE.CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  context.clearRect(0, 0, size, size);
+  context.lineCap = "round";
+
+  drawRippleLines(context, size, "rgba(255, 255, 255, 0.48)", 2.1, 18, 0);
+  drawRippleLines(context, size, "rgba(135, 211, 232, 0.3)", 1.2, 24, 9);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(0.85, 0.85);
+  return texture;
+}
+
+function drawRippleLines(
+  context: CanvasRenderingContext2D,
+  size: number,
+  strokeStyle: string,
+  lineWidth: number,
+  spacing: number,
+  phase: number
+) {
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = lineWidth;
+
+  for (let y = -size; y < size * 2; y += spacing) {
+    context.beginPath();
+    for (let x = -16; x <= size + 16; x += 8) {
+      const waveY = y + phase + x * 0.16 + Math.sin((x + y) * 0.09) * 3.2;
+      if (x === -16) {
+        context.moveTo(x, waveY);
+      } else {
+        context.lineTo(x, waveY);
+      }
+    }
+    context.stroke();
   }
 }
 

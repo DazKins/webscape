@@ -3,6 +3,7 @@ import * as THREE from "three";
 export const TERRAIN_HEIGHT_SCALE = 0.2;
 
 const HIGHLIGHT_SURFACE_OFFSET = 0.025;
+const WATER_SURFACE_OFFSET = 0.012;
 
 export type TerrainHeightGrid = {
   sizeX: number;
@@ -63,39 +64,94 @@ export function createTerrainSurfaceGeometry(
   terrain: string[],
   terrainColorForTile: (terrainType: string) => THREE.ColorRepresentation
 ) {
-  const xCoords = createSurfaceCoordinates(grid.sizeX);
-  const zCoords = createSurfaceCoordinates(grid.sizeY);
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
   const color = new THREE.Color();
 
-  for (const z of zCoords) {
-    for (const x of xCoords) {
-      positions.push(x, sampleTerrainHeight(grid, x, z), z);
-
-      const tileX = clamp(Math.floor(x), 0, grid.sizeX - 1);
-      const tileY = clamp(Math.floor(z), 0, grid.sizeY - 1);
+  for (let tileY = 0; tileY < grid.sizeY; tileY += 1) {
+    for (let tileX = 0; tileX < grid.sizeX; tileX += 1) {
+      const xCoords = [tileX, tileX + 0.5, tileX + 1];
+      const zCoords = [tileY, tileY + 0.5, tileY + 1];
+      const vertexOffset = positions.length / 3;
       const terrainType = terrain[tileY * grid.sizeX + tileX] ?? "";
-      color.set(terrainColorForTile(terrainType));
-      colors.push(color.r, color.g, color.b);
-    }
-  }
 
-  const width = xCoords.length;
-  for (let z = 0; z < zCoords.length - 1; z += 1) {
-    for (let x = 0; x < xCoords.length - 1; x += 1) {
-      const topLeft = z * width + x;
-      const topRight = topLeft + 1;
-      const bottomLeft = topLeft + width;
-      const bottomRight = bottomLeft + 1;
-      indices.push(topLeft, bottomLeft, topRight, topRight, bottomLeft, bottomRight);
+      color.set(terrainColorForTile(terrainType));
+
+      for (const z of zCoords) {
+        for (const x of xCoords) {
+          positions.push(x, sampleTerrainHeight(grid, x, z), z);
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+
+      const width = xCoords.length;
+      for (let z = 0; z < zCoords.length - 1; z += 1) {
+        for (let x = 0; x < xCoords.length - 1; x += 1) {
+          const topLeft = vertexOffset + z * width + x;
+          const topRight = topLeft + 1;
+          const bottomLeft = topLeft + width;
+          const bottomRight = bottomLeft + 1;
+          indices.push(topLeft, bottomLeft, topRight, topRight, bottomLeft, bottomRight);
+        }
+      }
     }
   }
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+export function createWaterSurfaceGeometry(
+  grid: TerrainHeightGrid,
+  terrain: string[]
+) {
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let tileY = 0; tileY < grid.sizeY; tileY += 1) {
+    for (let tileX = 0; tileX < grid.sizeX; tileX += 1) {
+      const terrainType = terrain[tileY * grid.sizeX + tileX] ?? "";
+      if (terrainType !== "water") {
+        continue;
+      }
+
+      const xCoords = [tileX, tileX + 0.5, tileX + 1];
+      const zCoords = [tileY, tileY + 0.5, tileY + 1];
+      const vertexOffset = positions.length / 3;
+
+      for (const z of zCoords) {
+        for (const x of xCoords) {
+          positions.push(
+            x,
+            sampleTerrainHeight(grid, x, z) + WATER_SURFACE_OFFSET,
+            z
+          );
+          uvs.push(x, z);
+        }
+      }
+
+      const width = xCoords.length;
+      for (let z = 0; z < zCoords.length - 1; z += 1) {
+        for (let x = 0; x < xCoords.length - 1; x += 1) {
+          const topLeft = vertexOffset + z * width + x;
+          const topRight = topLeft + 1;
+          const bottomLeft = topLeft + width;
+          const bottomRight = bottomLeft + 1;
+          indices.push(topLeft, bottomLeft, topRight, topRight, bottomLeft, bottomRight);
+        }
+      }
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
@@ -137,19 +193,6 @@ export function createTileHighlightGeometry(
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
-}
-
-function createSurfaceCoordinates(size: number) {
-  if (size <= 0) {
-    return [0];
-  }
-
-  const coordinates = [0];
-  for (let tile = 0; tile < size; tile += 1) {
-    coordinates.push(tile + 0.5);
-  }
-  coordinates.push(size);
-  return coordinates;
 }
 
 function clamp(value: number, min: number, max: number) {
