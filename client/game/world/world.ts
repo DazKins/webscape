@@ -11,8 +11,7 @@ import {
   type TerrainHeightGrid,
 } from "./terrainHeight";
 
-const WATER_TEXTURE_SCROLL_X = 0.018;
-const WATER_TEXTURE_SCROLL_Y = 0.032;
+const WATER_GLINT_SPEED = 1.15;
 
 class World {
   sizeX: number;
@@ -24,7 +23,7 @@ class World {
   input: Input;
   mesh: THREE.Mesh;
   waterMesh: THREE.Mesh | undefined;
-  waterTexture: THREE.Texture | undefined;
+  waterMaterial: THREE.ShaderMaterial | undefined;
   waterAnimationTime: number;
   highlightMesh: THREE.Mesh;
   heightGrid: TerrainHeightGrid;
@@ -62,17 +61,10 @@ class World {
 
     const waterGeometry = createWaterSurfaceGeometry(this.heightGrid, this.terrain);
     if ((waterGeometry.getAttribute("position")?.count ?? 0) > 0) {
-      this.waterTexture = createWaterRippleTexture();
+      this.waterMaterial = createWaterGlintMaterial();
       this.waterMesh = new THREE.Mesh(
         waterGeometry,
-        new THREE.MeshBasicMaterial({
-          color: 0xd4f5ff,
-          map: this.waterTexture,
-          transparent: true,
-          opacity: 0.34,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-        })
+        this.waterMaterial
       );
       this.waterMesh.renderOrder = 1;
       scene.add(this.waterMesh);
@@ -153,15 +145,12 @@ class World {
   }
 
   private updateWaterAnimation(deltaSeconds: number) {
-    if (!this.waterTexture) {
+    if (!this.waterMaterial) {
       return;
     }
 
     this.waterAnimationTime += deltaSeconds;
-    this.waterTexture.offset.set(
-      (this.waterAnimationTime * WATER_TEXTURE_SCROLL_X) % 1,
-      (this.waterAnimationTime * WATER_TEXTURE_SCROLL_Y) % 1
-    );
+    this.waterMaterial.uniforms.time.value = this.waterAnimationTime * WATER_GLINT_SPEED;
   }
 }
 
@@ -182,53 +171,69 @@ function terrainColor(terrainType: string) {
   }
 }
 
-function createWaterRippleTexture(): THREE.CanvasTexture {
-  const size = 128;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+function createWaterGlintMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      time: { value: 0 },
+    },
+    vertexShader: `
+      varying vec2 vWaterUv;
 
-  const context = canvas.getContext("2d");
-  if (!context) {
-    return new THREE.CanvasTexture(canvas);
-  }
-
-  context.clearRect(0, 0, size, size);
-  context.lineCap = "round";
-
-  drawRippleLines(context, size, "rgba(255, 255, 255, 0.48)", 2.1, 18, 0);
-  drawRippleLines(context, size, "rgba(135, 211, 232, 0.3)", 1.2, 24, 9);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(0.85, 0.85);
-  return texture;
-}
-
-function drawRippleLines(
-  context: CanvasRenderingContext2D,
-  size: number,
-  strokeStyle: string,
-  lineWidth: number,
-  spacing: number,
-  phase: number
-) {
-  context.strokeStyle = strokeStyle;
-  context.lineWidth = lineWidth;
-
-  for (let y = -size; y < size * 2; y += spacing) {
-    context.beginPath();
-    for (let x = -16; x <= size + 16; x += 8) {
-      const waveY = y + phase + x * 0.16 + Math.sin((x + y) * 0.09) * 3.2;
-      if (x === -16) {
-        context.moveTo(x, waveY);
-      } else {
-        context.lineTo(x, waveY);
+      void main() {
+        vWaterUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
-    }
-    context.stroke();
-  }
+    `,
+    fragmentShader: `
+      uniform float time;
+      varying vec2 vWaterUv;
+
+      const float TAU = 6.28318530718;
+
+      float hash(vec2 point) {
+        return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453123);
+      }
+
+      float noise(vec2 point) {
+        vec2 cell = floor(point);
+        vec2 local = fract(point);
+        local = local * local * (3.0 - 2.0 * local);
+
+        float topLeft = hash(cell);
+        float topRight = hash(cell + vec2(1.0, 0.0));
+        float bottomLeft = hash(cell + vec2(0.0, 1.0));
+        float bottomRight = hash(cell + vec2(1.0, 1.0));
+
+        return mix(
+          mix(topLeft, topRight, local.x),
+          mix(bottomLeft, bottomRight, local.x),
+          local.y
+        );
+      }
+
+      void main() {
+        vec2 p = vWaterUv * 3.4;
+        float surface =
+          noise(p) * 0.52 +
+          noise(p * 2.17 + vec2(13.4, 8.2)) * 0.31 +
+          noise(p * 4.61 + vec2(5.7, 21.9)) * 0.17;
+
+        float glintShape = smoothstep(0.58, 0.88, surface);
+        float phase = noise(vWaterUv * 0.75 + vec2(19.0, 3.0)) * TAU;
+        float pulse = 0.62 + 0.38 * sin(time + phase);
+        float glint = glintShape * pulse;
+
+        glint = clamp(glint, 0.0, 1.0);
+        vec3 color = mix(vec3(0.58, 0.82, 0.92), vec3(0.96, 0.99, 1.0), glint);
+        float alpha = 0.035 + glint * 0.12;
+
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
 }
 
 export default World;
