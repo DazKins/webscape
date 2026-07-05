@@ -53,7 +53,7 @@ export default class Camera {
   }
 
   orbitByDrag(delta: { x: number; y: number }) {
-    this.angle -= delta.x * this.dragOrbitSpeed;
+    this.angle += delta.x * this.dragOrbitSpeed;
     this.height = Math.max(
       this.minHeight,
       Math.min(this.maxHeight, this.height + delta.y * this.dragHeightSpeed)
