@@ -202,24 +202,25 @@ export default function UiRoot(props: Props) {
         >
           <div className={styles.mobileSheetHeader}>
             <button
-              className={styles.sheetToggle}
+              className={styles.sheetHideButton}
               type="button"
-              aria-label={sheetState === "collapsed" ? "Open panel" : "Collapse panel"}
-              onClick={() =>
-                setSheetState((current) => (current === "collapsed" ? "half" : "collapsed"))
-              }
+              aria-label="Hide panel"
+              onClick={() => setSheetState("collapsed")}
             >
-              {activeMobileLabel}
+              Hide
             </button>
+            <div className={styles.sheetTitle} aria-live="polite">
+              {activeMobileLabel}
+            </div>
             <button
               className={styles.sheetSizeButton}
               type="button"
-              aria-label={sheetState === "expanded" ? "Reduce panel" : "Expand panel"}
+              aria-label={sheetState === "expanded" ? "Show less panel content" : "Show more panel content"}
               onClick={() =>
                 setSheetState((current) => (current === "expanded" ? "half" : "expanded"))
               }
             >
-              {sheetState === "expanded" ? "Half" : "Full"}
+              {sheetState === "expanded" ? "Less" : "More"}
             </button>
           </div>
           <TabButtons
