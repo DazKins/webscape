@@ -10,17 +10,18 @@
 }
 
 .leftPanel {
-  left: 20px;
-  bottom: 20px;
-  width: 500px;
-  height: 220px;
+  left: max(20px, var(--safe-area-left));
+  bottom: max(20px, var(--safe-area-bottom));
+  width: min(500px, calc(100vw - 360px));
+  min-width: 360px;
+  height: min(220px, calc(100vh - 40px));
 }
 
 .rightPanel {
-  right: 20px;
-  bottom: 20px;
+  right: max(20px, var(--safe-area-right));
+  bottom: max(20px, var(--safe-area-bottom));
   width: 300px;
-  height: 480px;
+  height: min(480px, calc(100vh - 40px));
 }
 
 .tabs {
@@ -35,6 +36,7 @@
 
 .tabButton {
   height: 36px;
+  min-height: 36px;
   min-width: 0;
   border: 1px solid rgba(150, 150, 150, 0.26);
   border-radius: 4px;
@@ -69,4 +71,106 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.mobileSheet {
+  pointer-events: auto;
+  left: max(8px, var(--safe-area-left));
+  right: max(8px, var(--safe-area-right));
+  bottom: max(8px, var(--safe-area-bottom));
+  width: auto;
+  max-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 16px);
+  overflow: hidden;
+  transition: height 160ms ease;
+  touch-action: pan-y;
+}
+
+.mobileSheetHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid rgba(230, 230, 230, 0.26);
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.sheetToggle,
+.sheetSizeButton {
+  min-height: 44px;
+  border: 1px solid rgba(190, 210, 230, 0.36);
+  border-radius: 6px;
+  background: rgba(40, 45, 52, 0.9);
+  color: rgba(245, 245, 245, 1);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheetToggle {
+  text-align: left;
+  padding: 0 12px;
+}
+
+.sheetSizeButton {
+  min-width: 72px;
+}
+
+.collapsed {
+  height: 118px;
+}
+
+.half {
+  height: min(48dvh, 430px);
+}
+
+.expanded {
+  height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 16px);
+}
+
+.collapsed .panelBody {
+  display: none;
+}
+
+@media (pointer: coarse), (hover: none) {
+  .tabButton {
+    min-height: 46px;
+  }
+
+  .tabButton:hover {
+    border-color: rgba(150, 150, 150, 0.26);
+    background-color: rgba(35, 35, 35, 0.68);
+  }
+
+  .tabButton:active,
+  .tabButton:focus-visible {
+    border-color: rgba(230, 230, 230, 0.75);
+    background-color: rgba(70, 76, 88, 0.9);
+  }
+
+  .tabIcon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .mobileSheet {
+    left: auto;
+    width: min(430px, calc(100vw - var(--safe-area-left) - var(--safe-area-right) - 16px));
+  }
+
+  .collapsed {
+    height: 116px;
+  }
+
+  .half {
+    height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 16px);
+  }
+}
+
+@media (max-width: 720px) {
+  .tabs {
+    gap: 5px;
+    padding: 6px 8px 8px;
+  }
 }

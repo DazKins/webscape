@@ -15,6 +15,12 @@ import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 import { ConversationCloseEvent, ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 import { QuestLogUpdateEvent } from "../events/questlog.ts";
 import { QuestCompletedEvent, type QuestCompletedPayload } from "../events/questCompleted.ts";
+import {
+  getDeviceProfile,
+  getElementSize,
+  type DeviceProfile,
+  type ViewportSize,
+} from "../responsive.ts";
 
 export type QuestDefinition = {
   id: string;
@@ -49,6 +55,10 @@ class Game extends EventTarget implements InputReceiver {
   camera: Camera;
   renderer: THREE.WebGLRenderer;
   cssRenderer2d: CSS2DRenderer;
+  sceneLayerRoot: HTMLElement;
+  viewport: ViewportSize;
+  deviceProfile: DeviceProfile;
+  resizeObserver: ResizeObserver;
   entities: Entity[];
   entityRenderSystem: EntityRenderSystem;
   quests: QuestDefinition[];
@@ -62,20 +72,24 @@ class Game extends EventTarget implements InputReceiver {
   constructor(sceneLayerRoot: HTMLElement, hudLayerRoot: HTMLElement) {
     super();
 
+    this.sceneLayerRoot = sceneLayerRoot;
+    this.viewport = getElementSize(sceneLayerRoot);
+    this.deviceProfile = getDeviceProfile(this.viewport);
     this.scene = new THREE.Scene();
     this.input = new Input();
-    this.camera = new Camera(this.input);
+    this.camera = new Camera(this.input, this.viewport);
     this.entityRenderSystem = new EntityRenderSystem(this.scene, () => this.world);
     this.quests = [];
     this.activeConversation = null;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setSize(this.viewport.width, this.viewport.height);
     this.renderer.setClearColor(0x87ceeb);
     sceneLayerRoot.appendChild(this.renderer.domElement);
 
     this.cssRenderer2d = new CSS2DRenderer();
-    this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
+    this.cssRenderer2d.setSize(this.viewport.width, this.viewport.height);
     this.cssRenderer2d.domElement.style.position = "absolute";
     this.cssRenderer2d.domElement.style.top = "0";
     this.cssRenderer2d.domElement.style.pointerEvents = "none";
@@ -88,68 +102,28 @@ class Game extends EventTarget implements InputReceiver {
 
     addReferenceGeometry(this.scene);
 
-    this.onWindowResize = this.onWindowResize.bind(this);
-    window.addEventListener("resize", this.onWindowResize, false);
+    this.onViewportResize = this.onViewportResize.bind(this);
+    this.resizeObserver = new ResizeObserver(this.onViewportResize);
+    this.resizeObserver.observe(sceneLayerRoot);
+    window.addEventListener("resize", this.onViewportResize, false);
+    window.addEventListener("orientationchange", this.onViewportResize, false);
 
     this.entities = [];
 
-    this.input.registerClickCallback(() => {
-      if (this.input.isPointerBlocked()) {
-        return;
-      }
-      const hoveredTile = this.world.getHoveredTile(this.camera);
-      if (hoveredTile) {
-        this.handleMoveClick(hoveredTile.x, hoveredTile.y);
-      }
+    this.input.registerPointerCallbacks({
+      onTap: (event) => {
+        this.handleSceneTap(event.clientX, event.clientY);
+      },
+      onLongPress: (event) => {
+        this.handleSceneLongPress(event.clientX, event.clientY);
+      },
     });
 
     this.input.registerRightClickCallback((event: MouseEvent) => {
       if (this.input.isPointerBlocked()) {
         return;
       }
-      const mouse = this.input.getMousePosition();
-      const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
-      const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
-
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(
-        new THREE.Vector2(mouseX, mouseY),
-        this.camera.getInnerCamera()
-      );
-      const object3Ds = Object.values(this.entityRenderSystem.getRenderers()).map((r) => r?.getObject3D() ?? null).filter((o) => o !== null);
-      const intersects = raycaster.intersectObjects(
-        object3Ds,
-        true
-      );
-      if (intersects.length > 0) {
-        let hitMesh: THREE.Object3D | null = intersects[0].object;
-
-        while (hitMesh && !hitMesh.userData.entityId) {
-          hitMesh = hitMesh.parent;
-        }
-
-        if (!hitMesh) {
-          return;
-        }
-
-        const entityId = hitMesh.userData.entityId;
-        const entity = this.entities.find((e) => e.getId() === entityId);
-        if (entity) {
-          const interactionOptions = entity.getAvailableInteractions();
-          if (interactionOptions.length === 0) {
-            return;
-          }
-          this.dispatchEvent(
-            new InteractionMenuOpenEvent(
-              entity.getId(),
-              entity.getComponent("metadata")?.name || "Unnamed?!?!",
-              interactionOptions,
-              event.clientX,
-              event.clientY
-            )
-          );
-        }
-      }
+      this.openInteractionMenuAt(event.clientX, event.clientY);
     });
 
     this.input.setActiveReceiver(this);
@@ -161,10 +135,8 @@ class Game extends EventTarget implements InputReceiver {
     const beforeTypedChatText = this.typedChatText;
 
     if (key === "Enter") {
-      this.wsClient.sendMessage(
-        createCommand("chat", { message: this.typedChatText })
-      );
-      this.typedChatText = "";
+      this.sendTypedChatText();
+      return;
     } else if (key === "Escape") {
       this.typedChatText = "";
     } else if (key === "Backspace") {
@@ -174,11 +146,7 @@ class Game extends EventTarget implements InputReceiver {
     }
 
     if (beforeTypedChatText !== this.typedChatText) {
-      this.dispatchEvent(
-        new CustomEvent<string>("typedChatTextChanged", {
-          detail: this.typedChatText,
-        })
-      );
+      this.dispatchTypedChatTextChanged();
     }
   }
 
@@ -188,6 +156,109 @@ class Game extends EventTarget implements InputReceiver {
 
   setPointerOverUi(isPointerOverUi: boolean) {
     this.input.setPointerBlocked(isPointerOverUi);
+  }
+
+  getDeviceProfile(): DeviceProfile {
+    return this.deviceProfile;
+  }
+
+  setTypedChatText(text: string) {
+    if (text === this.typedChatText) {
+      return;
+    }
+    this.typedChatText = text;
+    this.dispatchTypedChatTextChanged();
+  }
+
+  sendTypedChatText() {
+    const message = this.typedChatText.trim();
+    if (message.length > 0) {
+      this.wsClient.sendMessage(createCommand("chat", { message }));
+    }
+    this.setTypedChatText("");
+  }
+
+  private dispatchTypedChatTextChanged() {
+    this.dispatchEvent(
+      new CustomEvent<string>("typedChatTextChanged", {
+        detail: this.typedChatText,
+      })
+    );
+  }
+
+  private handleSceneTap(clientX: number, clientY: number) {
+    if (!this.world || this.input.isPointerBlocked()) {
+      return;
+    }
+
+    if (this.openInteractionMenuAt(clientX, clientY)) {
+      return;
+    }
+
+    const tile = this.world.getPointerTile(this.camera, this.viewport);
+    if (tile) {
+      this.world.showTileIndicator(tile);
+      this.handleMoveClick(tile.x, tile.y);
+    }
+  }
+
+  private handleSceneLongPress(clientX: number, clientY: number) {
+    if (this.input.isPointerBlocked()) {
+      return;
+    }
+    this.openInteractionMenuAt(clientX, clientY);
+  }
+
+  private openInteractionMenuAt(clientX: number, clientY: number) {
+    const entity = this.getEntityAtScreenPoint(clientX, clientY);
+    if (!entity) {
+      return false;
+    }
+
+    const interactionOptions = entity.getAvailableInteractions();
+    if (interactionOptions.length === 0) {
+      return false;
+    }
+
+    this.dispatchEvent(
+      new InteractionMenuOpenEvent(
+        entity.getId(),
+        entity.getComponent("metadata")?.name || "Unnamed?!?!",
+        interactionOptions,
+        clientX,
+        clientY
+      )
+    );
+    return true;
+  }
+
+  private getEntityAtScreenPoint(clientX: number, clientY: number): Entity | null {
+    const mouseX = (clientX / this.viewport.width) * 2 - 1;
+    const mouseY = -(clientY / this.viewport.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(
+      new THREE.Vector2(mouseX, mouseY),
+      this.camera.getInnerCamera()
+    );
+    const object3Ds = Object.values(this.entityRenderSystem.getRenderers())
+      .map((renderer) => renderer?.getObject3D() ?? null)
+      .filter((object3d): object3d is THREE.Object3D => object3d !== null);
+    const intersects = raycaster.intersectObjects(object3Ds, true);
+    if (intersects.length === 0) {
+      return null;
+    }
+
+    let hitMesh: THREE.Object3D | null = intersects[0].object;
+    while (hitMesh && !hitMesh.userData.entityId) {
+      hitMesh = hitMesh.parent;
+    }
+
+    if (!hitMesh) {
+      return null;
+    }
+
+    return this.entities.find((entity) => entity.getId() === hitMesh.userData.entityId) ?? null;
   }
 
   updateCamera() {
@@ -201,9 +272,19 @@ class Game extends EventTarget implements InputReceiver {
 
     const conversationTarget = this.getConversationTargetFocusPoint();
     if (conversationTarget) {
+      const conversationDistance = this.deviceProfile.isMobileLayout ? 4.5 : 3;
+      const conversationHeight = this.deviceProfile.isMobileLayout ? 4.1 : 3;
       this.camera.update(myFocusPoint.clone().add(conversationTarget).multiplyScalar(0.5), {
-        distance: 3,
-        height: 3,
+        distance: conversationDistance,
+        height: conversationHeight,
+      });
+      return;
+    }
+
+    if (this.deviceProfile.isMobileLayout) {
+      this.camera.update(myFocusPoint, {
+        distance: this.deviceProfile.isPortrait ? 7.1 : 6.4,
+        height: this.deviceProfile.isPortrait ? 6.6 : 4.9,
       });
       return;
     }
@@ -284,7 +365,7 @@ class Game extends EventTarget implements InputReceiver {
   update(deltaSeconds: number) {
     this.updateCamera();
     if (this.world) {
-      this.world.update(this.camera, deltaSeconds);
+      this.world.update(this.camera, deltaSeconds, this.deviceProfile);
     }
 
     this.entityRenderSystem.update(this.entities, deltaSeconds);
@@ -293,10 +374,22 @@ class Game extends EventTarget implements InputReceiver {
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
   }
 
-  onWindowResize() {
-    this.camera.onWindowResize();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.cssRenderer2d.setSize(window.innerWidth, window.innerHeight);
+  onViewportResize() {
+    const nextViewport = getElementSize(this.sceneLayerRoot);
+    if (
+      nextViewport.width === this.viewport.width &&
+      nextViewport.height === this.viewport.height
+    ) {
+      this.deviceProfile = getDeviceProfile(nextViewport);
+      return;
+    }
+
+    this.viewport = nextViewport;
+    this.deviceProfile = getDeviceProfile(nextViewport);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.camera.onResize(nextViewport);
+    this.renderer.setSize(nextViewport.width, nextViewport.height);
+    this.cssRenderer2d.setSize(nextViewport.width, nextViewport.height);
   }
 
   registerMyPlayerId(myPlayerId: string) {

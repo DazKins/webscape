@@ -31,13 +31,13 @@ export default function InteractionMenu(props: Props) {
     setPositionY(event.positionY);
   };
 
-  const onWindowClick = (event: MouseEvent) => {
+  const onWindowPointerDown = (event: PointerEvent) => {
     const element = ref.current;
     if (element && !element.contains(event.target as Node)) {
       props.game.setPointerOverUi(false);
       setInteractionMenuOpen(false);
     } else {
-      event.stopPropagation();
+      props.game.setPointerOverUi(true);
     }
   };
 
@@ -46,16 +46,25 @@ export default function InteractionMenu(props: Props) {
       "interactionMenuOpen",
       handleInteractionMenuOpen
     );
-    window.addEventListener("click", onWindowClick);
 
     return () => {
       props.game.removeEventListener(
         "interactionMenuOpen",
         handleInteractionMenuOpen
       );
-      window.removeEventListener("click", onWindowClick);
     };
   }, []);
+
+  useEffect(() => {
+    if (!interactionMenuOpen) {
+      return;
+    }
+
+    window.addEventListener("pointerdown", onWindowPointerDown);
+    return () => {
+      window.removeEventListener("pointerdown", onWindowPointerDown);
+    };
+  }, [interactionMenuOpen]);
 
   const handleInteractionOptionClick = (option: string): void => {
     props.game.handleInteractionOptionClick(entityId, option);
@@ -70,9 +79,13 @@ export default function InteractionMenu(props: Props) {
           className={styles.container}
           ref={ref}
           onClick={(e) => e.stopPropagation()}
-          onMouseMove={(e) => e.stopPropagation()}
-          onMouseEnter={() => props.game.setPointerOverUi(true)}
-          onMouseLeave={() => props.game.setPointerOverUi(false)}
+          onPointerMove={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            props.game.setPointerOverUi(true);
+          }}
+          onPointerEnter={() => props.game.setPointerOverUi(true)}
+          onPointerLeave={() => props.game.setPointerOverUi(false)}
         >
           <p className={styles.name}>{name}</p>
           <div className={styles.interactionOptions}>

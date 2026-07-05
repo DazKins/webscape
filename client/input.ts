@@ -2,31 +2,53 @@ export interface InputReceiver {
   onKeyDown(key: string): void;
 }
 
+type PointerCallbacks = {
+  onTap?: (event: PointerEvent) => void;
+  onLongPress?: (event: PointerEvent) => void;
+};
+
+const LONG_PRESS_MS = 450;
+const TAP_MOVE_THRESHOLD_PX = 12;
+
 class Input {
   keys: Record<string, boolean>;
-  mousePosition: { x: number; y: number };
-  mouseButtons: Record<number, boolean>;
+  pointerPosition: { x: number; y: number };
+  pointerButtons: Record<number, boolean>;
   pointerBlocked: boolean;
+
+  private pointerCallbacks: PointerCallbacks;
+  private activePointer:
+    | {
+        id: number;
+        x: number;
+        y: number;
+        longPressTimer: number;
+        longPressed: boolean;
+      }
+    | undefined;
 
   activeReceiver?: InputReceiver;
 
   constructor() {
     this.keys = {};
-    this.mousePosition = { x: 0, y: 0 };
-    this.mouseButtons = {};
+    this.pointerPosition = { x: 0, y: 0 };
+    this.pointerButtons = {};
     this.pointerBlocked = false;
+    this.pointerCallbacks = {};
 
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerDown = this.onPointerDown.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
+    this.onPointerCancel = this.onPointerCancel.bind(this);
 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
-    window.addEventListener("mousemove", this.onMouseMove);
-    window.addEventListener("mousedown", this.onMouseDown);
-    window.addEventListener("mouseup", this.onMouseUp);
+    window.addEventListener("pointermove", this.onPointerMove);
+    window.addEventListener("pointerdown", this.onPointerDown);
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerCancel);
   }
 
   setActiveReceiver(receiver: InputReceiver) {
@@ -53,29 +75,82 @@ class Input {
     this.keys[event.key.toLowerCase()] = false;
   }
 
-  onMouseMove(event: MouseEvent) {
-    this.mousePosition.x = event.clientX;
-    this.mousePosition.y = event.clientY;
+  onPointerMove(event: PointerEvent) {
+    this.pointerPosition.x = event.clientX;
+    this.pointerPosition.y = event.clientY;
   }
 
-  onMouseDown(event: MouseEvent) {
-    this.mouseButtons[event.button] = true;
+  onPointerDown(event: PointerEvent) {
+    this.pointerPosition.x = event.clientX;
+    this.pointerPosition.y = event.clientY;
+    this.pointerButtons[event.button] = true;
+
+    window.clearTimeout(this.activePointer?.longPressTimer);
+    const activePointer = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      longPressTimer: 0,
+      longPressed: false,
+    };
+
+    activePointer.longPressTimer = window.setTimeout(() => {
+      if (this.pointerBlocked || this.activePointer?.id !== event.pointerId) {
+        return;
+      }
+      this.activePointer.longPressed = true;
+      this.pointerCallbacks.onLongPress?.(event);
+    }, LONG_PRESS_MS);
+
+    this.activePointer = activePointer;
   }
 
-  onMouseUp(event: MouseEvent) {
-    this.mouseButtons[event.button] = false;
+  onPointerUp(event: PointerEvent) {
+    this.pointerPosition.x = event.clientX;
+    this.pointerPosition.y = event.clientY;
+    this.pointerButtons[event.button] = false;
+
+    const activePointer = this.activePointer;
+    if (!activePointer || activePointer.id !== event.pointerId) {
+      return;
+    }
+
+    window.clearTimeout(activePointer.longPressTimer);
+    this.activePointer = undefined;
+
+    if (this.pointerBlocked || activePointer.longPressed || event.button !== 0) {
+      return;
+    }
+
+    const movedDistance = Math.hypot(
+      event.clientX - activePointer.x,
+      event.clientY - activePointer.y
+    );
+    if (movedDistance <= TAP_MOVE_THRESHOLD_PX) {
+      this.pointerCallbacks.onTap?.(event);
+    }
+  }
+
+  onPointerCancel(event: PointerEvent) {
+    this.pointerButtons[event.button] = false;
+    window.clearTimeout(this.activePointer?.longPressTimer);
+    this.activePointer = undefined;
   }
 
   getKey(key: string) {
     return this.keys[key.toLowerCase()];
   }
 
+  getPointerPosition() {
+    return { ...this.pointerPosition };
+  }
+
   getMousePosition() {
-    return { ...this.mousePosition };
+    return this.getPointerPosition();
   }
 
   getMouseButton(button: number) {
-    return this.mouseButtons[button] || false;
+    return this.pointerButtons[button] || false;
   }
 
   setPointerBlocked(blocked: boolean) {
@@ -86,8 +161,12 @@ class Input {
     return this.pointerBlocked;
   }
 
+  registerPointerCallbacks(callbacks: PointerCallbacks) {
+    this.pointerCallbacks = callbacks;
+  }
+
   registerClickCallback(callback: () => void) {
-    window.addEventListener("click", callback);
+    this.pointerCallbacks.onTap = callback;
   }
 
   registerRightClickCallback(callback: (event: MouseEvent) => void) {

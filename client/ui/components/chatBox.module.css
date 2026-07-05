@@ -36,6 +36,54 @@
   box-sizing: border-box;
 }
 
+.mobileComposer {
+  display: none;
+  gap: 8px;
+  padding: 8px;
+  border-top: 2px solid rgba(230, 230, 230, 0.5);
+  background-color: rgba(0, 0, 0, 0.36);
+  box-sizing: border-box;
+}
+
+.mobileInput {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid rgba(210, 220, 230, 0.45);
+  border-radius: 6px;
+  background: rgba(15, 18, 22, 0.94);
+  color: rgba(245, 245, 245, 1);
+  font: inherit;
+  padding: 0 10px;
+}
+
+.sendButton {
+  min-width: 72px;
+  min-height: 44px;
+  border: 1px solid rgba(160, 195, 255, 0.58);
+  border-radius: 6px;
+  background: rgba(42, 62, 96, 0.92);
+  color: rgba(245, 245, 245, 1);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .inputPrefix {
   font-weight: bold;
+}
+
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .input {
+    display: none;
+  }
+
+  .mobileComposer {
+    display: flex;
+  }
+
+  .chat {
+    padding: 7px 5px;
+    line-height: 1.35;
+  }
 }

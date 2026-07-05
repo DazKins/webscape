@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Input from "../input.ts";
+import type { ViewportSize } from "../responsive.ts";
 
 export default class Camera {
   private camera: THREE.PerspectiveCamera;
@@ -16,10 +17,10 @@ export default class Camera {
   private maxHeight: number;
   private cameraTarget: THREE.Vector3;
 
-  constructor(input: Input) {
+  constructor(input: Input, viewport: ViewportSize) {
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      viewport.width / viewport.height,
       0.1,
       1000
     );
@@ -86,8 +87,8 @@ export default class Camera {
     this.camera.lookAt(this.cameraTarget);
   }
 
-  onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+  onResize(viewport: ViewportSize) {
+    this.camera.aspect = viewport.width / viewport.height;
     this.camera.updateProjectionMatrix();
   }
 }

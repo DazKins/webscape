@@ -32,3 +32,11 @@
   text-align: center;
   padding: 20px;
 }
+
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .entry {
+    padding: 6px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}

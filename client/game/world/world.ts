@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import Input from "../../input";
 import Camera from "../camera";
+import type { DeviceProfile, ViewportSize } from "../../responsive";
 import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
 import {
   createTerrainSurfaceGeometry,
@@ -28,6 +29,7 @@ class World {
   highlightMesh: THREE.Mesh;
   heightGrid: TerrainHeightGrid;
   highlightedTile: { x: number; y: number } | undefined;
+  selectedTileSeconds: number;
 
   constructor(
     scene: THREE.Scene,
@@ -49,6 +51,7 @@ class World {
     this.heightGrid = { sizeX, sizeY, heights };
     this.highlightedTile = undefined;
     this.waterAnimationTime = 0;
+    this.selectedTileSeconds = 0;
 
     this.mesh = new THREE.Mesh(
       createTerrainSurfaceGeometry(this.heightGrid, this.terrain, terrainColor),
@@ -95,14 +98,14 @@ class World {
     return getTileHeight(this.heightGrid, tileX, tileY);
   }
 
-  getHoveredTile(camera: Camera) {
+  getPointerTile(camera: Camera, viewport: ViewportSize) {
     if (this.input.isPointerBlocked()) {
       return undefined;
     }
 
-    const mouse = this.input.getMousePosition();
-    const mouseX = (mouse.x / window.innerWidth) * 2 - 1;
-    const mouseY = -(mouse.y / window.innerHeight) * 2 + 1;
+    const pointer = this.input.getPointerPosition();
+    const mouseX = (pointer.x / viewport.width) * 2 - 1;
+    const mouseY = -(pointer.y / viewport.height) * 2 + 1;
 
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera.getInnerCamera());
@@ -123,21 +126,40 @@ class World {
     }
   }
 
-  update(camera: Camera, deltaSeconds: number) {
+  showTileIndicator(tile: { x: number; y: number }) {
+    this.highlightMesh.visible = true;
+    this.highlightMesh.geometry.dispose();
+    this.highlightMesh.geometry = createTileHighlightGeometry(this.heightGrid, tile.x, tile.y);
+    this.highlightedTile = tile;
+    this.selectedTileSeconds = 0.34;
+  }
+
+  update(camera: Camera, deltaSeconds: number, profile: DeviceProfile) {
     this.updateWaterAnimation(deltaSeconds);
 
-    const hoveredTile = this.getHoveredTile(camera);
-    if (hoveredTile) {
-      this.highlightMesh.visible = true;
-      if (
-        !this.highlightedTile ||
-        this.highlightedTile.x !== hoveredTile.x ||
-        this.highlightedTile.y !== hoveredTile.y
-      ) {
-        this.highlightMesh.geometry.dispose();
-        this.highlightMesh.geometry = createTileHighlightGeometry(this.heightGrid, hoveredTile.x, hoveredTile.y);
-        this.highlightedTile = hoveredTile;
+    if (profile.canHover && !profile.isCoarsePointer) {
+      const hoveredTile = this.getPointerTile(camera, profile);
+      if (hoveredTile) {
+        this.highlightMesh.visible = true;
+        if (
+          !this.highlightedTile ||
+          this.highlightedTile.x !== hoveredTile.x ||
+          this.highlightedTile.y !== hoveredTile.y
+        ) {
+          this.highlightMesh.geometry.dispose();
+          this.highlightMesh.geometry = createTileHighlightGeometry(this.heightGrid, hoveredTile.x, hoveredTile.y);
+          this.highlightedTile = hoveredTile;
+        }
+      } else {
+        this.highlightMesh.visible = false;
+        this.highlightedTile = undefined;
       }
+      return;
+    }
+
+    if (this.selectedTileSeconds > 0) {
+      this.selectedTileSeconds = Math.max(0, this.selectedTileSeconds - deltaSeconds);
+      this.highlightMesh.visible = true;
     } else {
       this.highlightMesh.visible = false;
       this.highlightedTile = undefined;

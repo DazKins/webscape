@@ -2,7 +2,18 @@
 <html>
   <head>
     <title>Webscape</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
     <style>
+      :root {
+        --safe-area-top: env(safe-area-inset-top, 0px);
+        --safe-area-right: env(safe-area-inset-right, 0px);
+        --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-area-left: env(safe-area-inset-left, 0px);
+      }
+
       html,
       body {
         width: 100%;
@@ -10,14 +21,22 @@
         margin: 0;
         overflow: hidden;
         font-family: "Courier New", Courier, monospace;
+        overscroll-behavior: none;
+        touch-action: none;
+        -webkit-text-size-adjust: 100%;
       }
       canvas {
         display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
       }
       #roots {
         position: relative;
         width: 100%;
         height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
       }
       #sceneLayerRoot {
         z-index: 0;
@@ -36,6 +55,10 @@
         left: 0;
         width: 100%;
         height: 100%;
+      }
+
+      #uiLayerRoot {
+        pointer-events: none;
       }
     </style>
     <link rel="stylesheet" href="style.css" />

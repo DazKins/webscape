@@ -61,6 +61,26 @@ export function ChatBoxContent(props: Props) {
         <span className={styles.inputPrefix}>{"> "}</span>
         {typedText}*
       </div>
+      <form
+        className={styles.mobileComposer}
+        onSubmit={(event) => {
+          event.preventDefault();
+          props.game.sendTypedChatText();
+        }}
+      >
+        <input
+          className={styles.mobileInput}
+          value={typedText}
+          placeholder="Message"
+          aria-label="Chat message"
+          onChange={(event) => props.game.setTypedChatText(event.target.value)}
+          onFocus={() => props.game.setPointerOverUi(true)}
+          onBlur={() => props.game.setPointerOverUi(false)}
+        />
+        <button className={styles.sendButton} type="submit">
+          Send
+        </button>
+      </form>
     </>
   );
 }

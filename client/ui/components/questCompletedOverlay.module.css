@@ -86,3 +86,54 @@
 .closeButton:hover {
   background: rgba(118, 93, 45, 0.95);
 }
+
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .backdrop {
+    align-items: flex-end;
+    padding:
+      var(--safe-area-top)
+      max(8px, var(--safe-area-right))
+      max(8px, var(--safe-area-bottom))
+      max(8px, var(--safe-area-left));
+    box-sizing: border-box;
+  }
+
+  .overlay {
+    width: 100%;
+    max-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - 16px);
+    padding: 18px;
+    border-radius: 8px;
+  }
+
+  .overlay h2 {
+    font-size: 24px;
+  }
+
+  .rewardRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .closeButton {
+    min-height: 46px;
+  }
+
+  .closeButton:hover {
+    background: rgba(94, 74, 38, 0.88);
+  }
+
+  .closeButton:active,
+  .closeButton:focus-visible {
+    background: rgba(118, 93, 45, 0.95);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .backdrop {
+    justify-content: flex-end;
+  }
+
+  .overlay {
+    width: min(430px, 100%);
+  }
+}

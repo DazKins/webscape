@@ -25,3 +25,9 @@
   top: 0;
 }
 
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .container {
+    width: 48px;
+    height: 7px;
+  }
+}

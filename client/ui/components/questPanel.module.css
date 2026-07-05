@@ -67,3 +67,18 @@
   color: rgba(244, 210, 137, 0.95);
   font-size: 12px;
 }
+
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .quest {
+    padding: 10px 0;
+  }
+
+  .questName {
+    font-size: 15px;
+  }
+
+  .stepText {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}

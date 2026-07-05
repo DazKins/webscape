@@ -55,9 +55,12 @@ export default function QuestCompletedOverlay(props: Props) {
         aria-labelledby="quest-completed-title"
         onClick={stopOverlayEvent}
         onContextMenu={stopOverlayEvent}
-        onMouseDown={stopOverlayEvent}
-        onMouseEnter={() => props.game.setPointerOverUi(true)}
-        onMouseLeave={() => props.game.setPointerOverUi(false)}
+        onPointerDown={(event) => {
+          stopOverlayEvent(event);
+          props.game.setPointerOverUi(true);
+        }}
+        onPointerEnter={() => props.game.setPointerOverUi(true)}
+        onPointerLeave={() => props.game.setPointerOverUi(false)}
       >
         <div className={styles.kicker}>Quest Completed</div>
         <h2 id="quest-completed-title">{completion.displayName || completion.questId}</h2>

@@ -6,6 +6,7 @@
   border-radius: 5px;
   overflow: hidden;
   pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .name {
@@ -25,8 +26,50 @@
   border-radius: 5px;
   background: rgba(100, 100, 100, 1.0);
   cursor: pointer;
+  color: inherit;
+  font: inherit;
+  border: 0;
+  text-align: left;
 }
 
 .interactionOption:hover {
   background: rgba(150, 150, 150, 1.0);
+}
+
+@media (pointer: coarse), (hover: none), (max-width: 820px), (max-height: 560px) {
+  .container {
+    position: fixed;
+    left: max(8px, var(--safe-area-left));
+    right: max(8px, var(--safe-area-right));
+    bottom: max(8px, var(--safe-area-bottom));
+    width: auto;
+    border-radius: 8px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.46);
+  }
+
+  .name {
+    margin: 0;
+    padding: 12px 14px;
+  }
+
+  .interactionOptions {
+    gap: 0;
+    padding: 0 8px 8px;
+  }
+
+  .interactionOption {
+    min-height: 48px;
+    margin-top: 6px;
+    padding: 0 12px;
+    border-radius: 6px;
+  }
+
+  .interactionOption:hover {
+    background: rgba(100, 100, 100, 1.0);
+  }
+
+  .interactionOption:active,
+  .interactionOption:focus-visible {
+    background: rgba(150, 150, 150, 1.0);
+  }
 }

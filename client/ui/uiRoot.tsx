@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useState } from "react";
+import { type SyntheticEvent, useEffect, useState } from "react";
 import Game from "../game/game";
 import { ChatBoxContent } from "./components/chatBox";
 import InteractionMenu from "./components/interactionMenu";
@@ -9,6 +9,7 @@ import { QuestPanelContent } from "./components/questPanel";
 import QuestCompletedOverlay from "./components/questCompletedOverlay";
 import panelStyles from "./components/uiPanel.module.css";
 import styles from "./uiRoot.module.css";
+import { getDeviceProfile, type DeviceProfile } from "../responsive";
 
 type Props = {
   game: Game;
@@ -16,6 +17,8 @@ type Props = {
 
 type LeftTab = "chat" | "combat";
 type RightTab = "inventory" | "equipment" | "quests";
+type MobileTab = LeftTab | RightTab;
+type SheetState = "collapsed" | "half" | "expanded";
 
 type TabDefinition<T extends string> = {
   id: T;
@@ -72,6 +75,40 @@ const rightTabs: TabDefinition<RightTab>[] = [
   { id: "quests", label: "Quests", icon: tabIcons.quests },
 ];
 
+const mobileTabs: TabDefinition<MobileTab>[] = [...leftTabs, ...rightTabs];
+
+function getWindowProfile() {
+  return getDeviceProfile({
+    width: Math.max(1, window.innerWidth),
+    height: Math.max(1, window.innerHeight),
+  });
+}
+
+function useDeviceProfile(game: Game): DeviceProfile {
+  const [profile, setProfile] = useState<DeviceProfile>(() => game.getDeviceProfile());
+
+  useEffect(() => {
+    const update = () => setProfile(getWindowProfile());
+    const pointerQuery = window.matchMedia("(pointer: coarse)");
+    const hoverQuery = window.matchMedia("(hover: hover)");
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    pointerQuery.addEventListener("change", update);
+    hoverQuery.addEventListener("change", update);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      pointerQuery.removeEventListener("change", update);
+      hoverQuery.removeEventListener("change", update);
+    };
+  }, [game]);
+
+  return profile;
+}
+
 function TabButtons<T extends string>(props: {
   tabs: TabDefinition<T>[];
   activeTab: T;
@@ -103,6 +140,10 @@ function TabButtons<T extends string>(props: {
 export default function UiRoot(props: Props) {
   const [leftTab, setLeftTab] = useState<LeftTab>("chat");
   const [rightTab, setRightTab] = useState<RightTab>("inventory");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
+  const [sheetState, setSheetState] = useState<SheetState>("collapsed");
+  const profile = useDeviceProfile(props.game);
+
   const stopHudEvent = (event: SyntheticEvent) => {
     event.stopPropagation();
   };
@@ -112,6 +153,90 @@ export default function UiRoot(props: Props) {
   const handleHudMouseLeave = () => {
     props.game.setPointerOverUi(false);
   };
+  const handleHudPointerDown = (event: SyntheticEvent) => {
+    event.stopPropagation();
+    props.game.setPointerOverUi(true);
+  };
+  const handleHudPointerUp = (event: SyntheticEvent) => {
+    event.stopPropagation();
+    const pointerEvent = event.nativeEvent as PointerEvent;
+    if (pointerEvent.pointerType !== "mouse") {
+      window.setTimeout(() => props.game.setPointerOverUi(false), 0);
+    }
+  };
+
+  const handleMobileTab = (tab: MobileTab) => {
+    setMobileTab(tab);
+    setSheetState((current) => (current === "collapsed" ? "half" : current));
+  };
+
+  const renderMobileContent = () => {
+    switch (mobileTab) {
+      case "chat":
+        return <ChatBoxContent game={props.game} />;
+      case "combat":
+        return <CombatLogContent game={props.game} />;
+      case "inventory":
+        return <InventoryBackpackContent game={props.game} />;
+      case "equipment":
+        return <EquipmentContent game={props.game} />;
+      case "quests":
+        return <QuestPanelContent game={props.game} />;
+    }
+  };
+
+  const activeMobileLabel =
+    mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
+
+  if (profile.isMobileLayout) {
+    return (
+      <div className={styles.root}>
+        <div
+          className={`${panelStyles.panel} ${styles.mobileSheet} ${styles[sheetState]}`}
+          onClick={stopHudEvent}
+          onContextMenu={stopHudEvent}
+          onPointerDown={handleHudPointerDown}
+          onPointerUp={handleHudPointerUp}
+          onPointerEnter={handleHudMouseEnter}
+          onPointerLeave={handleHudMouseLeave}
+        >
+          <div className={styles.mobileSheetHeader}>
+            <button
+              className={styles.sheetToggle}
+              type="button"
+              aria-label={sheetState === "collapsed" ? "Open panel" : "Collapse panel"}
+              onClick={() =>
+                setSheetState((current) => (current === "collapsed" ? "half" : "collapsed"))
+              }
+            >
+              {activeMobileLabel}
+            </button>
+            <button
+              className={styles.sheetSizeButton}
+              type="button"
+              aria-label={sheetState === "expanded" ? "Reduce panel" : "Expand panel"}
+              onClick={() =>
+                setSheetState((current) => (current === "expanded" ? "half" : "expanded"))
+              }
+            >
+              {sheetState === "expanded" ? "Half" : "Full"}
+            </button>
+          </div>
+          <TabButtons
+            tabs={mobileTabs}
+            activeTab={mobileTab}
+            setActiveTab={handleMobileTab}
+            label="Game panels"
+          />
+          <div className={styles.panelBody}>{renderMobileContent()}</div>
+        </div>
+
+        <InteractionMenu game={props.game} />
+        <ConversationPanel game={props.game} />
+        <QuestCompletedOverlay game={props.game} />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -121,10 +246,10 @@ export default function UiRoot(props: Props) {
         className={`${panelStyles.panel} ${styles.hudPanel} ${styles.leftPanel}`}
         onClick={stopHudEvent}
         onContextMenu={stopHudEvent}
-        onMouseDown={stopHudEvent}
-        onMouseUp={stopHudEvent}
-        onMouseEnter={handleHudMouseEnter}
-        onMouseLeave={handleHudMouseLeave}
+        onPointerDown={handleHudPointerDown}
+        onPointerUp={handleHudPointerUp}
+        onPointerEnter={handleHudMouseEnter}
+        onPointerLeave={handleHudMouseLeave}
       >
         <TabButtons
           tabs={leftTabs}
@@ -145,10 +270,10 @@ export default function UiRoot(props: Props) {
         className={`${panelStyles.panel} ${styles.hudPanel} ${styles.rightPanel}`}
         onClick={stopHudEvent}
         onContextMenu={stopHudEvent}
-        onMouseDown={stopHudEvent}
-        onMouseUp={stopHudEvent}
-        onMouseEnter={handleHudMouseEnter}
-        onMouseLeave={handleHudMouseLeave}
+        onPointerDown={handleHudPointerDown}
+        onPointerUp={handleHudPointerUp}
+        onPointerEnter={handleHudMouseEnter}
+        onPointerLeave={handleHudMouseLeave}
       >
         <TabButtons
           tabs={rightTabs}
