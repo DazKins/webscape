@@ -31,6 +31,7 @@ type ViewportState = {
   root: THREE.Group;
   tileMeshes: THREE.Mesh[];
   hoveredTile: { x: number; y: number } | null;
+  hoverOverlay: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   framedSize: string | null;
   frameId: number | null;
   resizeObserver: ResizeObserver;
@@ -93,6 +94,10 @@ export function MapViewport3D({
     const root = new THREE.Group();
     scene.add(root);
 
+    const hoverOverlay = createTileOverlayMesh(0xfff2a8, 0.28);
+    hoverOverlay.visible = false;
+    scene.add(hoverOverlay);
+
     const ambient = new THREE.HemisphereLight(0xffffff, 0x7c7464, 1.45);
     scene.add(ambient);
 
@@ -110,6 +115,7 @@ export function MapViewport3D({
       root,
       tileMeshes: [],
       hoveredTile: null,
+      hoverOverlay,
       framedSize: null,
       frameId: null,
       resizeObserver: new ResizeObserver(() => resizeRenderer(container, camera, renderer)),
@@ -146,7 +152,7 @@ export function MapViewport3D({
       const tile = pickTile(event, state);
       if (!sameTile(tile, state.hoveredTile)) {
         state.hoveredTile = tile;
-        renderWorld(state, worldRef.current, selectionRef.current);
+        updateHoverOverlay(state, worldRef.current);
         if (tile) {
           callbacksRef.current.onTilePointerEnter(tile.x, tile.y, event.buttons);
         }
@@ -156,7 +162,7 @@ export function MapViewport3D({
     const handlePointerLeave = () => {
       if (state.hoveredTile) {
         state.hoveredTile = null;
-        renderWorld(state, worldRef.current, selectionRef.current);
+        updateHoverOverlay(state, worldRef.current);
       }
     };
 
@@ -179,6 +185,7 @@ export function MapViewport3D({
         window.cancelAnimationFrame(state.frameId);
       }
       disposeGroup(root);
+      disposeObject(hoverOverlay);
       scene.clear();
       controls.dispose();
       renderer.dispose();
@@ -199,6 +206,7 @@ export function MapViewport3D({
       state.framedSize = frameKey;
     }
     renderWorld(state, world, selection);
+    updateHoverOverlay(state, world);
   }, [world, selection]);
 
   return (
@@ -244,10 +252,6 @@ function renderWorld(state: ViewportState, world: WorldFormat, selection: MapSel
 
   for (const entity of world.entities) {
     addEntityMarker(state.root, world, entity, selection?.type === "entity" && selection.id === entity.id);
-  }
-
-  if (state.hoveredTile) {
-    addTileOverlay(state.root, world, state.hoveredTile.x, state.hoveredTile.y, 0xfff2a8, 0.28);
   }
 
   if (selection?.type === "tile") {
@@ -362,6 +366,32 @@ function addTileOverlay(
   root.add(mesh);
 }
 
+function createTileOverlayMesh(color: THREE.ColorRepresentation, opacity: number) {
+  const geometry = new THREE.PlaneGeometry(1, 1);
+  const material = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.rotation.x = -Math.PI / 2;
+  return mesh;
+}
+
+function updateHoverOverlay(state: ViewportState, world: WorldFormat) {
+  const tile = state.hoveredTile;
+  if (!tile || tile.x < 0 || tile.y < 0 || tile.x >= world.size.x || tile.y >= world.size.y) {
+    state.hoverOverlay.visible = false;
+    return;
+  }
+
+  const height = tileVisualHeight(world, tile.x, tile.y);
+  state.hoverOverlay.position.set(tile.x + 0.5, height + MARKER_OFFSET + 0.006, tile.y + 0.5);
+  state.hoverOverlay.visible = true;
+}
+
 function addTileOutline(root: THREE.Group, world: WorldFormat, x: number, y: number, color: THREE.ColorRepresentation) {
   const height = tileVisualHeight(world, x, y) + MARKER_OFFSET + 0.014;
   const points = [
@@ -447,17 +477,21 @@ function sameTile(a: { x: number; y: number } | null, b: { x: number; y: number 
 function disposeGroup(group: THREE.Group) {
   for (const child of group.children) {
     child.traverse((object) => {
-      if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.LineSegments) {
-        object.geometry.dispose();
-        const material = object.material;
-        if (Array.isArray(material)) {
-          for (const item of material) {
-            item.dispose();
-          }
-        } else {
-          material.dispose();
-        }
-      }
+      disposeObject(object);
     });
+  }
+}
+
+function disposeObject(object: THREE.Object3D) {
+  if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.LineSegments) {
+    object.geometry.dispose();
+    const material = object.material;
+    if (Array.isArray(material)) {
+      for (const item of material) {
+        item.dispose();
+      }
+    } else {
+      material.dispose();
+    }
   }
 }
