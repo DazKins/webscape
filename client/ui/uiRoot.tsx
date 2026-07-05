@@ -220,7 +220,12 @@ export default function UiRoot(props: Props) {
                 setSheetState((current) => (current === "expanded" ? "half" : "expanded"))
               }
             >
-              {sheetState === "expanded" ? "Less" : "More"}
+              <span
+                className={`${styles.sheetChevron} ${
+                  sheetState === "expanded" ? styles.sheetChevronDown : styles.sheetChevronUp
+                }`}
+                aria-hidden="true"
+              />
             </button>
           </div>
           <TabButtons

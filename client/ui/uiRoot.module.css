@@ -127,6 +127,30 @@
   min-width: 68px;
 }
 
+.sheetSizeButton {
+  min-width: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.sheetChevron {
+  width: 12px;
+  height: 12px;
+  border-top: 3px solid rgba(245, 245, 245, 0.96);
+  border-left: 3px solid rgba(245, 245, 245, 0.96);
+}
+
+.sheetChevronUp {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.sheetChevronDown {
+  transform: translateY(-3px) rotate(225deg);
+}
+
 .collapsed {
   height: 118px;
 }
