@@ -58,6 +58,12 @@
   background-color: rgba(55, 75, 112, 0.9);
 }
 
+.activeTab:hover,
+.activeTab:focus-visible {
+  border-color: rgba(170, 205, 255, 0.95);
+  background-color: rgba(55, 75, 112, 0.95);
+}
+
 .tabIcon {
   width: 28px;
   height: 28px;
@@ -154,6 +160,14 @@
   .tabButton:focus-visible {
     border-color: rgba(230, 230, 230, 0.75);
     background-color: rgba(70, 76, 88, 0.9);
+  }
+
+  .activeTab,
+  .activeTab:hover,
+  .activeTab:active,
+  .activeTab:focus-visible {
+    border-color: rgba(170, 205, 255, 0.95);
+    background-color: rgba(55, 75, 112, 0.95);
   }
 
   .tabIcon {
