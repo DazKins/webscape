@@ -13,6 +13,8 @@ export default class Camera {
   private renderedHeight: number;
   private orbitSpeed: number;
   private heightSpeed: number;
+  private dragOrbitSpeed: number;
+  private dragHeightSpeed: number;
   private minHeight: number;
   private maxHeight: number;
   private cameraTarget: THREE.Vector3;
@@ -35,6 +37,8 @@ export default class Camera {
     this.renderedHeight = this.height;
     this.orbitSpeed = 0.05;
     this.heightSpeed = 0.1;
+    this.dragOrbitSpeed = 0.008;
+    this.dragHeightSpeed = 0.012;
     this.minHeight = 2;
     this.maxHeight = 10;
     this.cameraTarget = new THREE.Vector3(0, 0, 0);
@@ -46,6 +50,14 @@ export default class Camera {
 
   getInnerCamera(): THREE.PerspectiveCamera {
     return this.camera;
+  }
+
+  orbitByDrag(delta: { x: number; y: number }) {
+    this.angle -= delta.x * this.dragOrbitSpeed;
+    this.height = Math.max(
+      this.minHeight,
+      Math.min(this.maxHeight, this.height + delta.y * this.dragHeightSpeed)
+    );
   }
 
   update(target: THREE.Vector3, options: { distance?: number; height?: number } = {}) {

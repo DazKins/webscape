@@ -117,6 +117,9 @@ class Game extends EventTarget implements InputReceiver {
       onLongPress: (event) => {
         this.handleSceneLongPress(event.clientX, event.clientY);
       },
+      onDrag: (event, delta) => {
+        this.handleSceneDrag(event, delta);
+      },
     });
 
     this.input.registerRightClickCallback((event: MouseEvent) => {
@@ -207,6 +210,13 @@ class Game extends EventTarget implements InputReceiver {
       return;
     }
     this.openInteractionMenuAt(clientX, clientY);
+  }
+
+  private handleSceneDrag(event: PointerEvent, delta: { x: number; y: number }) {
+    if (this.input.isPointerBlocked() || event.buttons !== 1) {
+      return;
+    }
+    this.camera.orbitByDrag(delta);
   }
 
   private openInteractionMenuAt(clientX: number, clientY: number) {

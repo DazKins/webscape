@@ -5,6 +5,7 @@ export interface InputReceiver {
 type PointerCallbacks = {
   onTap?: (event: PointerEvent) => void;
   onLongPress?: (event: PointerEvent) => void;
+  onDrag?: (event: PointerEvent, delta: { x: number; y: number }) => void;
 };
 
 const LONG_PRESS_MS = 450;
@@ -22,8 +23,11 @@ class Input {
         id: number;
         x: number;
         y: number;
+        lastX: number;
+        lastY: number;
         longPressTimer: number;
         longPressed: boolean;
+        dragging: boolean;
       }
     | undefined;
 
@@ -78,6 +82,30 @@ class Input {
   onPointerMove(event: PointerEvent) {
     this.pointerPosition.x = event.clientX;
     this.pointerPosition.y = event.clientY;
+
+    const activePointer = this.activePointer;
+    if (!activePointer || activePointer.id !== event.pointerId || this.pointerBlocked) {
+      return;
+    }
+
+    const movedDistance = Math.hypot(
+      event.clientX - activePointer.x,
+      event.clientY - activePointer.y
+    );
+    if (movedDistance > TAP_MOVE_THRESHOLD_PX) {
+      activePointer.dragging = true;
+      window.clearTimeout(activePointer.longPressTimer);
+    }
+
+    if (activePointer.dragging) {
+      const delta = {
+        x: event.clientX - activePointer.lastX,
+        y: event.clientY - activePointer.lastY,
+      };
+      activePointer.lastX = event.clientX;
+      activePointer.lastY = event.clientY;
+      this.pointerCallbacks.onDrag?.(event, delta);
+    }
   }
 
   onPointerDown(event: PointerEvent) {
@@ -90,8 +118,11 @@ class Input {
       id: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
       longPressTimer: 0,
       longPressed: false,
+      dragging: false,
     };
 
     activePointer.longPressTimer = window.setTimeout(() => {
@@ -118,7 +149,12 @@ class Input {
     window.clearTimeout(activePointer.longPressTimer);
     this.activePointer = undefined;
 
-    if (this.pointerBlocked || activePointer.longPressed || event.button !== 0) {
+    if (
+      this.pointerBlocked ||
+      activePointer.longPressed ||
+      activePointer.dragging ||
+      event.button !== 0
+    ) {
       return;
     }
 
