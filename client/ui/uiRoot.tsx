@@ -18,7 +18,6 @@ type Props = {
 type LeftTab = "chat" | "combat";
 type RightTab = "inventory" | "equipment" | "quests";
 type MobileTab = LeftTab | RightTab;
-type SheetState = "collapsed" | "half" | "expanded";
 
 type TabDefinition<T extends string> = {
   id: T;
@@ -141,7 +140,7 @@ export default function UiRoot(props: Props) {
   const [leftTab, setLeftTab] = useState<LeftTab>("chat");
   const [rightTab, setRightTab] = useState<RightTab>("inventory");
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
-  const [sheetState, setSheetState] = useState<SheetState>("collapsed");
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const profile = useDeviceProfile(props.game);
 
   const stopHudEvent = (event: SyntheticEvent) => {
@@ -167,7 +166,7 @@ export default function UiRoot(props: Props) {
 
   const handleMobileTab = (tab: MobileTab) => {
     setMobileTab(tab);
-    setSheetState((current) => (current === "collapsed" ? "half" : current));
+    setIsMobilePanelOpen(true);
   };
 
   const renderMobileContent = () => {
@@ -192,7 +191,9 @@ export default function UiRoot(props: Props) {
     return (
       <div className={styles.root}>
         <div
-          className={`${panelStyles.panel} ${styles.mobileSheet} ${styles[sheetState]}`}
+          className={`${panelStyles.panel} ${styles.mobileSheet} ${
+            isMobilePanelOpen ? styles.open : styles.collapsed
+          }`}
           onClick={stopHudEvent}
           onContextMenu={stopHudEvent}
           onPointerDown={handleHudPointerDown}
@@ -200,41 +201,30 @@ export default function UiRoot(props: Props) {
           onPointerEnter={handleHudMouseEnter}
           onPointerLeave={handleHudMouseLeave}
         >
-          <div className={styles.mobileSheetHeader}>
-            <button
-              className={styles.sheetHideButton}
-              type="button"
-              aria-label="Hide panel"
-              onClick={() => setSheetState("collapsed")}
-            >
-              Hide
-            </button>
-            <div className={styles.sheetTitle} aria-live="polite">
-              {activeMobileLabel}
+          {isMobilePanelOpen ? (
+            <div className={styles.mobileSheetHeader}>
+              <div className={styles.sheetTitle} aria-live="polite">
+                {activeMobileLabel}
+              </div>
+              <button
+                className={styles.sheetCloseButton}
+                type="button"
+                aria-label="Close panel"
+                onClick={() => setIsMobilePanelOpen(false)}
+              >
+                <span aria-hidden="true">x</span>
+              </button>
             </div>
-            <button
-              className={styles.sheetSizeButton}
-              type="button"
-              aria-label={sheetState === "expanded" ? "Show less panel content" : "Show more panel content"}
-              onClick={() =>
-                setSheetState((current) => (current === "expanded" ? "half" : "expanded"))
-              }
-            >
-              <span
-                className={`${styles.sheetChevron} ${
-                  sheetState === "expanded" ? styles.sheetChevronDown : styles.sheetChevronUp
-                }`}
-                aria-hidden="true"
-              />
-            </button>
-          </div>
+          ) : null}
+          {isMobilePanelOpen ? (
+            <div className={styles.panelBody}>{renderMobileContent()}</div>
+          ) : null}
           <TabButtons
             tabs={mobileTabs}
             activeTab={mobileTab}
             setActiveTab={handleMobileTab}
             label="Game panels"
           />
-          <div className={styles.panelBody}>{renderMobileContent()}</div>
         </div>
 
         <InteractionMenu game={props.game} />
