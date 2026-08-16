@@ -27,6 +27,7 @@ type Item struct {
 	Id            ItemId
 	Name          string
 	Type          string
+	RenderModel   string
 	EquipmentSlot *EquipmentSlot // nil if item is not equipable
 	CombatStats   *ItemCombatStats
 }
@@ -36,6 +37,7 @@ func NewItem(name string, itemType string) *Item {
 		Id:            NewItemId(),
 		Name:          name,
 		Type:          itemType,
+		RenderModel:   "",
 		EquipmentSlot: nil,
 		CombatStats:   nil,
 	}
@@ -51,11 +53,12 @@ type ItemCombatStats struct {
 	AttackSpeedTicks int
 }
 
-func NewEquipableItem(name string, itemType string, slot EquipmentSlot, combatStats *ItemCombatStats) *Item {
+func NewEquipableItem(name string, itemType string, renderModel string, slot EquipmentSlot, combatStats *ItemCombatStats) *Item {
 	return &Item{
 		Id:            NewItemId(),
 		Name:          name,
 		Type:          itemType,
+		RenderModel:   renderModel,
 		EquipmentSlot: &slot,
 		CombatStats:   combatStats,
 	}

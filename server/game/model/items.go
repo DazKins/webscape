@@ -4,7 +4,7 @@ package model
 
 // Equipable Items - Weapons
 func CreateIronSword() *Item {
-	return NewEquipableItem("Iron Sword", "weapon", SlotWeapon, &ItemCombatStats{
+	return NewEquipableItem("Iron Sword", "weapon", "ironSword", SlotWeapon, &ItemCombatStats{
 		MinDamage:        6,
 		MaxDamage:        10,
 		AccuracyBonus:    5,
@@ -16,7 +16,7 @@ func CreateIronSword() *Item {
 }
 
 func CreateWoodenBow() *Item {
-	return NewEquipableItem("Wooden Bow", "weapon", SlotWeapon, &ItemCombatStats{
+	return NewEquipableItem("Wooden Bow", "weapon", "woodenBow", SlotWeapon, &ItemCombatStats{
 		MinDamage:        4,
 		MaxDamage:        7,
 		AccuracyBonus:    6,
@@ -28,7 +28,7 @@ func CreateWoodenBow() *Item {
 }
 
 func CreateMagicStaff() *Item {
-	return NewEquipableItem("Magic Staff", "weapon", SlotWeapon, &ItemCombatStats{
+	return NewEquipableItem("Magic Staff", "weapon", "magicStaff", SlotWeapon, &ItemCombatStats{
 		MinDamage:        5,
 		MaxDamage:        9,
 		AccuracyBonus:    4,
@@ -41,7 +41,7 @@ func CreateMagicStaff() *Item {
 
 // Equipable Items - Armor
 func CreateLeatherHelmet() *Item {
-	return NewEquipableItem("Leather Helmet", "armor", SlotHead, &ItemCombatStats{
+	return NewEquipableItem("Leather Helmet", "armor", "leatherHelmet", SlotHead, &ItemCombatStats{
 		MinDamage:        0,
 		MaxDamage:        0,
 		AccuracyBonus:    0,
@@ -53,7 +53,7 @@ func CreateLeatherHelmet() *Item {
 }
 
 func CreateChainmailChestplate() *Item {
-	return NewEquipableItem("Chainmail Chestplate", "armor", SlotChest, &ItemCombatStats{
+	return NewEquipableItem("Chainmail Chestplate", "armor", "chainmailChestplate", SlotChest, &ItemCombatStats{
 		MinDamage:        0,
 		MaxDamage:        0,
 		AccuracyBonus:    0,
@@ -65,7 +65,7 @@ func CreateChainmailChestplate() *Item {
 }
 
 func CreateIronLeggings() *Item {
-	return NewEquipableItem("Iron Leggings", "armor", SlotLegs, &ItemCombatStats{
+	return NewEquipableItem("Iron Leggings", "armor", "ironLeggings", SlotLegs, &ItemCombatStats{
 		MinDamage:        0,
 		MaxDamage:        0,
 		AccuracyBonus:    0,
@@ -77,7 +77,7 @@ func CreateIronLeggings() *Item {
 }
 
 func CreateLeatherBoots() *Item {
-	return NewEquipableItem("Leather Boots", "armor", SlotFeet, &ItemCombatStats{
+	return NewEquipableItem("Leather Boots", "armor", "leatherBoots", SlotFeet, &ItemCombatStats{
 		MinDamage:        0,
 		MaxDamage:        0,
 		AccuracyBonus:    0,
@@ -90,7 +90,7 @@ func CreateLeatherBoots() *Item {
 
 // Equipable Items - Offhand
 func CreateWoodenShield() *Item {
-	return NewEquipableItem("Wooden Shield", "shield", SlotOffhand, &ItemCombatStats{
+	return NewEquipableItem("Wooden Shield", "shield", "woodenShield", SlotOffhand, &ItemCombatStats{
 		MinDamage:        0,
 		MaxDamage:        0,
 		AccuracyBonus:    0,

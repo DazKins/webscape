@@ -14,6 +14,7 @@ type InventoryItem = {
   id: string;
   name: string;
   type: string;
+  renderModel?: string;
   equipmentSlot?: string;
   combatStats?: {
     minDamage: number;

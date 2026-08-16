@@ -1,33 +1,18 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
-import PositionedEntityRenderer from "./positionedEntityRenderer";
+import ModelEntityRenderer from "./modelEntityRenderer";
 import type { TerrainHeightSampler } from "./renderer";
 
-export default class RendererBuilding extends PositionedEntityRenderer {
+export default class RendererBuilding extends ModelEntityRenderer {
   constructor(
     scene: THREE.Scene,
     entity: Entity,
     terrainHeightSampler?: TerrainHeightSampler
   ) {
-    super(scene, entity, terrainHeightSampler);
-
-    const size = this.getFootprintSize();
-
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(Math.max(0.8, size.width * 0.9), 1.2, Math.max(0.8, size.height * 0.9)),
-      new THREE.MeshPhongMaterial({ color: 0xb8ab88 })
-    );
-    body.position.set(size.width / 2, 0.6, size.height / 2);
-    this.mesh.add(body);
-
-    const roof = new THREE.Mesh(
-      new THREE.ConeGeometry(Math.max(size.width, size.height) * 0.7, 0.55, 4),
-      new THREE.MeshPhongMaterial({ color: 0x7f4231 })
-    );
-    roof.rotation.y = Math.PI / 4;
-    roof.position.set(size.width / 2, 1.475, size.height / 2);
-    this.mesh.add(roof);
-
-    this.addToScene();
+    const metadata = entity.getComponent("metadata") ?? {};
+    super(scene, entity, terrainHeightSampler, "building", {
+      width: metadata.width ?? 1,
+      height: metadata.height ?? 1,
+    });
   }
 }

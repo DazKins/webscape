@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webscape Model Lab</title>
+  </head>
+  <body>
+    <main id="modelLab">
+      <section id="viewport" aria-label="3D model preview"></section>
+      <aside id="controls">
+        <label>Model <select id="model"></select></label>
+        <label>Animation <select id="animation"></select></label>
+        <button id="playPause" type="button">Pause</button>
+        <label class="phase">Phase <input id="phase" type="range" min="0" max="1" step="0.001" value="0" /></label>
+        <output id="phaseValue">0.000</output>
+        <fieldset>
+          <legend>Camera</legend>
+          <button type="button" data-view="front">Front</button>
+          <button type="button" data-view="back">Back</button>
+          <button type="button" data-view="side">Side</button>
+          <button type="button" data-view="top">Top</button>
+          <button type="button" data-view="three-quarter">Three-quarter</button>
+        </fieldset>
+      </aside>
+    </main>
+    <script type="module" src="/model-lab/main.ts"></script>
+  </body>
+</html>

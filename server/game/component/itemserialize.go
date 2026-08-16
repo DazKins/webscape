@@ -11,6 +11,9 @@ func SerializeItem(item *model.Item) util.Json {
 		"name": util.JString(item.Name),
 		"type": util.JString(item.Type),
 	})
+	if item.RenderModel != "" {
+		itemObj["renderModel"] = util.JString(item.RenderModel)
+	}
 	if item.EquipmentSlot != nil {
 		itemObj["equipmentSlot"] = util.JString(string(*item.EquipmentSlot))
 	}

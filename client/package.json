@@ -2,7 +2,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "build:watch": "vite build --watch"
+    "build:watch": "vite build --watch",
+    "model:screenshot": "node scripts/model-screenshot.mjs"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
@@ -10,6 +11,7 @@
     "@types/three": "^0.180.0",
     "@vitejs/plugin-react": "^5.0.4",
     "baseline-browser-mapping": "^2.10.33",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3",
     "vite": "7.1.9"
   },
