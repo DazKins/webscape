@@ -11,6 +11,7 @@ import RendererError from "./renderer/rendererError";
 import RendererRock from "./renderer/rendererRock";
 import RendererTree from "./renderer/rendererTree";
 import RendererRewardDrop from "./renderer/rendererRewardDrop";
+import RendererRat from "./renderer/rendererRat";
 import type { TerrainHeightSampler } from "./renderer/renderer";
 
 type VisualHeightWorld = {
@@ -39,6 +40,8 @@ export default class EntityRenderSystem {
           this.sampleVisualHeight,
           (entityId) => this.entitiesById.get(entityId),
         );
+      case "rat":
+        return new RendererRat(this.scene, entity, this.sampleVisualHeight);
       case "tree":
         return new RendererTree(this.scene, entity, this.sampleVisualHeight);
       case "door":

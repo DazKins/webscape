@@ -71,7 +71,7 @@ type Selection =
   | null;
 
 const WALL_TYPES = ["stone", "wood"];
-const ENTITY_TYPES = ["tree", "door", "building", "chest", "rock", "human"];
+const ENTITY_TYPES = ["tree", "door", "building", "chest", "rock", "human", "rat"];
 
 function App() {
   const defaultWorld = createBlankWorld();

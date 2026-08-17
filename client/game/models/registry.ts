@@ -3,6 +3,7 @@ import { createChestModel } from "./definitions/chest";
 import { createDoorModel } from "./definitions/door";
 import { createHumanModel } from "./definitions/human";
 import { createLeatherHelmetModel } from "./definitions/leatherHelmet";
+import { createRatModel } from "./definitions/rat";
 import { createRewardDropModel } from "./definitions/rewardDrop";
 import { createRockModel } from "./definitions/rock";
 import { createTreeModel } from "./definitions/tree";
@@ -11,6 +12,7 @@ import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 export const modelRegistry = {
   human: createHumanModel,
   leatherHelmet: createLeatherHelmetModel,
+  rat: createRatModel,
   tree: createTreeModel,
   door: createDoorModel,
   chest: createChestModel,

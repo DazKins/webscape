@@ -167,7 +167,7 @@ func loadSpawnTestWorld(t *testing.T, respawnTicks int) *world.World {
 								"entity": {
 									"components": {
 										"metadata": { "name": "Rat", "entityType": "rat" },
-										"renderable": { "type": "human" },
+										"renderable": { "type": "rat" },
 										"randomwalk": { "walkTimer": 10 },
 										"health": { "maxHealth": 100 },
 										"basestats": { "strength": 6, "dexterity": 5, "vitality": 6 },

@@ -2737,7 +2737,7 @@
                 "entityType": "rat"
               },
               "renderable": {
-                "type": "human"
+                "type": "rat"
               },
               "randomwalk": {
                 "walkTimer": 10,
