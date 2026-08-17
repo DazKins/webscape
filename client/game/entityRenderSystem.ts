@@ -21,6 +21,7 @@ export default class EntityRenderSystem {
   scene: THREE.Scene;
   renderers: Record<string, EntityRenderer | null>;
   private sampleVisualHeight: TerrainHeightSampler;
+  private entitiesById = new Map<string, Entity>();
 
   constructor(scene: THREE.Scene, getWorld?: () => VisualHeightWorld | undefined) {
     this.scene = scene;
@@ -32,7 +33,12 @@ export default class EntityRenderSystem {
   createRenderer(renderableType: string, entity: Entity): EntityRenderer | null {
     switch (renderableType) {
       case "human":
-        return new RendererHuman(this.scene, entity, this.sampleVisualHeight);
+        return new RendererHuman(
+          this.scene,
+          entity,
+          this.sampleVisualHeight,
+          (entityId) => this.entitiesById.get(entityId),
+        );
       case "tree":
         return new RendererTree(this.scene, entity, this.sampleVisualHeight);
       case "door":
@@ -65,6 +71,8 @@ export default class EntityRenderSystem {
   }
 
   update(entities: Entity[], deltaSeconds: number) {
+    this.entitiesById = new Map(entities.map((entity) => [entity.getId(), entity]));
+
     for (const entity of entities) {
       const renderableComponent = entity.getComponent("renderable");
       if (!renderableComponent) {

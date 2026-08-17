@@ -26,13 +26,16 @@ export default class RendererHuman extends EntityRenderer {
   private segmentTargetZ: number;
   private segmentElapsedSeconds = SERVER_TICK_SECONDS;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
+  private readonly resolveEntity: (entityId: string) => Entity | undefined;
 
   constructor(
     scene: THREE.Scene,
     entity: Entity,
     terrainHeightSampler?: TerrainHeightSampler,
+    resolveEntity: (entityId: string) => Entity | undefined = () => undefined,
   ) {
     super(scene, entity, terrainHeightSampler);
+    this.resolveEntity = resolveEntity;
 
     const metadata = entity.getComponent("metadata") ?? {};
     this.mesh = new THREE.Group();
@@ -72,7 +75,7 @@ export default class RendererHuman extends EntityRenderer {
       this.segmentTargetX = targetX;
       this.segmentTargetZ = targetZ;
       this.segmentElapsedSeconds = 0;
-      this.faceTravelDirection(targetX - this.segmentStartX, targetZ - this.segmentStartZ);
+      this.faceDirection(targetX - this.segmentStartX, targetZ - this.segmentStartZ);
     }
 
     this.segmentElapsedSeconds += deltaSeconds;
@@ -84,6 +87,9 @@ export default class RendererHuman extends EntityRenderer {
       this.sampleVisualHeight(renderedX + 0.5, renderedZ + 0.5),
       renderedZ,
     );
+    if (!this.isMoving()) {
+      this.faceSynchronizedTarget(targetX, targetZ);
+    }
     this.updateFacing(deltaSeconds);
     this.modelInstance.play(
       this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
@@ -133,7 +139,21 @@ export default class RendererHuman extends EntityRenderer {
     }
   }
 
-  private faceTravelDirection(deltaX: number, deltaZ: number) {
+  private faceSynchronizedTarget(currentX: number, currentZ: number) {
+    const facing = this.entity.getComponent("facing");
+    if (!facing?.targetEntityId) {
+      return;
+    }
+
+    const targetPosition = this.resolveEntity(facing.targetEntityId)?.getComponent("position");
+    if (!targetPosition) {
+      return;
+    }
+
+    this.faceDirection(targetPosition.x - currentX, targetPosition.y - currentZ);
+  }
+
+  private faceDirection(deltaX: number, deltaZ: number) {
     if (deltaX === 0 && deltaZ === 0) {
       return;
     }

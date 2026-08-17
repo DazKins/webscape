@@ -89,6 +89,11 @@ func NewGameWithWorld(world *world.World) *Game {
 		},
 	}
 	game.RegisterSystem(spawnSystem)
+	game.RegisterSystem(&system.FacingSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+	})
 	spawnSystem.Update()
 
 	return game
