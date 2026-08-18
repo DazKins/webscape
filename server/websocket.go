@@ -145,8 +145,9 @@ func (c *client) writePump() {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:    1024,
+	WriteBufferSize:   1024,
+	EnableCompression: true,
 	CheckOrigin: func(r *http.Request) bool {
 		return true // Allow all origins for development
 	},
@@ -158,6 +159,7 @@ func (wss *wsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+	conn.EnableWriteCompression(true)
 
 	// Generate a UUID for the client
 	clientID := uuid.New().String()

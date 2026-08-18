@@ -2,13 +2,13 @@
 
 ## Project Structure & Module Organization
 
-Webscape is now a content-driven Go game server with two Vite/React/TypeScript frontends. The root entry point is `main.go`; it embeds or serves `client/dist`, requires a `-game-folder` containing `game.json`, loads authored game content, and starts the HTTP/WebSocket server on port `8080`.
+Webscape is now a content-driven Go game server with two Vite/React/TypeScript frontends. The root entry point is `main.go`; it loads `config.json`, serves the configured client folder, loads authored game content from the configured game folder, and starts the HTTP/WebSocket server at the configured address.
 
 - `server/`: Go runtime. HTTP/WebSocket setup lives in `server`, client commands in `server/command`, outgoing messages in `server/message`, ECS game state in `server/game`, components in `server/game/component`, systems in `server/game/system`, authored entity conversion in `server/game/entity`, content loading in `server/game/world`, model types in `server/game/model`, math in `server/math`, and helpers in `server/util`.
 - `client/`: playable browser client. Startup is `client/main.ts`, WebSocket transport is `client/ws.ts`, commands are in `client/command`, Three.js game/rendering code is under `client/game`, UI events are in `client/events`, and React HUD components are in `client/ui/components`.
 - `editor/`: standalone browser-based game project editor. The main UI is `editor/src/App.tsx`; project/file APIs are in `editor/src/fileSystem.ts`; JSON format helpers are in `editor/src/gameProject.ts`, `worldFormat.ts`, `conversationFormat.ts`, and `questFormat.ts`.
-- `game-project/`: checked-in sample/authored game content loaded by `go run . -dev -game-folder game-project` and copied into the production Docker image.
-- `schema/`: OpenAPI 3.1 schemas and examples for `game.json`, maps/worlds, conversations, and quests. Keep schemas, editor validators, server loaders, and sample content in sync when changing a format.
+- `game-project/`: checked-in sample/authored game content selected by `config.json` and copied into the production Docker image.
+- `schema/`: OpenAPI 3.1 schemas and examples for `game.json`, world chunks, conversations, and quests. Keep schemas, editor validators, server loaders, and sample content in sync when changing a format.
 
 Generated output in `client/dist` and `editor/dist` must not be edited by hand.
 
@@ -20,11 +20,10 @@ Generated output in `client/dist` and `editor/dist` must not be edited by hand.
 - `cd editor && npm run dev`: run the editor Vite dev server.
 - `cd client && npm run build`: type-check the playable client and build `client/dist`.
 - `cd editor && npm run build`: type-check the editor and build `editor/dist`.
-- `go run . -dev -game-folder game-project`: start the Go server with live files from `client/dist`; run the client build first.
-- `go run . -game-folder game-project`: start with embedded `client/dist`; this requires `client/dist` to exist at compile time.
+- `go run .`: load `config.json` and start the Go server; build `client/dist` first.
 - `go build ./...`: compile all Go packages.
 - `go test ./...`: run Go tests.
-- `docker build -t webscape .`: build the multi-stage production image. The Dockerfile builds only the playable client, compiles the Go server, copies `game-project/`, and runs `./main -game-folder /app/game-project`.
+- `docker build -t webscape .`: build the multi-stage production image. The Dockerfile builds the playable client, compiles the Go server, and copies `config.json`, `client/dist`, and `game-project/` into the final image.
 
 Use Node `v24.11.0` for the client when following `client/.nvmrc`; the editor currently has no separate `.nvmrc`.
 
@@ -32,9 +31,9 @@ Use Node `v24.11.0` for the client when following `client/.nvmrc`; the editor cu
 
 The server is authoritative. Clients send JSON commands over `/ws`; the server mutates ECS state and broadcasts typed messages. When adding a command, update both `server/command/command.go` and client command call sites, then route it in `server/commandhandler.go`.
 
-Game content starts at `game.json` and lists map, conversation, and quest files. The runtime currently loads the first map from `files.maps`. Project file paths must be relative, slash-separated, and valid for `fs.ValidPath`; do not introduce absolute paths or `..` traversal.
+Startup and deployment settings live in root `config.json`; add runtime settings there instead of introducing command-line flags. Game content starts at project format v2 `game.json`, which defines a uniform `world.chunkSize` and lists chunk, conversation, and quest files. The runtime loads every sparse chunk in `files.chunks`; authored positions are chunk-local and become global server coordinates. Missing chunks are impassable. Project file paths must be relative, slash-separated, and valid for `fs.ValidPath`; do not introduce absolute paths or `..` traversal.
 
-Map tile arrays are row-major: index `y * size.x + x`. Map entities are authored as JSON component bags, then converted by `server/game/entity/CreateAuthoredEntity`. Authored entities need a `position` component; `metadata.blocksMovement` contributes to object blockers, and `metadata.width`/`height` must stay in bounds. A `playerSpawn` component marks spawn position and is not loaded as a normal entity.
+Chunk tile arrays are row-major: index `y * chunkSize.x + x`. Chunk entities are authored as JSON component bags, then converted by `server/game/entity/CreateAuthoredEntity`. Authored entities need a local `position` component; `metadata.blocksMovement` contributes to object blockers, and their `metadata.width`/`height` footprints must remain inside the source chunk. Exactly one `playerSpawn` is required across the project and is not loaded as a normal entity.
 
 Conversations and quests are registry-driven. Entities with a `conversation.conversationId` must reference a loaded conversation. Conversation node events use ids such as `conversation:node:<conversationId>:<nodeId>`, and quests advance from generic game events. Keep event ids stable across content, tests, and UI.
 
@@ -52,7 +51,7 @@ There is no dedicated frontend test runner configured. For frontend changes, run
 
 For Go changes, add focused `_test.go` files near the package under test and run `go test ./...`. Existing coverage focuses on content loading, world validation, conversations, quests, loot, and combat event emission. Prioritize new tests for game systems, component serialization, authored content parsing, command handling, WebSocket message payloads, and schema/runtime compatibility.
 
-For content or schema changes, validate by running `go test ./...` and then `go run . -dev -game-folder game-project` after rebuilding `client/dist`. If the editor format helpers changed, also run `cd editor && npm run build`.
+For content or schema changes, validate by running `go test ./...` and then `go run .` after rebuilding `client/dist`. If the editor format helpers changed, also run `cd editor && npm run build`.
 
 ## Commit & Pull Request Guidelines
 

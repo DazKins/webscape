@@ -19,6 +19,7 @@ const (
 type CombatSystem struct {
 	SystemBase
 	World        *world.World
+	SpatialIndex SpatialCandidates
 	EventEmitter GameEventEmitter
 }
 
@@ -259,6 +260,7 @@ func (s *CombatSystem) stepOutFromTarget(attackerId model.EntityId, targetPositi
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, attackerId).(*component.CPosition)
 		positionComponent.SetPosition(candidate)
+		s.ComponentManager.SetEntityComponent(attackerId, positionComponent)
 		return true
 	}
 	return false
@@ -268,6 +270,7 @@ func (s *CombatSystem) collision() collision.Checker {
 	return collision.Checker{
 		World:            s.World,
 		ComponentManager: s.ComponentManager,
+		SpatialIndex:     s.SpatialIndex,
 	}
 }
 

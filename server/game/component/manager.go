@@ -5,7 +5,18 @@ import (
 )
 
 type ComponentManager struct {
-	components map[ComponentId]map[model.EntityId]Component
+	components      map[ComponentId]map[model.EntityId]Component
+	onEntityChanged func(model.EntityId)
+}
+
+func (c *ComponentManager) SetEntityChangedHandler(handler func(model.EntityId)) {
+	c.onEntityChanged = handler
+}
+
+func (c *ComponentManager) notifyEntityChanged(entityId model.EntityId) {
+	if c.onEntityChanged != nil {
+		c.onEntityChanged(entityId)
+	}
 }
 
 func NewComponentManager() *ComponentManager {
@@ -70,6 +81,7 @@ func (c *ComponentManager) HasEntity(entityId model.EntityId) bool {
 func (c *ComponentManager) SetEntityComponent(entityId model.EntityId, component Component) {
 	entities := c.GetComponent(component.GetId())
 	entities[entityId] = component
+	c.notifyEntityChanged(entityId)
 }
 
 func (c *ComponentManager) SetEntityComponents(entityId model.EntityId, components ...Component) {
@@ -87,10 +99,12 @@ func (c *ComponentManager) CreateNewEntity(components ...Component) model.Entity
 func (c *ComponentManager) RemoveComponent(componentId ComponentId, entityId model.EntityId) {
 	entities := c.GetComponent(componentId)
 	delete(entities, entityId)
+	c.notifyEntityChanged(entityId)
 }
 
 func (c *ComponentManager) RemoveEntity(entityId model.EntityId) {
 	for _, components := range c.components {
 		delete(components, entityId)
 	}
+	c.notifyEntityChanged(entityId)
 }

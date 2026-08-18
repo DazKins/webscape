@@ -20,8 +20,6 @@ RUN go mod download
 COPY main.go ./
 COPY server/ ./server/
 
-COPY --from=client-builder /app/client/dist ./client/dist
-
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:3.22.1
@@ -30,6 +28,8 @@ RUN adduser -D -s /bin/sh appuser
 WORKDIR /app
 
 COPY --from=server-builder /app/main ./main
+COPY --from=client-builder /app/client/dist ./client/dist
+COPY config.json ./config.json
 COPY game-project/ ./game-project/
 RUN chown -R appuser:appuser /app
 
@@ -38,4 +38,3 @@ USER appuser
 EXPOSE 8080
 
 ENTRYPOINT ["./main"]
-CMD ["-game-folder", "/app/game-project"]

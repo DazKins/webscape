@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "server": {
+    "address": ":8080"
+  },
+  "client": {
+    "folder": "client/dist"
+  },
+  "game": {
+    "folder": "game-project"
+  },
+  "streaming": {
+    "chunkRadius": 1
+  }
+}

@@ -2,12 +2,14 @@ package game
 
 import (
 	"log"
+	"sort"
 	"time"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
 	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
+	"webscape/server/game/spatial"
 	"webscape/server/game/system"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -25,14 +27,28 @@ type Game struct {
 	done               chan bool
 	sendMessage        MessageSender
 	broadcastMessage   MessageBroadcaster
+	chunkRadius        int
+	clients            map[string]*clientStreamState
+	spatialIndex       *spatial.Index
 
 	systems []system.System
 
-	componentManager         *component.ComponentManager
-	prevSerialisedComponents map[component.ComponentId]map[model.EntityId]util.Json
+	componentManager *component.ComponentManager
+}
+
+type clientStreamState struct {
+	loadedChunks map[world.ChunkCoord]bool
+	baseline     map[component.ComponentId]map[model.EntityId]util.Json
 }
 
 func NewGameWithWorld(world *world.World) *Game {
+	return NewGameWithWorldAndChunkRadius(world, 1)
+}
+
+func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
+	if chunkRadius < 0 {
+		chunkRadius = 0
+	}
 	game := &Game{
 		clientIdToEntityId: util.NewBiMap[string, model.EntityId](),
 		world:              world,
@@ -40,17 +56,18 @@ func NewGameWithWorld(world *world.World) *Game {
 
 		componentManager: component.NewComponentManager(),
 		systems:          []system.System{},
-
-		prevSerialisedComponents: make(map[component.ComponentId]map[model.EntityId]util.Json),
+		chunkRadius:      chunkRadius,
+		clients:          make(map[string]*clientStreamState),
 	}
 
 	game.loadWorldEntities()
+	game.spatialIndex = spatial.NewIndex(world, game.componentManager)
 
 	game.RegisterSystem(&system.PathingSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		World: world,
+		World: world, SpatialIndex: game.spatialIndex,
 	})
 	game.RegisterSystem(&system.InteractionSystem{
 		SystemBase: system.SystemBase{
@@ -64,14 +81,14 @@ func NewGameWithWorld(world *world.World) *Game {
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		World:        world,
+		World: world, SpatialIndex: game.spatialIndex,
 		EventEmitter: game,
 	})
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		World: world,
+		World: world, SpatialIndex: game.spatialIndex,
 	})
 	game.RegisterSystem(&system.TtlSystem{
 		SystemBase: system.SystemBase{
@@ -170,76 +187,8 @@ func (g *Game) update() {
 		system.Update()
 	}
 
-	updatedComponents := make(map[component.ComponentId]map[model.EntityId]util.Json)
-
-	for componentId, entities := range g.componentManager.GetAllComponents() {
-		prevSerialisedEntities := g.prevSerialisedComponents[componentId]
-		if prevSerialisedEntities == nil {
-			prevSerialisedEntities = make(map[model.EntityId]util.Json)
-			g.prevSerialisedComponents[componentId] = prevSerialisedEntities
-		}
-
-		for entityId, comp := range entities {
-			serializeableComponent, ok := comp.(component.SerializeableComponent)
-			if !ok {
-				continue
-			}
-
-			serialized := serializeableComponent.Serialize()
-
-			if util.JsonEqual(prevSerialisedEntities[entityId], serialized) {
-				continue
-			}
-
-			prevSerialisedEntities[entityId] = serialized
-
-			if updatedComponents[componentId] == nil {
-				updatedComponents[componentId] = make(map[model.EntityId]util.Json)
-			}
-			updatedComponents[componentId][entityId] = serialized
-		}
-	}
-
-	removedComponents := make(map[component.ComponentId][]model.EntityId)
-	removedEntities := make(map[model.EntityId]bool)
-
-	for componentId, prevSerialisedEntities := range g.prevSerialisedComponents {
-		for entityId := range prevSerialisedEntities {
-			if g.componentManager.GetEntityComponent(componentId, entityId) == nil {
-				removedComponents[componentId] = append(removedComponents[componentId], entityId)
-				delete(prevSerialisedEntities, entityId)
-				removedEntities[entityId] = true
-			}
-		}
-	}
-
-	// Check if any entities have been completely removed (no components left)
-	completelyRemovedEntities := make([]model.EntityId, 0)
-	for entityId := range removedEntities {
-		// Check if entity has any components left
-		hasComponents := false
-		for _, components := range g.componentManager.GetAllComponents() {
-			if _, exists := components[entityId]; exists {
-				hasComponents = true
-				break
-			}
-		}
-		if !hasComponents {
-			completelyRemovedEntities = append(completelyRemovedEntities, entityId)
-		}
-	}
-
-	if len(updatedComponents) > 0 || len(removedComponents) > 0 {
-		g.broadcastMessage(message.NewGameUpdateMessage(
-			updatedComponents,
-			removedComponents,
-			g.availableInteractionsForGameUpdate(updatedComponents, removedComponents),
-		))
-	}
-
-	// Send entity removal messages for completely removed entities
-	for _, entityId := range completelyRemovedEntities {
-		g.broadcastMessage(message.NewEntityRemoveMessage(entityId))
+	for clientID := range g.clients {
+		g.syncClient(clientID)
 	}
 }
 
@@ -420,39 +369,109 @@ func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
 	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)
-
-	// Serialize the newly created player's components and add them to prevSerialisedComponents
-	// so they're included in the initial game update
-	for _, comp := range components {
-		serializeableComponent, ok := comp.(component.SerializeableComponent)
-		if !ok {
-			continue
-		}
-
-		componentId := comp.GetId()
-		if g.prevSerialisedComponents[componentId] == nil {
-			g.prevSerialisedComponents[componentId] = make(map[model.EntityId]util.Json)
-		}
-
-		serialized := serializeableComponent.Serialize()
-		g.prevSerialisedComponents[componentId][id] = serialized
-	}
+	g.clients[clientID] = &clientStreamState{loadedChunks: make(map[world.ChunkCoord]bool), baseline: make(map[component.ComponentId]map[model.EntityId]util.Json)}
 
 	g.sendMessage(clientID, message.NewJoinedMessage(id.String()))
 	g.sendMessage(clientID, message.NewWorldMessage(g.world))
+	g.syncClient(clientID)
+}
 
-	// This seems hacky. Could be race conditions if we try
-	// to send the new client the state of all entities while
-	// a game tick is in progress. Works for now.
-	snapshot := g.serializedComponentsSnapshot()
-	g.sendMessage(clientID, message.NewGameUpdateMessage(
-		snapshot,
-		make(map[component.ComponentId][]model.EntityId),
-		g.availableInteractionsForGameUpdate(
-			snapshot,
-			make(map[component.ComponentId][]model.EntityId),
-		),
-	))
+func (g *Game) syncClient(clientID string) {
+	state := g.clients[clientID]
+	playerID, ok := g.clientIdToEntityId.Get(clientID)
+	if state == nil || !ok {
+		return
+	}
+	positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerID)
+	if positionComponent == nil {
+		return
+	}
+	position := positionComponent.(*component.CPosition).GetPosition()
+	center, _ := g.world.GlobalToChunk(position.X, position.Y)
+	nextChunks := g.world.ChunksWithin(center, g.chunkRadius)
+	loads := make([]world.Chunk, 0)
+	unloads := make([]world.ChunkCoord, 0)
+	for coord := range nextChunks {
+		if state.loadedChunks[coord] {
+			continue
+		}
+		if chunk, exists := g.world.GetChunk(coord); exists {
+			loads = append(loads, *chunk)
+		}
+	}
+	for coord := range state.loadedChunks {
+		if !nextChunks[coord] {
+			unloads = append(unloads, coord)
+		}
+	}
+	sort.Slice(loads, func(i, j int) bool {
+		if loads[i].Coordinate.Y == loads[j].Coordinate.Y {
+			return loads[i].Coordinate.X < loads[j].Coordinate.X
+		}
+		return loads[i].Coordinate.Y < loads[j].Coordinate.Y
+	})
+	sort.Slice(unloads, func(i, j int) bool {
+		if unloads[i].Y == unloads[j].Y {
+			return unloads[i].X < unloads[j].X
+		}
+		return unloads[i].Y < unloads[j].Y
+	})
+	if len(loads) > 0 || len(unloads) > 0 {
+		g.sendMessage(clientID, message.NewChunkUpdateMessage(loads, unloads))
+	}
+	state.loadedChunks = nextChunks
+
+	visible := g.spatialIndex.EntitiesInChunks(nextChunks)
+	visible[playerID] = true
+	// Transient entities inherit visibility from the entity they annotate.
+	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdChatMessage) {
+		if visible[value.(*component.CChatMessage).GetFromEntityId()] {
+			visible[entityID] = true
+		}
+	}
+	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdCombatText) {
+		if visible[value.(*component.CCombatText).GetFromEntityId()] {
+			visible[entityID] = true
+		}
+	}
+
+	updated := make(map[component.ComponentId]map[model.EntityId]util.Json)
+	removed := make(map[component.ComponentId][]model.EntityId)
+	for componentID, entities := range g.componentManager.GetAllComponents() {
+		if state.baseline[componentID] == nil {
+			state.baseline[componentID] = make(map[model.EntityId]util.Json)
+		}
+		for entityID, value := range entities {
+			if !visible[entityID] {
+				continue
+			}
+			serializable, ok := value.(component.SerializeableComponent)
+			if !ok {
+				continue
+			}
+			serialized := serializable.Serialize()
+			if util.JsonEqual(state.baseline[componentID][entityID], serialized) {
+				continue
+			}
+			if updated[componentID] == nil {
+				updated[componentID] = make(map[model.EntityId]util.Json)
+			}
+			updated[componentID][entityID] = serialized
+			state.baseline[componentID][entityID] = serialized
+		}
+	}
+	for componentID, entities := range state.baseline {
+		for entityID := range entities {
+			if visible[entityID] && g.componentManager.GetEntityComponent(componentID, entityID) != nil {
+				continue
+			}
+			removed[componentID] = append(removed[componentID], entityID)
+			delete(entities, entityID)
+		}
+	}
+	if len(updated) > 0 || len(removed) > 0 {
+		g.sendMessage(clientID, message.NewGameUpdateMessage(updated, removed, g.availableInteractionsForGameUpdate(updated, removed)))
+	}
 }
 
 func (g *Game) AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) bool {
@@ -508,6 +527,7 @@ func (g *Game) rewardDropPosition(playerEntityId model.EntityId) math.Vec2 {
 	checker := collision.Checker{
 		World:            g.world,
 		ComponentManager: g.componentManager,
+		SpatialIndex:     g.spatialIndex,
 	}
 	directions := []math.Vec2{
 		{X: 1, Y: 0},
@@ -551,6 +571,11 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	if !ok || positionComponent == nil {
 		panic("position component not found")
 	}
+	targetChunk, _ := g.world.GlobalToChunk(x, y)
+	state := g.clients[clientID]
+	if state == nil || !state.loadedChunks[targetChunk] || g.world.GetStaticWall(x, y) {
+		return
+	}
 
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
@@ -569,6 +594,7 @@ func (g *Game) HandleLeave(clientID string) {
 
 	g.componentManager.RemoveEntity(entityId)
 	g.clientIdToEntityId.Delete(clientID)
+	delete(g.clients, clientID)
 }
 
 // SendChatMessageEntityFor sends a new chat message entity for the given entity,
@@ -600,6 +626,9 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {
+	if !g.entityVisibleToClient(clientID, entityId) {
+		return
+	}
 	optionAllowed := false
 	for _, interactionOption := range g.getInteractionOptionsForEntity(entityId) {
 		if interactionOption == option {
@@ -630,6 +659,22 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	// Set interacting component to track the interaction
 	interactingComponent := component.NewCInteracting(entityId, option)
 	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
+}
+
+func (g *Game) entityVisibleToClient(clientID string, entityID model.EntityId) bool {
+	state := g.clients[clientID]
+	if state == nil {
+		return false
+	}
+	if ownID, ok := g.clientIdToEntityId.Get(clientID); ok && ownID == entityID {
+		return true
+	}
+	for coord := range g.spatialIndex.EntityChunks(entityID) {
+		if state.loadedChunks[coord] {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId) {
@@ -725,6 +770,10 @@ func (g *Game) HandleConversationOption(
 	}
 
 	activeConversation := active.(*component.CActiveConversation)
+	if !g.entityVisibleToClient(clientID, activeConversation.GetTargetEntityId()) {
+		g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
+		return
+	}
 	if activeConversation.GetConversationId() != conversationId ||
 		activeConversation.GetCurrentNodeId() != nodeId {
 		return

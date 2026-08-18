@@ -36,11 +36,11 @@ const wsClient = new WebSocketClient({
       case "gameUpdate":
         game.handleGameUpdate(data);
         break;
-      case "entityRemove":
-        game.handleEntityRemove(data.entityId ?? data.id);
-        break;
       case "world":
         game.registerWorld(data);
+        break;
+      case "chunkUpdate":
+        game.handleChunkUpdate(data);
         break;
       case "joined":
         game.registerMyPlayerId(data.entityId);

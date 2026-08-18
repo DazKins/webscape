@@ -7,7 +7,7 @@ const (
 	MessageTypeJoined         = "joined"
 	MessageTypeJoinFailed     = "joinFailed"
 	MessageTypeWorld          = "world"
-	MessageTypeEntityRemove   = "entityRemove"
+	MessageTypeChunkUpdate    = "chunkUpdate"
 	MessageTypeConversation   = "conversation"
 	MessageTypeQuestCompleted = "questCompleted"
 )

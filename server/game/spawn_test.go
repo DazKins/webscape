@@ -124,7 +124,7 @@ func TestSpawnWithZeroDelayRespawnsOnNextSpawnSystemUpdate(t *testing.T) {
 func loadSpawnTestWorld(t *testing.T, respawnTicks int) *world.World {
 	t.Helper()
 
-	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
+	testWorld, err := world.LoadFromGameFS(chunkTestFS(t, fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
 				"formatVersion": 1,
@@ -181,7 +181,7 @@ func loadSpawnTestWorld(t *testing.T, respawnTicks int) *world.World {
 				]
 			}`, respawnTicks)),
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}

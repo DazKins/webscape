@@ -144,7 +144,7 @@ func loadOpenableTestWorld(t *testing.T, includeQuest bool) *world.World {
 		gameFS[path] = file
 	}
 
-	testWorld, err := world.LoadFromGameFS(gameFS)
+	testWorld, err := world.LoadFromGameFS(chunkTestFS(t, gameFS))
 	if err != nil {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}

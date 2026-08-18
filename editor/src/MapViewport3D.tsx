@@ -30,7 +30,7 @@ type ViewportState = {
   pointer: THREE.Vector2;
   root: THREE.Group;
   tileMeshes: THREE.Mesh[];
-  hoveredTile: { x: number; y: number } | null;
+  hoveredTile: { x: number; y: number; neighborPath?: string } | null;
   hoverOverlay: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   framedSize: string | null;
   frameId: number | null;
@@ -43,24 +43,28 @@ const MARKER_OFFSET = 0.035;
 
 export function MapViewport3D({
   world,
+  neighbors,
   selection,
   tool,
   onTilePointerDown,
   onTilePointerEnter,
+  onNeighborSelect,
 }: {
   world: WorldFormat;
+  neighbors: Array<{ path: string; world: WorldFormat }>;
   selection: MapSelection;
   tool: MapTool;
   onTilePointerDown: TilePointerHandler;
   onTilePointerEnter: TilePointerEnterHandler;
+  onNeighborSelect: (path: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef<ViewportState | null>(null);
-  const callbacksRef = useRef({ onTilePointerDown, onTilePointerEnter });
+  const callbacksRef = useRef({ onTilePointerDown, onTilePointerEnter, onNeighborSelect });
   const worldRef = useRef(world);
   const selectionRef = useRef(selection);
 
-  callbacksRef.current = { onTilePointerDown, onTilePointerEnter };
+  callbacksRef.current = { onTilePointerDown, onTilePointerEnter, onNeighborSelect };
   worldRef.current = world;
   selectionRef.current = selection;
 
@@ -84,7 +88,7 @@ export function MapViewport3D({
     controls.dampingFactor = 0.08;
     controls.enablePan = false;
     controls.minDistance = 3;
-    controls.maxDistance = 60;
+    controls.maxDistance = 180;
     controls.minPolarAngle = 0.18;
     controls.maxPolarAngle = Math.PI * 0.46;
     controls.mouseButtons.LEFT = undefined;
@@ -144,6 +148,10 @@ export function MapViewport3D({
       }
 
       event.preventDefault();
+      if (tile.neighborPath) {
+        callbacksRef.current.onNeighborSelect(tile.neighborPath);
+        return;
+      }
       canvas.setPointerCapture(event.pointerId);
       callbacksRef.current.onTilePointerDown(tile.x, tile.y);
     };
@@ -153,7 +161,7 @@ export function MapViewport3D({
       if (!sameTile(tile, state.hoveredTile)) {
         state.hoveredTile = tile;
         updateHoverOverlay(state, worldRef.current);
-        if (tile) {
+        if (tile && !tile.neighborPath) {
           callbacksRef.current.onTilePointerEnter(tile.x, tile.y, event.buttons);
         }
       }
@@ -200,14 +208,14 @@ export function MapViewport3D({
       return;
     }
 
-    const frameKey = `${world.size.x}:${world.size.y}`;
+    const frameKey = `${world.coordinate.x},${world.coordinate.y}:${world.size.x}:${world.size.y}:${neighbors.map(({ world: item }) => `${item.coordinate.x},${item.coordinate.y}`).sort().join(";")}`;
     if (state.framedSize !== frameKey) {
-      frameCamera(state.camera, state.controls, world);
+      frameCamera(state.camera, state.controls, world, neighbors.map((item) => item.world));
       state.framedSize = frameKey;
     }
-    renderWorld(state, world, selection);
+    renderWorld(state, world, selection, neighbors);
     updateHoverOverlay(state, world);
-  }, [world, selection]);
+  }, [world, selection, neighbors]);
 
   return (
     <div
@@ -218,12 +226,20 @@ export function MapViewport3D({
   );
 }
 
-function renderWorld(state: ViewportState, world: WorldFormat, selection: MapSelection) {
+function renderWorld(
+  state: ViewportState,
+  world: WorldFormat,
+  selection: MapSelection,
+  neighbors: Array<{ path: string; world: WorldFormat }>
+) {
   disposeGroup(state.root);
   state.root.clear();
   state.tileMeshes = [];
 
   const terrainMaterialCache = new Map<string, THREE.MeshLambertMaterial[]>();
+  for (const neighbor of neighbors) {
+    renderNeighborTerrain(state, world, neighbor.path, neighbor.world, terrainMaterialCache);
+  }
   for (let y = 0; y < world.size.y; y += 1) {
     for (let x = 0; x < world.size.x; x += 1) {
       const index = tileIndex(world.size, x, y);
@@ -257,6 +273,30 @@ function renderWorld(state: ViewportState, world: WorldFormat, selection: MapSel
   if (selection?.type === "tile") {
     addTileOverlay(state.root, world, selection.x, selection.y, 0x36c7d4, 0.36);
     addTileOutline(state.root, world, selection.x, selection.y, 0x0d7180);
+  }
+}
+
+function renderNeighborTerrain(
+  state: ViewportState,
+  active: WorldFormat,
+  path: string,
+  neighbor: WorldFormat,
+  materials: Map<string, THREE.MeshLambertMaterial[]>
+) {
+  const offsetX = (neighbor.coordinate.x - active.coordinate.x) * active.size.x;
+  const offsetY = (neighbor.coordinate.y - active.coordinate.y) * active.size.y;
+  for (let y = 0; y < neighbor.size.y; y += 1) {
+    for (let x = 0; x < neighbor.size.x; x += 1) {
+      const height = tileVisualHeight(neighbor, x, y);
+      const tile = new THREE.Mesh(
+        new THREE.BoxGeometry(1, height + TILE_BASE_DEPTH, 1),
+        tileMaterials(neighbor.terrain[tileIndex(neighbor.size, x, y)] ?? "grass", materials)
+      );
+      tile.position.set(offsetX + x + 0.5, (height - TILE_BASE_DEPTH) / 2, offsetY + y + 0.5);
+      tile.userData = { tileX: x, tileY: y, neighborPath: path };
+      state.root.add(tile);
+      state.tileMeshes.push(tile);
+    }
   }
 }
 
@@ -382,7 +422,7 @@ function createTileOverlayMesh(color: THREE.ColorRepresentation, opacity: number
 
 function updateHoverOverlay(state: ViewportState, world: WorldFormat) {
   const tile = state.hoveredTile;
-  if (!tile || tile.x < 0 || tile.y < 0 || tile.x >= world.size.x || tile.y >= world.size.y) {
+  if (!tile || tile.neighborPath || tile.x < 0 || tile.y < 0 || tile.x >= world.size.x || tile.y >= world.size.y) {
     state.hoverOverlay.visible = false;
     return;
   }
@@ -423,18 +463,33 @@ function pickTile(event: PointerEvent, state: ViewportState) {
   const hit = hits[0]?.object;
   const x = hit?.userData.tileX;
   const y = hit?.userData.tileY;
+  const neighborPath = hit?.userData.neighborPath;
 
   if (Number.isInteger(x) && Number.isInteger(y)) {
-    return { x: Number(x), y: Number(y) };
+    return { x: Number(x), y: Number(y), neighborPath: typeof neighborPath === "string" ? neighborPath : undefined };
   }
 
   return null;
 }
 
-function frameCamera(camera: THREE.PerspectiveCamera, controls: OrbitControls, world: WorldFormat) {
+function frameCamera(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  world: WorldFormat,
+  neighbors: WorldFormat[]
+) {
+  const all = [world, ...neighbors];
+  const offsets = all.map((chunk) => ({
+    x: (chunk.coordinate.x - world.coordinate.x) * world.size.x,
+    y: (chunk.coordinate.y - world.coordinate.y) * world.size.y,
+  }));
+  const minX = Math.min(...offsets.map((offset) => offset.x));
+  const minY = Math.min(...offsets.map((offset) => offset.y));
+  const maxX = Math.max(...offsets.map((offset) => offset.x + world.size.x));
+  const maxY = Math.max(...offsets.map((offset) => offset.y + world.size.y));
   const centerX = world.size.x / 2;
   const centerZ = world.size.y / 2;
-  const span = Math.max(world.size.x, world.size.y, 4);
+  const span = Math.max(maxX - minX, maxY - minY, 4);
   camera.position.set(centerX + span * 0.72, span * 0.95, centerZ + span * 1.18);
   controls.target.set(centerX, 0, centerZ);
   controls.update();
@@ -470,8 +525,11 @@ function entityMarkerColor(entity: WorldEntity) {
   return new THREE.Color(`hsl(${Math.abs(hash) % 360} 42% 43%)`);
 }
 
-function sameTile(a: { x: number; y: number } | null, b: { x: number; y: number } | null) {
-  return a?.x === b?.x && a?.y === b?.y;
+function sameTile(
+  a: { x: number; y: number; neighborPath?: string } | null,
+  b: { x: number; y: number; neighborPath?: string } | null
+) {
+  return a?.x === b?.x && a?.y === b?.y && a?.neighborPath === b?.neighborPath;
 }
 
 function disposeGroup(group: THREE.Group) {

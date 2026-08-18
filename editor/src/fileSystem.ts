@@ -67,12 +67,12 @@ export async function openGameProjectFolder(): Promise<OpenedGameProject> {
 
   const handle = await window.showDirectoryPicker({ mode: "readwrite" });
   const project = normalizeGameProject(JSON.parse(await readTextFile(handle, MANIFEST_PATH)));
-  const worldPath = project.files.maps[0];
+  const worldPath = project.files.chunks[0];
   if (!worldPath) {
-    throw new Error("project must include at least one map");
+    throw new Error("project must include at least one chunk");
   }
 
-  const worlds = await readWorldDocuments(handle, project.files.maps);
+  const worlds = await readWorldDocuments(handle, project.files.chunks, project.world.chunkSize);
   const world = worlds[worldPath];
   const conversations = await readConversationDocuments(handle, project.files.conversations);
   const quests = await readQuestDocuments(handle, project.files.quests);
@@ -93,7 +93,7 @@ export async function saveGameProjectFolder(
   const projectToSave = ensureProjectMapPath(project, worldPath);
   await writeTextFile(handle, MANIFEST_PATH, serializeGameProject(projectToSave));
   await Promise.all(
-    projectToSave.files.maps.map(async (path) => {
+    projectToSave.files.chunks.map(async (path) => {
       const world = worlds[path];
       if (world) {
         await writeTextFile(handle, path, serializeWorld(world));
@@ -138,10 +138,17 @@ export async function saveGameProjectFolderAs(
   return { handle, project: savedProject };
 }
 
-async function readWorldDocuments(root: ProjectDirectoryHandle, paths: string[]): Promise<WorldDocuments> {
+async function readWorldDocuments(
+  root: ProjectDirectoryHandle,
+  paths: string[],
+  chunkSize: { x: number; y: number }
+): Promise<WorldDocuments> {
   const entries = await Promise.all(
     paths.map(async (path) => {
-      const document = normalizeWorld(JSON.parse(await readTextFile(root, path)));
+      const document = {
+        ...normalizeWorld(JSON.parse(await readTextFile(root, path)), chunkSize),
+        size: { ...chunkSize },
+      };
       return [path, document] as const;
     })
   );

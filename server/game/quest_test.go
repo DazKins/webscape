@@ -13,7 +13,7 @@ import (
 )
 
 func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
-	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
+	testWorld, err := world.LoadFromGameFS(chunkTestFS(t, fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
 				"formatVersion": 1,
@@ -119,7 +119,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 				]
 			}`),
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}
@@ -204,10 +204,7 @@ func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testin
 	}
 
 	game := NewGameWithWorld(testWorld)
-	broadcasts := []message.Message{}
-	game.RegisterBroadcaster(func(msg message.Message) {
-		broadcasts = append(broadcasts, msg)
-	})
+	game.RegisterBroadcaster(func(message.Message) {})
 	sent := []message.Message{}
 	game.RegisterSender(func(clientID string, msg message.Message) {
 		if clientID == "client-1" {
@@ -229,7 +226,7 @@ func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testin
 	if completion.Rewards[0].Name != "Ancient Scroll" {
 		t.Fatalf("quest reward = %#v, want Ancient Scroll", completion.Rewards[0])
 	}
-	if !gameUpdateIncludesCompletedQuest(broadcasts, playerEntityId.String(), "first_errand") {
+	if !gameUpdateIncludesCompletedQuest(sent, playerEntityId.String(), "first_errand") {
 		t.Fatal("game update did not include completed first_errand questlog record")
 	}
 }
@@ -418,7 +415,7 @@ func gameUpdateIncludesCompletedQuest(messages []message.Message, entityId strin
 func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {
 	t.Helper()
 
-	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
+	testWorld, err := world.LoadFromGameFS(chunkTestFS(t, fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
 				"formatVersion": 1,
@@ -474,7 +471,7 @@ func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {
 				]
 			}`),
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}

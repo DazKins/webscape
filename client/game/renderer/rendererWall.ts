@@ -16,7 +16,7 @@ const PILLAR_SIZE = 0.58;
 const PILLAR_HEIGHT = 1.08;
 const BEVEL_RADIUS = 0.055;
 
-export function addWallGeometry(scene: THREE.Scene, walls: WorldWall[]) {
+export function addWallGeometry(scene: THREE.Object3D, walls: WorldWall[]) {
   const wallTiles = createWallTileIndex(walls);
   const materials = new Map<string, THREE.MeshStandardMaterial>();
 
@@ -42,7 +42,7 @@ function createWallTileIndex(walls: WorldWall[]): WallTileIndex {
 }
 
 function addWallTile(
-  scene: THREE.Scene,
+  scene: THREE.Object3D,
   material: THREE.MeshStandardMaterial,
   x: number,
   y: number,
@@ -91,7 +91,7 @@ function addWallTile(
 }
 
 function addPillar(
-  scene: THREE.Scene,
+  scene: THREE.Object3D,
   material: THREE.MeshStandardMaterial,
   x: number,
   y: number
@@ -100,7 +100,7 @@ function addPillar(
 }
 
 function addBox(
-  scene: THREE.Scene,
+  scene: THREE.Object3D,
   material: THREE.MeshStandardMaterial,
   x: number,
   z: number,

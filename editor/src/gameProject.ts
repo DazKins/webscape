@@ -3,30 +3,32 @@ import { ID_PATTERN, isObject, serializeJson, type ValidationResult } from "./fo
 export type { ValidationResult } from "./formatUtils";
 
 export type GameProject = {
-  formatVersion: 1;
+  formatVersion: 2;
   id: string;
   displayName?: string;
+  world: { chunkSize: { x: number; y: number } };
   files: GameProjectFiles;
 };
 
 export type GameProjectFiles = {
-  maps: string[];
+  chunks: string[];
   conversations: string[];
   quests: string[];
 };
 
-export const DEFAULT_WORLD_PATH = "maps/new_world.json";
-export const MAP_FILE_DIRECTORY = "maps";
+export const DEFAULT_WORLD_PATH = "chunks/chunk_0_0.json";
+export const MAP_FILE_DIRECTORY = "chunks";
 export const CONVERSATION_FILE_DIRECTORY = "conversations";
 export const QUEST_FILE_DIRECTORY = "quests";
 
 export function createBlankGameProject(): GameProject {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     id: "new_game",
     displayName: "New Game",
+    world: { chunkSize: { x: 32, y: 32 } },
     files: {
-      maps: [DEFAULT_WORLD_PATH],
+      chunks: [DEFAULT_WORLD_PATH],
       conversations: [],
       quests: [],
     },
@@ -37,14 +39,20 @@ export function normalizeGameProject(value: unknown): GameProject {
   if (!isObject(value)) {
     throw new Error("project data must contain a JSON object");
   }
+  if (value.formatVersion !== 2) {
+    throw new Error("project formatVersion must be 2");
+  }
 
   const files = isObject(value.files) ? value.files : {};
+  const worldValue = isObject(value.world) ? value.world : {};
+  const chunkSizeValue = isObject(worldValue.chunkSize) ? worldValue.chunkSize : {};
   const project: GameProject = {
-    formatVersion: 1,
+    formatVersion: 2,
     id: typeof value.id === "string" ? value.id : "untitled_game",
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
+    world: { chunkSize: { x: Number(chunkSizeValue.x), y: Number(chunkSizeValue.y) } },
     files: {
-      maps: normalizePathList(files.maps),
+      chunks: normalizePathList(files.chunks),
       conversations: normalizePathList(files.conversations),
       quests: normalizePathList(files.quests),
     },
@@ -61,20 +69,23 @@ export function normalizeGameProject(value: unknown): GameProject {
 export function validateGameProject(project: GameProject): ValidationResult {
   const errors: string[] = [];
 
-  if (project.formatVersion !== 1) {
-    errors.push("project formatVersion must be 1");
+  if (project.formatVersion !== 2) {
+    errors.push("project formatVersion must be 2");
   }
 
   if (!ID_PATTERN.test(project.id)) {
     errors.push("project id must use lowercase letters, numbers, underscores, or dashes");
   }
 
-  validatePathList(errors, "map", project.files.maps);
+  if (!Number.isInteger(project.world.chunkSize.x) || project.world.chunkSize.x < 1 || !Number.isInteger(project.world.chunkSize.y) || project.world.chunkSize.y < 1) {
+    errors.push("world chunkSize must contain positive integers");
+  }
+  validatePathList(errors, "chunk", project.files.chunks);
   validatePathList(errors, "conversation", project.files.conversations);
   validatePathList(errors, "quest", project.files.quests);
 
-  if (project.files.maps.length === 0) {
-    errors.push("project must include at least one map");
+  if (project.files.chunks.length === 0) {
+    errors.push("project must include at least one chunk");
   }
 
   return { valid: errors.length === 0, errors };
@@ -85,7 +96,7 @@ export function serializeGameProject(project: GameProject): string {
 }
 
 export function ensureProjectMapPath(project: GameProject, mapPath: string): GameProject {
-  if (!isValidProjectPath(mapPath) || project.files.maps.includes(mapPath)) {
+  if (!isValidProjectPath(mapPath) || project.files.chunks.includes(mapPath)) {
     return project;
   }
 
@@ -93,7 +104,7 @@ export function ensureProjectMapPath(project: GameProject, mapPath: string): Gam
     ...project,
     files: {
       ...project.files,
-      maps: [...project.files.maps, mapPath],
+      chunks: [...project.files.chunks, mapPath],
     },
   };
 }
@@ -103,7 +114,7 @@ export function setProjectMapPath(project: GameProject, previousPath: string, ne
     return project;
   }
 
-  const maps = project.files.maps.length > 0 ? project.files.maps : [nextPath];
+  const maps = project.files.chunks.length > 0 ? project.files.chunks : [nextPath];
   const nextMaps = maps.map((path, index) => {
     if (path === previousPath || (index === 0 && !maps.includes(previousPath))) {
       return nextPath;
@@ -118,7 +129,7 @@ export function setProjectMapPath(project: GameProject, previousPath: string, ne
     ...project,
     files: {
       ...project.files,
-      maps: [...new Set(nextMaps)],
+      chunks: [...new Set(nextMaps)],
     },
   };
 }

@@ -66,7 +66,7 @@ func TestMoveCancelsActiveConversation(t *testing.T) {
 func setupConversationTestGame(t *testing.T) (*Game, *[]message.Message, model.EntityId, model.EntityId) {
 	t.Helper()
 
-	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
+	testWorld, err := world.LoadFromGameFS(chunkTestFS(t, fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
 				"formatVersion": 1,
@@ -127,7 +127,7 @@ func setupConversationTestGame(t *testing.T) (*Game, *[]message.Message, model.E
 				]
 			}`),
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("LoadFromGameFS returned error: %v", err)
 	}

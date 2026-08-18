@@ -15,6 +15,9 @@ type StaticWorld interface {
 type Checker struct {
 	World            StaticWorld
 	ComponentManager *component.ComponentManager
+	SpatialIndex     interface {
+		EntitiesAt(x int, y int) []model.EntityId
+	}
 }
 
 func (c Checker) IsBlocked(x int, y int) bool {
@@ -25,7 +28,19 @@ func (c Checker) IsBlocked(x int, y int) bool {
 		return false
 	}
 
-	for entityId, comp := range c.ComponentManager.GetComponent(component.ComponentIdPosition) {
+	candidates := make([]model.EntityId, 0)
+	if c.SpatialIndex != nil {
+		candidates = c.SpatialIndex.EntitiesAt(x, y)
+	} else {
+		for entityId := range c.ComponentManager.GetComponent(component.ComponentIdPosition) {
+			candidates = append(candidates, entityId)
+		}
+	}
+	for _, entityId := range candidates {
+		comp := c.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId)
+		if comp == nil {
+			continue
+		}
 		position := comp.(*component.CPosition).GetPosition()
 		width, height := c.entitySize(entityId)
 		if x < position.X || y < position.Y || x >= position.X+width || y >= position.Y+height {

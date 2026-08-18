@@ -21,7 +21,8 @@ var DIRECTIONS = []math.Vec2{
 
 type RandomWalkSystem struct {
 	SystemBase
-	World *world.World
+	World        *world.World
+	SpatialIndex SpatialCandidates
 }
 
 func (s *RandomWalkSystem) Update() {
@@ -57,6 +58,7 @@ func (s *RandomWalkSystem) Update() {
 			if s.isWithinRandomWalkBounds(randomwalkComponent, newPosition) &&
 				!s.collision().IsBlocked(newPosition.X, newPosition.Y) {
 				positionComponent.SetPosition(newPosition)
+				s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 			}
 
 			randomwalkComponent.SetWalkTimer(WALK_TIMER + rand.Intn(WALK_TIMER_VARIANCE*2) - WALK_TIMER_VARIANCE)
@@ -68,6 +70,7 @@ func (s *RandomWalkSystem) collision() collision.Checker {
 	return collision.Checker{
 		World:            s.World,
 		ComponentManager: s.ComponentManager,
+		SpatialIndex:     s.SpatialIndex,
 	}
 }
 

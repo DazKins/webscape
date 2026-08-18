@@ -9,10 +9,10 @@ import (
 	"webscape/server/game/world"
 )
 
-func Start(distFS fs.FS, gameWorld *world.World) {
+func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int) {
 	http.Handle("/", http.FileServer(http.FS(distFS)))
 
-	game := game.NewGameWithWorld(gameWorld)
+	game := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
 
 	clientCommandHandler := NewClientCommandHandler(game)
 
@@ -33,9 +33,9 @@ func Start(distFS fs.FS, gameWorld *world.World) {
 	game.RegisterSender(wsServer.SendToClient)
 	http.HandleFunc("/ws", wsServer.HandleWebSocket)
 
-	log.Println("Starting server on :8080")
+	log.Printf("Starting server on %s", address)
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(address, nil); err != nil {
 		log.Fatal(err)
 	}
 }

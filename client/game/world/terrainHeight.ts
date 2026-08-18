@@ -9,6 +9,7 @@ export type TerrainHeightGrid = {
   sizeX: number;
   sizeY: number;
   heights: number[];
+  sampleOutside?: (x: number, y: number) => number;
 };
 
 export function getTileHeight(grid: TerrainHeightGrid, x: number, y: number) {
@@ -20,7 +21,7 @@ export function getTileHeight(grid: TerrainHeightGrid, x: number, y: number) {
     x >= grid.sizeX ||
     y >= grid.sizeY
   ) {
-    return 0;
+    return grid.sampleOutside?.(x, y) ?? 0;
   }
 
   const height = grid.heights[y * grid.sizeX + x];
@@ -40,14 +41,12 @@ export function sampleTerrainHeight(
     return 0;
   }
 
-  const sampleX = clamp(worldX, 0.5, grid.sizeX - 0.5);
-  const sampleZ = clamp(worldZ, 0.5, grid.sizeY - 0.5);
-  const centerX = sampleX - 0.5;
-  const centerZ = sampleZ - 0.5;
+  const centerX = worldX - 0.5;
+  const centerZ = worldZ - 0.5;
   const x0 = Math.floor(centerX);
   const z0 = Math.floor(centerZ);
-  const x1 = Math.min(x0 + 1, grid.sizeX - 1);
-  const z1 = Math.min(z0 + 1, grid.sizeY - 1);
+  const x1 = x0 + 1;
+  const z1 = z0 + 1;
   const tx = centerX - x0;
   const tz = centerZ - z0;
 
@@ -193,14 +192,6 @@ export function createTileHighlightGeometry(
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
-}
-
-function clamp(value: number, min: number, max: number) {
-  if (max < min) {
-    return min;
-  }
-
-  return Math.min(Math.max(value, min), max);
 }
 
 function lerp(from: number, to: number, amount: number) {

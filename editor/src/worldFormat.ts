@@ -3,13 +3,15 @@ import { ID_PATTERN, isObject, serializeJson, type ValidationResult } from "./fo
 export type { ValidationResult } from "./formatUtils";
 
 export type WorldFormat = {
-  formatVersion: 1;
+  formatVersion: 2;
   id: string;
   displayName?: string;
+  coordinate: { x: number; y: number };
+  /** Editor-only dimensions supplied by the uniform project chunk size. */
   size: WorldSize;
   terrain: string[];
   heights: number[];
-  blockers?: boolean[];
+  blockers: boolean[];
   walls: WorldWall[];
   entities: WorldEntity[];
 };
@@ -31,21 +33,24 @@ export type WorldWall = {
   y: number;
 };
 
-const DEFAULT_SIZE: WorldSize = { x: 12, y: 8 };
+const DEFAULT_SIZE: WorldSize = { x: 32, y: 32 };
 const MIN_HEIGHT = 0;
 const MAX_HEIGHT = 10;
 
-export function createBlankWorld(): WorldFormat {
+export function createBlankWorld(size: WorldSize = DEFAULT_SIZE): WorldFormat {
   return {
-    formatVersion: 1,
-    id: "new_world",
-    displayName: "New World",
-    size: DEFAULT_SIZE,
-    terrain: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill("grass"),
-    heights: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(0),
-    blockers: new Array(DEFAULT_SIZE.x * DEFAULT_SIZE.y).fill(false),
+    formatVersion: 2,
+    id: "chunk_0_0",
+    displayName: "Chunk (0, 0)",
+    coordinate: { x: 0, y: 0 },
+    size,
+    terrain: new Array(size.x * size.y).fill("grass"),
+    heights: new Array(size.x * size.y).fill(0),
+    blockers: new Array(size.x * size.y).fill(false),
     walls: [],
-    entities: [],
+    entities: [
+      { id: "player_spawn", components: { position: { x: 0, y: 0 }, playerSpawn: {} } },
+    ],
   };
 }
 
@@ -53,29 +58,26 @@ export function tileIndex(size: WorldSize, x: number, y: number): number {
   return y * size.x + x;
 }
 
-export function normalizeWorld(value: unknown): WorldFormat {
+export function normalizeWorld(value: unknown, chunkSize: WorldSize = DEFAULT_SIZE): WorldFormat {
   if (!isObject(value)) {
-    throw new Error("map data must contain a JSON object");
+    throw new Error("chunk data must contain a JSON object");
+  }
+  if (value.formatVersion !== 2) {
+    throw new Error("chunk formatVersion must be 2");
   }
 
-  const sizeValue = value.size;
-  if (!isObject(sizeValue)) {
-    throw new Error("world.size is required");
-  }
-
-  const size = {
-    x: Number(sizeValue.x),
-    y: Number(sizeValue.y),
-  };
+  const size = chunkSize;
+  const coordinateValue = isObject(value.coordinate) ? value.coordinate : {};
 
   const world: WorldFormat = {
-    formatVersion: 1,
+    formatVersion: 2,
     id: typeof value.id === "string" ? value.id : "untitled",
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
+    coordinate: { x: Number(coordinateValue.x), y: Number(coordinateValue.y) },
     size,
     terrain: Array.isArray(value.terrain) ? value.terrain.map(String) : [],
     heights: Array.isArray(value.heights) ? ([...value.heights] as number[]) : [],
-    blockers: Array.isArray(value.blockers) ? value.blockers.map(Boolean) : undefined,
+    blockers: Array.isArray(value.blockers) ? value.blockers.map(Boolean) : [],
     walls: Array.isArray(value.walls) ? value.walls.map(normalizeWall) : [],
     entities: Array.isArray(value.entities) ? value.entities.map(normalizeEntity) : [],
   };
@@ -92,12 +94,16 @@ export function validateWorld(world: WorldFormat): ValidationResult {
   const errors: string[] = [];
   const tileCount = world.size.x * world.size.y;
 
-  if (world.formatVersion !== 1) {
-    errors.push("formatVersion must be 1");
+  if (world.formatVersion !== 2) {
+    errors.push("formatVersion must be 2");
   }
 
   if (!ID_PATTERN.test(world.id)) {
     errors.push("id must use lowercase letters, numbers, underscores, or dashes");
+  }
+
+  if (!Number.isInteger(world.coordinate.x) || !Number.isInteger(world.coordinate.y)) {
+    errors.push("coordinate must contain integers");
   }
 
   if (!Number.isInteger(world.size.x) || world.size.x < 1) {
@@ -122,7 +128,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     }
   });
 
-  if (world.blockers && world.blockers.length !== tileCount) {
+  if (world.blockers.length !== tileCount) {
     errors.push(`blockers length must be ${tileCount}`);
   }
 
@@ -145,48 +151,23 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     }
     if (!position) {
       errors.push(`entity "${entity.id}" must include a position component`);
-    } else if (!isInBounds(world.size, position.x, position.y)) {
-      errors.push(`entity "${entity.id}" is out of bounds`);
+    } else {
+      const footprint = entitySize(entity);
+      if (position.x < 0 || position.y < 0 || position.x + footprint.width > world.size.x || position.y + footprint.height > world.size.y) {
+        errors.push(`entity "${entity.id}" footprint is out of chunk bounds`);
+      }
     }
   }
 
   return { valid: errors.length === 0, errors };
 }
 
-export function resizeWorld(world: WorldFormat, nextSize: WorldSize, fillTerrain: string): WorldFormat {
-  const terrain = new Array(nextSize.x * nextSize.y).fill(fillTerrain || "grass");
-  const heights = new Array(nextSize.x * nextSize.y).fill(0);
-  const blockers = new Array(nextSize.x * nextSize.y).fill(false);
-
-  for (let y = 0; y < Math.min(world.size.y, nextSize.y); y += 1) {
-    for (let x = 0; x < Math.min(world.size.x, nextSize.x); x += 1) {
-      const nextIndex = tileIndex(nextSize, x, y);
-      const previousIndex = tileIndex(world.size, x, y);
-      terrain[nextIndex] = world.terrain[previousIndex];
-      heights[nextIndex] = world.heights[previousIndex];
-      blockers[nextIndex] = Boolean(world.blockers?.[previousIndex]);
-    }
-  }
-
-  return {
-    ...world,
-    size: nextSize,
-    terrain,
-    heights,
-    blockers,
-    walls: world.walls.filter((wall) => isInBounds(nextSize, wall.x, wall.y)),
-    entities: world.entities.filter((entity) => {
-      const position = entityPosition(entity);
-      return Boolean(position && isInBounds(nextSize, position.x, position.y));
-    }),
-  };
-}
-
 export function serializeWorld(world: WorldFormat): string {
+  const { size: _size, ...authored } = world;
   return serializeJson({
-    ...world,
+    ...authored,
     heights: world.heights,
-    blockers: world.blockers ?? new Array(world.size.x * world.size.y).fill(false),
+    blockers: world.blockers,
     walls: world.walls,
     entities: world.entities,
   });

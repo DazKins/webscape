@@ -1,10 +1,19 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "new_game",
   "displayName": "New Game",
+  "world": {
+    "chunkSize": {
+      "x": 32,
+      "y": 32
+    }
+  },
   "files": {
-    "maps": [
-      "maps/starter.json"
+    "chunks": [
+      "chunks/starter.json",
+      "chunks/east_meadow.json",
+      "chunks/streaming_checkpoint.json",
+      "chunks/far_plaza.json"
     ],
     "conversations": [
       "conversations/new_conversation.json"

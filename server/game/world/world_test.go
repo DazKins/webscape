@@ -1,550 +1,118 @@
 package world
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"testing/fstest"
 )
 
-func TestLoadFromGameFSLoadsFirstMap(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": []
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 2, "y": 1 },
-				"terrain": ["grass", "road"],
-				"heights": [0, 0],
-				"entities": [
-					{
-						"id": "player_spawn",
-						"components": {
-							"position": { "x": 1, "y": 0 },
-							"playerSpawn": {}
-						}
-					}
-				]
-			}`),
-		},
-	}
-
-	world, err := LoadFromGameFS(gameFS)
+func TestLoadChunksConvertsNegativeLocalPositionsToGlobal(t *testing.T) {
+	gameFS := chunkFS([]string{"chunks/a.json", "chunks/b.json"}, map[string]string{
+		"chunks/a.json": testChunk("a", 0, 0, `[{"id":"player_spawn","components":{"position":{"x":1,"y":1},"playerSpawn":{}}}]`),
+		"chunks/b.json": testChunk("b", -2, 1, `[{"id":"tree","components":{"position":{"x":3,"y":2},"metadata":{"width":1,"height":1}}}]`),
+	})
+	loaded, err := LoadFromGameFS(gameFS)
 	if err != nil {
-		t.Fatalf("LoadFromGameFS returned error: %v", err)
+		t.Fatalf("LoadFromGameFS: %v", err)
 	}
-
-	if world.GetSizeX() != 2 || world.GetSizeY() != 1 {
-		t.Fatalf("world size = (%d, %d), want (2, 1)", world.GetSizeX(), world.GetSizeY())
+	entities := loaded.GetEntities()
+	position, ok := entityPosition(entities[1])
+	if !ok || position.X != -5 || position.Y != 6 {
+		t.Fatalf("global position = %#v, want (-5,6)", position)
 	}
-
-	terrain := world.GetTerrain()
-	if len(terrain) != 2 || terrain[0] != "grass" || terrain[1] != "road" {
-		t.Fatalf("terrain = %#v, want grass/road", terrain)
+	coord, local := loaded.GlobalToChunk(-1, -1)
+	if coord != (ChunkCoord{X: -1, Y: -1}) || local.X != 3 || local.Y != 3 {
+		t.Fatalf("negative conversion = %#v %#v", coord, local)
 	}
 }
 
-func TestLoadFromGameFSLoadsTerrainHeights(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": []
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 3, "y": 2 },
-				"terrain": ["grass", "road", "water", "stone", "grass", "road"],
-				"heights": [0, 1, 2, 3, 4, 5]
-			}`),
-		},
-	}
-
-	world, err := LoadFromGameFS(gameFS)
+func TestMissingChunkIsBlockedAndAdjacentChunksConnect(t *testing.T) {
+	loaded, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json", "chunks/b.json"}, map[string]string{
+		"chunks/a.json": testChunk("a", 0, 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}}]`),
+		"chunks/b.json": testChunk("b", 1, 0, `[]`),
+	}))
 	if err != nil {
-		t.Fatalf("LoadFromGameFS returned error: %v", err)
+		t.Fatal(err)
 	}
-
-	heights := world.GetHeights()
-	if len(heights) != 6 || heights[0] != 0 || heights[1] != 1 || heights[5] != 5 {
-		t.Fatalf("heights = %#v, want row-major [0 1 2 3 4 5]", heights)
+	if loaded.GetStaticWall(4, 1) {
+		t.Fatal("existing adjacent chunk seam was blocked")
 	}
-
-	heights[0] = 10
-	again := world.GetHeights()
-	if again[0] != 0 {
-		t.Fatalf("GetHeights returned mutable storage; got first height %d, want 0", again[0])
+	if !loaded.GetStaticWall(-1, 1) || !loaded.GetStaticWall(1, 4) {
+		t.Fatal("missing chunk must be blocked")
 	}
 }
 
-func TestLoadFromGameFSRejectsMissingHeights(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": []
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"]
-			}`),
-		},
-	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil || !strings.Contains(err.Error(), "heights length must be 1") {
-		t.Fatalf("LoadFromGameFS error = %v, want missing heights length error", err)
+func TestLoadChunksRejectsMalformedArrays(t *testing.T) {
+	bad := strings.Replace(testChunk("a", 0, 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}}]`),
+		`"terrain":["grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass"]`, `"terrain":["grass"]`, 1)
+	_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": bad}))
+	if err == nil || !strings.Contains(err.Error(), "terrain length must be 16") {
+		t.Fatalf("error = %v", err)
 	}
 }
 
-func TestLoadFromGameFSRejectsInvalidHeights(t *testing.T) {
+func TestLoadChunksRejectsDuplicateCoordinateAndEntityId(t *testing.T) {
 	tests := []struct {
-		name      string
-		heights   string
-		wantError string
+		name string
+		b    string
+		want string
 	}{
-		{
-			name:      "wrong length",
-			heights:   `[0]`,
-			wantError: "heights length must be 2",
-		},
-		{
-			name:      "fractional",
-			heights:   `[1.5, 0]`,
-			wantError: "heights[0] must be an integer from 0 to 10",
-		},
-		{
-			name:      "string",
-			heights:   `["1", 0]`,
-			wantError: "heights[0] must be an integer from 0 to 10",
-		},
-		{
-			name:      "below minimum",
-			heights:   `[-1, 0]`,
-			wantError: "heights[0] must be an integer from 0 to 10",
-		},
-		{
-			name:      "above maximum",
-			heights:   `[11, 0]`,
-			wantError: "heights[0] must be an integer from 0 to 10",
-		},
+		{"coordinate", testChunk("b", 0, 0, `[]`), "duplicate chunk coordinate"},
+		{"chunk id", testChunk("a", 1, 0, `[]`), "duplicate chunk id"},
+		{"entity id", testChunk("b", 1, 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0}}}]`), "duplicate entity id"},
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gameFS := fstest.MapFS{
-				"game.json": {
-					Data: []byte(`{
-						"formatVersion": 1,
-						"id": "test_game",
-						"files": {
-							"maps": ["maps/test.json"],
-							"conversations": [],
-							"quests": []
-						}
-					}`),
-				},
-				"maps/test.json": {
-					Data: []byte(`{
-						"formatVersion": 1,
-						"id": "test",
-						"size": { "x": 2, "y": 1 },
-						"terrain": ["grass", "road"],
-						"heights": ` + tt.heights + `
-					}`),
-				},
-			}
-
-			if _, err := LoadFromGameFS(gameFS); err == nil || !strings.Contains(err.Error(), tt.wantError) {
-				t.Fatalf("LoadFromGameFS error = %v, want %q", err, tt.wantError)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json", "chunks/b.json"}, map[string]string{
+				"chunks/a.json": testChunk("a", 0, 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}}]`),
+				"chunks/b.json": test.b,
+			}))
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
 			}
 		})
 	}
 }
 
-func TestLoadFromGameFSRejectsInvalidMapPath(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["../outside.json"],
-					"conversations": [],
-					"quests": []
-				}
-			}`),
-		},
+func TestLoadChunksRequiresOneSpawnAndContainedFootprints(t *testing.T) {
+	tests := []struct{ entities, want string }{
+		{`[]`, "exactly one playerSpawn"},
+		{`[{"id":"one","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"two","components":{"position":{"x":1,"y":0},"playerSpawn":{}}}]`, "exactly one playerSpawn"},
+		{`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"wide","components":{"position":{"x":3,"y":0},"metadata":{"width":2,"height":1}}}]`, "footprint is out of chunk bounds"},
 	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil {
-		t.Fatal("LoadFromGameFS returned nil error for invalid map path")
+	for _, test := range tests {
+		_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, test.entities)}))
+		if err == nil || !strings.Contains(err.Error(), test.want) {
+			t.Fatalf("error = %v, want %q", err, test.want)
+		}
 	}
 }
 
-func TestLoadFromGameFSRejectsSpawnTemplatePosition(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": []
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"],
-				"heights": [0],
-				"entities": [
-					{
-						"id": "rat_spawn_001",
-						"components": {
-							"position": { "x": 0, "y": 0 },
-							"spawn": {
-								"respawnTicks": 20,
-								"entity": {
-									"components": {
-										"position": { "x": 0, "y": 0 },
-										"metadata": { "name": "Rat", "entityType": "rat" }
-									}
-								}
-							}
-						}
-					}
-				]
-			}`),
-		},
+func TestLoadChunksRejectsLegacyProjectAndInvalidPath(t *testing.T) {
+	legacy := fstest.MapFS{"game.json": {Data: []byte(`{"formatVersion":1,"id":"old","files":{"maps":["maps/a.json"]}}`)}}
+	if _, err := LoadFromGameFS(legacy); err == nil || !strings.Contains(err.Error(), "unsupported game format version 1") {
+		t.Fatalf("legacy error = %v", err)
 	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil {
-		t.Fatal("LoadFromGameFS returned nil error for spawn child template with position")
+	invalid := chunkFS([]string{"../outside.json"}, nil)
+	if _, err := LoadFromGameFS(invalid); err == nil || !strings.Contains(err.Error(), "invalid chunk path") {
+		t.Fatalf("path error = %v", err)
 	}
 }
 
-func TestLoadFromGameFSLoadsConversationsAndAuthoredConversationComponent(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": ["conversations/greeting.json"],
-					"quests": []
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 2, "y": 1 },
-				"terrain": ["grass", "road"],
-				"heights": [0, 0],
-				"entities": [
-					{
-						"id": "player_spawn",
-						"components": {
-							"position": { "x": 0, "y": 0 },
-							"playerSpawn": {}
-						}
-					},
-					{
-						"id": "greeter",
-						"components": {
-							"position": { "x": 1, "y": 0 },
-							"conversation": { "conversationId": "greeting" }
-						}
-					}
-				]
-			}`),
-		},
-		"conversations/greeting.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "greeting_doc",
-				"conversations": [
-					{
-						"id": "greeting",
-						"startNodeId": "start",
-						"nodes": [
-							{
-								"id": "start",
-								"messages": [{ "text": "Hello." }],
-								"endConversation": true
-							}
-						]
-					}
-				]
-			}`),
-		},
+func chunkFS(paths []string, documents map[string]string) fstest.MapFS {
+	quoted := make([]string, len(paths))
+	for i, path := range paths {
+		quoted[i] = fmt.Sprintf("%q", path)
 	}
-
-	world, err := LoadFromGameFS(gameFS)
-	if err != nil {
-		t.Fatalf("LoadFromGameFS returned error: %v", err)
+	result := fstest.MapFS{"game.json": {Data: []byte(fmt.Sprintf(`{"formatVersion":2,"id":"test","world":{"chunkSize":{"x":4,"y":4}},"files":{"chunks":[%s],"conversations":[],"quests":[]}}`, strings.Join(quoted, ",")))}}
+	for path, document := range documents {
+		result[path] = &fstest.MapFile{Data: []byte(document)}
 	}
-
-	loadedConversation, ok := world.GetConversation("greeting")
-	if !ok {
-		t.Fatal("conversation greeting was not loaded")
-	}
-	if loadedConversation.StartNodeId != "start" {
-		t.Fatalf("conversation startNodeId = %q, want start", loadedConversation.StartNodeId)
-	}
-
-	entities := world.GetEntities()
-	if len(entities) != 2 {
-		t.Fatalf("entities = %#v, want two authored entities", entities)
-	}
-	conversationComponent, ok := entities[1].Components["conversation"].(map[string]any)
-	if !ok || conversationComponent["conversationId"] != "greeting" {
-		t.Fatalf("entity conversation = %#v, want conversationId greeting", entities[1].Components["conversation"])
-	}
+	return result
 }
 
-func TestLoadFromGameFSLoadsQuests(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": ["quests/tutorial.json"]
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"],
-				"heights": [0]
-			}`),
-		},
-		"quests/tutorial.json": {
-			Data: []byte(`{
-				"formatVersion": 2,
-				"id": "tutorial_quests",
-				"quests": [
-					{
-						"id": "first_errand",
-						"startEventId": "conversation:node:guide:start",
-						"steps": [
-							{
-								"id": "talk",
-								"description": "Talk to the guide.",
-								"requirement": { "eventId": "conversation:node:guide:start", "count": 1 }
-							}
-						],
-						"rewards": {
-							"items": [
-								{ "name": "Guide Token", "type": "quest", "count": 1 }
-							]
-						}
-					}
-				]
-			}`),
-		},
-	}
-
-	world, err := LoadFromGameFS(gameFS)
-	if err != nil {
-		t.Fatalf("LoadFromGameFS returned error: %v", err)
-	}
-
-	quest, ok := world.GetQuest("first_errand")
-	if !ok {
-		t.Fatal("quest first_errand was not loaded")
-	}
-	if quest.Steps[0].Requirement.EventId != "conversation:node:guide:start" {
-		t.Fatalf("quest event id = %q, want conversation:node:guide:start", quest.Steps[0].Requirement.EventId)
-	}
-}
-
-func TestLoadFromGameFSRejectsInvalidQuest(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": ["quests/tutorial.json"]
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"],
-				"heights": [0]
-			}`),
-		},
-		"quests/tutorial.json": {
-			Data: []byte(`{
-				"formatVersion": 2,
-				"id": "tutorial_quests",
-				"quests": [
-					{
-						"id": "broken",
-						"steps": [
-							{
-								"id": "missing_event",
-								"description": "Broken.",
-								"requirement": { "eventId": "", "count": 1 }
-							}
-						],
-						"rewards": {
-							"items": [
-								{ "name": "Broken Token", "type": "quest", "count": 1 }
-							]
-						}
-					}
-				]
-			}`),
-		},
-	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil {
-		t.Fatal("LoadFromGameFS returned nil error for invalid quest")
-	}
-}
-
-func TestLoadFromGameFSRejectsQuestWithoutRewards(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": ["quests/tutorial.json"]
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"],
-				"heights": [0]
-			}`),
-		},
-		"quests/tutorial.json": {
-			Data: []byte(`{
-				"formatVersion": 2,
-				"id": "tutorial_quests",
-				"quests": [
-					{
-						"id": "broken",
-						"steps": [
-							{
-								"id": "talk",
-								"description": "Talk.",
-								"requirement": { "eventId": "talk", "count": 1 }
-							}
-						]
-					}
-				]
-			}`),
-		},
-	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil {
-		t.Fatal("LoadFromGameFS returned nil error for quest without rewards")
-	}
-}
-
-func TestLoadFromGameFSRejectsInvalidQuestReward(t *testing.T) {
-	gameFS := fstest.MapFS{
-		"game.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test_game",
-				"files": {
-					"maps": ["maps/test.json"],
-					"conversations": [],
-					"quests": ["quests/tutorial.json"]
-				}
-			}`),
-		},
-		"maps/test.json": {
-			Data: []byte(`{
-				"formatVersion": 1,
-				"id": "test",
-				"size": { "x": 1, "y": 1 },
-				"terrain": ["grass"],
-				"heights": [0]
-			}`),
-		},
-		"quests/tutorial.json": {
-			Data: []byte(`{
-				"formatVersion": 2,
-				"id": "tutorial_quests",
-				"quests": [
-					{
-						"id": "broken",
-						"steps": [
-							{
-								"id": "talk",
-								"description": "Talk.",
-								"requirement": { "eventId": "talk", "count": 1 }
-							}
-						],
-						"rewards": {
-							"items": [
-								{ "name": "Broken Reward", "type": "quest", "count": 0 }
-							]
-						}
-					}
-				]
-			}`),
-		},
-	}
-
-	if _, err := LoadFromGameFS(gameFS); err == nil {
-		t.Fatal("LoadFromGameFS returned nil error for invalid quest reward")
-	}
+func testChunk(id string, x, y int, entities string) string {
+	values := `"grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass","grass"`
+	return fmt.Sprintf(`{"formatVersion":2,"id":%q,"coordinate":{"x":%d,"y":%d},"terrain":[%s],"heights":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"blockers":[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false],"walls":[],"entities":%s}`, id, x, y, values, entities)
 }

@@ -11,6 +11,15 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
 }
@@ -58,12 +67,17 @@ textarea {
 }
 
 .appShell {
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .topBar {
+  flex: 0 0 auto;
   min-height: 86px;
   display: flex;
   align-items: center;
@@ -133,6 +147,7 @@ textarea {
 }
 
 .editorTabs {
+  flex: 0 0 auto;
   display: flex;
   gap: 6px;
   padding: 8px 16px 0;
@@ -157,8 +172,9 @@ textarea {
 }
 
 .workspace {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 280px minmax(320px, 1fr) 300px;
 }
@@ -270,7 +286,7 @@ label {
 .mapViewport3D {
   width: 100%;
   height: 100%;
-  min-height: 360px;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   cursor: crosshair;
@@ -453,7 +469,25 @@ label {
   color: #7f2924;
 }
 
+.chunkGrid {
+  display: grid;
+  gap: 6px;
+  overflow: auto;
+  align-items: stretch;
+}
+
+.chunkGridCell {
+  display: grid;
+  gap: 4px;
+  min-width: 96px;
+  padding: 4px;
+  border: 1px solid #c4bcad;
+  border-radius: 4px;
+  background: #f5f3ec;
+}
+
 .unsupported {
+  flex: 0 0 auto;
   padding: 10px 16px;
   background: #f6d8ce;
   border-bottom: 1px solid #bd7b66;

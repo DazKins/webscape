@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Webscape World Format
+  title: Webscape Chunk Format
   version: 0.1.0
   description: |
-    Schema for authoring Webscape worlds.
+    Schema for authoring fixed-size Webscape chunks. Chunk coordinates may be negative;
+    tile, wall, and entity positions are local to the chunk.
 
-    Tile arrays use row-major order. Given a tile at coordinate (x, y), its
-    index is `y * size.x + x`. The total number of entries in each tile layer
-    must be `size.x * size.y`.
+    Tile arrays use row-major order. Given a local tile coordinate (x, y), its
+    index is `y * chunkSize.x + x`. The uniform chunk size comes from game.json.
 paths: {}
 components:
   schemas:
@@ -17,13 +17,16 @@ components:
       required:
         - formatVersion
         - id
-        - size
+        - coordinate
         - terrain
         - heights
+        - blockers
+        - walls
+        - entities
       properties:
         formatVersion:
           type: integer
-          const: 1
+          const: 2
           description: Version of this world document format.
         id:
           type: string
@@ -34,20 +37,20 @@ components:
           type: string
           examples:
             - Starter Island
-        size:
-          $ref: "#/components/schemas/WorldSize"
+        coordinate:
+          $ref: "#/components/schemas/ChunkCoordinate"
         terrain:
           type: array
           description: |
             Flat row-major terrain layer. Coordinate (x, y) is stored at
-            `terrain[y * size.x + x]`.
+            `terrain[y * chunkSize.x + x]`. Its exact length is defined by game.json.
           items:
             $ref: "#/components/schemas/TerrainType"
         heights:
           type: array
           description: |
             Required flat row-major terrain height layer. Coordinate (x, y) is
-            stored at `heights[y * size.x + x]`. Each value must be an integer
+            stored at `heights[y * chunkSize.x + x]`. Each value must be an integer
             from 0 through 10.
           items:
             type: integer
@@ -57,7 +60,7 @@ components:
           type: array
           description: |
             Optional flat row-major invisible blocker layer. Coordinate (x, y)
-            is stored at `blockers[y * size.x + x]`. `true` blocks movement.
+            is stored at `blockers[y * chunkSize.x + x]`. `true` blocks movement.
           items:
             type: boolean
         walls:
@@ -73,7 +76,7 @@ components:
           items:
             $ref: "#/components/schemas/WorldEntity"
 
-    WorldSize:
+    ChunkCoordinate:
       type: object
       additionalProperties: false
       required:
@@ -82,14 +85,12 @@ components:
       properties:
         x:
           type: integer
-          minimum: 1
           examples:
-            - 64
+            - -2
         y:
           type: integer
-          minimum: 1
           examples:
-            - 64
+            - 3
 
     TerrainType:
       type: string
@@ -192,12 +193,12 @@ components:
     TinyWorld:
       summary: A 3 by 2 world using flat row-major tile arrays.
       value:
-        formatVersion: 1
+        formatVersion: 2
         id: starter
         displayName: Starter Island
-        size:
-          x: 3
-          y: 2
+        coordinate:
+          x: 0
+          y: 0
         terrain:
           - grass
           - grass

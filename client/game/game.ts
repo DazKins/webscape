@@ -1,5 +1,5 @@
 import Entity from "./entity/entity.ts";
-import World from "./world/world.ts";
+import World, { type ChunkUpdate } from "./world/world.ts";
 import Input, { InputReceiver } from "../input.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
 import { createCommand } from "../command/command.ts";
@@ -365,13 +365,6 @@ class Game extends EventTarget implements InputReceiver {
     }
   }
 
-  handleEntityRemove(entityId: string) {
-    const entity = this.entities.find((e) => e.getId() === entityId);
-    if (entity) {
-      this.entities = this.entities.filter((e) => e.getId() !== entityId);
-    }
-  }
-
   update(deltaSeconds: number) {
     this.updateCamera();
     if (this.world) {
@@ -408,16 +401,12 @@ class Game extends EventTarget implements InputReceiver {
 
   registerWorld(worldUpdate: any) {
     this.quests = worldUpdate.quests ?? [];
-    this.world = new World(
-      this.scene,
-      worldUpdate.sizeX,
-      worldUpdate.sizeY,
-      worldUpdate.terrain ?? [],
-      worldUpdate.heights ?? [],
-      worldUpdate.blockers ?? [],
-      worldUpdate.walls ?? [],
-      this.input
-    );
+    const chunkSize = worldUpdate.chunkSize ?? { x: 32, y: 32 };
+    this.world = new World(this.scene, chunkSize, this.input);
+  }
+
+  handleChunkUpdate(update: ChunkUpdate) {
+    this.world?.applyChunkUpdate(update);
   }
 
   getMyEntity(): Entity | undefined {

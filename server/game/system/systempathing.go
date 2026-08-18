@@ -13,7 +13,8 @@ const pathNotFoundMessage = "I can't find a way there!"
 
 type PathingSystem struct {
 	SystemBase
-	World *world.World
+	World        *world.World
+	SpatialIndex SpatialCandidates
 }
 
 func (s *PathingSystem) Update() {
@@ -104,6 +105,7 @@ func (s *PathingSystem) Update() {
 		nextPosition := path.Pop()
 		if nextPosition != nil {
 			positionComponent.SetPosition(*nextPosition)
+			s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 		}
 	}
 }
@@ -145,6 +147,7 @@ func (s *PathingSystem) resolveOverlap(
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
 		positionComponent.SetPosition(candidate)
+		s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 		return
 	}
 }
@@ -190,6 +193,7 @@ func (s *PathingSystem) collision() collision.Checker {
 	return collision.Checker{
 		World:            s.World,
 		ComponentManager: s.ComponentManager,
+		SpatialIndex:     s.SpatialIndex,
 	}
 }
 

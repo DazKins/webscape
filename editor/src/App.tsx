@@ -41,7 +41,6 @@ import {
   createBlankWorld,
   entityPosition,
   entitySize,
-  resizeWorld,
   tileIndex,
   validateWorld,
   type WorldEntity,
@@ -101,6 +100,8 @@ function App() {
   const [entityBlocksMovement, setEntityBlocksMovement] = useState(true);
   const [componentText, setComponentText] = useState("{}");
   const [mapNameInput, setMapNameInput] = useState("New Map");
+  const [newChunkX, setNewChunkX] = useState(0);
+  const [newChunkY, setNewChunkY] = useState(0);
   const [conversationNameInput, setConversationNameInput] = useState("New Conversation");
   const [questNameInput, setQuestNameInput] = useState("New Quest");
   const [selectedConversationPath, setSelectedConversationPath] = useState<string | null>(null);
@@ -119,6 +120,20 @@ function App() {
   const questsValid = questValidations.every((validation) => validation.result.valid);
   const canSave = projectValidation.valid && worldsValid && conversationsValid && questsValid && worldPathValid;
   const mapSummaries = useMemo(() => summarizeWorlds(project, worldDocuments), [project, worldDocuments]);
+  const chunkGridBounds = useMemo(() => {
+    const xs = mapSummaries.map((summary) => summary.coordinate.x);
+    const ys = mapSummaries.map((summary) => summary.coordinate.y);
+    return {
+      minX: Math.min(...xs, 0), maxX: Math.max(...xs, 0),
+      minY: Math.min(...ys, 0), maxY: Math.max(...ys, 0),
+    };
+  }, [mapSummaries]);
+  const neighborWorlds = useMemo(
+    () => Object.entries(worldDocuments)
+      .filter(([path, candidate]) => path !== worldPath && Math.abs(candidate.coordinate.x - world.coordinate.x) <= 1 && Math.abs(candidate.coordinate.y - world.coordinate.y) <= 1)
+      .map(([path, candidate]) => ({ path, world: candidate })),
+    [worldDocuments, worldPath, world]
+  );
   const currentMapName = world.displayName || world.id || "Untitled Map";
   const conversationSummaries = useMemo(() => summarizeConversations(project, conversationDocuments), [project, conversationDocuments]);
   const questSummaries = useMemo(() => summarizeQuests(project, questDocuments), [project, questDocuments]);
@@ -253,29 +268,37 @@ function App() {
   }
 
   function createMap() {
-    const name = mapNameInput.trim();
-    const id = sanitizeConversationId(name);
+    const coordinate = { x: Math.trunc(newChunkX), y: Math.trunc(newChunkY) };
+    if (Object.values(worldDocuments).some((candidate) => candidate.coordinate.x === coordinate.x && candidate.coordinate.y === coordinate.y)) {
+      setStatus("chunk coordinate already exists");
+      return;
+    }
+    const name = mapNameInput.trim() || `Chunk (${coordinate.x}, ${coordinate.y})`;
+    const id = `chunk_${coordinate.x < 0 ? `n${-coordinate.x}` : coordinate.x}_${coordinate.y < 0 ? `n${-coordinate.y}` : coordinate.y}`;
     const filename = `${id}.json`;
     if (!isValidProjectFilename(filename)) {
       setStatus("map name is invalid");
       return;
     }
     const path = mapPathFromFilename(filename);
-    if (project.files.maps.includes(path)) {
+    if (project.files.chunks.includes(path)) {
       setStatus("map already exists");
       return;
     }
 
     const nextWorld = {
-      ...createBlankWorld(),
+      ...createBlankWorld(project.world.chunkSize),
       id,
       displayName: name,
+      coordinate,
+      size: { ...project.world.chunkSize },
+      entities: [],
     };
     setProject((current) => ({
       ...current,
       files: {
         ...current.files,
-        maps: [...current.files.maps, path],
+        chunks: [...current.files.chunks, path],
       },
     }));
     setWorldDocuments((current) => ({
@@ -303,17 +326,17 @@ function App() {
   }
 
   function deleteMap(path: string) {
-    if (project.files.maps.length <= 1) {
+    if (project.files.chunks.length <= 1) {
       setStatus("project must have at least one map");
       return;
     }
 
-    const nextPath = project.files.maps.find((candidate) => candidate !== path);
+    const nextPath = project.files.chunks.find((candidate) => candidate !== path);
     setProject((current) => ({
       ...current,
       files: {
         ...current.files,
-        maps: current.files.maps.filter((candidate) => candidate !== path),
+        chunks: current.files.chunks.filter((candidate) => candidate !== path),
       },
     }));
     setWorldDocuments((current) => {
@@ -948,13 +971,6 @@ function App() {
     updateWorld((current) => ({ ...current, [key]: value }));
   }
 
-  function applyResize(width: number, height: number) {
-    const x = Math.max(1, Math.floor(width || 1));
-    const y = Math.max(1, Math.floor(height || 1));
-    updateWorld((current) => resizeWorld(current, { x, y }, terrainType));
-    setSelection(null);
-  }
-
   function updateSelectedEntity(patch: Partial<WorldEntity>) {
     if (!selectedEntity) {
       return;
@@ -1037,7 +1053,7 @@ function App() {
             {projectFolderName} / {currentMapName}
             {dirty ? " *" : ""}
             {" | "}
-            maps {project.files.maps.length}
+            chunks {project.files.chunks.length}
             {" | "}
             conversations {project.files.conversations.length}
             {" | "}
@@ -1066,7 +1082,7 @@ function App() {
             className={activeTab === tab ? "active" : ""}
             onClick={() => setActiveTab(tab)}
           >
-            {tab}
+            {tab === "map" ? "chunks" : tab}
           </button>
         ))}
       </nav>
@@ -1075,23 +1091,37 @@ function App() {
       <main className="workspace">
         <aside className="panel">
           <section>
-            <h2>Maps</h2>
+            <h2>Chunk Grid</h2>
             <label>
-              Name
+              Label
               <input
                 value={mapNameInput}
                 onChange={(event) => setMapNameInput(event.target.value)}
               />
             </label>
-            <button type="button" onClick={createMap}>Create Map</button>
+            <div className="fieldRow">
+              <label>X<input type="number" value={newChunkX} onChange={(event) => setNewChunkX(Number(event.target.value))} /></label>
+              <label>Y<input type="number" value={newChunkY} onChange={(event) => setNewChunkY(Number(event.target.value))} /></label>
+            </div>
+            <button type="button" onClick={createMap}>Create Chunk</button>
           </section>
 
           <section>
-            <h2>List</h2>
+            <h2>Overview</h2>
             {mapSummaries.length > 0 ? (
-              <div className="stack">
+              <div
+                className="chunkGrid"
+                style={{ gridTemplateColumns: `repeat(${chunkGridBounds.maxX - chunkGridBounds.minX + 1}, minmax(96px, 1fr))` }}
+              >
                 {mapSummaries.map((summary) => (
-                  <div key={summary.path} className="listRow">
+                  <div
+                    key={summary.path}
+                    className="chunkGridCell"
+                    style={{
+                      gridColumn: summary.coordinate.x - chunkGridBounds.minX + 1,
+                      gridRow: chunkGridBounds.maxY - summary.coordinate.y + 1,
+                    }}
+                  >
                     <button
                       type="button"
                       className={worldPath === summary.path ? "listButton active" : "listButton"}
@@ -1116,7 +1146,7 @@ function App() {
           </section>
 
           <section>
-            <h2>Map</h2>
+            <h2>Active Chunk</h2>
             <label>
               Id
               <input value={world.id} onChange={(event) => updateMetadata("id", event.target.value)} />
@@ -1128,26 +1158,8 @@ function App() {
                 onChange={(event) => updateMetadata("displayName", event.target.value)}
               />
             </label>
-            <div className="fieldRow">
-              <label>
-                Width
-                <input
-                  type="number"
-                  min="1"
-                  value={world.size.x}
-                  onChange={(event) => applyResize(Number(event.target.value), world.size.y)}
-                />
-              </label>
-              <label>
-                Height
-                <input
-                  type="number"
-                  min="1"
-                  value={world.size.y}
-                  onChange={(event) => applyResize(world.size.x, Number(event.target.value))}
-                />
-              </label>
-            </div>
+            <p className="metric">coordinate ({world.coordinate.x}, {world.coordinate.y})</p>
+            <p className="metric">size {world.size.x} × {world.size.y}</p>
           </section>
 
           <section>
@@ -1274,7 +1286,7 @@ function App() {
           <section>
             <h2>Validation</h2>
             {canSave ? <p className="ok">valid</p> : null}
-            {!worldPathValid ? <p className="error">map storage is invalid</p> : null}
+            {!worldPathValid ? <p className="error">chunk storage is invalid</p> : null}
             {projectValidation.errors.map((error) => (
               <p key={error} className="error">{error}</p>
             ))}
@@ -1289,10 +1301,12 @@ function App() {
         <section className="canvasPanel">
           <MapViewport3D
             world={world}
+            neighbors={neighborWorlds}
             selection={selection}
             tool={tool}
             onTilePointerDown={handleTilePointerDown}
             onTilePointerEnter={handleTilePointerEnter}
+            onNeighborSelect={selectMap}
           />
         </section>
 
@@ -1984,6 +1998,7 @@ function QuestsWorkspace({
 type WorldSummary = {
   path: string;
   name: string;
+  coordinate: { x: number; y: number };
 };
 
 type WorldValidationEntry = {
@@ -2015,7 +2030,7 @@ type QuestValidationEntry = {
 };
 
 function summarizeWorlds(project: GameProject, worlds: WorldDocuments): WorldSummary[] {
-  return project.files.maps.flatMap((path) => {
+  return project.files.chunks.flatMap((path) => {
     const world = worlds[path];
     if (!world) {
       return [];
@@ -2023,16 +2038,42 @@ function summarizeWorlds(project: GameProject, worlds: WorldDocuments): WorldSum
 
     return {
       path,
-      name: world.displayName || world.id || titleFromStorageName(filenameFromProjectPath(path)),
+      name: `(${world.coordinate.x}, ${world.coordinate.y}) ${world.displayName || world.id || titleFromStorageName(filenameFromProjectPath(path))}`,
+      coordinate: world.coordinate,
     };
   });
 }
 
 function validateWorldDocuments(worlds: WorldDocuments): WorldValidationEntry[] {
-  return Object.entries(worlds).map(([path, world]) => ({
+  const entries = Object.entries(worlds).map(([path, world]) => ({
     path,
     result: validateWorld(world),
   }));
+  const globalErrors: string[] = [];
+  const coordinates = new Set<string>();
+  const chunkIds = new Set<string>();
+  const entityIds = new Set<string>();
+  let spawnCount = 0;
+  for (const world of Object.values(worlds)) {
+    const coordinate = `${world.coordinate.x},${world.coordinate.y}`;
+    if (coordinates.has(coordinate)) globalErrors.push(`chunk coordinate (${coordinate}) is duplicated`);
+    coordinates.add(coordinate);
+    if (chunkIds.has(world.id)) globalErrors.push(`chunk id "${world.id}" is duplicated`);
+    chunkIds.add(world.id);
+    for (const entity of world.entities) {
+      if (entityIds.has(entity.id)) globalErrors.push(`entity id "${entity.id}" is duplicated across chunks`);
+      entityIds.add(entity.id);
+      if (Object.prototype.hasOwnProperty.call(entity.components, "playerSpawn")) spawnCount += 1;
+    }
+  }
+  if (spawnCount !== 1) globalErrors.push(`world must contain exactly one playerSpawn, got ${spawnCount}`);
+  if (globalErrors.length > 0 && entries[0]) {
+    entries[0] = {
+      ...entries[0],
+      result: { valid: false, errors: [...entries[0].result.errors, ...globalErrors] },
+    };
+  }
+  return entries;
 }
 
 function summarizeConversations(

@@ -54,24 +54,25 @@ func loadPathingTestWorld(t *testing.T) *world.World {
 	testWorld, err := world.LoadFromGameFS(fstest.MapFS{
 		"game.json": {
 			Data: []byte(`{
-				"formatVersion": 1,
+				"formatVersion": 2,
 				"id": "test_game",
+				"world": { "chunkSize": { "x": 3, "y": 1 } },
 				"files": {
-					"maps": ["maps/test.json"],
+					"chunks": ["chunks/test.json"],
 					"conversations": [],
 					"quests": []
 				}
 			}`),
 		},
-		"maps/test.json": {
+		"chunks/test.json": {
 			Data: []byte(`{
-				"formatVersion": 1,
+				"formatVersion": 2,
 				"id": "test",
-				"size": { "x": 3, "y": 1 },
+				"coordinate": { "x": 0, "y": 0 },
 				"terrain": ["grass", "grass", "grass"],
 				"heights": [0, 0, 0],
 				"blockers": [false, true, false],
-				"entities": []
+				"entities": [{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}}]
 			}`),
 		},
 	})

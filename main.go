@@ -1,53 +1,40 @@
 package main
 
 import (
-	"embed"
-	"errors"
-	"flag"
-	"io/fs"
 	"log"
 	"os"
 	"webscape/server"
+	"webscape/server/config"
 	"webscape/server/game/world"
 )
 
-//go:embed all:client/dist
-var DistFS embed.FS
+const configPath = "config.json"
 
 func main() {
-	dev := flag.Bool("dev", false, "Use live filesystem instead of embedded files")
-	gameFolder := flag.String("game-folder", "", "Load game content from a folder containing game.json")
-	flag.Parse()
-
-	var f fs.FS
-	var err error
-
-	if *dev {
-		// Development mode: read from actual filesystem
-		log.Println("Using live filesystem (development mode)")
-		f = os.DirFS("client/dist")
-	} else {
-		// Production mode: use embedded files
-		log.Println("Using embedded filesystem (production mode)")
-		f, err = fs.Sub(DistFS, "client/dist")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	gameWorld, err := loadGameWorld(*gameFolder)
+	runtimeConfig, err := config.LoadFromFile(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Using startup config %q", configPath)
 
-	server.Start(f, gameWorld)
-}
-
-func loadGameWorld(gameFolder string) (*world.World, error) {
-	if gameFolder == "" {
-		return nil, errors.New("-game-folder is required")
+	gameWorld, err := world.LoadFromGameFolder(runtimeConfig.Game.Folder)
+	if err != nil {
+		log.Fatal(err)
 	}
+	log.Printf("Using game folder %q", runtimeConfig.Game.Folder)
+	clientFolderInfo, err := os.Stat(runtimeConfig.Client.Folder)
+	if err != nil {
+		log.Fatalf("read client folder %q: %v", runtimeConfig.Client.Folder, err)
+	}
+	if !clientFolderInfo.IsDir() {
+		log.Fatalf("client folder %q is not a directory", runtimeConfig.Client.Folder)
+	}
+	log.Printf("Using client folder %q", runtimeConfig.Client.Folder)
 
-	log.Printf("Using game folder %q", gameFolder)
-	return world.LoadFromGameFolder(gameFolder)
+	server.Start(
+		os.DirFS(runtimeConfig.Client.Folder),
+		gameWorld,
+		runtimeConfig.Server.Address,
+		runtimeConfig.Streaming.ChunkRadius,
+	)
 }
