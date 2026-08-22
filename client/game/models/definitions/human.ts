@@ -17,6 +17,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   const rightShoulder = joint("rightShoulder", torso, [-0.23, 0.31, 0]);
   const leftElbow = joint("leftElbow", leftShoulder, [0, -0.28, 0]);
   const rightElbow = joint("rightElbow", rightShoulder, [0, -0.28, 0]);
+  const rightHand = joint("rightHand", rightElbow, [0, -0.25, 0]);
   const leftHip = joint("leftHip", hips, [0.105, -0.07, 0]);
   const rightHip = joint("rightHip", hips, [-0.105, -0.07, 0]);
   const leftKnee = joint("leftKnee", leftHip, [0, -0.26, 0]);
@@ -120,7 +121,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const instance = createModelInstance(root, joints, [idle, run], { headwear });
+  const instance = createModelInstance(root, joints, [idle, run], { headwear, rightHand });
   instance.play("idle");
   return instance;
 };

@@ -15,6 +15,16 @@ export type EquipmentPresentation = {
 };
 
 const equipmentPresentations = {
+  ironSword: {
+    equipped: {
+      socket: "rightHand",
+      position: [0, 0.01, -0.125],
+      rotation: [Math.PI / 2 + 0.08, Math.PI / 2, 0],
+    },
+    dropped: {
+      rotation: [0, 0, Math.PI / 2],
+    },
+  },
   leatherHelmet: {
     equipped: {
       socket: "headwear",

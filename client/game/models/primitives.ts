@@ -11,13 +11,16 @@ export function mesh(
   color: THREE.ColorRepresentation,
   options: MeshOptions = {},
 ): THREE.Mesh {
-  const material = new THREE.MeshStandardMaterial({
+  const materialParameters: THREE.MeshStandardMaterialParameters = {
     color,
-    emissive: options.emissive,
     flatShading: true,
     roughness: options.roughness ?? 0.82,
     metalness: options.metalness ?? 0,
-  });
+  };
+  if (options.emissive !== undefined) {
+    materialParameters.emissive = options.emissive;
+  }
+  const material = new THREE.MeshStandardMaterial(materialParameters);
   const result = new THREE.Mesh(geometry, material);
   result.castShadow = true;
   result.receiveShadow = true;
