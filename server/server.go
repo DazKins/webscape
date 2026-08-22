@@ -15,9 +15,6 @@ func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int
 	game := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
 
 	clientCommandHandler := NewClientCommandHandler(game)
-
-	game.StartUpdateLoop()
-
 	wsServer := NewWsServer()
 	wsServer.SetIncomingMessageHandler(func(clientID string, message string) {
 		command, err := command.Unmarshal(message)
@@ -31,6 +28,7 @@ func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int
 
 	game.RegisterBroadcaster(wsServer.Broadcast)
 	game.RegisterSender(wsServer.SendToClient)
+	game.StartUpdateLoop()
 	http.HandleFunc("/ws", wsServer.HandleWebSocket)
 
 	log.Printf("Starting server on %s", address)

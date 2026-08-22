@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"sort"
+	"sync"
 	"time"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
@@ -21,6 +22,8 @@ type MessageBroadcaster func(message message.Message)
 type MessageSender func(clientID string, message message.Message)
 
 type Game struct {
+	// stateMutex serializes update ticks with commands arriving from WebSocket goroutines.
+	stateMutex         sync.Mutex
 	world              *world.World
 	clientIdToEntityId *util.BiMap[string, model.EntityId]
 	ticker             *time.Ticker
@@ -183,6 +186,9 @@ func (g *Game) StartUpdateLoop() {
 }
 
 func (g *Game) update() {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	for _, system := range g.systems {
 		system.Update()
 	}
@@ -360,6 +366,9 @@ func (g *Game) deliverQuestRewards(
 }
 
 func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	if _, ok := g.clientIdToEntityId.Get(clientID); ok {
 		g.sendMessage(clientID, message.NewJoinFailedMessage("you are already connected in another session"))
 		return
@@ -562,6 +571,9 @@ func (g *Game) serializedComponentsSnapshot() map[component.ComponentId]map[mode
 }
 
 func (g *Game) HandleMove(clientID string, x int, y int) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		panic("client ID not found in clientIdToEntityId")
@@ -586,6 +598,9 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 }
 
 func (g *Game) HandleLeave(clientID string) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
@@ -616,6 +631,9 @@ func (g *Game) SendChatMessageEntityFor(fromEntityId model.EntityId, message str
 }
 
 func (g *Game) HandleChat(clientID string, chatMessage string) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
@@ -626,6 +644,9 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	if !g.entityVisibleToClient(clientID, entityId) {
 		return
 	}
@@ -758,6 +779,9 @@ func (g *Game) HandleConversationOption(
 	nodeId string,
 	optionId string,
 ) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
@@ -842,6 +866,9 @@ func (g *Game) sendConversationNode(
 }
 
 func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
@@ -881,6 +908,9 @@ func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
 }
 
 func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
 		log.Println("Client ID not found in clientIdToEntityId")
