@@ -121,7 +121,32 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const instance = createModelInstance(root, joints, [idle, run], { headwear, rightHand });
+  const attack = animation("attack", 0.38, false, (phase): ModelPose => {
+    const windUp = THREE.MathUtils.smoothstep(phase, 0, 0.28);
+    const strike = THREE.MathUtils.smoothstep(phase, 0.28, 0.58);
+    const recover = THREE.MathUtils.smoothstep(phase, 0.58, 1);
+    const shoulderSwing = THREE.MathUtils.lerp(0, 0.55, windUp)
+      + THREE.MathUtils.lerp(0, -1.75, strike)
+      + THREE.MathUtils.lerp(0, 1.2, recover);
+    const elbowBend = THREE.MathUtils.lerp(0, -0.65, windUp)
+      + THREE.MathUtils.lerp(0, 0.5, strike)
+      + THREE.MathUtils.lerp(0, 0.15, recover);
+    const torsoTwist = THREE.MathUtils.lerp(0, 0.22, windUp)
+      + THREE.MathUtils.lerp(0, -0.42, strike)
+      + THREE.MathUtils.lerp(0, 0.2, recover);
+    return {
+      hips: { rotation: [0, -torsoTwist * 0.25, 0] },
+      torso: { rotation: [0.08 * strike, torsoTwist, -0.04 * strike] },
+      rightShoulder: { rotation: [shoulderSwing, 0, 0.12] },
+      rightElbow: { rotation: [elbowBend, 0, 0] },
+      leftShoulder: { rotation: [-0.12 * strike, 0, -0.04] },
+    };
+  });
+
+  const instance = createModelInstance(root, joints, [idle, run, attack], {
+    headwear,
+    rightHand,
+  });
   instance.play("idle");
   return instance;
 };

@@ -8,6 +8,7 @@ import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
 const SERVER_TICK_SECONDS = 0.52;
 const HEALTH_BAR_Y = 0.75;
 const ANIMATION_FADE_SECONDS = 0.08;
+const ATTACK_ANIMATION_SECONDS = 0.32;
 const ROTATION_SPEED_RADIANS_PER_SECOND = 12;
 
 export default class RendererRat extends EntityRenderer {
@@ -21,6 +22,7 @@ export default class RendererRat extends EntityRenderer {
   private segmentTargetZ: number;
   private segmentElapsedSeconds = SERVER_TICK_SECONDS;
   private targetRotationY = 0;
+  private attackAnimationSecondsRemaining = 0;
 
   constructor(
     scene: THREE.Scene,
@@ -79,13 +81,26 @@ export default class RendererRat extends EntityRenderer {
       renderedZ,
     );
     this.updateFacing(deltaSeconds);
-    this.modelInstance.play(this.isMoving() ? "run" : "idle", ANIMATION_FADE_SECONDS);
+    if (this.attackAnimationSecondsRemaining > 0) {
+      this.modelInstance.play("attack", ANIMATION_FADE_SECONDS);
+      this.attackAnimationSecondsRemaining = Math.max(
+        0,
+        this.attackAnimationSecondsRemaining - deltaSeconds,
+      );
+    } else {
+      this.modelInstance.play(this.isMoving() ? "run" : "idle", ANIMATION_FADE_SECONDS);
+    }
     this.modelInstance.update(deltaSeconds);
     this.updateHealthBar();
   }
 
   getObject3D(): THREE.Object3D {
     return this.mesh;
+  }
+
+  playAttackAnimation() {
+    this.attackAnimationSecondsRemaining = ATTACK_ANIMATION_SECONDS;
+    this.modelInstance.play("attack", ANIMATION_FADE_SECONDS);
   }
 
   onRemove() {

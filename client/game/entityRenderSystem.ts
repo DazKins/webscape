@@ -62,11 +62,13 @@ export default class EntityRenderSystem {
         }
         return new RendererChatMessage(this.scene, entity, parentRenderer);
       case "combattext":
-        const combatTextParent = this.renderers[entity.getComponent("combattext").fromEntityId];
+        const combatTextComponent = entity.getComponent("combattext");
+        const combatTextParent = this.renderers[combatTextComponent.fromEntityId];
         if (!combatTextParent) {
           console.error("parent renderer not found for combat text");
           return null;
         }
+        this.renderers[combatTextComponent.attackerEntityId]?.playAttackAnimation();
         return new RendererCombatText(this.scene, entity, combatTextParent);
     }
     console.error("unknown renderer type:", renderableType);

@@ -138,7 +138,7 @@ func (s *CombatSystem) resolveAttack(
 	}
 
 	if rand.Intn(100) >= hitChance {
-		s.emitCombatText(targetId, "MISS", "miss")
+		s.emitCombatText(attackerId, targetId, "MISS", "miss")
 		s.addCombatLog(attackerId, fmt.Sprintf("You miss %s", targetName), "miss")
 		s.addCombatLog(targetId, fmt.Sprintf("%s misses you", attackerName), "miss")
 		return attackResult{DidHit: false, Damage: 0, IsCrit: false}
@@ -166,16 +166,16 @@ func (s *CombatSystem) resolveAttack(
 		text = fmt.Sprintf("CRIT %d", damage)
 		kind = "crit"
 	}
-	s.emitCombatText(targetId, text, kind)
+	s.emitCombatText(attackerId, targetId, text, kind)
 	s.addCombatLog(attackerId, fmt.Sprintf("You hit %s for %d", targetName, damage), kind)
 	s.addCombatLog(targetId, fmt.Sprintf("%s hits you for %d", attackerName, damage), kind)
 
 	return attackResult{DidHit: true, Damage: damage, IsCrit: isCrit}
 }
 
-func (s *CombatSystem) emitCombatText(targetId model.EntityId, text string, kind string) {
+func (s *CombatSystem) emitCombatText(attackerId model.EntityId, targetId model.EntityId, text string, kind string) {
 	renderable := component.NewCRenderable("combattext")
-	combatText := component.NewCCombatText(targetId, text, kind)
+	combatText := component.NewCCombatText(targetId, attackerId, text, kind)
 	ttl := component.NewCTtl(combatTextTtlTicks)
 	s.ComponentManager.CreateNewEntity(renderable, combatText, ttl)
 }

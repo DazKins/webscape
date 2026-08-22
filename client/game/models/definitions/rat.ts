@@ -122,7 +122,21 @@ export const createRatModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const instance = createModelInstance(root, joints, [idle, run]);
+  const attack = animation("attack", 0.32, false, (phase): ModelPose => {
+    const strike = Math.sin(phase * Math.PI);
+    const pawSwipe = Math.sin(Math.min(phase / 0.7, 1) * Math.PI);
+    return {
+      body: {
+        position: [0, strike * 0.035, strike * 0.1],
+        rotation: [-strike * 0.18, 0, 0],
+      },
+      head: { rotation: [-strike * 0.22, 0, 0] },
+      leftFrontLeg: { rotation: [-pawSwipe * 1.05, 0, pawSwipe * 0.2] },
+      rightFrontLeg: { rotation: [-pawSwipe * 0.75, 0, -pawSwipe * 0.15] },
+    };
+  });
+
+  const instance = createModelInstance(root, joints, [idle, run, attack]);
   instance.play("idle");
   return instance;
 };

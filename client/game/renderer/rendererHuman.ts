@@ -11,6 +11,7 @@ const HUMAN_HEALTH_BAR_Y = 1.55;
 const HUMAN_IDLE_ANIMATION_NAME = "idle";
 const HUMAN_RUN_ANIMATION_NAME = "run";
 const HUMAN_ANIMATION_FADE_SECONDS = 0.12;
+const HUMAN_ATTACK_ANIMATION_SECONDS = 0.38;
 const HUMAN_MODEL_FORWARD_ROTATION_OFFSET = 0;
 const HUMAN_ROTATION_SPEED_RADIANS_PER_SECOND = 10;
 
@@ -26,6 +27,7 @@ export default class RendererHuman extends EntityRenderer {
   private segmentTargetZ: number;
   private segmentElapsedSeconds = SERVER_TICK_SECONDS;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
+  private attackAnimationSecondsRemaining = 0;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
 
   constructor(
@@ -91,10 +93,18 @@ export default class RendererHuman extends EntityRenderer {
       this.faceSynchronizedTarget(targetX, targetZ);
     }
     this.updateFacing(deltaSeconds);
-    this.modelInstance.play(
-      this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
-      HUMAN_ANIMATION_FADE_SECONDS,
-    );
+    if (this.attackAnimationSecondsRemaining > 0) {
+      this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
+      this.attackAnimationSecondsRemaining = Math.max(
+        0,
+        this.attackAnimationSecondsRemaining - deltaSeconds,
+      );
+    } else {
+      this.modelInstance.play(
+        this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
+        HUMAN_ANIMATION_FADE_SECONDS,
+      );
+    }
     this.modelInstance.update(deltaSeconds);
     this.equipmentAttachments.update(this.entity.getComponent("equipped"), deltaSeconds);
     this.updateHealthBar();
@@ -102,6 +112,11 @@ export default class RendererHuman extends EntityRenderer {
 
   getObject3D(): THREE.Object3D {
     return this.mesh;
+  }
+
+  playAttackAnimation() {
+    this.attackAnimationSecondsRemaining = HUMAN_ATTACK_ANIMATION_SECONDS;
+    this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
   }
 
   onRemove() {
