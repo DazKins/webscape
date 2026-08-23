@@ -16,7 +16,11 @@ const PILLAR_SIZE = 0.58;
 const PILLAR_HEIGHT = 1.08;
 const BEVEL_RADIUS = 0.055;
 
-export function addWallGeometry(scene: THREE.Object3D, walls: WorldWall[]) {
+export function addWallGeometry(
+  scene: THREE.Object3D,
+  walls: WorldWall[],
+  terrainHeightSampler: (x: number, z: number) => number
+) {
   const wallTiles = createWallTileIndex(walls);
   const materials = new Map<string, THREE.MeshStandardMaterial>();
 
@@ -29,7 +33,7 @@ export function addWallGeometry(scene: THREE.Object3D, walls: WorldWall[]) {
       west: hasWallTile(wallTiles, wall.x - 1, wall.y, wall.type),
     };
 
-    addWallTile(scene, material, wall.x, wall.y, neighbours);
+    addWallTile(scene, material, wall.x, wall.y, terrainHeightSampler, neighbours);
   }
 }
 
@@ -46,47 +50,51 @@ function addWallTile(
   material: THREE.MeshStandardMaterial,
   x: number,
   y: number,
+  terrainHeightSampler: (x: number, z: number) => number,
   neighbours: { north: boolean; east: boolean; south: boolean; west: boolean }
 ) {
   const horizontal = neighbours.east || neighbours.west;
   const vertical = neighbours.north || neighbours.south;
   const connectionCount = Object.values(neighbours).filter(Boolean).length;
+  const centerX = x + 0.5;
+  const centerZ = y + 0.5;
+  const terrainHeight = terrainHeightSampler(centerX, centerZ);
 
   if (!horizontal && !vertical) {
-    addPillar(scene, material, x, y);
+    addPillar(scene, material, x, y, terrainHeight);
     return;
   }
 
-  if (horizontal) {
-    const minX = neighbours.west ? 0 : 0.5 - PILLAR_SIZE / 2;
-    const maxX = neighbours.east ? 1 : 0.5 + PILLAR_SIZE / 2;
-    addBox(
+  // Build each connection once. Shearing the panel makes its lower and upper
+  // edges meet both terrain heights without tilting its end faces or pillars.
+  if (neighbours.east) {
+    addSlopedBox(
       scene,
       material,
-      x + (minX + maxX) / 2,
-      y + 0.5,
-      maxX - minX,
-      WALL_HEIGHT,
-      WALL_THICKNESS
+      centerX,
+      centerZ,
+      centerX + 1,
+      centerZ,
+      terrainHeight,
+      terrainHeightSampler(centerX + 1, centerZ)
     );
   }
 
-  if (vertical) {
-    const minY = neighbours.north ? 0 : 0.5 - PILLAR_SIZE / 2;
-    const maxY = neighbours.south ? 1 : 0.5 + PILLAR_SIZE / 2;
-    addBox(
+  if (neighbours.south) {
+    addSlopedBox(
       scene,
       material,
-      x + 0.5,
-      y + (minY + maxY) / 2,
-      WALL_THICKNESS,
-      WALL_HEIGHT,
-      maxY - minY
+      centerX,
+      centerZ,
+      centerX,
+      centerZ + 1,
+      terrainHeight,
+      terrainHeightSampler(centerX, centerZ + 1)
     );
   }
 
   if (connectionCount !== 2 || horizontal === vertical) {
-    addPillar(scene, material, x, y);
+    addPillar(scene, material, x, y, terrainHeight);
   }
 }
 
@@ -94,9 +102,56 @@ function addPillar(
   scene: THREE.Object3D,
   material: THREE.MeshStandardMaterial,
   x: number,
-  y: number
+  y: number,
+  terrainHeight: number
 ) {
-  addBox(scene, material, x + 0.5, y + 0.5, PILLAR_SIZE, PILLAR_HEIGHT, PILLAR_SIZE);
+  addBox(
+    scene,
+    material,
+    x + 0.5,
+    y + 0.5,
+    PILLAR_SIZE,
+    PILLAR_HEIGHT,
+    PILLAR_SIZE,
+    terrainHeight
+  );
+}
+
+function addSlopedBox(
+  scene: THREE.Object3D,
+  material: THREE.MeshStandardMaterial,
+  startX: number,
+  startZ: number,
+  endX: number,
+  endZ: number,
+  startTerrainHeight: number,
+  endTerrainHeight: number
+) {
+  const horizontal = startZ === endZ;
+  const width = horizontal ? endX - startX : WALL_THICKNESS;
+  const depth = horizontal ? WALL_THICKNESS : endZ - startZ;
+  const geometry = new RoundedBoxGeometry(width, WALL_HEIGHT, depth, 2, BEVEL_RADIUS);
+  const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
+  const terrainHeightDelta = endTerrainHeight - startTerrainHeight;
+  const connectionLength = horizontal ? width : depth;
+
+  for (let index = 0; index < positions.count; index += 1) {
+    const distanceFromCenter = horizontal ? positions.getX(index) : positions.getZ(index);
+    positions.setY(
+      index,
+      positions.getY(index) + (distanceFromCenter / connectionLength) * terrainHeightDelta
+    );
+  }
+  positions.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  const wall = new THREE.Mesh(geometry, material);
+  wall.position.set(
+    (startX + endX) / 2,
+    (startTerrainHeight + endTerrainHeight) / 2 + WALL_HEIGHT / 2,
+    (startZ + endZ) / 2
+  );
+  scene.add(wall);
 }
 
 function addBox(
@@ -106,13 +161,14 @@ function addBox(
   z: number,
   width: number,
   height: number,
-  depth: number
+  depth: number,
+  terrainHeight: number
 ) {
   const wall = new THREE.Mesh(
     new RoundedBoxGeometry(width, height, depth, 2, BEVEL_RADIUS),
     material
   );
-  wall.position.set(x, height / 2, z);
+  wall.position.set(x, terrainHeight + height / 2, z);
   scene.add(wall);
 }
 

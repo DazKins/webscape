@@ -145,7 +145,7 @@ class World {
     const grid = this.createGrid(data);
     const terrainMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide }));
     root.add(terrainMesh);
-    addWallGeometry(root, data.walls ?? []);
+    addWallGeometry(root, data.walls ?? [], (x, z) => sampleTerrainHeight(grid, x, z));
     const visual = { data, root, terrainMesh, grid } as ChunkVisual;
     this.rebuildSurfaces(visual);
     return visual;
