@@ -75,6 +75,21 @@ const rightTabs: TabDefinition<RightTab>[] = [
 ];
 
 const mobileTabs: TabDefinition<MobileTab>[] = [...leftTabs, ...rightTabs];
+const sourceUrl = "https://github.com/dazkins/webscape";
+
+function SourceLink() {
+  return (
+    <a
+      className={styles.sourceLink}
+      href={sourceUrl}
+      target="_blank"
+      rel="noreferrer"
+      title="Webscape source code and AGPL-3.0-only license (provided without warranty)"
+    >
+      Source &amp; license (AGPLv3)
+    </a>
+  );
+}
 
 function getWindowProfile() {
   return getDeviceProfile({
@@ -230,6 +245,7 @@ export default function UiRoot(props: Props) {
         <InteractionMenu game={props.game} />
         <ConversationPanel game={props.game} />
         <QuestCompletedOverlay game={props.game} />
+        <SourceLink />
       </div>
     );
   }
@@ -291,6 +307,7 @@ export default function UiRoot(props: Props) {
       <InteractionMenu game={props.game} />
       <ConversationPanel game={props.game} />
       <QuestCompletedOverlay game={props.game} />
+      <SourceLink />
     </div>
   );
 }

@@ -4,6 +4,29 @@
   pointer-events: none;
 }
 
+.sourceLink {
+  position: absolute;
+  top: max(8px, var(--safe-area-top));
+  right: max(8px, var(--safe-area-right));
+  z-index: 1;
+  padding: 5px 7px;
+  border: 1px solid rgba(210, 220, 230, 0.28);
+  border-radius: 4px;
+  background: rgba(20, 24, 30, 0.72);
+  color: rgba(235, 240, 245, 0.88);
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.sourceLink:hover,
+.sourceLink:focus-visible {
+  border-color: rgba(210, 225, 245, 0.62);
+  background: rgba(35, 42, 52, 0.9);
+  color: #fff;
+}
+
 .hudPanel {
   pointer-events: auto;
   overflow: hidden;

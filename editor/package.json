@@ -1,6 +1,7 @@
 {
   "name": "editor",
   "private": true,
+  "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build"

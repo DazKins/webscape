@@ -24,6 +24,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:3.22.1
 
+LABEL org.opencontainers.image.source="https://github.com/dazkins/webscape" \
+      org.opencontainers.image.licenses="AGPL-3.0-only"
+
 RUN adduser -D -s /bin/sh appuser
 WORKDIR /app
 
@@ -31,6 +34,7 @@ COPY --from=server-builder /app/main ./main
 COPY --from=client-builder /app/client/dist ./client/dist
 COPY config.json ./config.json
 COPY game-project/ ./game-project/
+COPY LICENSE THIRD_PARTY_LICENSES.txt ./
 RUN chown -R appuser:appuser /app
 
 USER appuser
