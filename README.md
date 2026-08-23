@@ -1,7 +1,12 @@
 # Webscape
 
-Webscape is a content-driven Go game server with playable and editor
-frontends built with Vite, React, and TypeScript.
+![Webscape Screenshot](https://dazkins.com/_astro/screenshot.DwpayBVs_2r7kIj.webp)
+
+Welcome to Webscape!
+
+Webscape is a low tick rate, tile-based browser MMO highly inspired by [Runescape](https://oldschool.runescape.com/).
+
+The game is currently in active development. You can access and play it here: https://webscape.dazkins.com/
 
 ## Development
 
@@ -12,7 +17,7 @@ cd client
 npm ci
 npm run build
 cd ..
-go run .
+go run . -game-folder ./game-project
 ```
 
 The editor runs separately from `editor/` with `npm run dev`.
