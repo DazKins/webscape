@@ -8,11 +8,13 @@ import { createRatModel } from "./definitions/rat";
 import { createRewardDropModel } from "./definitions/rewardDrop";
 import { createRockModel } from "./definitions/rock";
 import { createTreeModel } from "./definitions/tree";
+import { createWoodcuttingAxeModel } from "./definitions/woodcuttingAxe";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 
 export const modelRegistry = {
   human: createHumanModel,
   ironSword: createIronSwordModel,
+  woodcuttingAxe: createWoodcuttingAxeModel,
   leatherHelmet: createLeatherHelmetModel,
   rat: createRatModel,
   tree: createTreeModel,

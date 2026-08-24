@@ -108,6 +108,44 @@ func TestCreateAuthoredEntityParsesRandomWalkMaxDistanceAndOrigin(t *testing.T) 
 	}
 }
 
+func TestCreateAuthoredEntityParsesWoodcuttableComponent(t *testing.T) {
+	components := CreateAuthoredEntity(world.WorldEntity{
+		Id: "tree_001",
+		Components: map[string]any{
+			"position": map[string]any{"x": 1, "y": 2},
+			"woodcuttable": map[string]any{
+				"maxDurability": 5,
+				"respawnTicks":  60,
+				"yield": map[string]any{
+					"name": "Logs", "type": "material", "count": 1,
+				},
+			},
+		},
+	})
+
+	woodcuttable := findWoodcuttable(components)
+	if woodcuttable == nil {
+		t.Fatal("woodcuttable component was not created")
+	}
+	if woodcuttable.GetMaxDurability() != 5 || woodcuttable.GetCurrentDurability() != 5 {
+		t.Fatalf("durability = %d/%d, want 5/5", woodcuttable.GetCurrentDurability(), woodcuttable.GetMaxDurability())
+	}
+	if woodcuttable.GetRespawnTicks() != 60 {
+		t.Fatalf("respawnTicks = %d, want 60", woodcuttable.GetRespawnTicks())
+	}
+	materialYield := woodcuttable.GetYield()
+	if materialYield.Name != "Logs" || materialYield.Type != "material" || materialYield.Count != 1 {
+		t.Fatalf("yield = %#v, want one Logs material", materialYield)
+	}
+
+	serialized := woodcuttable.Serialize().(util.JObject)
+	if serialized["currentDurability"] != util.JNumber(5) ||
+		serialized["depleted"] != util.JBool(false) ||
+		serialized["remainingRespawnTicks"] != util.JNumber(0) {
+		t.Fatalf("serialized woodcuttable = %#v", serialized)
+	}
+}
+
 func findOpenable(components []component.Component) *component.COpenable {
 	for _, comp := range components {
 		if openable, ok := comp.(*component.COpenable); ok {
@@ -130,6 +168,15 @@ func findRandomWalk(components []component.Component) *component.CRandomWalk {
 	for _, comp := range components {
 		if randomWalk, ok := comp.(*component.CRandomWalk); ok {
 			return randomWalk
+		}
+	}
+	return nil
+}
+
+func findWoodcuttable(components []component.Component) *component.CWoodcuttable {
+	for _, comp := range components {
+		if woodcuttable, ok := comp.(*component.CWoodcuttable); ok {
+			return woodcuttable
 		}
 	}
 	return nil

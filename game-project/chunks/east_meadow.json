@@ -3121,6 +3121,15 @@
         },
         "renderable": {
           "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
         }
       }
     },

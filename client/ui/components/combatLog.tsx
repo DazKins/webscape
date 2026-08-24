@@ -13,6 +13,16 @@ type CombatLogEntry = {
   kind: string;
 };
 
+function entryClass(kind: string): string {
+  if (kind === "crit" || kind === "woodcutting-good" || kind === "woodcutting-reward") {
+    return styles.entryCrit;
+  }
+  if (kind === "miss" || kind === "woodcutting-miss") {
+    return styles.entryMiss;
+  }
+  return styles.entryHit;
+}
+
 export function CombatLogContent(props: Props) {
   const [entries, setEntries] = useState<CombatLogEntry[]>([]);
 
@@ -48,18 +58,12 @@ export function CombatLogContent(props: Props) {
   return (
     <div className={panelStyles.panelContent}>
       {entries.length === 0 ? (
-        <div className={styles.empty}>No combat yet</div>
+        <div className={styles.empty}>No activity yet</div>
       ) : (
         entries.map((entry, index) => (
           <div
             key={index}
-            className={`${styles.entry} ${
-              entry.kind === "crit"
-                ? styles.entryCrit
-                : entry.kind === "miss"
-                ? styles.entryMiss
-                : styles.entryHit
-            }`}
+            className={`${styles.entry} ${entryClass(entry.kind)}`}
           >
             {entry.text}
           </div>
@@ -72,7 +76,7 @@ export function CombatLogContent(props: Props) {
 export default function CombatLog(props: Props) {
   return (
     <div className={`${panelStyles.panel} ${styles.container}`}>
-      <div className={panelStyles.panelHeader}>Combat Log</div>
+      <div className={panelStyles.panelHeader}>Activity Log</div>
       <CombatLogContent game={props.game} />
     </div>
   );

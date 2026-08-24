@@ -100,6 +100,40 @@ func TestLoadChunksRejectsLegacyProjectAndInvalidPath(t *testing.T) {
 	}
 }
 
+func TestLoadChunksValidatesWoodcuttableComponents(t *testing.T) {
+	valid := `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`
+	tests := []struct {
+		name         string
+		woodcuttable string
+		want         string
+	}{
+		{name: "not object", woodcuttable: `[]`, want: "woodcuttable must be an object"},
+		{name: "durability zero", woodcuttable: `{"maxDurability":0,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`, want: "maxDurability must be a positive integer"},
+		{name: "durability fractional", woodcuttable: `{"maxDurability":1.5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`, want: "maxDurability must be a positive integer"},
+		{name: "respawn zero", woodcuttable: `{"maxDurability":5,"respawnTicks":0,"yield":{"name":"Logs","type":"material","count":1}}`, want: "respawnTicks must be a positive integer"},
+		{name: "yield missing", woodcuttable: `{"maxDurability":5,"respawnTicks":60}`, want: "yield must be an object"},
+		{name: "yield name empty", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":" ","type":"material","count":1}}`, want: "yield.name must be a non-empty string"},
+		{name: "yield not material", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"weapon","count":1}}`, want: `yield.type must be "material"`},
+		{name: "count zero", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":0}}`, want: "yield.count must be a positive integer"},
+		{name: "count fractional", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1.5}}`, want: "yield.count must be a positive integer"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			entities := fmt.Sprintf(`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"tree","components":{"position":{"x":1,"y":0},"woodcuttable":%s}}]`, test.woodcuttable)
+			_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)}))
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+
+	entities := fmt.Sprintf(`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"tree","components":{"position":{"x":1,"y":0},"woodcuttable":%s}}]`, valid)
+	if _, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)})); err != nil {
+		t.Fatalf("valid woodcuttable rejected: %v", err)
+	}
+}
+
 func chunkFS(paths []string, documents map[string]string) fstest.MapFS {
 	quoted := make([]string, len(paths))
 	for i, path := range paths {

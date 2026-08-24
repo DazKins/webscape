@@ -34,7 +34,8 @@ type Game struct {
 	clients            map[string]*clientStreamState
 	spatialIndex       *spatial.Index
 
-	systems []system.System
+	systems           []system.System
+	woodcuttingSystem *system.WoodcuttingSystem
 
 	componentManager *component.ComponentManager
 }
@@ -72,6 +73,13 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		},
 		World: world, SpatialIndex: game.spatialIndex,
 	})
+	woodcuttingSystem := &system.WoodcuttingSystem{
+		SystemBase: system.SystemBase{
+			ComponentManager: game.componentManager,
+		},
+		YieldHandler: game,
+	}
+	game.woodcuttingSystem = woodcuttingSystem
 	game.RegisterSystem(&system.InteractionSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
@@ -79,7 +87,9 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		ConversationStarter: game,
 		EventEmitter:        game,
 		LootHandler:         game,
+		WoodcuttingStarter:  woodcuttingSystem,
 	})
+	game.RegisterSystem(woodcuttingSystem)
 	game.RegisterSystem(&system.CombatSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
@@ -443,6 +453,11 @@ func (g *Game) syncClient(clientID string) {
 			visible[entityID] = true
 		}
 	}
+	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing) {
+		if visible[value.(*component.CWoodcuttingSwing).GetPlayerEntityId()] {
+			visible[entityID] = true
+		}
+	}
 
 	updated := make(map[component.ComponentId]map[model.EntityId]util.Json)
 	removed := make(map[component.ComponentId][]model.EntityId)
@@ -594,6 +609,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	})
 	g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
 	g.componentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+	g.componentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
 	g.componentManager.SetEntityComponent(entityId, pathingComponent)
 }
 
@@ -670,6 +686,7 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
+	g.componentManager.RemoveComponent(component.ComponentIdWoodcutting, interactingEntityId)
 
 	// Set pathing component to path to the target entity
 	pathingComponent := component.NewCPathing(component.PathingTarget{
@@ -961,6 +978,11 @@ func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []compone
 		} else {
 			options = append(options, component.InteractionOptionOpen)
 		}
+	}
+
+	woodcuttable := g.componentManager.GetEntityComponent(component.ComponentIdWoodcuttable, entityId)
+	if woodcuttable != nil && !woodcuttable.(*component.CWoodcuttable).IsDepleted() {
+		options = append(options, component.InteractionOptionChop)
 	}
 
 	if g.componentManager.GetEntityComponent(component.ComponentIdPlayer, entityId) == nil &&

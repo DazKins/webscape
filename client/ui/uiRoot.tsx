@@ -65,7 +65,7 @@ const tabIcons = {
 
 const leftTabs: TabDefinition<LeftTab>[] = [
   { id: "chat", label: "Chat", icon: tabIcons.chat },
-  { id: "combat", label: "Combat Log", icon: tabIcons.combat },
+  { id: "combat", label: "Activity Log", icon: tabIcons.combat },
 ];
 
 const rightTabs: TabDefinition<RightTab>[] = [

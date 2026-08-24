@@ -9,4 +9,5 @@ const (
 	InteractionOptionLoot   = "loot"
 	InteractionOptionOpen   = "open"
 	InteractionOptionClose  = "close"
+	InteractionOptionChop   = "chop"
 )

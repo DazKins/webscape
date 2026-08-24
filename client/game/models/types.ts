@@ -4,6 +4,7 @@ export type ModelOptions = {
   color?: THREE.ColorRepresentation;
   width?: number;
   height?: number;
+  damageStage?: number;
 };
 
 export type JointPose = {

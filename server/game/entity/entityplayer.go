@@ -21,6 +21,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 	inventoryComponent := component.NewCInventory()
 	// Add some test items to the player's inventory
 	inventoryComponent.AddItem(model.CreateIronSword())
+	inventoryComponent.AddItem(model.CreateWoodcuttingAxe())
 	inventoryComponent.AddItem(model.CreateLeatherHelmet())
 	inventoryComponent.AddItem(model.CreateHealthPotion())
 	inventoryComponent.AddItem(model.CreateBread())

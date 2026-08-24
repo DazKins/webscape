@@ -29,6 +29,7 @@ type InventoryItem = {
 
 type ItemIconKind =
   | "weapon"
+  | "axe"
   | "helmet"
   | "armor"
   | "boots"
@@ -36,6 +37,7 @@ type ItemIconKind =
   | "potion"
   | "food"
   | "ore"
+  | "logs"
   | "wood"
   | "stone"
   | "key"
@@ -57,6 +59,16 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
       <path d="M37 51 45 59 32 72l-8-8 13-13Z" fill="#7d5a38"/>
       <path d="M31 43 53 65 46 72 24 50l7-7Z" fill="#8aa1bd"/>
       <circle cx="26" cy="70" r="7" fill="#c89a4a"/>
+    `,
+  },
+  axe: {
+    background: "#302a24",
+    glow: "#d8b17a",
+    shape: `
+      <path d="M28 78 58 20" stroke="#885a35" stroke-width="9" stroke-linecap="round"/>
+      <path d="M50 18c12-4 23-1 31 6L68 46c-7-7-15-11-26-11l8-17Z" fill="#b9c3c8"/>
+      <path d="M68 46 81 24" stroke="#eef3f5" stroke-width="5" stroke-linecap="round"/>
+      <path d="M25 77 31 65" stroke="#4e3020" stroke-width="11" stroke-linecap="round"/>
     `,
   },
   helmet: {
@@ -127,6 +139,24 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
       <path d="M48 49 61 76H34L24 60l24-11Z" fill="#4a5260"/>
     `,
   },
+  logs: {
+    background: "#30271d",
+    glow: "#e2a75c",
+    shape: `
+      <g transform="rotate(-8 48 48)">
+        <path d="M27 29h42v22H27Z" fill="#85502e"/>
+        <path d="M27 55h42v22H27Z" fill="#6f4127"/>
+        <path d="M23 32h38v16H23Z" fill="#9b6236"/>
+        <path d="M35 58h38v16H35Z" fill="#89522f"/>
+        <ellipse cx="23" cy="40" rx="10" ry="11" fill="#d49a58"/>
+        <ellipse cx="35" cy="66" rx="10" ry="11" fill="#c18448"/>
+        <ellipse cx="23" cy="40" rx="5" ry="6" fill="none" stroke="#89532f" stroke-width="2"/>
+        <ellipse cx="35" cy="66" rx="5" ry="6" fill="none" stroke="#754329" stroke-width="2"/>
+        <path d="M24 35c-3 3-3 7 0 10M36 61c-3 3-3 7 0 10" fill="none" stroke="#f0bd76" stroke-width="2" stroke-linecap="round"/>
+        <path d="M58 32v16M65 58v16" stroke="#5a321f" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+      </g>
+    `,
+  },
   wood: {
     background: "#31291f",
     glow: "#d09a55",
@@ -181,12 +211,14 @@ const itemIconSrcCache = new Map<ItemIconKind, string>();
 
 function getItemIconKind(item: InventoryItem): ItemIconKind {
   const name = item.name.toLowerCase();
+  if (item.type === "axe") return "axe";
 
   if (name.includes("key")) return "key";
   if (name.includes("scroll")) return "scroll";
   if (name.includes("potion")) return "potion";
   if (name.includes("bread") || name.includes("apple")) return "food";
   if (name.includes("ore")) return "ore";
+  if (name.includes("log")) return "logs";
   if (name.includes("wood")) return "wood";
   if (name.includes("stone")) return "stone";
 

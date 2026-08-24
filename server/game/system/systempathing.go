@@ -114,6 +114,7 @@ func (s *PathingSystem) rejectPathing(entityId model.EntityId) {
 	s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
 	s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
 	s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
+	s.ComponentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
 	s.sendChatMessage(entityId, pathNotFoundMessage)
 }
 

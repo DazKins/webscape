@@ -19,11 +19,16 @@ type LootHandler interface {
 	LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
+type WoodcuttingStarter interface {
+	StartWoodcuttingFor(playerEntityId model.EntityId, targetEntityId model.EntityId) bool
+}
+
 type InteractionSystem struct {
 	SystemBase
 	ConversationStarter ConversationStarter
 	EventEmitter        GameEventEmitter
 	LootHandler         LootHandler
+	WoodcuttingStarter  WoodcuttingStarter
 }
 
 func (s *InteractionSystem) processInteraction(
@@ -52,6 +57,12 @@ func (s *InteractionSystem) processInteraction(
 
 	case component.InteractionOptionClose:
 		if !s.setOpenableState(interacting.GetTargetEntityId(), false) {
+			return
+		}
+
+	case component.InteractionOptionChop:
+		if s.WoodcuttingStarter == nil ||
+			!s.WoodcuttingStarter.StartWoodcuttingFor(entityId, interacting.GetTargetEntityId()) {
 			return
 		}
 	}

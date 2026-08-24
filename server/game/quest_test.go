@@ -256,8 +256,8 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 		t.Fatal("overflow rewards did not spawn a reward drop")
 	}
 	lootable := game.componentManager.GetEntityComponent(component.ComponentIdLootable, rewardDropEntityId).(*component.CLootable)
-	if lootable.ItemCount() != 5 {
-		t.Fatalf("reward drop item count = %d, want 5", lootable.ItemCount())
+	if lootable.ItemCount() != 6 {
+		t.Fatalf("reward drop item count = %d, want 6", lootable.ItemCount())
 	}
 	metadata := game.componentManager.GetEntityComponent(component.ComponentIdMetadata, rewardDropEntityId)
 	if metadata == nil {
@@ -268,11 +268,11 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 	if len(completion.Rewards) != 2 {
 		t.Fatalf("questCompleted rewards = %#v, want inventory and dropped entries", completion.Rewards)
 	}
-	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != 15 {
-		t.Fatalf("inventory reward delivery = %#v, want 15 inventory", completion.Rewards[0])
+	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != 14 {
+		t.Fatalf("inventory reward delivery = %#v, want 14 inventory", completion.Rewards[0])
 	}
-	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != 5 {
-		t.Fatalf("dropped reward delivery = %#v, want 5 dropped", completion.Rewards[1])
+	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != 6 {
+		t.Fatalf("dropped reward delivery = %#v, want 6 dropped", completion.Rewards[1])
 	}
 }
 
@@ -291,7 +291,8 @@ func TestLootingRewardDropRemovesParcel(t *testing.T) {
 		t.Fatal("overflow rewards did not spawn a reward drop")
 	}
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
-	for _, item := range inventory.GetAllItems()[:5] {
+	lootable := game.componentManager.GetEntityComponent(component.ComponentIdLootable, rewardDropEntityId).(*component.CLootable)
+	for _, item := range inventory.GetAllItems()[:lootable.ItemCount()] {
 		inventory.RemoveItem(item.Id)
 	}
 	game.componentManager.SetEntityComponent(playerEntityId, inventory)

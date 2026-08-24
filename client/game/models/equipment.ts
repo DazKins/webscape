@@ -25,6 +25,16 @@ const equipmentPresentations = {
       rotation: [0, 0, Math.PI / 2],
     },
   },
+  woodcuttingAxe: {
+    equipped: {
+      socket: "rightHand",
+      position: [0, 0.01, -0.13],
+      rotation: [Math.PI / 2 + 0.08, Math.PI / 2, 0],
+    },
+    dropped: {
+      rotation: [0, 0, Math.PI / 2],
+    },
+  },
   leatherHelmet: {
     equipped: {
       socket: "headwear",

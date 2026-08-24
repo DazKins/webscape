@@ -31,6 +31,7 @@ func (s *HealthSystem) Update() {
 				s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
 				s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
 				s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+				s.ComponentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
 
 				combatLog := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatLog, entityId)
 				if combatLog != nil {

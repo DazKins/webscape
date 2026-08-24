@@ -76,6 +76,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     rightShoulder,
     leftElbow,
     rightElbow,
+    rightHand,
     leftHip,
     rightHip,
     leftKnee,
@@ -143,7 +144,86 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const instance = createModelInstance(root, joints, [idle, run, attack], {
+  const chop = animation("chop", 0.64, false, (phase): ModelPose => {
+    const windUpEnd = 0.3;
+    const sideEnd = 0.48;
+    const hitEnd = 0.68;
+    const down = new THREE.Vector3(0, -1, 0);
+    const windUpDirection = new THREE.Vector3(
+      -Math.cos(THREE.MathUtils.degToRad(10)) / Math.sqrt(2),
+      Math.sin(THREE.MathUtils.degToRad(10)),
+      -Math.cos(THREE.MathUtils.degToRad(10)) / Math.sqrt(2),
+    );
+    const sideDirection = new THREE.Vector3(-1, 0, 0);
+    const hitDirection = new THREE.Vector3(
+      0,
+      -Math.sin(THREE.MathUtils.degToRad(15)),
+      Math.cos(THREE.MathUtils.degToRad(15)),
+    );
+
+    let armDirection: THREE.Vector3;
+    if (phase <= windUpEnd) {
+      const progress = THREE.MathUtils.smoothstep(phase, 0, windUpEnd);
+      armDirection = down.clone().lerp(windUpDirection, progress).normalize();
+    } else if (phase <= sideEnd) {
+      const progress = THREE.MathUtils.smoothstep(phase, windUpEnd, sideEnd);
+      armDirection = windUpDirection.clone().lerp(sideDirection, progress).normalize();
+    } else if (phase <= hitEnd) {
+      const progress = THREE.MathUtils.smoothstep(phase, sideEnd, hitEnd);
+      armDirection = sideDirection.clone().lerp(hitDirection, progress).normalize();
+    } else {
+      const progress = THREE.MathUtils.smoothstep(phase, hitEnd, 1);
+      armDirection = hitDirection.clone().lerp(down, progress).normalize();
+    }
+
+    const shoulderRotation = new THREE.Quaternion().setFromUnitVectors(down, armDirection);
+    const shoulderEuler = new THREE.Euler().setFromQuaternion(shoulderRotation, "XYZ");
+    const idleHandRotation = new THREE.Quaternion();
+    const axeHalfTurn = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(0, -Math.sin(0.08), Math.cos(0.08)),
+      Math.PI,
+    );
+    const windUpHandRotation = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(THREE.MathUtils.degToRad(60), 0, 0),
+    ).multiply(axeHalfTurn);
+    const hitHandRotation = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(
+        THREE.MathUtils.degToRad(-105),
+        Math.PI / 2 - 0.08,
+        Math.PI / 2,
+      ),
+    ).multiply(axeHalfTurn);
+    let handRotation: THREE.Quaternion;
+    if (phase <= windUpEnd) {
+      const progress = THREE.MathUtils.smoothstep(phase, 0, windUpEnd);
+      handRotation = new THREE.Quaternion().slerpQuaternions(
+        idleHandRotation,
+        windUpHandRotation,
+        progress,
+      );
+    } else if (phase <= hitEnd) {
+      const progress = THREE.MathUtils.smoothstep(phase, windUpEnd, hitEnd);
+      handRotation = new THREE.Quaternion().slerpQuaternions(
+        windUpHandRotation,
+        hitHandRotation,
+        progress,
+      );
+    } else {
+      const progress = THREE.MathUtils.smoothstep(phase, hitEnd, 1);
+      handRotation = new THREE.Quaternion().slerpQuaternions(
+        hitHandRotation,
+        idleHandRotation,
+        progress,
+      );
+    }
+    const handEuler = new THREE.Euler().setFromQuaternion(handRotation, "XYZ");
+    return {
+      rightShoulder: { rotation: [shoulderEuler.x, shoulderEuler.y, shoulderEuler.z] },
+      rightHand: { rotation: [handEuler.x, handEuler.y, handEuler.z] },
+    };
+  });
+
+  const instance = createModelInstance(root, joints, [idle, run, attack, chop], {
     headwear,
     rightHand,
   });

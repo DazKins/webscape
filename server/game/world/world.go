@@ -404,7 +404,49 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if _, hasPosition := template["position"]; hasPosition {
 				return fmt.Errorf("spawn entity %q child template must not include a position component", entity.Id)
 			}
+			if err := validateWoodcuttableComponent(entity.Id+" child template", template); err != nil {
+				return err
+			}
 		}
+		if err := validateWoodcuttableComponent(entity.Id, entity.Components); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateWoodcuttableComponent(entityId string, components map[string]any) error {
+	rawValue, exists := components["woodcuttable"]
+	if !exists {
+		return nil
+	}
+	raw, ok := rawValue.(map[string]any)
+	if !ok {
+		return fmt.Errorf("entity %q woodcuttable must be an object", entityId)
+	}
+	maxDurability, ok := numberToInt(raw["maxDurability"])
+	if !ok || maxDurability < 1 {
+		return fmt.Errorf("entity %q woodcuttable.maxDurability must be a positive integer", entityId)
+	}
+	respawnTicks, ok := numberToInt(raw["respawnTicks"])
+	if !ok || respawnTicks < 1 {
+		return fmt.Errorf("entity %q woodcuttable.respawnTicks must be a positive integer", entityId)
+	}
+	yield, ok := raw["yield"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("entity %q woodcuttable.yield must be an object", entityId)
+	}
+	name, nameOK := yield["name"].(string)
+	if !nameOK || strings.TrimSpace(name) == "" {
+		return fmt.Errorf("entity %q woodcuttable.yield.name must be a non-empty string", entityId)
+	}
+	itemType, typeOK := yield["type"].(string)
+	if !typeOK || itemType != "material" {
+		return fmt.Errorf("entity %q woodcuttable.yield.type must be %q", entityId, "material")
+	}
+	count, ok := numberToInt(yield["count"])
+	if !ok || count < 1 {
+		return fmt.Errorf("entity %q woodcuttable.yield.count must be a positive integer", entityId)
 	}
 	return nil
 }

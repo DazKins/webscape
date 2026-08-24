@@ -28,6 +28,9 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	if lootable := createLootableComponent(entity.Components); lootable != nil {
 		components = append(components, lootable)
 	}
+	if woodcuttable := createWoodcuttableComponent(entity.Components); woodcuttable != nil {
+		components = append(components, woodcuttable)
+	}
 	if conversation := createConversationComponent(entity.Components); conversation != nil {
 		components = append(components, conversation)
 	}
@@ -49,6 +52,34 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 		components = append(components, combatStats)
 	}
 	return components
+}
+
+func createWoodcuttableComponent(components map[string]any) *component.CWoodcuttable {
+	raw, ok := components["woodcuttable"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	maxDurability, ok := numberToInt(raw["maxDurability"])
+	if !ok || maxDurability < 1 {
+		return nil
+	}
+	respawnTicks, ok := numberToInt(raw["respawnTicks"])
+	if !ok || respawnTicks < 1 {
+		return nil
+	}
+	rawYield, ok := raw["yield"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	name, _ := rawYield["name"].(string)
+	itemType, _ := rawYield["type"].(string)
+	count, ok := numberToInt(rawYield["count"])
+	if name == "" || itemType == "" || !ok || count < 1 {
+		return nil
+	}
+	return component.NewCWoodcuttable(maxDurability, respawnTicks, component.LootItem{
+		Name: name, Type: itemType, Count: count,
+	})
 }
 
 func createPositionComponent(components map[string]any) *component.CPosition {

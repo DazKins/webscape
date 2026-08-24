@@ -11,6 +11,7 @@ const params = new URLSearchParams(window.location.search);
 const captureMode = params.get("capture") === "1";
 const requestedModel = params.get("model") ?? "human";
 const requestedEquipment = params.get("equipment");
+const requestedDamageStage = clampDamageStage(Number(params.get("damageStage") ?? 0));
 let modelName: ModelName = isModelName(requestedModel) ? requestedModel : "human";
 let animationName = params.get("animation") ?? "";
 let phase = clampPhase(Number(params.get("phase") ?? 0));
@@ -121,7 +122,14 @@ function loadModel() {
   equipmentInstance?.dispose();
   equipmentInstance = undefined;
   modelInstance?.dispose();
-  modelInstance = createModel(modelName, modelName === "building" ? { width: 2, height: 2 } : {});
+  modelInstance = createModel(
+    modelName,
+    modelName === "building"
+      ? { width: 2, height: 2 }
+      : modelName === "tree"
+        ? { damageStage: requestedDamageStage }
+        : {},
+  );
   scene.add(modelInstance.root);
   attachRequestedEquipment();
 
@@ -216,10 +224,17 @@ function updateUrl() {
   if (requestedEquipment) {
     next.set("equipment", requestedEquipment);
   }
+  if (modelName === "tree" && requestedDamageStage > 0) {
+    next.set("damageStage", String(requestedDamageStage));
+  }
   if (!playing) {
     next.set("play", "0");
   }
   history.replaceState(null, "", `${window.location.pathname}?${next}`);
+}
+
+function clampDamageStage(value: number) {
+  return Number.isFinite(value) ? THREE.MathUtils.clamp(Math.floor(value), 0, 4) : 0;
 }
 
 function attachRequestedEquipment() {

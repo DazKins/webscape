@@ -8,6 +8,7 @@ import (
 const (
 	facingPriorityOutgoingCombat = iota
 	facingPriorityIncomingCombat
+	facingPriorityOutgoingWoodcutting
 	facingPriorityOutgoingConversation
 	facingPriorityIncomingConversation
 )
@@ -44,6 +45,22 @@ func (s *FacingSystem) Update() {
 			targetEntityId,
 			facingPriorityOutgoingConversation,
 			facingPriorityIncomingConversation,
+		)
+	}
+
+	for entityId, value := range s.ComponentManager.GetComponent(component.ComponentIdWoodcutting) {
+		targetEntityId := value.(*component.CWoodcutting).GetTargetEntityId()
+		entityPosition := s.position(entityId)
+		targetPosition := s.position(targetEntityId)
+		if entityPosition == nil || targetPosition == nil {
+			continue
+		}
+		s.addCandidate(
+			desired,
+			entityId,
+			targetEntityId,
+			facingPriorityOutgoingWoodcutting,
+			manhattanDistance(entityPosition.GetPosition(), targetPosition.GetPosition()),
 		)
 	}
 

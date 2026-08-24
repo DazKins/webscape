@@ -122,6 +122,8 @@ components:
           $ref: "#/components/schemas/OpenableComponent"
         randomwalk:
           $ref: "#/components/schemas/RandomWalkComponent"
+        woodcuttable:
+          $ref: "#/components/schemas/WoodcuttableComponent"
 
     RenderableComponent:
       type: object
@@ -164,6 +166,43 @@ components:
           minimum: 0
           default: 5
           description: Maximum Manhattan distance the entity may random walk from its spawn position.
+
+    WoodcuttableComponent:
+      type: object
+      additionalProperties: false
+      required:
+        - maxDurability
+        - respawnTicks
+        - yield
+      properties:
+        maxDurability:
+          type: integer
+          minimum: 1
+          description: Durability restored whenever the resource regrows.
+        respawnTicks:
+          type: integer
+          minimum: 1
+          description: Number of full server ticks the depleted resource remains a stump.
+        yield:
+          $ref: "#/components/schemas/MaterialYield"
+
+    MaterialYield:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - type
+        - count
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          const: material
+        count:
+          type: integer
+          minimum: 1
 
     WorldWall:
       type: object
@@ -250,6 +289,28 @@ components:
                 items:
                   - name: Mysterious Key
                     type: quest
+                    count: 1
+          - id: tree_001
+            components:
+              position:
+                x: 1
+                y: 1
+              metadata:
+                objectId: tree_001
+                name: tree_001
+                type: tree
+                width: 1
+                height: 1
+                blocksMovement: true
+              renderable:
+                type: tree
+              woodcuttable:
+                maxDurability: 5
+                respawnTicks: 60
+                yield:
+                  name: Logs
+                  type: material
+                  count: 1
           - id: door_001
             components:
               position:

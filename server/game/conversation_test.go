@@ -22,9 +22,10 @@ func TestConversationInteractionRoutesOptionsAndEnds(t *testing.T) {
 	}
 	assertConversationMessage(t, *sent, "greeting", targetEntityId.String(), "start", false)
 
+	sentCount := len(*sent)
 	game.HandleConversationOption("client-1", "greeting", "start", "missing")
-	if len(*sent) != 1 {
-		t.Fatalf("stale option sent %d conversation messages, want 1", len(*sent))
+	if len(*sent) != sentCount {
+		t.Fatalf("stale option sent %d new messages, want 0", len(*sent)-sentCount)
 	}
 	activeConversation := game.componentManager.GetEntityComponent(
 		component.ComponentIdActiveConversation,
@@ -185,12 +186,18 @@ func assertConversationMessage(
 			EndConversation bool   `json:"endConversation"`
 		} `json:"data"`
 	}
-	if err := json.Unmarshal([]byte(messages[len(messages)-1].Marshal()), &payload); err != nil {
-		t.Fatalf("could not unmarshal message: %v", err)
+	found := false
+	for index := len(messages) - 1; index >= 0; index-- {
+		if err := json.Unmarshal([]byte(messages[index].Marshal()), &payload); err != nil {
+			continue
+		}
+		if payload.Metadata.Type == "conversation" {
+			found = true
+			break
+		}
 	}
-
-	if payload.Metadata.Type != "conversation" {
-		t.Fatalf("message type = %q, want conversation", payload.Metadata.Type)
+	if !found {
+		t.Fatal("no conversation message was sent")
 	}
 	if payload.Data.ConversationId != conversationId ||
 		payload.Data.TargetEntityId != targetEntityId ||

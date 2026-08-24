@@ -40,6 +40,7 @@ try {
       equipment: options.equipment,
       animation: options.animation,
       phase: options.phase,
+      damageStage: options.damageStage,
       view: options.view,
     };
     await openPreview(page, baseUrl, capture);
@@ -71,6 +72,9 @@ async function openPreview(page, baseUrl, capture) {
   if (capture.equipment) {
     query.set("equipment", capture.equipment);
   }
+  if (capture.damageStage > 0) {
+    query.set("damageStage", String(capture.damageStage));
+  }
   await page.goto(`${baseUrl}/model-lab.html?${query}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.__MODEL_LAB_READY__ === true);
 }
@@ -98,6 +102,7 @@ function parseArguments(args) {
     equipment: "",
     animation: "",
     phase: 0,
+    damageStage: 0,
     view: "three-quarter",
     output: undefined,
   };
@@ -120,6 +125,12 @@ function parseArguments(args) {
         result.phase = Number(requiredValue(args, ++index, argument));
         if (!Number.isFinite(result.phase) || result.phase < 0 || result.phase > 1) {
           throw new Error("--phase must be between 0 and 1");
+        }
+        break;
+      case "--damage-stage":
+        result.damageStage = Number(requiredValue(args, ++index, argument));
+        if (!Number.isInteger(result.damageStage) || result.damageStage < 0 || result.damageStage > 4) {
+          throw new Error("--damage-stage must be an integer between 0 and 4");
         }
         break;
       case "--view":

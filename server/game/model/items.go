@@ -15,6 +15,18 @@ func CreateIronSword() *Item {
 	})
 }
 
+func CreateWoodcuttingAxe() *Item {
+	return NewEquipableItem("Woodcutting Axe", "axe", "woodcuttingAxe", SlotWeapon, &ItemCombatStats{
+		MinDamage:        3,
+		MaxDamage:        5,
+		AccuracyBonus:    2,
+		ArmorBonus:       0,
+		CritBonus:        0.02,
+		Range:            1,
+		AttackSpeedTicks: 3,
+	})
+}
+
 func CreateWoodenBow() *Item {
 	return NewEquipableItem("Wooden Bow", "weapon", "woodenBow", SlotWeapon, &ItemCombatStats{
 		MinDamage:        4,
@@ -121,6 +133,10 @@ func CreateIronOre() *Item {
 
 func CreateWood() *Item {
 	return NewItem("Wood", "material")
+}
+
+func CreateLogs() *Item {
+	return NewItem("Logs", "material")
 }
 
 func CreateStone() *Item {

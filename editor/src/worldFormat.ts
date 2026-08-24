@@ -157,9 +157,52 @@ export function validateWorld(world: WorldFormat): ValidationResult {
         errors.push(`entity "${entity.id}" footprint is out of chunk bounds`);
       }
     }
+
+    validateWoodcuttable(entity.id, entity.components, errors);
+    const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
+    const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
+    const templateComponents = template && isObject(template.components) ? template.components : null;
+    if (templateComponents) {
+      validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
+    }
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+function validateWoodcuttable(
+  entityId: string,
+  components: Record<string, unknown>,
+  errors: string[]
+): void {
+  if (!Object.prototype.hasOwnProperty.call(components, "woodcuttable")) {
+    return;
+  }
+  const woodcuttable = isObject(components.woodcuttable) ? components.woodcuttable : null;
+  if (!woodcuttable) {
+    errors.push(`entity "${entityId}" woodcuttable must be an object`);
+    return;
+  }
+  if (!Number.isInteger(woodcuttable.maxDurability) || Number(woodcuttable.maxDurability) < 1) {
+    errors.push(`entity "${entityId}" woodcuttable.maxDurability must be a positive integer`);
+  }
+  if (!Number.isInteger(woodcuttable.respawnTicks) || Number(woodcuttable.respawnTicks) < 1) {
+    errors.push(`entity "${entityId}" woodcuttable.respawnTicks must be a positive integer`);
+  }
+  const materialYield = isObject(woodcuttable.yield) ? woodcuttable.yield : null;
+  if (!materialYield) {
+    errors.push(`entity "${entityId}" woodcuttable.yield must be an object`);
+    return;
+  }
+  if (typeof materialYield.name !== "string" || materialYield.name.trim().length === 0) {
+    errors.push(`entity "${entityId}" woodcuttable.yield.name must be a non-empty string`);
+  }
+  if (materialYield.type !== "material") {
+    errors.push(`entity "${entityId}" woodcuttable.yield.type must be "material"`);
+  }
+  if (!Number.isInteger(materialYield.count) || Number(materialYield.count) < 1) {
+    errors.push(`entity "${entityId}" woodcuttable.yield.count must be a positive integer`);
+  }
 }
 
 export function serializeWorld(world: WorldFormat): string {

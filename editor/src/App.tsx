@@ -2196,6 +2196,14 @@ function createEntity(
     components.openable = { isOpen: false };
   }
 
+  if (type === "tree") {
+    components.woodcuttable = {
+      maxDurability: 5,
+      respawnTicks: 60,
+      yield: { name: "Logs", type: "material", count: 1 },
+    };
+  }
+
   return {
     id,
     components,

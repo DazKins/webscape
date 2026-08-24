@@ -12,6 +12,7 @@ const HUMAN_IDLE_ANIMATION_NAME = "idle";
 const HUMAN_RUN_ANIMATION_NAME = "run";
 const HUMAN_ANIMATION_FADE_SECONDS = 0.12;
 const HUMAN_ATTACK_ANIMATION_SECONDS = 0.38;
+const HUMAN_CHOP_ANIMATION_SECONDS = 0.64;
 const HUMAN_MODEL_FORWARD_ROTATION_OFFSET = 0;
 const HUMAN_ROTATION_SPEED_RADIANS_PER_SECOND = 10;
 
@@ -28,6 +29,7 @@ export default class RendererHuman extends EntityRenderer {
   private segmentElapsedSeconds = SERVER_TICK_SECONDS;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
   private attackAnimationSecondsRemaining = 0;
+  private chopAnimationSecondsRemaining = 0;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
 
   constructor(
@@ -93,7 +95,13 @@ export default class RendererHuman extends EntityRenderer {
       this.faceSynchronizedTarget(targetX, targetZ);
     }
     this.updateFacing(deltaSeconds);
-    if (this.attackAnimationSecondsRemaining > 0) {
+    if (this.chopAnimationSecondsRemaining > 0) {
+      this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
+      this.chopAnimationSecondsRemaining = Math.max(
+        0,
+        this.chopAnimationSecondsRemaining - deltaSeconds,
+      );
+    } else if (this.attackAnimationSecondsRemaining > 0) {
       this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
       this.attackAnimationSecondsRemaining = Math.max(
         0,
@@ -117,6 +125,11 @@ export default class RendererHuman extends EntityRenderer {
   playAttackAnimation() {
     this.attackAnimationSecondsRemaining = HUMAN_ATTACK_ANIMATION_SECONDS;
     this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
+  }
+
+  playChopAnimation() {
+    this.chopAnimationSecondsRemaining = HUMAN_CHOP_ANIMATION_SECONDS;
+    this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
   }
 
   onRemove() {

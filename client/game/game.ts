@@ -345,6 +345,10 @@ class Game extends EventTarget implements InputReceiver {
 
       localEntity.updateComponent(componentId, data);
 
+      if (componentId === "woodcuttingswing" && data.playerEntityId) {
+        this.entityRenderSystem.getRenderers()[data.playerEntityId]?.playChopAnimation();
+      }
+
       // Dispatch inventory update event if this is the player's inventory
       if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
         this.dispatchEvent(new InventoryUpdateEvent());
