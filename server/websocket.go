@@ -17,6 +17,7 @@ type client struct {
 }
 
 type MessageHandler func(clientID string, message string)
+type ConnectHandler func(clientID string)
 type DisconnectHandler func(clientID string)
 
 type wsServer struct {
@@ -26,6 +27,7 @@ type wsServer struct {
 	unregister   chan *client
 	mutex        sync.Mutex
 	onMessage    MessageHandler
+	onConnect    ConnectHandler
 	onDisconnect DisconnectHandler
 }
 
@@ -44,6 +46,10 @@ func NewWsServer() *wsServer {
 
 func (w *wsServer) SetIncomingMessageHandler(handler MessageHandler) {
 	w.onMessage = handler
+}
+
+func (w *wsServer) SetConnectHandler(handler ConnectHandler) {
+	w.onConnect = handler
 }
 
 func (w *wsServer) SetDisconnectHandler(handler DisconnectHandler) {
@@ -77,6 +83,9 @@ func (w *wsServer) run() {
 			w.mutex.Lock()
 			w.clients[client.id] = client
 			w.mutex.Unlock()
+			if w.onConnect != nil {
+				w.onConnect(client.id)
+			}
 		case client := <-w.unregister:
 			w.mutex.Lock()
 			if _, ok := w.clients[client.id]; ok {
@@ -84,7 +93,9 @@ func (w *wsServer) run() {
 				close(client.send)
 			}
 			w.mutex.Unlock()
-			go w.onDisconnect(client.id)
+			if w.onDisconnect != nil {
+				go w.onDisconnect(client.id)
+			}
 		case message := <-w.broadcast:
 			w.mutex.Lock()
 			for _, client := range w.clients {

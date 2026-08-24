@@ -16,6 +16,7 @@ func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int
 
 	clientCommandHandler := NewClientCommandHandler(game)
 	wsServer := NewWsServer()
+	wsServer.SetConnectHandler(game.HandleConnect)
 	wsServer.SetIncomingMessageHandler(func(clientID string, message string) {
 		command, err := command.Unmarshal(message)
 		if err != nil {

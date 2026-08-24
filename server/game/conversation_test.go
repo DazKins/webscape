@@ -148,7 +148,7 @@ func setupConversationTestGame(t *testing.T) (*Game, *[]message.Message, model.E
 	}
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	sent = nil
 
 	return game, &sent, targetEntityId, playerEntityId

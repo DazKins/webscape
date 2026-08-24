@@ -42,7 +42,7 @@ func TestSpawnEntityInitializesChildAndDoesNotSerializeSpawnComponent(t *testing
 			sent = append(sent, msg)
 		}
 	})
-	game.HandleJoin("client-1", model.NewEntityId(), "player")
+	game.HandleRegister("client-1", model.NewEntityId(), "player")
 	gameUpdateEntities := gameUpdateEntityComponents(sent)
 	if gameUpdateEntities[spawnEntityId.String()][component.ComponentIdSpawn.String()] {
 		t.Fatal("joining client received spawn component")

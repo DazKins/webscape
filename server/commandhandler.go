@@ -26,9 +26,15 @@ func NewClientCommandHandler(game *game.Game) *ClientCommandHandler {
 func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Command) {
 	log.Printf("Received %s command: %v\n", cmd.Type, cmd.Data)
 
+	if cmd.Type == command.CommandTypeRegister {
+		h.handleRegisterCommand(clientID, cmd)
+		return
+	}
+	if !h.game.IsRegistered(clientID) {
+		return
+	}
+
 	switch cmd.Type {
-	case command.CommandTypeJoin:
-		h.handleJoinCommand(clientID, cmd)
 	case command.CommandTypeMove:
 		h.handleMoveCommand(clientID, cmd)
 	case command.CommandTypeChat:
@@ -44,20 +50,26 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 	}
 }
 
-func (h *ClientCommandHandler) handleJoinCommand(clientID string, cmd command.Command) {
-	id := cmd.Data["id"].(string)
+func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd command.Command) {
+	id, ok := cmd.Data["id"].(string)
+	if !ok {
+		h.game.RejectRegistration(clientID, "invalid player id")
+		return
+	}
 	name, ok := cmd.Data["name"].(string)
 	if !ok {
-		name = "Heboblobus"
-	}
-
-	uuid, err := uuid.Parse(id)
-	if err != nil {
-		log.Printf("Invalid UUID: %v", err)
+		h.game.RejectRegistration(clientID, "name is required")
 		return
 	}
 
-	h.game.HandleJoin(clientID, model.EntityId(uuid), name)
+	uuidValue, err := uuid.Parse(id)
+	if err != nil {
+		log.Printf("Invalid UUID: %v", err)
+		h.game.RejectRegistration(clientID, "invalid player id")
+		return
+	}
+
+	h.game.HandleRegister(clientID, model.EntityId(uuidValue), name)
 }
 
 func (h *ClientCommandHandler) handleMoveCommand(clientID string, cmd command.Command) {

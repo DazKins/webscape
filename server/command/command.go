@@ -7,7 +7,7 @@ import (
 type CommandType string
 
 const (
-	CommandTypeJoin               = "join"
+	CommandTypeRegister           = "register"
 	CommandTypeMove               = "move"
 	CommandTypeChat               = "chat"
 	CommandTypeInteract           = "interact"

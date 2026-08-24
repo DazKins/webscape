@@ -3,8 +3,14 @@ package message
 import "webscape/server/game/world"
 
 type worldData struct {
-	ChunkSize world.ChunkCoord `json:"chunkSize"`
-	Quests    []questData      `json:"quests"`
+	ChunkSize   world.ChunkCoord `json:"chunkSize"`
+	PlayerSpawn positionData     `json:"playerSpawn"`
+	Quests      []questData      `json:"quests"`
+}
+
+type positionData struct {
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 type questData struct {
@@ -38,11 +44,13 @@ type questRewardItemData struct {
 }
 
 func NewWorldMessage(world *world.World) Message {
+	playerSpawn := world.GetPlayerSpawn()
 	return newMessage(
 		MessageTypeWorld,
 		worldData{
-			ChunkSize: world.GetChunkSize(),
-			Quests:    serializeQuests(world.GetQuestRegistry().All()),
+			ChunkSize:   world.GetChunkSize(),
+			PlayerSpawn: positionData{X: playerSpawn.X, Y: playerSpawn.Y},
+			Quests:      serializeQuests(world.GetQuestRegistry().All()),
 		},
 	)
 }

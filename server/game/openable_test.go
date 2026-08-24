@@ -22,7 +22,7 @@ func TestOpenableDoorOffersOpenThenClose(t *testing.T) {
 	assertInteractionOptions(t, game.getInteractionOptionsForEntity(doorEntityId), component.InteractionOptionOpen)
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.HandleInteract("client-1", doorEntityId, component.InteractionOptionOpen)
 	game.update()
 
@@ -53,7 +53,7 @@ func TestOpeningDoorEmitsQuestEvent(t *testing.T) {
 	}
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.HandleInteract("client-1", doorEntityId, component.InteractionOptionOpen)
 	game.update()
 

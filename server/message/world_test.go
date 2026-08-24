@@ -21,6 +21,9 @@ func TestWorldMessageContainsOnlyMetadataAndRegistries(t *testing.T) {
 	if _, ok := payload.Data["chunkSize"]; !ok {
 		t.Fatal("world metadata omitted chunkSize")
 	}
+	if _, ok := payload.Data["playerSpawn"]; !ok {
+		t.Fatal("world metadata omitted playerSpawn")
+	}
 	if _, ok := payload.Data["quests"]; !ok {
 		t.Fatal("world metadata omitted quests")
 	}

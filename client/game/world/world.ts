@@ -138,6 +138,20 @@ class World {
     if (!this.highlightMesh.visible) this.highlightedTile = undefined;
   }
 
+  dispose() {
+    for (const chunk of [...this.chunks.values()]) {
+      this.disposeChunk(chunk.data.coordinate);
+    }
+    this.scene.remove(this.highlightMesh);
+    this.highlightMesh.geometry.dispose();
+    const material = this.highlightMesh.material;
+    if (Array.isArray(material)) {
+      material.forEach((value) => value.dispose());
+    } else {
+      material.dispose();
+    }
+  }
+
   private createChunk(data: ChunkLoad): ChunkVisual {
     const root = new THREE.Group();
     root.position.set(data.coordinate.x * this.chunkSize.x, 0, data.coordinate.y * this.chunkSize.y);

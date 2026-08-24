@@ -10,9 +10,12 @@ import QuestCompletedOverlay from "./components/questCompletedOverlay";
 import panelStyles from "./components/uiPanel.module.css";
 import styles from "./uiRoot.module.css";
 import { getDeviceProfile, type DeviceProfile } from "../responsive";
+import OnboardingOverlay, { type RegistrationViewState } from "./components/onboardingOverlay";
 
 type Props = {
   game: Game;
+  registration: RegistrationViewState;
+  onRegister: (name: string) => void;
 };
 
 type LeftTab = "chat" | "combat";
@@ -201,6 +204,13 @@ export default function UiRoot(props: Props) {
 
   const activeMobileLabel =
     mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
+  const onboarding = (
+    <OnboardingOverlay state={props.registration} onRegister={props.onRegister} />
+  );
+
+  if (props.registration.phase !== "registered") {
+    return <div className={styles.root}>{onboarding}</div>;
+  }
 
   if (profile.isMobileLayout) {
     return (
@@ -246,6 +256,7 @@ export default function UiRoot(props: Props) {
         <ConversationPanel game={props.game} />
         <QuestCompletedOverlay game={props.game} />
         <SourceLink />
+        {onboarding}
       </div>
     );
   }
@@ -308,6 +319,7 @@ export default function UiRoot(props: Props) {
       <ConversationPanel game={props.game} />
       <QuestCompletedOverlay game={props.game} />
       <SourceLink />
+      {onboarding}
     </div>
   );
 }

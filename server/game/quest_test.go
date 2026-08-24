@@ -129,7 +129,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 	game.RegisterSender(func(string, message.Message) {})
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 
 	npcEntityId, ok := firstEntityWithComponent(game, component.ComponentIdConversation)
 	if !ok {
@@ -177,7 +177,7 @@ func TestQuestCompletionSendsCompletionMessage(t *testing.T) {
 	})
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.EmitGameEvent(gameevent.New("finish:quest", playerEntityId))
 
 	completion := firstQuestCompletedPayload(t, sent)
@@ -213,7 +213,7 @@ func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testin
 	})
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:start", playerEntityId))
 	game.EmitGameEvent(gameevent.New("collect:name:mysterious_key", playerEntityId))
 	game.EmitGameEvent(gameevent.New("kill:entity:rat", playerEntityId))
@@ -243,7 +243,7 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 	})
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.EmitGameEvent(gameevent.New("finish:quest", playerEntityId))
 
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
@@ -283,7 +283,7 @@ func TestLootingRewardDropRemovesParcel(t *testing.T) {
 	game.RegisterSender(func(string, message.Message) {})
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	game.EmitGameEvent(gameevent.New("finish:quest", playerEntityId))
 
 	rewardDropEntityId, ok := firstEntityWithComponent(game, component.ComponentIdRewardDrop)

@@ -22,7 +22,7 @@ func TestClientInterestStreamsChunksSnapshotsAndTombstones(t *testing.T) {
 	sent := make([]message.Message, 0)
 	game.RegisterSender(func(_ string, msg message.Message) { sent = append(sent, msg) })
 	playerID := model.NewEntityId()
-	game.HandleJoin("client", playerID, "player")
+	game.HandleRegister("client", playerID, "player")
 	nearID := authoredRuntimeID(t, game, "near")
 	farID := authoredRuntimeID(t, game, "far")
 	state := game.clients["client"]
@@ -30,11 +30,11 @@ func TestClientInterestStreamsChunksSnapshotsAndTombstones(t *testing.T) {
 		t.Fatalf("initial chunks = %#v", state.loadedChunks)
 	}
 	if baselineKnows(state, farID) {
-		t.Fatal("join exposed distant entity")
+		t.Fatal("registration exposed distant entity")
 	}
 	nearKnown := knownComponentCount(state, nearID)
 	if nearKnown == 0 {
-		t.Fatal("join omitted nearby entity snapshot")
+		t.Fatal("registration omitted nearby entity snapshot")
 	}
 
 	sent = sent[:0]
@@ -73,7 +73,7 @@ func TestActualDeletionUsesSameTombstonePath(t *testing.T) {
 	sent := make([]message.Message, 0)
 	game.RegisterSender(func(_ string, msg message.Message) { sent = append(sent, msg) })
 	playerID := model.NewEntityId()
-	game.HandleJoin("client", playerID, "player")
+	game.HandleRegister("client", playerID, "player")
 	nearID := authoredRuntimeID(t, game, "near")
 	want := knownComponentCount(game.clients["client"], nearID)
 	sent = sent[:0]
@@ -92,7 +92,7 @@ func TestMovementCommandIsLimitedToLoadedAuthoredChunks(t *testing.T) {
 	game := NewGameWithWorldAndChunkRadius(gameWorld, 0)
 	game.RegisterSender(func(string, message.Message) {})
 	playerID := model.NewEntityId()
-	game.HandleJoin("client", playerID, "player")
+	game.HandleRegister("client", playerID, "player")
 	game.HandleMove("client", 4, 0)
 	if game.componentManager.GetEntityComponent(component.ComponentIdPathing, playerID) != nil {
 		t.Fatal("movement accepted target outside interest")

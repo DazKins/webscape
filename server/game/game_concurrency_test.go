@@ -16,7 +16,7 @@ func TestCommandsCanRunConcurrentlyWithUpdates(t *testing.T) {
 
 	game := NewGameWithWorldAndChunkRadius(gameWorld, 0)
 	game.RegisterSender(func(string, message.Message) {})
-	game.HandleJoin("client", model.NewEntityId(), "player")
+	game.HandleRegister("client", model.NewEntityId(), "player")
 
 	start := make(chan struct{})
 	var workers sync.WaitGroup

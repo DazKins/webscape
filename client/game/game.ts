@@ -63,6 +63,7 @@ class Game extends EventTarget implements InputReceiver {
   entityRenderSystem: EntityRenderSystem;
   quests: QuestDefinition[];
   activeConversation: ConversationPayload | null;
+  observerFocus: { x: number; y: number };
 
   input: Input;
   world!: World;
@@ -81,6 +82,7 @@ class Game extends EventTarget implements InputReceiver {
     this.entityRenderSystem = new EntityRenderSystem(this.scene, () => this.world);
     this.quests = [];
     this.activeConversation = null;
+    this.observerFocus = { x: 0, y: 0 };
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -159,6 +161,10 @@ class Game extends EventTarget implements InputReceiver {
 
   setPointerOverUi(isPointerOverUi: boolean) {
     this.input.setPointerBlocked(isPointerOverUi);
+  }
+
+  setRegistrationBlocked(blocked: boolean) {
+    this.input.setWorldBlocked(blocked);
   }
 
   getDeviceProfile(): DeviceProfile {
@@ -273,7 +279,25 @@ class Game extends EventTarget implements InputReceiver {
 
   updateCamera() {
     const myEntity = this.getMyEntity();
-    if (!myEntity) return;
+    if (!myEntity) {
+      const visualHeight = this.world
+        ? this.world.getVisualHeightAtTile(this.observerFocus.x, this.observerFocus.y)
+        : 0;
+      this.camera.update(
+        new THREE.Vector3(
+          this.observerFocus.x + 0.5,
+          visualHeight,
+          this.observerFocus.y + 0.5
+        ),
+        this.deviceProfile.isMobileLayout
+          ? {
+              distance: this.deviceProfile.isPortrait ? 7.1 : 6.4,
+              height: this.deviceProfile.isPortrait ? 6.6 : 4.9,
+            }
+          : {}
+      );
+      return;
+    }
 
     const myFocusPoint = this.getEntityFocusPoint(myEntity.getId());
     if (!myFocusPoint) {
@@ -403,9 +427,18 @@ class Game extends EventTarget implements InputReceiver {
     this.myPlayerId = myPlayerId;
   }
 
+  prepareForReconnect() {
+    this.myPlayerId = "";
+    this.activeConversation = null;
+  }
+
   registerWorld(worldUpdate: any) {
+    this.world?.dispose();
+    this.entities = [];
+    this.entityRenderSystem.update(this.entities, 0);
     this.quests = worldUpdate.quests ?? [];
     const chunkSize = worldUpdate.chunkSize ?? { x: 32, y: 32 };
+    this.observerFocus = worldUpdate.playerSpawn ?? { x: 0, y: 0 };
     this.world = new World(this.scene, chunkSize, this.input);
   }
 

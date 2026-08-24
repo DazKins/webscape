@@ -3,8 +3,10 @@ package game
 import (
 	"log"
 	"sort"
+	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
@@ -375,37 +377,97 @@ func (g *Game) deliverQuestRewards(
 	return deliveries
 }
 
-func (g *Game) HandleJoin(clientID string, id model.EntityId, name string) {
+func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
 	if _, ok := g.clientIdToEntityId.Get(clientID); ok {
-		g.sendMessage(clientID, message.NewJoinFailedMessage("you are already connected in another session"))
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("this connection is already registered"))
+		return
+	}
+	if _, ok := g.clientIdToEntityId.GetKey(id); ok {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("this player is already active"))
 		return
 	}
 
-	components := entity.CreatePlayerEntity(id, name, g.world.GetPlayerSpawn())
+	normalizedName := strings.TrimSpace(name)
+	nameLength := utf8.RuneCountInString(normalizedName)
+	if nameLength == 0 {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("name cannot be blank"))
+		return
+	}
+	if nameLength > 24 {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("name must be 24 characters or fewer"))
+		return
+	}
+
+	components := entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn())
 	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)
-	g.clients[clientID] = &clientStreamState{loadedChunks: make(map[world.ChunkCoord]bool), baseline: make(map[component.ComponentId]map[model.EntityId]util.Json)}
+	state := g.clients[clientID]
+	hadViewerStream := state != nil
+	if state == nil {
+		state = newClientStreamState()
+		g.clients[clientID] = state
+	}
+	// Re-send the visible snapshot after admission so private player components
+	// and gameplay interactions replace the observer-only view.
+	state.baseline = make(map[component.ComponentId]map[model.EntityId]util.Json)
 
-	g.sendMessage(clientID, message.NewJoinedMessage(id.String()))
+	g.sendMessage(clientID, message.NewRegisteredMessage(id.String(), normalizedName))
+	if !hadViewerStream {
+		g.sendMessage(clientID, message.NewWorldMessage(g.world))
+	}
+	g.syncClient(clientID)
+}
+
+func newClientStreamState() *clientStreamState {
+	return &clientStreamState{
+		loadedChunks: make(map[world.ChunkCoord]bool),
+		baseline:     make(map[component.ComponentId]map[model.EntityId]util.Json),
+	}
+}
+
+func (g *Game) HandleConnect(clientID string) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
+	if g.clients[clientID] != nil {
+		return
+	}
+	g.clients[clientID] = newClientStreamState()
 	g.sendMessage(clientID, message.NewWorldMessage(g.world))
 	g.syncClient(clientID)
 }
 
+func (g *Game) RejectRegistration(clientID string, reason string) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+	g.sendMessage(clientID, message.NewRegistrationFailedMessage(reason))
+}
+
+func (g *Game) IsRegistered(clientID string) bool {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+	_, ok := g.clientIdToEntityId.Get(clientID)
+	return ok
+}
+
 func (g *Game) syncClient(clientID string) {
 	state := g.clients[clientID]
-	playerID, ok := g.clientIdToEntityId.Get(clientID)
-	if state == nil || !ok {
+	if state == nil {
 		return
 	}
-	positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerID)
-	if positionComponent == nil {
-		return
+	playerID, registered := g.clientIdToEntityId.Get(clientID)
+	position := g.world.GetPlayerSpawn()
+	if registered {
+		positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerID)
+		if positionComponent == nil {
+			return
+		}
+		position = positionComponent.(*component.CPosition).GetPosition()
 	}
-	position := positionComponent.(*component.CPosition).GetPosition()
 	center, _ := g.world.GlobalToChunk(position.X, position.Y)
 	nextChunks := g.world.ChunksWithin(center, g.chunkRadius)
 	loads := make([]world.Chunk, 0)
@@ -441,7 +503,9 @@ func (g *Game) syncClient(clientID string) {
 	state.loadedChunks = nextChunks
 
 	visible := g.spatialIndex.EntitiesInChunks(nextChunks)
-	visible[playerID] = true
+	if registered {
+		visible[playerID] = true
+	}
 	// Transient entities inherit visibility from the entity they annotate.
 	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdChatMessage) {
 		if visible[value.(*component.CChatMessage).GetFromEntityId()] {
@@ -462,6 +526,9 @@ func (g *Game) syncClient(clientID string) {
 	updated := make(map[component.ComponentId]map[model.EntityId]util.Json)
 	removed := make(map[component.ComponentId][]model.EntityId)
 	for componentID, entities := range g.componentManager.GetAllComponents() {
+		if !registered && !isPublicObserverComponent(componentID) {
+			continue
+		}
 		if state.baseline[componentID] == nil {
 			state.baseline[componentID] = make(map[model.EntityId]util.Json)
 		}
@@ -494,7 +561,27 @@ func (g *Game) syncClient(clientID string) {
 		}
 	}
 	if len(updated) > 0 || len(removed) > 0 {
-		g.sendMessage(clientID, message.NewGameUpdateMessage(updated, removed, g.availableInteractionsForGameUpdate(updated, removed)))
+		interactions := map[model.EntityId][]component.InteractionOption{}
+		if registered {
+			interactions = g.availableInteractionsForGameUpdate(updated, removed)
+		}
+		g.sendMessage(clientID, message.NewGameUpdateMessage(updated, removed, interactions))
+	}
+}
+
+func isPublicObserverComponent(componentID component.ComponentId) bool {
+	switch componentID {
+	case component.ComponentIdPosition,
+		component.ComponentIdMetadata,
+		component.ComponentIdRenderable,
+		component.ComponentIdHealth,
+		component.ComponentIdFacing,
+		component.ComponentIdOpenable,
+		component.ComponentIdChatMessage,
+		component.ComponentIdCombatText:
+		return true
+	default:
+		return false
 	}
 }
 
@@ -591,7 +678,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		panic("client ID not found in clientIdToEntityId")
+		return
 	}
 
 	positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
@@ -618,13 +705,10 @@ func (g *Game) HandleLeave(clientID string) {
 	defer g.stateMutex.Unlock()
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
-	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
-		return
+	if ok {
+		g.componentManager.RemoveEntity(entityId)
+		g.clientIdToEntityId.Delete(clientID)
 	}
-
-	g.componentManager.RemoveEntity(entityId)
-	g.clientIdToEntityId.Delete(clientID)
 	delete(g.clients, clientID)
 }
 
@@ -652,7 +736,6 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
 
@@ -683,7 +766,6 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 
 	interactingEntityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
 	g.componentManager.RemoveComponent(component.ComponentIdWoodcutting, interactingEntityId)
@@ -801,7 +883,6 @@ func (g *Game) HandleConversationOption(
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
 
@@ -888,7 +969,6 @@ func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
 
@@ -930,7 +1010,6 @@ func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if !ok {
-		log.Println("Client ID not found in clientIdToEntityId")
 		return
 	}
 

@@ -76,7 +76,7 @@ func TestLootableObjectAddsAuthoredItemsToPlayerInventory(t *testing.T) {
 	}
 
 	playerEntityId := model.NewEntityId()
-	game.HandleJoin("client-1", playerEntityId, "player")
+	game.HandleRegister("client-1", playerEntityId, "player")
 	if !gameUpdateIncludesInteraction(sent, chestEntityId.String(), "loot") {
 		t.Fatal("initial entity update did not include loot interaction for chest")
 	}

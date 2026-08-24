@@ -250,7 +250,7 @@ func setupWoodcuttingGame(t *testing.T) (*Game, model.EntityId) {
 func joinPlayer(t *testing.T, game *Game, clientId string, name string) model.EntityId {
 	t.Helper()
 	playerId := model.NewEntityId()
-	game.HandleJoin(clientId, playerId, name)
+	game.HandleRegister(clientId, playerId, name)
 	return playerId
 }
 

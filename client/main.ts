@@ -4,6 +4,7 @@ import { createCommand } from "./command/command.ts";
 import Game from "./game/game.ts";
 import { createRoot } from "react-dom/client";
 import React from "react";
+import type { RegistrationViewState } from "./ui/components/onboardingOverlay.tsx";
 
 let myPlayerId = window.localStorage.getItem("myPlayerId");
 if (!myPlayerId) {
@@ -18,13 +19,55 @@ const game = new Game(sceneLayerRoot, hudLayerRoot);
 
 const uiRoot = document.getElementById("uiLayerRoot")!;
 const root = createRoot(uiRoot);
-root.render(React.createElement(UiRoot, { game: game }));
+
+const rememberedName = window.localStorage.getItem("myPlayerName") ?? "";
+let registration: RegistrationViewState = {
+  phase: "connecting",
+  name: rememberedName,
+  error: "",
+};
+
+function renderUi() {
+  game.setRegistrationBlocked(registration.phase !== "registered");
+  root.render(
+    React.createElement(UiRoot, {
+      game,
+      registration,
+      onRegister: register,
+    })
+  );
+}
+
+function setRegistration(update: Partial<RegistrationViewState>) {
+  registration = { ...registration, ...update };
+  renderUi();
+}
+
+function register(name: string) {
+  const normalizedName = name.trim();
+  setRegistration({ phase: "registering", name: normalizedName, error: "" });
+  wsClient.sendMessage(
+    createCommand("register", { id: myPlayerId, name: normalizedName })
+  );
+}
+
+renderUi();
 
 const wsClient = new WebSocketClient({
   onConnect: () => {
-    wsClient.sendMessage(createCommand("join", { id: myPlayerId }));
+    if (registration.name) {
+      register(registration.name);
+    } else {
+      setRegistration({ phase: "nameEntry", error: "" });
+    }
   },
-  onDisconnect: () => {},
+  onDisconnect: () => {
+    game.prepareForReconnect();
+    setRegistration({
+      phase: registration.name ? "reconnecting" : "connecting",
+      error: "",
+    });
+  },
   onError: (error) => {
     console.error("WebSocket error:", error);
   },
@@ -42,11 +85,16 @@ const wsClient = new WebSocketClient({
       case "chunkUpdate":
         game.handleChunkUpdate(data);
         break;
-      case "joined":
+      case "registered":
         game.registerMyPlayerId(data.entityId);
+        window.localStorage.setItem("myPlayerName", data.name);
+        setRegistration({ phase: "registered", name: data.name, error: "" });
         break;
-      case "joinFailed":
-        window.alert(`JOIN FAILED: ${data.reason}`);
+      case "registrationFailed":
+        setRegistration({
+          phase: "nameEntry",
+          error: data.reason || "Registration failed. Please try again.",
+        });
         break;
       case "conversation":
         game.handleConversation(data);

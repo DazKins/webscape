@@ -16,6 +16,7 @@ class Input {
   pointerPosition: { x: number; y: number };
   pointerButtons: Record<number, boolean>;
   pointerBlocked: boolean;
+  worldBlocked: boolean;
 
   private pointerCallbacks: PointerCallbacks;
   private activePointer:
@@ -38,6 +39,7 @@ class Input {
     this.pointerPosition = { x: 0, y: 0 };
     this.pointerButtons = {};
     this.pointerBlocked = false;
+    this.worldBlocked = true;
     this.pointerCallbacks = {};
 
     this.onKeyDown = this.onKeyDown.bind(this);
@@ -66,6 +68,8 @@ class Input {
     )
       return;
 
+    if (this.worldBlocked) return;
+
     const key = event.key;
 
     if (this.activeReceiver) {
@@ -84,7 +88,7 @@ class Input {
     this.pointerPosition.y = event.clientY;
 
     const activePointer = this.activePointer;
-    if (!activePointer || activePointer.id !== event.pointerId || this.pointerBlocked) {
+    if (!activePointer || activePointer.id !== event.pointerId || this.isPointerBlocked()) {
       return;
     }
 
@@ -126,7 +130,7 @@ class Input {
     };
 
     activePointer.longPressTimer = window.setTimeout(() => {
-      if (this.pointerBlocked || this.activePointer?.id !== event.pointerId) {
+      if (this.isPointerBlocked() || this.activePointer?.id !== event.pointerId) {
         return;
       }
       this.activePointer.longPressed = true;
@@ -150,7 +154,7 @@ class Input {
     this.activePointer = undefined;
 
     if (
-      this.pointerBlocked ||
+      this.isPointerBlocked() ||
       activePointer.longPressed ||
       activePointer.dragging ||
       event.button !== 0
@@ -174,7 +178,7 @@ class Input {
   }
 
   getKey(key: string) {
-    return this.keys[key.toLowerCase()];
+    return !this.worldBlocked && this.keys[key.toLowerCase()];
   }
 
   getPointerPosition() {
@@ -194,7 +198,15 @@ class Input {
   }
 
   isPointerBlocked() {
-    return this.pointerBlocked;
+    return this.pointerBlocked || this.worldBlocked;
+  }
+
+  setWorldBlocked(blocked: boolean) {
+    this.worldBlocked = blocked;
+    if (blocked) {
+      this.keys = {};
+      this.pointerButtons = {};
+    }
   }
 
   registerPointerCallbacks(callbacks: PointerCallbacks) {
