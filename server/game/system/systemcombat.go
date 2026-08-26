@@ -12,10 +12,6 @@ import (
 	"webscape/server/util"
 )
 
-const (
-	combatTextTtlTicks = 4
-)
-
 type CombatSystem struct {
 	SystemBase
 	World        *world.World
@@ -138,7 +134,7 @@ func (s *CombatSystem) resolveAttack(
 	}
 
 	if rand.Intn(100) >= hitChance {
-		s.emitCombatText(attackerId, targetId, "MISS", "miss")
+		s.emitCombatResolved(attackerId, targetId, attackResult{DidHit: false})
 		s.addCombatLog(attackerId, fmt.Sprintf("You miss %s", targetName), "miss")
 		s.addCombatLog(targetId, fmt.Sprintf("%s misses you", attackerName), "miss")
 		return attackResult{DidHit: false, Damage: 0, IsCrit: false}
@@ -160,24 +156,28 @@ func (s *CombatSystem) resolveAttack(
 		damage = int(float64(damage) * attackerStats.GetCritMultiplier())
 	}
 
-	text := fmt.Sprintf("%d", damage)
 	kind := "hit"
 	if isCrit {
-		text = fmt.Sprintf("CRIT %d", damage)
 		kind = "crit"
 	}
-	s.emitCombatText(attackerId, targetId, text, kind)
+	s.emitCombatResolved(attackerId, targetId, attackResult{DidHit: true, Damage: damage, IsCrit: isCrit})
 	s.addCombatLog(attackerId, fmt.Sprintf("You hit %s for %d", targetName, damage), kind)
 	s.addCombatLog(targetId, fmt.Sprintf("%s hits you for %d", attackerName, damage), kind)
 
 	return attackResult{DidHit: true, Damage: damage, IsCrit: isCrit}
 }
 
-func (s *CombatSystem) emitCombatText(attackerId model.EntityId, targetId model.EntityId, text string, kind string) {
-	renderable := component.NewCRenderable("combattext")
-	combatText := component.NewCCombatText(targetId, attackerId, text, kind)
-	ttl := component.NewCTtl(combatTextTtlTicks)
-	s.ComponentManager.CreateNewEntity(renderable, combatText, ttl)
+func (s *CombatSystem) emitCombatResolved(attackerId model.EntityId, targetId model.EntityId, result attackResult) {
+	if s.EventEmitter == nil {
+		return
+	}
+	s.EventEmitter.EmitGameEvent(gameevent.NewCombatResolved(
+		attackerId,
+		targetId,
+		result.DidHit,
+		result.Damage,
+		result.IsCrit,
+	))
 }
 
 func (s *CombatSystem) addCombatLog(entityId model.EntityId, text string, kind string) {

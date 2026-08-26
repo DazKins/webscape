@@ -1,30 +1,26 @@
-import EntityRenderer from "./renderer";
 import * as THREE from "three";
-import Entity from "../entity/entity";
-import { createReactCss2dObject } from "../../util/reactCss2dObject";
+import {
+  createReactCss2dObject,
+  type ReactCss2dObject,
+} from "../../util/reactCss2dObject";
 import OverheadChat from "../../ui/components/overheadChat";
 
-export default class RendererChatMessage extends EntityRenderer {
-  private parentEntityRenderer: EntityRenderer;
-  private overheadChat: THREE.Object3D;
+export default class RendererChatMessage {
+  private parent: THREE.Object3D;
+  private overheadChat: ReactCss2dObject<{ text: string }>;
 
-  constructor(scene: THREE.Scene, entity: Entity, parentEntityRenderer: EntityRenderer) {
-    super(scene, entity);
-
-    const chatMessageComponent = entity.getComponent("chatmessage");
-
-    this.parentEntityRenderer = parentEntityRenderer;
-    const overheadChatWrapper = createReactCss2dObject(OverheadChat, { text: chatMessageComponent.message });
-    this.overheadChat = overheadChatWrapper.object;
-    this.overheadChat.position.x = 0.5;
-    this.overheadChat.position.y = 1.5;
-    this.overheadChat.position.z = 0.5;
-    this.parentEntityRenderer.getObject3D()?.add(this.overheadChat);
+  constructor(parent: THREE.Object3D, text: string) {
+    this.parent = parent;
+    const overheadChatWrapper = createReactCss2dObject(OverheadChat, { text });
+    this.overheadChat = overheadChatWrapper;
+    this.overheadChat.object.position.x = 0.5;
+    this.overheadChat.object.position.y = 1.5;
+    this.overheadChat.object.position.z = 0.5;
+    this.parent.add(this.overheadChat.object);
   }
 
-  update(_deltaSeconds: number) { }
-
-  onRemove() {
-    this.parentEntityRenderer.getObject3D()?.remove(this.overheadChat);
+  dispose() {
+    this.parent.remove(this.overheadChat.object);
+    this.overheadChat.dispose();
   }
 }

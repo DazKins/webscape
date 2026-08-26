@@ -63,6 +63,29 @@ func TestCombatSystemDoesNotEmitKillEventsForNonPlayerKill(t *testing.T) {
 	}
 }
 
+func TestCombatSystemEmitsTypedCombatResult(t *testing.T) {
+	emitter := &recordingEventEmitter{}
+	system := &CombatSystem{EventEmitter: emitter}
+	attackerId := model.NewEntityId()
+	targetId := model.NewEntityId()
+
+	system.emitCombatResolved(attackerId, targetId, attackResult{
+		DidHit: true,
+		Damage: 12,
+		IsCrit: true,
+	})
+
+	if len(emitter.events) != 1 {
+		t.Fatalf("emitted %d events, want 1", len(emitter.events))
+	}
+	event := emitter.events[0]
+	payload, ok := event.Payload.(gameevent.CombatResolvedPayload)
+	if event.Id != gameevent.EventIdCombatResolved || event.ActorEntityId != attackerId ||
+		event.TargetEntityId != targetId || !ok || !payload.DidHit || payload.Damage != 12 || !payload.IsCritical {
+		t.Fatalf("event = %#v", event)
+	}
+}
+
 func assertEventId(t *testing.T, events []gameevent.Event, id string) {
 	t.Helper()
 	for _, event := range events {

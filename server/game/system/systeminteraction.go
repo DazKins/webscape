@@ -11,10 +11,6 @@ type ConversationStarter interface {
 	StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
-type GameEventEmitter interface {
-	EmitGameEvent(event gameevent.Event)
-}
-
 type LootHandler interface {
 	LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }

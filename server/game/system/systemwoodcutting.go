@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 	"webscape/server/game/component"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 )
 
 const woodcuttingAttemptCooldownTicks = 2
-const woodcuttingSwingTtlTicks = 2
 
 type WoodcuttingYieldHandler interface {
 	AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) bool
@@ -17,6 +17,7 @@ type WoodcuttingYieldHandler interface {
 type WoodcuttingSystem struct {
 	SystemBase
 	YieldHandler WoodcuttingYieldHandler
+	EventEmitter GameEventEmitter
 	RollSource   func() int
 }
 
@@ -156,10 +157,10 @@ func (s *WoodcuttingSystem) updateWoodcuttingState(playerEntityId model.EntityId
 }
 
 func (s *WoodcuttingSystem) emitSwing(playerEntityId model.EntityId, targetEntityId model.EntityId) {
-	s.ComponentManager.CreateNewEntity(
-		component.NewCWoodcuttingSwing(playerEntityId, targetEntityId),
-		component.NewCTtl(woodcuttingSwingTtlTicks),
-	)
+	if s.EventEmitter == nil {
+		return
+	}
+	s.EventEmitter.EmitGameEvent(gameevent.NewWoodcuttingSwing(playerEntityId, targetEntityId))
 }
 
 func (s *WoodcuttingSystem) addYield(playerEntityId model.EntityId, yield component.LootItem) bool {

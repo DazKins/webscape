@@ -10,6 +10,9 @@ const (
 	MessageTypeChunkUpdate        = "chunkUpdate"
 	MessageTypeConversation       = "conversation"
 	MessageTypeQuestCompleted     = "questCompleted"
+	MessageTypeChatMessage        = "chatMessage"
+	MessageTypeCombatResolved     = "combatResolved"
+	MessageTypeWoodcuttingSwing   = "woodcuttingSwing"
 )
 
 func (m MessageType) String() string {

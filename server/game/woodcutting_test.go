@@ -5,6 +5,7 @@ import (
 	"testing"
 	"testing/fstest"
 	"webscape/server/game/component"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/message"
@@ -25,6 +26,7 @@ func TestWoodcuttingRollOutcomesAndTwoTickCooldown(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			game, treeId := setupWoodcuttingGame(t)
+			events := recordGameEvents(game)
 			playerId := joinWoodcutter(t, game, "client-1", "One")
 			game.woodcuttingSystem.RollSource = func() int { return test.roll }
 
@@ -35,7 +37,7 @@ func TestWoodcuttingRollOutcomesAndTwoTickCooldown(t *testing.T) {
 			if got := tree.GetCurrentDurability(); got != 5-test.wantDamage {
 				t.Fatalf("durability after immediate attempt = %d, want %d", got, 5-test.wantDamage)
 			}
-			if got := len(game.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing)); got != 1 {
+			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
 				t.Fatalf("swing signals after immediate attempt = %d, want 1", got)
 			}
 			assertActivityLogContains(t, game, playerId, test.wantLog)
@@ -44,15 +46,15 @@ func TestWoodcuttingRollOutcomesAndTwoTickCooldown(t *testing.T) {
 			if got := tree.GetCurrentDurability(); got != 5-test.wantDamage {
 				t.Fatalf("durability one tick later = %d, want unchanged %d", got, 5-test.wantDamage)
 			}
-			if got := len(game.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing)); got != 0 {
-				t.Fatalf("swing signals during cooldown = %d, want 0", got)
+			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
+				t.Fatalf("swing signals during cooldown = %d, want 1 total", got)
 			}
 			game.update()
 			if got := tree.GetCurrentDurability(); got != 5-2*test.wantDamage {
 				t.Fatalf("durability two ticks later = %d, want %d", got, 5-2*test.wantDamage)
 			}
-			if got := len(game.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing)); got != 1 {
-				t.Fatalf("swing signals on second attempt = %d, want 1", got)
+			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 2 {
+				t.Fatalf("swing signals on second attempt = %d, want 2 total", got)
 			}
 		})
 	}
@@ -169,6 +171,7 @@ func TestWoodcuttingCancelsOnMoveUnequipAndInvalidTarget(t *testing.T) {
 
 func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testing.T) {
 	game, treeId := setupWoodcuttingGame(t)
+	events := recordGameEvents(game)
 	playerOne := joinWoodcutter(t, game, "client-1", "One")
 	playerTwo := joinWoodcutter(t, game, "client-2", "Two")
 	game.woodcuttingSystem.RollSource = func() int { return 25 }
@@ -185,7 +188,7 @@ func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testin
 
 	game.woodcuttingSystem.Update()
 
-	if got := len(game.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing)); got != 1 {
+	if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
 		t.Fatalf("felling swing signals = %d, want 1", got)
 	}
 	if !tree.IsDepleted() || tree.GetCurrentDurability() != 0 || tree.GetRemainingRespawnTicks() != 60 {
@@ -215,6 +218,24 @@ func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testin
 	}
 	assertHasInteractionOption(t, game.getInteractionOptionsForEntity(treeId), component.InteractionOptionChop)
 	assertActivityLogContains(t, game, playerTwo, "tree has regrown")
+}
+
+func recordGameEvents(game *Game) *[]gameevent.Event {
+	events := []gameevent.Event{}
+	game.RegisterGameEventHandler(gameevent.HandlerFunc(func(event gameevent.Event) {
+		events = append(events, event)
+	}))
+	return &events
+}
+
+func countGameEvents(events []gameevent.Event, eventId string) int {
+	count := 0
+	for _, event := range events {
+		if event.Id == eventId {
+			count++
+		}
+	}
+	return count
 }
 
 func setupWoodcuttingGame(t *testing.T) (*Game, model.EntityId) {

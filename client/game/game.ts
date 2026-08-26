@@ -48,6 +48,24 @@ export type QuestRewardDefinition = {
   count: number;
 };
 
+export type ChatMessagePayload = {
+  fromEntityId: string;
+  message: string;
+};
+
+export type CombatResolvedPayload = {
+  attackerEntityId: string;
+  targetEntityId: string;
+  didHit: boolean;
+  damage: number;
+  isCritical: boolean;
+};
+
+export type WoodcuttingSwingPayload = {
+  playerEntityId: string;
+  targetEntityId: string;
+};
+
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
   myPlayerId!: string;
@@ -346,32 +364,12 @@ class Game extends EventTarget implements InputReceiver {
           : []
       );
 
-      if (componentId === "chatmessage" && data) {
-        const fromEntityId = data.fromEntityId;
-
-        const fromEntity = this.entities.find((e) => e.getId() === fromEntityId);
-        if (!fromEntity) {
-          continue;
-        }
-
-        const fromEntityMetadata = fromEntity.getComponent("metadata");
-        if (!fromEntityMetadata) {
-          continue;
-        }
-
-        this.dispatchEvent(new ChatMessageEvent(data.message, this.getEntityName(fromEntityId)));
-      }
-
       if (data === null) {
         localEntity.removeComponent(componentId);
         continue;
       }
 
       localEntity.updateComponent(componentId, data);
-
-      if (componentId === "woodcuttingswing" && data.playerEntityId) {
-        this.entityRenderSystem.getRenderers()[data.playerEntityId]?.playChopAnimation();
-      }
 
       // Dispatch inventory update event if this is the player's inventory
       if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
@@ -428,11 +426,13 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   prepareForReconnect() {
+    this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
     this.activeConversation = null;
   }
 
   registerWorld(worldUpdate: any) {
+    this.entityRenderSystem.clearTransientEffects();
     this.world?.dispose();
     this.entities = [];
     this.entityRenderSystem.update(this.entities, 0);
@@ -444,6 +444,27 @@ class Game extends EventTarget implements InputReceiver {
 
   handleChunkUpdate(update: ChunkUpdate) {
     this.world?.applyChunkUpdate(update);
+  }
+
+  handleChatMessage(payload: ChatMessagePayload) {
+    this.entityRenderSystem.showChatMessage(payload.fromEntityId, payload.message);
+    this.dispatchEvent(
+      new ChatMessageEvent(payload.message, this.getEntityName(payload.fromEntityId)),
+    );
+  }
+
+  handleCombatResolved(payload: CombatResolvedPayload) {
+    this.entityRenderSystem.showCombatResult(
+      payload.attackerEntityId,
+      payload.targetEntityId,
+      payload.didHit,
+      payload.damage,
+      payload.isCritical,
+    );
+  }
+
+  handleWoodcuttingSwing(payload: WoodcuttingSwingPayload) {
+    this.entityRenderSystem.playWoodcuttingSwing(payload.playerEntityId);
   }
 
   getMyEntity(): Entity | undefined {

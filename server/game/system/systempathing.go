@@ -3,7 +3,7 @@ package system
 import (
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
-	"webscape/server/game/entity"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -15,6 +15,7 @@ type PathingSystem struct {
 	SystemBase
 	World        *world.World
 	SpatialIndex SpatialCandidates
+	EventEmitter GameEventEmitter
 }
 
 func (s *PathingSystem) Update() {
@@ -119,15 +120,10 @@ func (s *PathingSystem) rejectPathing(entityId model.EntityId) {
 }
 
 func (s *PathingSystem) sendChatMessage(fromEntityId model.EntityId, message string) {
-	chatMessageEntities := s.ComponentManager.GetComponent(component.ComponentIdChatMessage)
-	for existingEntityId, comp := range chatMessageEntities {
-		chatMessageComp := comp.(*component.CChatMessage)
-		if chatMessageComp.GetFromEntityId() == fromEntityId {
-			s.ComponentManager.RemoveEntity(existingEntityId)
-		}
+	if s.EventEmitter == nil {
+		return
 	}
-
-	s.ComponentManager.CreateNewEntity(entity.CreateChatMessageEntity(fromEntityId, message)...)
+	s.EventEmitter.EmitGameEvent(gameevent.NewChatSpoken(fromEntityId, message))
 }
 
 func (s *PathingSystem) resolveOverlap(

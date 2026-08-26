@@ -18,15 +18,67 @@ type VisualHeightWorld = {
   getVisualHeightAtWorldPosition(worldX: number, worldZ: number): number;
 };
 
+type TimedChatEffect = {
+  effect: RendererChatMessage;
+  timeoutId: number;
+};
+
+type TimedCombatEffect = {
+  effect: RendererCombatText;
+  targetEntityId: string | null;
+  timeoutId: number;
+};
+
+type PendingChatEffect = {
+  message: string;
+  expiresAt: number;
+};
+
+type PendingCombatEffect = {
+  attackerEntityId: string;
+  targetEntityId: string;
+  didHit: boolean;
+  damage: number;
+  isCritical: boolean;
+  attackPlayed: boolean;
+  textShown: boolean;
+  expiresAt: number;
+};
+
+type PendingWoodcuttingSwing = {
+  playerEntityId: string;
+  expiresAt: number;
+};
+
+type RecentCombatAnchor = {
+  position: THREE.Vector3;
+  expiresAt: number;
+};
+
+const CHAT_DISPLAY_MILLISECONDS = 5000;
+const COMBAT_TEXT_DISPLAY_MILLISECONDS = 2000;
+const EFFECT_RETRY_MILLISECONDS = 1000;
+const RECENT_COMBAT_ANCHOR_MILLISECONDS = 1000;
+const COMBAT_TEXT_LOCAL_POSITION = new THREE.Vector3(0.5, 1.8, 0.5);
+
 export default class EntityRenderSystem {
   scene: THREE.Scene;
   renderers: Record<string, EntityRenderer | null>;
   private sampleVisualHeight: TerrainHeightSampler;
+  private effectsRoot = new THREE.Group();
   private entitiesById = new Map<string, Entity>();
+  private chatEffects = new Map<string, TimedChatEffect>();
+  private combatEffects = new Set<TimedCombatEffect>();
+  private pendingChatEffects = new Map<string, PendingChatEffect>();
+  private pendingCombatEffects: PendingCombatEffect[] = [];
+  private pendingWoodcuttingSwings: PendingWoodcuttingSwing[] = [];
+  private recentCombatAnchors = new Map<string, RecentCombatAnchor>();
 
   constructor(scene: THREE.Scene, getWorld?: () => VisualHeightWorld | undefined) {
     this.scene = scene;
     this.renderers = {};
+    this.effectsRoot.name = "transient-effects";
+    this.scene.add(this.effectsRoot);
     this.sampleVisualHeight = (worldX: number, worldZ: number) =>
       getWorld?.()?.getVisualHeightAtWorldPosition(worldX, worldZ) ?? 0;
   }
@@ -54,22 +106,6 @@ export default class EntityRenderSystem {
         return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":
         return new RendererRewardDrop(this.scene, entity, this.sampleVisualHeight);
-      case "chatmessage":
-        const parentRenderer = this.renderers[entity.getComponent("chatmessage").fromEntityId];
-        if (!parentRenderer) {
-          console.error("parent renderer not found for chat message");
-          return null;
-        }
-        return new RendererChatMessage(this.scene, entity, parentRenderer);
-      case "combattext":
-        const combatTextComponent = entity.getComponent("combattext");
-        const combatTextParent = this.renderers[combatTextComponent.fromEntityId];
-        if (!combatTextParent) {
-          console.error("parent renderer not found for combat text");
-          return null;
-        }
-        this.renderers[combatTextComponent.attackerEntityId]?.playAttackAnimation();
-        return new RendererCombatText(this.scene, entity, combatTextParent);
     }
     console.error("unknown renderer type:", renderableType);
     return new RendererError(this.scene, entity, this.sampleVisualHeight);
@@ -104,13 +140,213 @@ export default class EntityRenderSystem {
       }
 
       if (!entities.find((e) => e.getId() === entityId)) {
+        this.rememberCombatAnchor(entityId, renderer);
+        this.clearTransientEffectsFor(entityId);
         renderer.onRemove();
         delete this.renderers[entityId];
       }
     }
+
+    this.flushPendingEffects();
+    this.expireRecentCombatAnchors();
   }
 
   getRenderers(): Record<string, EntityRenderer | null> {
     return this.renderers;
+  }
+
+  showChatMessage(fromEntityId: string, message: string) {
+    if (this.tryShowChatMessage(fromEntityId, message)) {
+      this.pendingChatEffects.delete(fromEntityId);
+    } else {
+      this.pendingChatEffects.set(fromEntityId, {
+        message,
+        expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
+      });
+    }
+  }
+
+  showCombatResult(
+    attackerEntityId: string,
+    targetEntityId: string,
+    didHit: boolean,
+    damage: number,
+    isCritical: boolean,
+  ) {
+    const pending: PendingCombatEffect = {
+      attackerEntityId,
+      targetEntityId,
+      didHit,
+      damage,
+      isCritical,
+      attackPlayed: false,
+      textShown: false,
+      expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
+    };
+    if (!this.tryShowCombatResult(pending)) {
+      this.pendingCombatEffects.push(pending);
+    }
+  }
+
+  playWoodcuttingSwing(playerEntityId: string) {
+    const renderer = this.renderers[playerEntityId];
+    if (renderer) {
+      renderer.playChopAnimation();
+      return;
+    }
+    this.pendingWoodcuttingSwings.push({
+      playerEntityId,
+      expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
+    });
+  }
+
+  clearTransientEffects() {
+    for (const entityId of [...this.chatEffects.keys()]) {
+      this.removeChatEffect(entityId);
+    }
+    for (const effect of [...this.combatEffects]) {
+      this.removeCombatEffect(effect);
+    }
+    this.pendingChatEffects.clear();
+    this.pendingCombatEffects = [];
+    this.pendingWoodcuttingSwings = [];
+    this.recentCombatAnchors.clear();
+  }
+
+  private clearTransientEffectsFor(entityId: string) {
+    this.removeChatEffect(entityId);
+    this.detachCombatEffectsFrom(entityId);
+    this.pendingChatEffects.delete(entityId);
+    this.pendingWoodcuttingSwings = this.pendingWoodcuttingSwings.filter(
+      (swing) => swing.playerEntityId !== entityId,
+    );
+  }
+
+  private tryShowChatMessage(fromEntityId: string, message: string): boolean {
+    const parent = this.renderers[fromEntityId]?.getObject3D();
+    if (!parent) {
+      return false;
+    }
+
+    this.removeChatEffect(fromEntityId);
+    const effect = new RendererChatMessage(parent, message);
+    const timeoutId = window.setTimeout(() => {
+      const current = this.chatEffects.get(fromEntityId);
+      if (current?.effect === effect) {
+        this.removeChatEffect(fromEntityId);
+      }
+    }, CHAT_DISPLAY_MILLISECONDS);
+    this.chatEffects.set(fromEntityId, { effect, timeoutId });
+    return true;
+  }
+
+  private tryShowCombatResult(effect: PendingCombatEffect): boolean {
+    if (!effect.attackPlayed) {
+      const attacker = this.renderers[effect.attackerEntityId];
+      if (attacker) {
+        attacker.playAttackAnimation();
+        effect.attackPlayed = true;
+      }
+    }
+
+    if (!effect.textShown) {
+      const target = this.renderers[effect.targetEntityId]?.getObject3D();
+      const recentAnchor = this.recentCombatAnchors.get(effect.targetEntityId);
+      if (target || (recentAnchor && recentAnchor.expiresAt > Date.now())) {
+        const text = effect.didHit
+          ? effect.isCritical
+            ? `CRIT ${effect.damage}`
+            : `${effect.damage}`
+          : "MISS";
+        const kind = effect.didHit ? (effect.isCritical ? "crit" : "hit") : "miss";
+        const parent = target ?? this.effectsRoot;
+        const position = target
+          ? COMBAT_TEXT_LOCAL_POSITION.clone()
+          : this.effectsRoot.worldToLocal(recentAnchor!.position.clone());
+        const renderer = new RendererCombatText(parent, position, text, kind);
+        const timedEffect: TimedCombatEffect = {
+          effect: renderer,
+          targetEntityId: target ? effect.targetEntityId : null,
+          timeoutId: 0,
+        };
+        timedEffect.timeoutId = window.setTimeout(() => {
+          this.removeCombatEffect(timedEffect);
+        }, COMBAT_TEXT_DISPLAY_MILLISECONDS);
+        this.combatEffects.add(timedEffect);
+        effect.textShown = true;
+      }
+    }
+
+    return effect.attackPlayed && effect.textShown;
+  }
+
+  private flushPendingEffects() {
+    const now = Date.now();
+    for (const [entityId, effect] of this.pendingChatEffects) {
+      if (effect.expiresAt <= now || this.tryShowChatMessage(entityId, effect.message)) {
+        this.pendingChatEffects.delete(entityId);
+      }
+    }
+
+    this.pendingCombatEffects = this.pendingCombatEffects.filter(
+      (effect) => effect.expiresAt > now && !this.tryShowCombatResult(effect),
+    );
+    this.pendingWoodcuttingSwings = this.pendingWoodcuttingSwings.filter((swing) => {
+      if (swing.expiresAt <= now) {
+        return false;
+      }
+      const renderer = this.renderers[swing.playerEntityId];
+      if (!renderer) {
+        return true;
+      }
+      renderer.playChopAnimation();
+      return false;
+    });
+  }
+
+  private rememberCombatAnchor(entityId: string, renderer: EntityRenderer) {
+    const object = renderer.getObject3D();
+    if (!object) {
+      return;
+    }
+    this.recentCombatAnchors.set(entityId, {
+      position: object.localToWorld(COMBAT_TEXT_LOCAL_POSITION.clone()),
+      expiresAt: Date.now() + RECENT_COMBAT_ANCHOR_MILLISECONDS,
+    });
+  }
+
+  private expireRecentCombatAnchors() {
+    const now = Date.now();
+    for (const [entityId, anchor] of this.recentCombatAnchors) {
+      if (anchor.expiresAt <= now) {
+        this.recentCombatAnchors.delete(entityId);
+      }
+    }
+  }
+
+  private detachCombatEffectsFrom(entityId: string) {
+    for (const effect of this.combatEffects) {
+      if (effect.targetEntityId !== entityId) {
+        continue;
+      }
+      effect.effect.reparent(this.effectsRoot);
+      effect.targetEntityId = null;
+    }
+  }
+
+  private removeChatEffect(entityId: string) {
+    const current = this.chatEffects.get(entityId);
+    if (!current) {
+      return;
+    }
+    window.clearTimeout(current.timeoutId);
+    current.effect.dispose();
+    this.chatEffects.delete(entityId);
+  }
+
+  private removeCombatEffect(effect: TimedCombatEffect) {
+    window.clearTimeout(effect.timeoutId);
+    effect.effect.dispose();
+    this.combatEffects.delete(effect);
   }
 }

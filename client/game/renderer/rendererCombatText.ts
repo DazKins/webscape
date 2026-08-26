@@ -1,33 +1,32 @@
-import EntityRenderer from "./renderer";
 import * as THREE from "three";
-import Entity from "../entity/entity";
-import { createReactCss2dObject } from "../../util/reactCss2dObject";
+import {
+  createReactCss2dObject,
+  type ReactCss2dObject,
+} from "../../util/reactCss2dObject";
 import CombatText from "../../ui/components/combatText";
 
-export default class RendererCombatText extends EntityRenderer {
-  private parentEntityRenderer: EntityRenderer;
-  private combatText: THREE.Object3D;
+export default class RendererCombatText {
+  private parent: THREE.Object3D;
+  private combatText: ReactCss2dObject<{ text: string; kind: string }>;
 
-  constructor(scene: THREE.Scene, entity: Entity, parentEntityRenderer: EntityRenderer) {
-    super(scene, entity);
-
-    const combatTextComponent = entity.getComponent("combattext");
-
-    this.parentEntityRenderer = parentEntityRenderer;
+  constructor(parent: THREE.Object3D, position: THREE.Vector3, text: string, kind: string) {
+    this.parent = parent;
     const combatTextWrapper = createReactCss2dObject(CombatText, {
-      text: combatTextComponent.text,
-      kind: combatTextComponent.kind,
+      text,
+      kind,
     });
-    this.combatText = combatTextWrapper.object;
-    this.combatText.position.x = 0.5;
-    this.combatText.position.y = 1.8;
-    this.combatText.position.z = 0.5;
-    this.parentEntityRenderer.getObject3D()?.add(this.combatText);
+    this.combatText = combatTextWrapper;
+    this.combatText.object.position.copy(position);
+    this.parent.add(this.combatText.object);
   }
 
-  update(_deltaSeconds: number) {}
+  dispose() {
+    this.parent.remove(this.combatText.object);
+    this.combatText.dispose();
+  }
 
-  onRemove() {
-    this.parentEntityRenderer.getObject3D()?.remove(this.combatText);
+  reparent(parent: THREE.Object3D) {
+    parent.attach(this.combatText.object);
+    this.parent = parent;
   }
 }

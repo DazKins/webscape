@@ -25,16 +25,18 @@ type MessageSender func(clientID string, message message.Message)
 
 type Game struct {
 	// stateMutex serializes update ticks with commands arriving from WebSocket goroutines.
-	stateMutex         sync.Mutex
-	world              *world.World
-	clientIdToEntityId *util.BiMap[string, model.EntityId]
-	ticker             *time.Ticker
-	done               chan bool
-	sendMessage        MessageSender
-	broadcastMessage   MessageBroadcaster
-	chunkRadius        int
-	clients            map[string]*clientStreamState
-	spatialIndex       *spatial.Index
+	stateMutex          sync.Mutex
+	world               *world.World
+	clientIdToEntityId  *util.BiMap[string, model.EntityId]
+	ticker              *time.Ticker
+	done                chan bool
+	sendMessage         MessageSender
+	broadcastMessage    MessageBroadcaster
+	chunkRadius         int
+	clients             map[string]*clientStreamState
+	spatialIndex        *spatial.Index
+	eventDispatcher     *gameevent.Dispatcher
+	pendingClientEvents []pendingClientEvent
 
 	systems           []system.System
 	woodcuttingSystem *system.WoodcuttingSystem
@@ -45,6 +47,11 @@ type Game struct {
 type clientStreamState struct {
 	loadedChunks map[world.ChunkCoord]bool
 	baseline     map[component.ComponentId]map[model.EntityId]util.Json
+}
+
+type pendingClientEvent struct {
+	clientIDs []string
+	message   message.Message
 }
 
 func NewGameWithWorld(world *world.World) *Game {
@@ -64,7 +71,16 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		systems:          []system.System{},
 		chunkRadius:      chunkRadius,
 		clients:          make(map[string]*clientStreamState),
+		eventDispatcher:  gameevent.NewDispatcher(),
 	}
+	questHandler := gameevent.HandlerFunc(game.handleQuestEvent)
+	for eventId := range game.questEventIds() {
+		game.RegisterGameEventHandlerFor(eventId, questHandler)
+	}
+	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdWoodcuttingSwing, clientHandler)
 
 	game.loadWorldEntities()
 	game.spatialIndex = spatial.NewIndex(world, game.componentManager)
@@ -73,13 +89,14 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
-		World: world, SpatialIndex: game.spatialIndex,
+		World: world, SpatialIndex: game.spatialIndex, EventEmitter: game,
 	})
 	woodcuttingSystem := &system.WoodcuttingSystem{
 		SystemBase: system.SystemBase{
 			ComponentManager: game.componentManager,
 		},
 		YieldHandler: game,
+		EventEmitter: game,
 	}
 	game.woodcuttingSystem = woodcuttingSystem
 	game.RegisterSystem(&system.InteractionSystem{
@@ -104,11 +121,6 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 			ComponentManager: game.componentManager,
 		},
 		World: world, SpatialIndex: game.spatialIndex,
-	})
-	game.RegisterSystem(&system.TtlSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
 	})
 	game.RegisterSystem(&system.HealthSystem{
 		SystemBase: system.SystemBase{
@@ -208,6 +220,7 @@ func (g *Game) update() {
 	for clientID := range g.clients {
 		g.syncClient(clientID)
 	}
+	g.flushPendingClientEvents()
 }
 
 func (g *Game) Stop() {
@@ -226,31 +239,72 @@ func questCompletedEventId(questId string) string {
 	return "quest:completed:" + gameevent.NormalizeToken(questId)
 }
 
+func (g *Game) RegisterGameEventHandler(handler gameevent.Handler) {
+	g.eventDispatcher.Register(handler)
+}
+
+func (g *Game) RegisterGameEventHandlerFor(eventId string, handler gameevent.Handler) {
+	g.eventDispatcher.Subscribe(eventId, handler)
+}
+
 func (g *Game) EmitGameEvent(event gameevent.Event) {
 	if event.Count < 1 {
 		event.Count = 1
 	}
-	log.Printf(
-		"game event id=%q actor=%s target=%s count=%d metadata=%v",
-		event.Id,
-		event.ActorEntityId.String(),
-		event.TargetEntityId.String(),
-		event.Count,
-		event.Metadata,
-	)
+	if !isHighFrequencyClientEvent(event.Id) {
+		log.Printf(
+			"game event id=%q actor=%s target=%s count=%d metadata=%v",
+			event.Id,
+			event.ActorEntityId.String(),
+			event.TargetEntityId.String(),
+			event.Count,
+			event.Metadata,
+		)
+	}
+	g.eventDispatcher.Emit(event)
+}
 
+func isHighFrequencyClientEvent(eventId string) bool {
+	switch eventId {
+	case gameevent.EventIdChatSpoken,
+		gameevent.EventIdCombatResolved,
+		gameevent.EventIdWoodcuttingSwing:
+		return true
+	default:
+		return false
+	}
+}
+
+func (g *Game) questEventIds() map[string]bool {
+	result := map[string]bool{}
+	for _, quest := range g.world.GetQuestRegistry().All() {
+		if quest.StartEventId != "" {
+			result[quest.StartEventId] = true
+		}
+		for _, step := range quest.Steps {
+			if step.Requirement.EventId != "" {
+				result[step.Requirement.EventId] = true
+			}
+		}
+	}
+	return result
+}
+
+func (g *Game) handleQuestEvent(event gameevent.Event) {
 	questLogComponent := g.componentManager.GetEntityComponent(component.ComponentIdQuestLog, event.ActorEntityId)
 	if questLogComponent == nil {
 		return
 	}
 
 	questLog := questLogComponent.(*component.CQuestLog)
+	questLogChanged := false
 	completedQuestEvents := []gameevent.Event{}
 	completeQuest := func(quest world.Quest, completedStep world.QuestStep) {
 		completedEvent, ok := g.completeQuestForPlayer(event.ActorEntityId, event.TargetEntityId, questLog, quest, completedStep)
 		if !ok {
 			return
 		}
+		questLogChanged = true
 		completedQuestEvents = append(completedQuestEvents, completedEvent)
 	}
 
@@ -262,12 +316,14 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 			continue
 		}
 		questLog.StartQuest(quest.Id, quest.Steps[0].Id)
+		questLogChanged = true
 	}
 
 	for _, progress := range questLog.GetActiveProgress() {
 		quest, ok := g.world.GetQuest(progress.QuestId)
 		if !ok {
 			questLog.CompleteQuest(progress.QuestId)
+			questLogChanged = true
 			continue
 		}
 		if progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
@@ -283,6 +339,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 		nextCount := progress.CurrentCount + event.Count
 		if nextCount < step.Requirement.Count {
 			questLog.SetProgress(progress.QuestId, progress.CurrentStepIndex, step.Id, nextCount)
+			questLogChanged = true
 			continue
 		}
 
@@ -294,11 +351,88 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 
 		nextStep := quest.Steps[nextStepIndex]
 		questLog.SetProgress(progress.QuestId, nextStepIndex, nextStep.Id, 0)
+		questLogChanged = true
 	}
 
-	g.componentManager.SetEntityComponent(event.ActorEntityId, questLog)
+	if questLogChanged {
+		g.componentManager.SetEntityComponent(event.ActorEntityId, questLog)
+	}
 	for _, completedEvent := range completedQuestEvents {
 		g.EmitGameEvent(completedEvent)
+	}
+}
+
+func (g *Game) handleClientEvent(event gameevent.Event) {
+	var clientMessage message.Message
+	entityIDs := []model.EntityId{event.ActorEntityId}
+
+	switch event.Id {
+	case gameevent.EventIdChatSpoken:
+		payload, ok := event.Payload.(gameevent.ChatSpokenPayload)
+		if !ok {
+			return
+		}
+		clientMessage = message.NewChatMessage(event.ActorEntityId, payload.Message)
+	case gameevent.EventIdCombatResolved:
+		payload, ok := event.Payload.(gameevent.CombatResolvedPayload)
+		if !ok {
+			return
+		}
+		entityIDs = append(entityIDs, event.TargetEntityId)
+		clientMessage = message.NewCombatResolvedMessage(
+			event.ActorEntityId,
+			event.TargetEntityId,
+			payload.DidHit,
+			payload.Damage,
+			payload.IsCritical,
+		)
+	case gameevent.EventIdWoodcuttingSwing:
+		if _, ok := event.Payload.(gameevent.WoodcuttingSwingPayload); !ok {
+			return
+		}
+		entityIDs = append(entityIDs, event.TargetEntityId)
+		clientMessage = message.NewWoodcuttingSwingMessage(event.ActorEntityId, event.TargetEntityId)
+	default:
+		return
+	}
+
+	clientIDs := g.clientIDsViewingAny(entityIDs...)
+	if len(clientIDs) == 0 {
+		return
+	}
+	g.pendingClientEvents = append(g.pendingClientEvents, pendingClientEvent{
+		clientIDs: clientIDs,
+		message:   clientMessage,
+	})
+}
+
+func (g *Game) clientIDsViewingAny(entityIDs ...model.EntityId) []string {
+	clientIDs := make([]string, 0)
+	for clientID := range g.clients {
+		for _, entityID := range entityIDs {
+			if entityID == (model.EntityId{}) || !g.entityVisibleToClient(clientID, entityID) {
+				continue
+			}
+			clientIDs = append(clientIDs, clientID)
+			break
+		}
+	}
+	sort.Strings(clientIDs)
+	return clientIDs
+}
+
+func (g *Game) flushPendingClientEvents() {
+	pending := g.pendingClientEvents
+	g.pendingClientEvents = nil
+	if g.sendMessage == nil {
+		return
+	}
+	for _, event := range pending {
+		for _, clientID := range event.clientIDs {
+			if g.clients[clientID] != nil {
+				g.sendMessage(clientID, event.message)
+			}
+		}
 	}
 }
 
@@ -506,23 +640,6 @@ func (g *Game) syncClient(clientID string) {
 	if registered {
 		visible[playerID] = true
 	}
-	// Transient entities inherit visibility from the entity they annotate.
-	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdChatMessage) {
-		if visible[value.(*component.CChatMessage).GetFromEntityId()] {
-			visible[entityID] = true
-		}
-	}
-	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdCombatText) {
-		if visible[value.(*component.CCombatText).GetFromEntityId()] {
-			visible[entityID] = true
-		}
-	}
-	for entityID, value := range g.componentManager.GetComponent(component.ComponentIdWoodcuttingSwing) {
-		if visible[value.(*component.CWoodcuttingSwing).GetPlayerEntityId()] {
-			visible[entityID] = true
-		}
-	}
-
 	updated := make(map[component.ComponentId]map[model.EntityId]util.Json)
 	removed := make(map[component.ComponentId][]model.EntityId)
 	for componentID, entities := range g.componentManager.GetAllComponents() {
@@ -576,9 +693,7 @@ func isPublicObserverComponent(componentID component.ComponentId) bool {
 		component.ComponentIdRenderable,
 		component.ComponentIdHealth,
 		component.ComponentIdFacing,
-		component.ComponentIdOpenable,
-		component.ComponentIdChatMessage,
-		component.ComponentIdCombatText:
+		component.ComponentIdOpenable:
 		return true
 	default:
 		return false
@@ -712,24 +827,6 @@ func (g *Game) HandleLeave(clientID string) {
 	delete(g.clients, clientID)
 }
 
-// SendChatMessageEntityFor sends a new chat message entity for the given entity,
-// removing any existing chat messages from that entity first to ensure only one
-// chat message exists per entity at a time.
-func (g *Game) SendChatMessageEntityFor(fromEntityId model.EntityId, message string) model.EntityId {
-	// Remove any existing chat messages from this entity
-	chatMessageEntities := g.componentManager.GetComponent(component.ComponentIdChatMessage)
-	for existingEntityId, comp := range chatMessageEntities {
-		chatMessageComp := comp.(*component.CChatMessage)
-		if chatMessageComp.GetFromEntityId() == fromEntityId {
-			g.componentManager.RemoveEntity(existingEntityId)
-		}
-	}
-
-	// Create the new chat message entity
-	chatMessageComponents := entity.CreateChatMessageEntity(fromEntityId, message)
-	return g.componentManager.CreateNewEntity(chatMessageComponents...)
-}
-
 func (g *Game) HandleChat(clientID string, chatMessage string) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
@@ -739,7 +836,7 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 		return
 	}
 
-	g.SendChatMessageEntityFor(entityId, chatMessage)
+	g.EmitGameEvent(gameevent.NewChatSpoken(entityId, chatMessage))
 }
 
 func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option component.InteractionOption) {

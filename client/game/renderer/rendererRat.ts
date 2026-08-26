@@ -106,6 +106,7 @@ export default class RendererRat extends EntityRenderer {
   onRemove() {
     if (this.healthBar) {
       this.mesh.remove(this.healthBar.object);
+      this.healthBar.dispose();
     }
     this.modelInstance.dispose();
     this.scene.remove(this.mesh);
@@ -133,6 +134,7 @@ export default class RendererRat extends EntityRenderer {
       }
     } else if (this.healthBar) {
       this.mesh.remove(this.healthBar.object);
+      this.healthBar.dispose();
       this.healthBar = null;
     }
   }

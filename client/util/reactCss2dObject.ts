@@ -5,6 +5,7 @@ import React from "react";
 export interface ReactCss2dObject<P> {
   object: CSS2DObject;
   updateProps: (newProps: P) => void;
+  dispose: () => void;
 }
 
 export function createReactCss2dObject<P>(
@@ -29,6 +30,11 @@ export function createReactCss2dObject<P>(
     object: css2dObject,
     updateProps: (newProps: P) => {
       root.render(React.createElement(Component as React.ElementType, newProps));
+    },
+    dispose: () => {
+      root.unmount();
+      css2dObject.removeFromParent();
+      outer.remove();
     },
   };
 }

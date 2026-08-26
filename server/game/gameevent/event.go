@@ -12,7 +12,26 @@ type Event struct {
 	TargetEntityId model.EntityId
 	Count          int
 	Metadata       map[string]string
+	Payload        any
 }
+
+const (
+	EventIdChatSpoken       = "chat:spoken"
+	EventIdCombatResolved   = "combat:resolved"
+	EventIdWoodcuttingSwing = "woodcutting:swing"
+)
+
+type ChatSpokenPayload struct {
+	Message string
+}
+
+type CombatResolvedPayload struct {
+	DidHit     bool
+	Damage     int
+	IsCritical bool
+}
+
+type WoodcuttingSwingPayload struct{}
 
 func New(id string, actorEntityId model.EntityId) Event {
 	return Event{
@@ -21,6 +40,36 @@ func New(id string, actorEntityId model.EntityId) Event {
 		Count:         1,
 		Metadata:      map[string]string{},
 	}
+}
+
+func NewChatSpoken(actorEntityId model.EntityId, message string) Event {
+	event := New(EventIdChatSpoken, actorEntityId)
+	event.Payload = ChatSpokenPayload{Message: message}
+	return event
+}
+
+func NewCombatResolved(
+	attackerEntityId model.EntityId,
+	targetEntityId model.EntityId,
+	didHit bool,
+	damage int,
+	isCritical bool,
+) Event {
+	event := New(EventIdCombatResolved, attackerEntityId)
+	event.TargetEntityId = targetEntityId
+	event.Payload = CombatResolvedPayload{
+		DidHit:     didHit,
+		Damage:     damage,
+		IsCritical: isCritical,
+	}
+	return event
+}
+
+func NewWoodcuttingSwing(playerEntityId model.EntityId, targetEntityId model.EntityId) Event {
+	event := New(EventIdWoodcuttingSwing, playerEntityId)
+	event.TargetEntityId = targetEntityId
+	event.Payload = WoodcuttingSwingPayload{}
+	return event
 }
 
 func NormalizeToken(value string) string {

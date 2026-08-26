@@ -4,6 +4,7 @@ import (
 	"testing"
 	"testing/fstest"
 	"webscape/server/game/component"
+	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -23,12 +24,14 @@ func TestPathingSystemRejectsUnreachablePathOnce(t *testing.T) {
 		component.NewCCombatState(targetEntityId),
 		component.NewCWoodcutting(targetEntityId, math.Vec2{X: 0, Y: 0}),
 	)
+	emitter := &recordingEventEmitter{}
 
 	pathingSystem := PathingSystem{
 		SystemBase: SystemBase{
 			ComponentManager: componentManager,
 		},
-		World: testWorld,
+		World:        testWorld,
+		EventEmitter: emitter,
 	}
 
 	pathingSystem.Update()
@@ -45,11 +48,11 @@ func TestPathingSystemRejectsUnreachablePathOnce(t *testing.T) {
 	if componentManager.GetEntityComponent(component.ComponentIdWoodcutting, entityId) != nil {
 		t.Fatal("woodcutting component was not removed after unreachable path")
 	}
-	assertPathNotFoundChatMessage(t, componentManager, entityId, 1)
+	assertPathNotFoundChatEvent(t, emitter.events, entityId, 1)
 
 	pathingSystem.Update()
 
-	assertPathNotFoundChatMessage(t, componentManager, entityId, 1)
+	assertPathNotFoundChatEvent(t, emitter.events, entityId, 1)
 }
 
 func loadPathingTestWorld(t *testing.T) *world.World {
@@ -86,27 +89,27 @@ func loadPathingTestWorld(t *testing.T) *world.World {
 	return testWorld
 }
 
-func assertPathNotFoundChatMessage(
+func assertPathNotFoundChatEvent(
 	t *testing.T,
-	componentManager *component.ComponentManager,
+	events []gameevent.Event,
 	fromEntityId model.EntityId,
 	wantCount int,
 ) {
 	t.Helper()
 
-	chatMessageCount := 0
-	for _, comp := range componentManager.GetComponent(component.ComponentIdChatMessage) {
-		chatMessage := comp.(*component.CChatMessage)
-		if chatMessage.GetFromEntityId() != fromEntityId {
+	chatEventCount := 0
+	for _, event := range events {
+		if event.Id != gameevent.EventIdChatSpoken || event.ActorEntityId != fromEntityId {
 			continue
 		}
-		chatMessageCount++
-		if chatMessage.GetMessage() != pathNotFoundMessage {
-			t.Fatalf("chat message = %q, want %q", chatMessage.GetMessage(), pathNotFoundMessage)
+		chatEventCount++
+		payload, ok := event.Payload.(gameevent.ChatSpokenPayload)
+		if !ok || payload.Message != pathNotFoundMessage {
+			t.Fatalf("chat event payload = %#v, want %q", event.Payload, pathNotFoundMessage)
 		}
 	}
 
-	if chatMessageCount != wantCount {
-		t.Fatalf("path not found chat message count = %d, want %d", chatMessageCount, wantCount)
+	if chatEventCount != wantCount {
+		t.Fatalf("path not found chat event count = %d, want %d", chatEventCount, wantCount)
 	}
 }

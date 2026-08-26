@@ -135,6 +135,7 @@ export default class RendererHuman extends EntityRenderer {
   onRemove() {
     if (this.healthBar) {
       this.mesh.remove(this.healthBar.object);
+      this.healthBar.dispose();
     }
     this.equipmentAttachments.dispose();
     this.modelInstance.dispose();
@@ -163,6 +164,7 @@ export default class RendererHuman extends EntityRenderer {
       }
     } else if (this.healthBar) {
       this.mesh.remove(this.healthBar.object);
+      this.healthBar.dispose();
       this.healthBar = null;
     }
   }
