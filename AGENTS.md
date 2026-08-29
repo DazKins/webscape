@@ -29,7 +29,31 @@ Use Node `v24.11.0` for the client when following `client/.nvmrc`; the editor cu
 
 ## Runtime And Content Contracts
 
-The server is authoritative. Clients send JSON commands over `/ws`; the server mutates ECS state and broadcasts typed messages. When adding a command, update both `server/command/command.go` and client command call sites, then route it in `server/commandhandler.go`.
+The server is authoritative. All live gameplay communication uses `/ws` and falls into three architectural categories. Choose the category from its semantics, not from whichever implementation is most convenient.
+
+### 1. Client-to-server commands
+
+Commands express player intent. Their wire shape is `{ "type": <commandType>, "data": <payload> }`. The client may request an action, but it never sends authoritative state or claims that an outcome occurred. The server validates the connection, visibility, payload, and game rules before mutating ECS state or emitting domain events.
+
+When adding a command, update the command type and decoding in `server/command/command.go`, route it in `server/commandhandler.go`, and update the call site under `client/command` or `client/game`. Commands are not state replication and should not be reused as client acknowledgements or server notifications.
+
+### 2. Server-to-client state replication
+
+State replication communicates authoritative facts that remain true until superseded. A reconnecting or newly interested client needs the current value, not every transition that produced it. Examples include positions, health, inventory, equipment, quest progress, open/depleted state, metadata, and renderable identity.
+
+The server runs systems on a 500 ms tick and then synchronizes each client's interest set in `Game.syncClient`. `world` supplies static registries and world metadata, `chunkUpdate` loads and unloads terrain for that client's current interest, and `gameUpdate` carries per-client ECS component deltas. Only `SerializeableComponent` values visible to that client are considered; unchanged values are omitted, removed components use `data: null`, and no `gameUpdate` is sent when there is no delta. These messages are per-client even when several clients happen to receive equivalent data.
+
+Use a component/state update when late join, reconnect, or interest re-entry must reconstruct the current truth. Do not create short-lived entities, TTL components, or synthetic component changes merely to make the client react once.
+
+### 3. Server-to-client stateless events
+
+Stateless events communicate that something happened once. Examples currently projected to the wire are `chatMessage`, `combatResolved`, and `woodcuttingSwing`. They are not authoritative snapshots, are not replayed to late joiners, and may be lost across disconnect/reconnect. The client reacts to them and owns presentation lifetime such as chat bubbles, hit splats, and animations.
+
+Occurrence-driven gameplay begins as a typed domain event in `server/game/gameevent`. Emit it once from authoritative command or system logic. Registered dispatcher subscribers independently handle server concerns such as quest progression and safe client projection. The client projection must choose recipients using server-side interest/visibility, translate the internal payload into an explicit DTO in `server/message`, and must never serialize an internal event wholesale. Projected events are queued and flushed after state synchronization so a client sees the tick's authoritative state before reacting to its events.
+
+New event ids are stable contracts. Subscribe quest handling only to ids referenced by authored quest definitions, and subscribe wire projection only to explicitly supported client events. Do not put client-only presentation fields into ECS state. Existing `conversation` and `questCompleted` messages are also targeted, non-state notifications, though they currently use specialized direct flows rather than the general client-event projector.
+
+All server-to-client messages use `{ "metadata": { "type": ..., "time": ... }, "data": ... }`. Keep wire message types and DTOs in `server/message`, dispatch them in `client/main.ts`, and keep domain-event payloads separate from transport DTOs. Session-control messages such as `registered` and `registrationFailed` support the connection lifecycle; they do not introduce a fourth gameplay communication model.
 
 Startup and deployment settings live in root `config.json`; add runtime settings there instead of introducing command-line flags. Game content starts at project format v2 `game.json`, which defines a uniform `world.chunkSize` and lists chunk, conversation, and quest files. The runtime loads every sparse chunk in `files.chunks`; authored positions are chunk-local and become global server coordinates. Missing chunks are impassable. Project file paths must be relative, slash-separated, and valid for `fs.ValidPath`; do not introduce absolute paths or `..` traversal.
 
@@ -49,7 +73,7 @@ TypeScript is strict in both frontends (`noUnusedLocals`, `noUnusedParameters`, 
 
 There is no dedicated frontend test runner configured. For frontend changes, run the relevant build at minimum: `cd client && npm run build`, `cd editor && npm run build`, or both.
 
-For Go changes, add focused `_test.go` files near the package under test and run `go test ./...`. Existing coverage focuses on content loading, world validation, conversations, quests, loot, and combat event emission. Prioritize new tests for game systems, component serialization, authored content parsing, command handling, WebSocket message payloads, and schema/runtime compatibility.
+For Go changes, add focused `_test.go` files near the package under test and run `go test ./...`. Existing coverage focuses on content loading, world validation, conversations, quests, loot, and combat event emission. Prioritize new tests for game systems, component serialization, authored content parsing, command handling, event subscriber routing, client interest filtering, state-before-event ordering, WebSocket message payloads, and schema/runtime compatibility.
 
 For content or schema changes, validate by running `go test ./...` and then `go run .` after rebuilding `client/dist`. If the editor format helpers changed, also run `cd editor && npm run build`.
 
