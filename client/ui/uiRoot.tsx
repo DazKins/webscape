@@ -7,6 +7,7 @@ import { CombatLogContent } from "./components/combatLog";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
 import QuestCompletedOverlay from "./components/questCompletedOverlay";
+import QuestStartedOverlay from "./components/questStartedOverlay";
 import panelStyles from "./components/uiPanel.module.css";
 import styles from "./uiRoot.module.css";
 import { getDeviceProfile, type DeviceProfile } from "../responsive";
@@ -254,6 +255,7 @@ export default function UiRoot(props: Props) {
 
         <InteractionMenu game={props.game} />
         <ConversationPanel game={props.game} />
+        <QuestStartedOverlay game={props.game} />
         <QuestCompletedOverlay game={props.game} />
         <SourceLink />
         {onboarding}
@@ -317,6 +319,7 @@ export default function UiRoot(props: Props) {
 
       <InteractionMenu game={props.game} />
       <ConversationPanel game={props.game} />
+      <QuestStartedOverlay game={props.game} />
       <QuestCompletedOverlay game={props.game} />
       <SourceLink />
       {onboarding}

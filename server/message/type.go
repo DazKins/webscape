@@ -9,6 +9,7 @@ const (
 	MessageTypeWorld              = "world"
 	MessageTypeChunkUpdate        = "chunkUpdate"
 	MessageTypeConversation       = "conversation"
+	MessageTypeQuestStarted       = "questStarted"
 	MessageTypeQuestCompleted     = "questCompleted"
 	MessageTypeChatMessage        = "chatMessage"
 	MessageTypeCombatResolved     = "combatResolved"

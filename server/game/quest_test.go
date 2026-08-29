@@ -197,6 +197,61 @@ func TestQuestCompletionSendsCompletionMessage(t *testing.T) {
 	}
 }
 
+func TestQuestStartSendsTargetedMessageAfterQuestLogUpdate(t *testing.T) {
+	testWorld, err := world.LoadFromGameFolder("../../game-project")
+	if err != nil {
+		t.Fatalf("LoadFromGameFolder returned error: %v", err)
+	}
+
+	game := NewGameWithWorld(testWorld)
+	game.RegisterBroadcaster(func(message.Message) {})
+	sent := map[string][]message.Message{}
+	game.RegisterSender(func(clientID string, msg message.Message) {
+		sent[clientID] = append(sent[clientID], msg)
+	})
+
+	playerEntityId := model.NewEntityId()
+	game.HandleRegister("client-1", playerEntityId, "player")
+	game.HandleConnect("client-2")
+	sent = map[string][]message.Message{}
+
+	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:start", playerEntityId))
+	game.update()
+	for _, msg := range sent["client-1"] {
+		if msg.Metadata.Type == message.MessageTypeQuestStarted {
+			t.Fatal("quest started before the accepted conversation node")
+		}
+	}
+	sent = map[string][]message.Message{}
+
+	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:accepted", playerEntityId))
+	game.update()
+
+	questLogUpdateIndex := activeQuestGameUpdateIndex(sent["client-1"], playerEntityId.String(), "first_errand")
+	questStartedIndex, started := firstQuestStartedPayload(t, sent["client-1"])
+	if questLogUpdateIndex < 0 {
+		t.Fatal("game update did not include active first_errand questlog record")
+	}
+	if questLogUpdateIndex >= questStartedIndex {
+		t.Fatalf("questlog gameUpdate index = %d, questStarted index = %d; want state update first", questLogUpdateIndex, questStartedIndex)
+	}
+	if started.QuestId != "first_errand" || started.DisplayName != "First Errand" {
+		t.Fatalf("questStarted identity = (%q, %q), want (first_errand, First Errand)", started.QuestId, started.DisplayName)
+	}
+	if started.CurrentStepId != "find_key" || started.CurrentStepSummary != "Find a mysterious key." {
+		t.Fatalf(
+			"questStarted objective = (%q, %q), want (find_key, Find a mysterious key.)",
+			started.CurrentStepId,
+			started.CurrentStepSummary,
+		)
+	}
+	for _, msg := range sent["client-2"] {
+		if msg.Metadata.Type == message.MessageTypeQuestStarted {
+			t.Fatal("questStarted message was sent to a different client")
+		}
+	}
+}
+
 func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testing.T) {
 	testWorld, err := world.LoadFromGameFolder("../../game-project")
 	if err != nil {
@@ -214,7 +269,7 @@ func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testin
 
 	playerEntityId := model.NewEntityId()
 	game.HandleRegister("client-1", playerEntityId, "player")
-	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:start", playerEntityId))
+	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:accepted", playerEntityId))
 	game.EmitGameEvent(gameevent.New("collect:name:mysterious_key", playerEntityId))
 	game.EmitGameEvent(gameevent.New("kill:entity:rat", playerEntityId))
 	game.update()
@@ -359,6 +414,32 @@ type questCompletedPayload struct {
 	Rewards              []message.QuestRewardDelivery `json:"rewards"`
 }
 
+type questStartedPayload struct {
+	QuestId            string `json:"questId"`
+	DisplayName        string `json:"displayName"`
+	CurrentStepId      string `json:"currentStepId"`
+	CurrentStepSummary string `json:"currentStepSummary"`
+}
+
+func firstQuestStartedPayload(t *testing.T, messages []message.Message) (int, questStartedPayload) {
+	t.Helper()
+
+	for index, msg := range messages {
+		if msg.Metadata.Type != message.MessageTypeQuestStarted {
+			continue
+		}
+		var payload struct {
+			Data questStartedPayload `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(msg.Marshal()), &payload); err != nil {
+			t.Fatalf("unmarshal questStarted: %v", err)
+		}
+		return index, payload.Data
+	}
+	t.Fatal("no questStarted message was sent")
+	return -1, questStartedPayload{}
+}
+
 func firstQuestCompletedPayload(t *testing.T, messages []message.Message) questCompletedPayload {
 	t.Helper()
 
@@ -411,6 +492,41 @@ func gameUpdateIncludesCompletedQuest(messages []message.Message, entityId strin
 		}
 	}
 	return false
+}
+
+func activeQuestGameUpdateIndex(messages []message.Message, entityId string, questId string) int {
+	for messageIndex, msg := range messages {
+		if msg.Metadata.Type != message.MessageTypeGameUpdate {
+			continue
+		}
+		var payload struct {
+			Data struct {
+				Entities []struct {
+					EntityId    string `json:"entityId"`
+					ComponentId string `json:"componentId"`
+					Data        struct {
+						Active []struct {
+							QuestId string `json:"questId"`
+						} `json:"active"`
+					} `json:"data"`
+				} `json:"entities"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(msg.Marshal()), &payload); err != nil {
+			continue
+		}
+		for _, update := range payload.Data.Entities {
+			if update.EntityId != entityId || update.ComponentId != component.ComponentIdQuestLog.String() {
+				continue
+			}
+			for _, active := range update.Data.Active {
+				if active.QuestId == questId {
+					return messageIndex
+				}
+			}
+		}
+	}
+	return -1
 }
 
 func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {

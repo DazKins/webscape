@@ -15,6 +15,7 @@ import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 import { ConversationCloseEvent, ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 import { QuestLogUpdateEvent } from "../events/questlog.ts";
 import { QuestCompletedEvent, type QuestCompletedPayload } from "../events/questCompleted.ts";
+import { QuestStartedEvent, type QuestStartedPayload } from "../events/questStarted.ts";
 import {
   getDeviceProfile,
   getElementSize,
@@ -507,6 +508,10 @@ class Game extends EventTarget implements InputReceiver {
 
   handleQuestCompleted(payload: QuestCompletedPayload) {
     this.dispatchEvent(new QuestCompletedEvent(payload));
+  }
+
+  handleQuestStarted(payload: QuestStartedPayload) {
+    this.dispatchEvent(new QuestStartedEvent(payload));
   }
 
   handleConversationClose(conversationId: string, nodeId: string) {

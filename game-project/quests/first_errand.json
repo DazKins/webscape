@@ -7,13 +7,13 @@
       "id": "first_errand",
       "displayName": "First Errand",
       "description": "Help the guide test the basics of quest progress.",
-      "startEventId": "conversation:node:new_conversation:start",
+      "startEventId": "conversation:node:new_conversation:accepted",
       "steps": [
         {
           "id": "talk_to_guide",
           "description": "Talk to the guide.",
           "requirement": {
-            "eventId": "conversation:node:new_conversation:start",
+            "eventId": "conversation:node:new_conversation:accepted",
             "count": 1
           }
         },

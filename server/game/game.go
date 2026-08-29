@@ -298,6 +298,7 @@ func (g *Game) handleQuestEvent(event gameevent.Event) {
 
 	questLog := questLogComponent.(*component.CQuestLog)
 	questLogChanged := false
+	startedQuests := []world.Quest{}
 	completedQuestEvents := []gameevent.Event{}
 	completeQuest := func(quest world.Quest, completedStep world.QuestStep) {
 		completedEvent, ok := g.completeQuestForPlayer(event.ActorEntityId, event.TargetEntityId, questLog, quest, completedStep)
@@ -317,6 +318,7 @@ func (g *Game) handleQuestEvent(event gameevent.Event) {
 		}
 		questLog.StartQuest(quest.Id, quest.Steps[0].Id)
 		questLogChanged = true
+		startedQuests = append(startedQuests, quest)
 	}
 
 	for _, progress := range questLog.GetActiveProgress() {
@@ -357,9 +359,40 @@ func (g *Game) handleQuestEvent(event gameevent.Event) {
 	if questLogChanged {
 		g.componentManager.SetEntityComponent(event.ActorEntityId, questLog)
 	}
+	for _, quest := range startedQuests {
+		g.queueQuestStartedMessage(event.ActorEntityId, questLog, quest)
+	}
 	for _, completedEvent := range completedQuestEvents {
 		g.EmitGameEvent(completedEvent)
 	}
+}
+
+func (g *Game) queueQuestStartedMessage(
+	playerEntityId model.EntityId,
+	questLog *component.CQuestLog,
+	quest world.Quest,
+) {
+	if !questLog.IsActive(quest.Id) {
+		return
+	}
+
+	var currentStep world.QuestStep
+	for _, progress := range questLog.GetActiveProgress() {
+		if progress.QuestId != quest.Id || progress.CurrentStepIndex < 0 || progress.CurrentStepIndex >= len(quest.Steps) {
+			continue
+		}
+		currentStep = quest.Steps[progress.CurrentStepIndex]
+		break
+	}
+
+	clientID, ok := g.clientIdToEntityId.GetKey(playerEntityId)
+	if !ok {
+		return
+	}
+	g.pendingClientEvents = append(g.pendingClientEvents, pendingClientEvent{
+		clientIDs: []string{clientID},
+		message:   message.NewQuestStartedMessage(quest, currentStep),
+	})
 }
 
 func (g *Game) handleClientEvent(event gameevent.Event) {
