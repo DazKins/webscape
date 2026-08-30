@@ -32,13 +32,13 @@ Build the playable client before starting the server:
 
 ```sh
 cd client
-npm ci
-npm run build
+pnpm install --frozen-lockfile
+pnpm run build
 cd ..
 go run .
 ```
 
-The editor runs separately from `editor/` with `npm run dev`.
+The editor runs separately from `editor/` with `pnpm run dev`.
 
 ## License
 

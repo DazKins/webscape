@@ -14,12 +14,12 @@ Generated output in `client/dist` and `editor/dist` must not be edited by hand.
 
 ## Build, Test, and Development Commands
 
-- `cd client && npm ci`: install playable client dependencies from `client/package-lock.json`.
-- `cd editor && npm ci`: install editor dependencies from `editor/package-lock.json`.
-- `cd client && npm run dev`: run the playable client Vite dev server. The Go server still serves `/ws` on `8080`; check wiring before relying on Vite alone.
-- `cd editor && npm run dev`: run the editor Vite dev server.
-- `cd client && npm run build`: type-check the playable client and build `client/dist`.
-- `cd editor && npm run build`: type-check the editor and build `editor/dist`.
+- `cd client && pnpm install --frozen-lockfile`: install playable client dependencies from `client/pnpm-lock.yaml`.
+- `cd editor && pnpm install --frozen-lockfile`: install editor dependencies from `editor/pnpm-lock.yaml`.
+- `cd client && pnpm run dev`: run the playable client Vite dev server. The Go server still serves `/ws` on `8080`; check wiring before relying on Vite alone.
+- `cd editor && pnpm run dev`: run the editor Vite dev server.
+- `cd client && pnpm run build`: type-check the playable client and build `client/dist`.
+- `cd editor && pnpm run build`: type-check the editor and build `editor/dist`.
 - `go run .`: load `config.json` and start the Go server; build `client/dist` first.
 - `go build ./...`: compile all Go packages.
 - `go test ./...`: run Go tests.
@@ -71,11 +71,11 @@ TypeScript is strict in both frontends (`noUnusedLocals`, `noUnusedParameters`, 
 
 ## Testing Guidelines
 
-There is no dedicated frontend test runner configured. For frontend changes, run the relevant build at minimum: `cd client && npm run build`, `cd editor && npm run build`, or both.
+There is no dedicated frontend test runner configured. For frontend changes, run the relevant build at minimum: `cd client && pnpm run build`, `cd editor && pnpm run build`, or both.
 
 For Go changes, add focused `_test.go` files near the package under test and run `go test ./...`. Existing coverage focuses on content loading, world validation, conversations, quests, loot, and combat event emission. Prioritize new tests for game systems, component serialization, authored content parsing, command handling, event subscriber routing, client interest filtering, state-before-event ordering, WebSocket message payloads, and schema/runtime compatibility.
 
-For content or schema changes, validate by running `go test ./...` and then `go run .` after rebuilding `client/dist`. If the editor format helpers changed, also run `cd editor && npm run build`.
+For content or schema changes, validate by running `go test ./...` and then `go run .` after rebuilding `client/dist`. If the editor format helpers changed, also run `cd editor && pnpm run build`.
 
 ## Commit & Pull Request Guidelines
 

@@ -2,11 +2,13 @@ FROM node:24-alpine AS client-builder
 
 WORKDIR /app/client
 
-COPY client/package*.json ./
-RUN npm ci
+RUN corepack enable pnpm
+
+COPY client/package.json client/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY client/ ./
-RUN npm run build
+RUN pnpm run build
 
 FROM golang:1.25.2-alpine AS server-builder
 
