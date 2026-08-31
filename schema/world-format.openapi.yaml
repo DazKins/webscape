@@ -124,6 +124,8 @@ components:
           $ref: "#/components/schemas/RandomWalkComponent"
         woodcuttable:
           $ref: "#/components/schemas/WoodcuttableComponent"
+        fishable:
+          $ref: "#/components/schemas/FishableComponent"
 
     RenderableComponent:
       type: object
@@ -200,6 +202,39 @@ components:
         type:
           type: string
           const: material
+        count:
+          type: integer
+          minimum: 1
+
+    FishableComponent:
+      type: object
+      additionalProperties: false
+      required:
+        - catchChancePercent
+        - yield
+      properties:
+        catchChancePercent:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Percent chance that each server-tick fishing attempt catches the yield.
+        yield:
+          $ref: "#/components/schemas/FishingYield"
+
+    FishingYield:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - type
+        - count
+      properties:
+        name:
+          type: string
+          pattern: ".*\\S.*"
+        type:
+          type: string
+          pattern: ".*\\S.*"
         count:
           type: integer
           minimum: 1
@@ -327,6 +362,26 @@ components:
                 orientation: east
               openable:
                 isOpen: false
+          - id: fishing_spot_001
+            components:
+              position:
+                x: 2
+                y: 2
+              metadata:
+                objectId: fishing_spot_001
+                name: Fishing Spot
+                type: fishingSpot
+                width: 1
+                height: 1
+                blocksMovement: true
+              renderable:
+                type: fishingSpot
+              fishable:
+                catchChancePercent: 5
+                yield:
+                  name: Raw Fish
+                  type: fish
+                  count: 1
           - id: bob
             components:
               position:

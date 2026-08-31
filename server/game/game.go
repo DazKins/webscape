@@ -37,9 +37,12 @@ type Game struct {
 	spatialIndex        *spatial.Index
 	eventDispatcher     *gameevent.Dispatcher
 	pendingClientEvents []pendingClientEvent
+	currentTick         uint64
 
 	systems           []system.System
 	woodcuttingSystem *system.WoodcuttingSystem
+	fishingSystem     *system.FishingSystem
+	stateTransitions  *system.EntityStateTransitions
 
 	componentManager *component.ComponentManager
 }
@@ -80,63 +83,68 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
-	game.RegisterGameEventHandlerFor(gameevent.EventIdWoodcuttingSwing, clientHandler)
 
 	game.loadWorldEntities()
 	game.spatialIndex = spatial.NewIndex(world, game.componentManager)
+	game.stateTransitions = system.NewEntityStateTransitions(game.componentManager, game)
+	systemBase := system.SystemBase{
+		ComponentManager: game.componentManager,
+		StateTransitions: game.stateTransitions,
+	}
 
 	game.RegisterSystem(&system.PathingSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
-		World: world, SpatialIndex: game.spatialIndex, EventEmitter: game,
+		SystemBase: systemBase,
+		World:      world, SpatialIndex: game.spatialIndex, EventEmitter: game, TickSource: game,
 	})
 	woodcuttingSystem := &system.WoodcuttingSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
+		SystemBase:   systemBase,
 		YieldHandler: game,
 		EventEmitter: game,
+		TickSource:   game,
 	}
 	game.woodcuttingSystem = woodcuttingSystem
+	fishingSystem := &system.FishingSystem{
+		SystemBase:   systemBase,
+		YieldHandler: game,
+		EventEmitter: game,
+		TickSource:   game,
+	}
+	game.fishingSystem = fishingSystem
 	game.RegisterSystem(&system.InteractionSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
+		SystemBase:          systemBase,
+		TickSource:          game,
 		ConversationStarter: game,
 		EventEmitter:        game,
 		LootHandler:         game,
 		WoodcuttingStarter:  woodcuttingSystem,
+		FishingStarter:      fishingSystem,
 	})
 	game.RegisterSystem(woodcuttingSystem)
+	game.RegisterSystem(fishingSystem)
 	game.RegisterSystem(&system.CombatSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
-		World: world, SpatialIndex: game.spatialIndex,
-		EventEmitter: game,
+		SystemBase: systemBase,
+		World:      world, SpatialIndex: game.spatialIndex,
+		EventEmitter: game, TickSource: game,
 	})
 	game.RegisterSystem(&system.RandomWalkSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
-		World: world, SpatialIndex: game.spatialIndex,
+		SystemBase: systemBase,
+		World:      world, SpatialIndex: game.spatialIndex, TickSource: game,
 	})
 	game.RegisterSystem(&system.HealthSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
+		SystemBase: systemBase,
+		TickSource: game,
+	})
+	game.RegisterSystem(&system.LocomotionSystem{
+		SystemBase: systemBase,
+		TickSource: game,
 	})
 	spawnSystem := &system.SpawnSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
+		SystemBase: systemBase,
+		TickSource: game,
 	}
 	game.RegisterSystem(spawnSystem)
 	game.RegisterSystem(&system.FacingSystem{
-		SystemBase: system.SystemBase{
-			ComponentManager: game.componentManager,
-		},
+		SystemBase: systemBase,
 	})
 	spawnSystem.Update()
 
@@ -213,6 +221,7 @@ func (g *Game) update() {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
+	g.currentTick++
 	for _, system := range g.systems {
 		system.Update()
 	}
@@ -221,6 +230,10 @@ func (g *Game) update() {
 		g.syncClient(clientID)
 	}
 	g.flushPendingClientEvents()
+}
+
+func (g *Game) CurrentTick() uint64 {
+	return g.currentTick
 }
 
 func (g *Game) Stop() {
@@ -251,7 +264,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 	if event.Count < 1 {
 		event.Count = 1
 	}
-	if !isHighFrequencyClientEvent(event.Id) {
+	if !isHighFrequencyEvent(event.Id) {
 		log.Printf(
 			"game event id=%q actor=%s target=%s count=%d metadata=%v",
 			event.Id,
@@ -264,7 +277,7 @@ func (g *Game) EmitGameEvent(event gameevent.Event) {
 	g.eventDispatcher.Emit(event)
 }
 
-func isHighFrequencyClientEvent(eventId string) bool {
+func isHighFrequencyEvent(eventId string) bool {
 	switch eventId {
 	case gameevent.EventIdChatSpoken,
 		gameevent.EventIdCombatResolved,
@@ -419,12 +432,6 @@ func (g *Game) handleClientEvent(event gameevent.Event) {
 			payload.Damage,
 			payload.IsCritical,
 		)
-	case gameevent.EventIdWoodcuttingSwing:
-		if _, ok := event.Payload.(gameevent.WoodcuttingSwingPayload); !ok {
-			return
-		}
-		entityIDs = append(entityIDs, event.TargetEntityId)
-		clientMessage = message.NewWoodcuttingSwingMessage(event.ActorEntityId, event.TargetEntityId)
 	default:
 		return
 	}
@@ -568,7 +575,7 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 		return
 	}
 
-	components := entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn())
+	components := entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick)
 	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)
@@ -715,7 +722,7 @@ func (g *Game) syncClient(clientID string) {
 		if registered {
 			interactions = g.availableInteractionsForGameUpdate(updated, removed)
 		}
-		g.sendMessage(clientID, message.NewGameUpdateMessage(updated, removed, interactions))
+		g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions))
 	}
 }
 
@@ -726,7 +733,10 @@ func isPublicObserverComponent(componentID component.ComponentId) bool {
 		component.ComponentIdRenderable,
 		component.ComponentIdHealth,
 		component.ComponentIdFacing,
-		component.ComponentIdOpenable:
+		component.ComponentIdOpenable,
+		component.ComponentIdFishing,
+		component.ComponentIdWoodcutting,
+		component.ComponentIdLocomotion:
 		return true
 	default:
 		return false
@@ -842,10 +852,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		Position: util.OptionalSome(math.Vec2{X: x, Y: y}),
 	})
-	g.componentManager.RemoveComponent(component.ComponentIdActiveConversation, entityId)
-	g.componentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
-	g.componentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
-	g.componentManager.SetEntityComponent(entityId, pathingComponent)
+	g.stateTransitions.BeginPathing(entityId, pathingComponent)
 }
 
 func (g *Game) HandleLeave(clientID string) {
@@ -898,17 +905,14 @@ func (g *Game) HandleInteract(clientID string, entityId model.EntityId, option c
 	if !ok {
 		return
 	}
-	g.componentManager.RemoveComponent(component.ComponentIdWoodcutting, interactingEntityId)
-
 	// Set pathing component to path to the target entity
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		EntityId: util.OptionalSome(entityId),
 	})
-	g.componentManager.SetEntityComponent(interactingEntityId, pathingComponent)
 
 	// Set interacting component to track the interaction
 	interactingComponent := component.NewCInteracting(entityId, option)
-	g.componentManager.SetEntityComponent(interactingEntityId, interactingComponent)
+	g.stateTransitions.BeginInteraction(interactingEntityId, pathingComponent, interactingComponent)
 }
 
 func (g *Game) entityVisibleToClient(clientID string, entityID model.EntityId) bool {
@@ -1192,6 +1196,10 @@ func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []compone
 	woodcuttable := g.componentManager.GetEntityComponent(component.ComponentIdWoodcuttable, entityId)
 	if woodcuttable != nil && !woodcuttable.(*component.CWoodcuttable).IsDepleted() {
 		options = append(options, component.InteractionOptionChop)
+	}
+
+	if g.componentManager.GetEntityComponent(component.ComponentIdFishable, entityId) != nil {
+		options = append(options, component.InteractionOptionFish)
 	}
 
 	if g.componentManager.GetEntityComponent(component.ComponentIdPlayer, entityId) == nil &&

@@ -8,8 +8,6 @@ import (
 	"webscape/server/game/model"
 )
 
-const woodcuttingAttemptCooldownTicks = 2
-
 type WoodcuttingYieldHandler interface {
 	AddItemToPlayerInventory(playerEntityId model.EntityId, item *model.Item) bool
 }
@@ -18,6 +16,7 @@ type WoodcuttingSystem struct {
 	SystemBase
 	YieldHandler WoodcuttingYieldHandler
 	EventEmitter GameEventEmitter
+	TickSource   TickSource
 	RollSource   func() int
 }
 
@@ -43,12 +42,11 @@ func (s *WoodcuttingSystem) StartWoodcuttingFor(
 		return false
 	}
 
-	s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, playerEntityId)
-	s.ComponentManager.SetEntityComponent(
+	tick := currentTick(s.TickSource)
+	return s.entityStateTransitions(s.TickSource).BeginWoodcutting(
 		playerEntityId,
-		component.NewCWoodcutting(targetEntityId, position.GetPosition()),
+		component.NewCWoodcutting(targetEntityId, tick, position.GetPosition()),
 	)
-	return true
 }
 
 func (s *WoodcuttingSystem) Update() {
@@ -100,7 +98,7 @@ func (s *WoodcuttingSystem) updateWoodcuttingState(playerEntityId model.EntityId
 
 	if position == nil || targetPosition == nil || woodcuttable == nil || woodcuttable.IsDepleted() ||
 		!s.isAlive(playerEntityId) ||
-		position.GetPosition() != state.GetStartPosition() ||
+		position.GetPosition() != state.GetOriginPosition() ||
 		manhattanDistance(position.GetPosition(), targetPosition.GetPosition()) != 1 {
 		s.cancelWoodcutting(playerEntityId)
 		return
@@ -116,18 +114,33 @@ func (s *WoodcuttingSystem) updateWoodcuttingState(playerEntityId model.EntityId
 		return
 	}
 
-	if state.GetCooldownRemaining() > 0 {
-		state.SetCooldownRemaining(state.GetCooldownRemaining() - 1)
-		if state.GetCooldownRemaining() > 0 {
+	tick := currentTick(s.TickSource)
+	switch state.GetPhase() {
+	case component.WoodcuttingPhaseSwinging:
+		if tick <= state.GetPhaseStartedTick() {
 			return
 		}
+		s.resolveSwing(playerEntityId, state, woodcuttable, tick)
+	case component.WoodcuttingPhaseRecovering:
+		if tick > state.GetPhaseStartedTick() {
+			s.startPhase(playerEntityId, state, component.WoodcuttingPhaseSwinging, tick)
+		}
+	default:
+		s.cancelWoodcutting(playerEntityId)
 	}
+}
 
+func (s *WoodcuttingSystem) resolveSwing(
+	playerEntityId model.EntityId,
+	state *component.CWoodcutting,
+	woodcuttable *component.CWoodcuttable,
+	tick uint64,
+) {
 	damage, description, kind := s.rollOutcome()
 	s.emitSwing(playerEntityId, state.GetTargetEntityId())
 	if damage == 0 {
 		s.addActivityLog(playerEntityId, "You miss the tree.", kind)
-		state.SetCooldownRemaining(woodcuttingAttemptCooldownTicks)
+		s.startPhase(playerEntityId, state, component.WoodcuttingPhaseRecovering, tick)
 		return
 	}
 
@@ -136,7 +149,7 @@ func (s *WoodcuttingSystem) updateWoodcuttingState(playerEntityId model.EntityId
 	if remaining > 0 {
 		woodcuttable.SetCurrentDurability(remaining)
 		s.ComponentManager.SetEntityComponent(state.GetTargetEntityId(), woodcuttable)
-		state.SetCooldownRemaining(woodcuttingAttemptCooldownTicks)
+		s.startPhase(playerEntityId, state, component.WoodcuttingPhaseRecovering, tick)
 		return
 	}
 
@@ -154,6 +167,16 @@ func (s *WoodcuttingSystem) updateWoodcuttingState(playerEntityId model.EntityId
 	s.ComponentManager.SetEntityComponent(state.GetTargetEntityId(), woodcuttable)
 	s.addActivityLog(playerEntityId, yieldReceivedMessage(yield), "woodcutting-reward")
 	s.cancelWoodcuttersTargeting(state.GetTargetEntityId())
+}
+
+func (s *WoodcuttingSystem) startPhase(
+	playerEntityId model.EntityId,
+	state *component.CWoodcutting,
+	phase component.WoodcuttingPhase,
+	tick uint64,
+) {
+	state.StartPhase(phase, tick)
+	s.ComponentManager.SetEntityComponent(playerEntityId, state)
 }
 
 func (s *WoodcuttingSystem) emitSwing(playerEntityId model.EntityId, targetEntityId model.EntityId) {

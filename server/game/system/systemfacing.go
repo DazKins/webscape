@@ -9,6 +9,7 @@ const (
 	facingPriorityOutgoingCombat = iota
 	facingPriorityIncomingCombat
 	facingPriorityOutgoingWoodcutting
+	facingPriorityOutgoingFishing
 	facingPriorityOutgoingConversation
 	facingPriorityIncomingConversation
 )
@@ -60,6 +61,22 @@ func (s *FacingSystem) Update() {
 			entityId,
 			targetEntityId,
 			facingPriorityOutgoingWoodcutting,
+			manhattanDistance(entityPosition.GetPosition(), targetPosition.GetPosition()),
+		)
+	}
+
+	for entityId, value := range s.ComponentManager.GetComponent(component.ComponentIdFishing) {
+		targetEntityId := value.(*component.CFishing).GetTargetEntityId()
+		entityPosition := s.position(entityId)
+		targetPosition := s.position(targetEntityId)
+		if entityPosition == nil || targetPosition == nil {
+			continue
+		}
+		s.addCandidate(
+			desired,
+			entityId,
+			targetEntityId,
+			facingPriorityOutgoingFishing,
 			manhattanDistance(entityPosition.GetPosition(), targetPosition.GetPosition()),
 		)
 	}

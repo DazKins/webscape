@@ -16,6 +16,7 @@ type PathingSystem struct {
 	World        *world.World
 	SpatialIndex SpatialCandidates
 	EventEmitter GameEventEmitter
+	TickSource   TickSource
 }
 
 func (s *PathingSystem) Update() {
@@ -105,6 +106,7 @@ func (s *PathingSystem) Update() {
 
 		nextPosition := path.Pop()
 		if nextPosition != nil {
+			s.entityStateTransitions(s.TickSource).BeginMoving(entityId)
 			positionComponent.SetPosition(*nextPosition)
 			s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 		}
@@ -112,10 +114,7 @@ func (s *PathingSystem) Update() {
 }
 
 func (s *PathingSystem) rejectPathing(entityId model.EntityId) {
-	s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
-	s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
-	s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
-	s.ComponentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
+	s.entityStateTransitions(s.TickSource).RejectPathing(entityId)
 	s.sendChatMessage(entityId, pathNotFoundMessage)
 }
 
@@ -143,6 +142,7 @@ func (s *PathingSystem) resolveOverlap(
 			continue
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
+		s.entityStateTransitions(s.TickSource).BeginMoving(entityId)
 		positionComponent.SetPosition(candidate)
 		s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 		return

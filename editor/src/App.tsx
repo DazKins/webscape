@@ -70,7 +70,7 @@ type Selection =
   | null;
 
 const WALL_TYPES = ["stone", "wood"];
-const ENTITY_TYPES = ["tree", "door", "building", "chest", "rock", "human", "rat"];
+const ENTITY_TYPES = ["tree", "fishingSpot", "door", "building", "chest", "rock", "human", "rat"];
 
 function App() {
   const defaultWorld = createBlankWorld();
@@ -2171,13 +2171,17 @@ function createEntity(
   y: number,
   blocksMovement: boolean
 ): WorldEntity {
-  const type = sanitizeToken(rawType || "entity");
+  const sanitizedType = sanitizeToken(rawType || "entity");
+  const type = sanitizedType === "fishingspot" || sanitizedType === "fishing_spot"
+    ? "fishingSpot"
+    : sanitizedType;
+  const idType = type === "fishingSpot" ? "fishing_spot" : type;
   let nextNumber = 1;
-  let id = `${type}_${String(nextNumber).padStart(3, "0")}`;
+  let id = `${idType}_${String(nextNumber).padStart(3, "0")}`;
 
   while (world.entities.some((entity) => entity.id === id)) {
     nextNumber += 1;
-    id = `${type}_${String(nextNumber).padStart(3, "0")}`;
+    id = `${idType}_${String(nextNumber).padStart(3, "0")}`;
   }
 
   const components: Record<string, unknown> = {
@@ -2187,7 +2191,7 @@ function createEntity(
       type,
       width: 1,
       height: 1,
-      blocksMovement,
+      blocksMovement: type === "fishingSpot" ? true : blocksMovement,
     },
     renderable: type === "door" ? { type, orientation: "north" } : { type },
   };
@@ -2201,6 +2205,13 @@ function createEntity(
       maxDurability: 5,
       respawnTicks: 60,
       yield: { name: "Logs", type: "material", count: 1 },
+    };
+  }
+
+  if (type === "fishingSpot") {
+    components.fishable = {
+      catchChancePercent: 5,
+      yield: { name: "Raw Fish", type: "fish", count: 1 },
     };
   }
 

@@ -30,6 +30,7 @@ func CreateDudeEntity(
 	baseStatsComponent := component.NewCBaseStats(6, 5, 6)
 	equippedComponent := component.NewCEquipped()
 	combatStatsComponent := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
+	locomotionComponent := component.NewCLocomotion(component.LocomotionPhaseIdle, 0)
 
 	return []component.Component{
 		positionComponent,
@@ -40,5 +41,6 @@ func CreateDudeEntity(
 		baseStatsComponent,
 		equippedComponent,
 		combatStatsComponent,
+		locomotionComponent,
 	}
 }

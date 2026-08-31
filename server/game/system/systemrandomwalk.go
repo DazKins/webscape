@@ -23,6 +23,7 @@ type RandomWalkSystem struct {
 	SystemBase
 	World        *world.World
 	SpatialIndex SpatialCandidates
+	TickSource   TickSource
 }
 
 func (s *RandomWalkSystem) Update() {
@@ -57,6 +58,7 @@ func (s *RandomWalkSystem) Update() {
 
 			if s.isWithinRandomWalkBounds(randomwalkComponent, newPosition) &&
 				!s.collision().IsBlocked(newPosition.X, newPosition.Y) {
+				s.entityStateTransitions(s.TickSource).BeginMoving(entityId)
 				positionComponent.SetPosition(newPosition)
 				s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 			}

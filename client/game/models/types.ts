@@ -27,6 +27,7 @@ export type ModelInstance = {
   animations: readonly ProceduralAnimation[];
   getSocket(name: string): THREE.Object3D | undefined;
   play(animationName: string, fadeSeconds?: number): void;
+  playAt(animationName: string, normalizedTime: number, fadeSeconds?: number): void;
   update(deltaSeconds: number): void;
   seek(animationName: string, normalizedTime: number): void;
   dispose(): void;

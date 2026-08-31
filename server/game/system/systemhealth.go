@@ -7,6 +7,7 @@ import (
 
 type HealthSystem struct {
 	SystemBase
+	TickSource TickSource
 }
 
 func (s *HealthSystem) Update() {
@@ -28,10 +29,7 @@ func (s *HealthSystem) Update() {
 					s.ComponentManager.SetEntityComponent(entityId, position)
 				}
 
-				s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
-				s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
-				s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
-				s.ComponentManager.RemoveComponent(component.ComponentIdWoodcutting, entityId)
+				s.entityStateTransitions(s.TickSource).HandleDeath(entityId)
 
 				combatLog := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatLog, entityId)
 				if combatLog != nil {

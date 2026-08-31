@@ -159,15 +159,49 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     }
 
     validateWoodcuttable(entity.id, entity.components, errors);
+    validateFishable(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
     const templateComponents = template && isObject(template.components) ? template.components : null;
     if (templateComponents) {
       validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
+      validateFishable(`${entity.id} child template`, templateComponents, errors);
     }
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+function validateFishable(
+  entityId: string,
+  components: Record<string, unknown>,
+  errors: string[]
+): void {
+  if (!Object.prototype.hasOwnProperty.call(components, "fishable")) {
+    return;
+  }
+  const fishable = isObject(components.fishable) ? components.fishable : null;
+  if (!fishable) {
+    errors.push(`entity "${entityId}" fishable must be an object`);
+    return;
+  }
+  if (!Number.isInteger(fishable.catchChancePercent) || Number(fishable.catchChancePercent) < 1 || Number(fishable.catchChancePercent) > 100) {
+    errors.push(`entity "${entityId}" fishable.catchChancePercent must be an integer from 1 to 100`);
+  }
+  const fishingYield = isObject(fishable.yield) ? fishable.yield : null;
+  if (!fishingYield) {
+    errors.push(`entity "${entityId}" fishable.yield must be an object`);
+    return;
+  }
+  if (typeof fishingYield.name !== "string" || fishingYield.name.trim().length === 0) {
+    errors.push(`entity "${entityId}" fishable.yield.name must be a non-empty string`);
+  }
+  if (typeof fishingYield.type !== "string" || fishingYield.type.trim().length === 0) {
+    errors.push(`entity "${entityId}" fishable.yield.type must be a non-empty string`);
+  }
+  if (!Number.isInteger(fishingYield.count) || Number(fishingYield.count) < 1) {
+    errors.push(`entity "${entityId}" fishable.yield.count must be a positive integer`);
+  }
 }
 
 function validateWoodcuttable(

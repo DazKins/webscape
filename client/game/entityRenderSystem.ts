@@ -12,6 +12,7 @@ import RendererRock from "./renderer/rendererRock";
 import RendererTree from "./renderer/rendererTree";
 import RendererRewardDrop from "./renderer/rendererRewardDrop";
 import RendererRat from "./renderer/rendererRat";
+import RendererFishingSpot from "./renderer/rendererFishingSpot";
 import type { TerrainHeightSampler } from "./renderer/renderer";
 
 type VisualHeightWorld = {
@@ -45,11 +46,6 @@ type PendingCombatEffect = {
   expiresAt: number;
 };
 
-type PendingWoodcuttingSwing = {
-  playerEntityId: string;
-  expiresAt: number;
-};
-
 type RecentCombatAnchor = {
   position: THREE.Vector3;
   expiresAt: number;
@@ -65,22 +61,27 @@ export default class EntityRenderSystem {
   scene: THREE.Scene;
   renderers: Record<string, EntityRenderer | null>;
   private sampleVisualHeight: TerrainHeightSampler;
+  private readonly getEstimatedServerTick: () => number;
   private effectsRoot = new THREE.Group();
   private entitiesById = new Map<string, Entity>();
   private chatEffects = new Map<string, TimedChatEffect>();
   private combatEffects = new Set<TimedCombatEffect>();
   private pendingChatEffects = new Map<string, PendingChatEffect>();
   private pendingCombatEffects: PendingCombatEffect[] = [];
-  private pendingWoodcuttingSwings: PendingWoodcuttingSwing[] = [];
   private recentCombatAnchors = new Map<string, RecentCombatAnchor>();
 
-  constructor(scene: THREE.Scene, getWorld?: () => VisualHeightWorld | undefined) {
+  constructor(
+    scene: THREE.Scene,
+    getWorld?: () => VisualHeightWorld | undefined,
+    getEstimatedServerTick: () => number = () => 0,
+  ) {
     this.scene = scene;
     this.renderers = {};
     this.effectsRoot.name = "transient-effects";
     this.scene.add(this.effectsRoot);
     this.sampleVisualHeight = (worldX: number, worldZ: number) =>
       getWorld?.()?.getVisualHeightAtWorldPosition(worldX, worldZ) ?? 0;
+    this.getEstimatedServerTick = getEstimatedServerTick;
   }
 
   createRenderer(renderableType: string, entity: Entity): EntityRenderer | null {
@@ -91,6 +92,7 @@ export default class EntityRenderSystem {
           entity,
           this.sampleVisualHeight,
           (entityId) => this.entitiesById.get(entityId),
+          this.getEstimatedServerTick,
         );
       case "rat":
         return new RendererRat(this.scene, entity, this.sampleVisualHeight);
@@ -106,6 +108,8 @@ export default class EntityRenderSystem {
         return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":
         return new RendererRewardDrop(this.scene, entity, this.sampleVisualHeight);
+      case "fishingSpot":
+        return new RendererFishingSpot(this.scene, entity, this.sampleVisualHeight);
     }
     console.error("unknown renderer type:", renderableType);
     return new RendererError(this.scene, entity, this.sampleVisualHeight);
@@ -188,18 +192,6 @@ export default class EntityRenderSystem {
     }
   }
 
-  playWoodcuttingSwing(playerEntityId: string) {
-    const renderer = this.renderers[playerEntityId];
-    if (renderer) {
-      renderer.playChopAnimation();
-      return;
-    }
-    this.pendingWoodcuttingSwings.push({
-      playerEntityId,
-      expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
-    });
-  }
-
   clearTransientEffects() {
     for (const entityId of [...this.chatEffects.keys()]) {
       this.removeChatEffect(entityId);
@@ -209,7 +201,6 @@ export default class EntityRenderSystem {
     }
     this.pendingChatEffects.clear();
     this.pendingCombatEffects = [];
-    this.pendingWoodcuttingSwings = [];
     this.recentCombatAnchors.clear();
   }
 
@@ -217,9 +208,6 @@ export default class EntityRenderSystem {
     this.removeChatEffect(entityId);
     this.detachCombatEffectsFrom(entityId);
     this.pendingChatEffects.delete(entityId);
-    this.pendingWoodcuttingSwings = this.pendingWoodcuttingSwings.filter(
-      (swing) => swing.playerEntityId !== entityId,
-    );
   }
 
   private tryShowChatMessage(fromEntityId: string, message: string): boolean {
@@ -291,17 +279,6 @@ export default class EntityRenderSystem {
     this.pendingCombatEffects = this.pendingCombatEffects.filter(
       (effect) => effect.expiresAt > now && !this.tryShowCombatResult(effect),
     );
-    this.pendingWoodcuttingSwings = this.pendingWoodcuttingSwings.filter((swing) => {
-      if (swing.expiresAt <= now) {
-        return false;
-      }
-      const renderer = this.renderers[swing.playerEntityId];
-      if (!renderer) {
-        return true;
-      }
-      renderer.playChopAnimation();
-      return false;
-    });
   }
 
   private rememberCombatAnchor(entityId: string, renderer: EntityRenderer) {

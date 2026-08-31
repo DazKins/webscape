@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"webscape/server/game/component"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -31,11 +32,15 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	if woodcuttable := createWoodcuttableComponent(entity.Components); woodcuttable != nil {
 		components = append(components, woodcuttable)
 	}
+	if fishable := createFishableComponent(entity.Components); fishable != nil {
+		components = append(components, fishable)
+	}
 	if conversation := createConversationComponent(entity.Components); conversation != nil {
 		components = append(components, conversation)
 	}
 	if randomWalk := createRandomWalkComponent(entity.Components, position); randomWalk != nil {
 		components = append(components, randomWalk)
+		components = append(components, component.NewCLocomotion(component.LocomotionPhaseIdle, 0))
 	}
 	if health := createHealthComponent(entity.Components); health != nil {
 		components = append(components, health)
@@ -52,6 +57,30 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 		components = append(components, combatStats)
 	}
 	return components
+}
+
+func createFishableComponent(components map[string]any) *component.CFishable {
+	raw, ok := components["fishable"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	catchChancePercent, ok := numberToInt(raw["catchChancePercent"])
+	if !ok || catchChancePercent < 1 || catchChancePercent > 100 {
+		return nil
+	}
+	rawYield, ok := raw["yield"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	name, _ := rawYield["name"].(string)
+	itemType, _ := rawYield["type"].(string)
+	count, ok := numberToInt(rawYield["count"])
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(itemType) == "" || !ok || count < 1 {
+		return nil
+	}
+	return component.NewCFishable(catchChancePercent, component.LootItem{
+		Name: name, Type: itemType, Count: count,
+	})
 }
 
 func createWoodcuttableComponent(components map[string]any) *component.CWoodcuttable {

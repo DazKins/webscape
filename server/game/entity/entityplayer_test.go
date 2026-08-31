@@ -7,8 +7,8 @@ import (
 	"webscape/server/math"
 )
 
-func TestNewPlayerInventoryIncludesSwordAndWoodcuttingAxe(t *testing.T) {
-	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{})
+func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
+	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{}, 0)
 	var inventory *component.CInventory
 	for _, value := range components {
 		if candidate, ok := value.(*component.CInventory); ok {
@@ -21,11 +21,13 @@ func TestNewPlayerInventoryIncludesSwordAndWoodcuttingAxe(t *testing.T) {
 	}
 	hasSword := false
 	hasAxe := false
+	hasFishingRod := false
 	for _, item := range inventory.GetAllItems() {
 		hasSword = hasSword || item.Name == "Iron Sword"
 		hasAxe = hasAxe || item.Name == "Woodcutting Axe" && item.Type == "axe"
+		hasFishingRod = hasFishingRod || item.Name == "Fishing Rod" && item.Type == "fishingRod" && item.RenderModel == "fishingRod"
 	}
-	if !hasSword || !hasAxe {
-		t.Fatalf("starter inventory has sword=%v axe=%v", hasSword, hasAxe)
+	if !hasSword || !hasAxe || !hasFishingRod {
+		t.Fatalf("starter inventory has sword=%v axe=%v fishingRod=%v", hasSword, hasAxe, hasFishingRod)
 	}
 }

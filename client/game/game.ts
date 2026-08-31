@@ -62,10 +62,7 @@ export type CombatResolvedPayload = {
   isCritical: boolean;
 };
 
-export type WoodcuttingSwingPayload = {
-  playerEntityId: string;
-  targetEntityId: string;
-};
+const SERVER_TICK_MILLISECONDS = 500;
 
 class Game extends EventTarget implements InputReceiver {
   wsClient!: WebSocketClient;
@@ -83,6 +80,8 @@ class Game extends EventTarget implements InputReceiver {
   quests: QuestDefinition[];
   activeConversation: ConversationPayload | null;
   observerFocus: { x: number; y: number };
+  private latestServerTick = 0;
+  private serverTickReceivedAtMilliseconds = performance.now();
 
   input: Input;
   world!: World;
@@ -98,7 +97,11 @@ class Game extends EventTarget implements InputReceiver {
     this.scene = new THREE.Scene();
     this.input = new Input();
     this.camera = new Camera(this.input, this.viewport);
-    this.entityRenderSystem = new EntityRenderSystem(this.scene, () => this.world);
+    this.entityRenderSystem = new EntityRenderSystem(
+      this.scene,
+      () => this.world,
+      () => this.estimatedServerTick(),
+    );
     this.quests = [];
     this.activeConversation = null;
     this.observerFocus = { x: 0, y: 0 };
@@ -346,6 +349,14 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   handleGameUpdate(gameUpdate: any) {
+    if (
+      typeof gameUpdate.serverTick === "number" &&
+      Number.isFinite(gameUpdate.serverTick) &&
+      gameUpdate.serverTick >= 0
+    ) {
+      this.latestServerTick = gameUpdate.serverTick;
+      this.serverTickReceivedAtMilliseconds = performance.now();
+    }
     const entityComponentsUpdates = gameUpdate.entities;
 
     for (const entityComponentUpdate of entityComponentsUpdates) {
@@ -404,6 +415,19 @@ class Game extends EventTarget implements InputReceiver {
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
   }
 
+  private estimatedServerTick(): number {
+    const elapsedMilliseconds = Math.max(
+      0,
+      performance.now() - this.serverTickReceivedAtMilliseconds,
+    );
+    return this.latestServerTick + elapsedMilliseconds / SERVER_TICK_MILLISECONDS;
+  }
+
+  private resetServerClock() {
+    this.latestServerTick = 0;
+    this.serverTickReceivedAtMilliseconds = performance.now();
+  }
+
   onViewportResize() {
     const nextViewport = getElementSize(this.sceneLayerRoot);
     if (
@@ -430,10 +454,12 @@ class Game extends EventTarget implements InputReceiver {
     this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
     this.activeConversation = null;
+    this.resetServerClock();
   }
 
   registerWorld(worldUpdate: any) {
     this.entityRenderSystem.clearTransientEffects();
+    this.resetServerClock();
     this.world?.dispose();
     this.entities = [];
     this.entityRenderSystem.update(this.entities, 0);
@@ -462,10 +488,6 @@ class Game extends EventTarget implements InputReceiver {
       payload.damage,
       payload.isCritical,
     );
-  }
-
-  handleWoodcuttingSwing(payload: WoodcuttingSwingPayload) {
-    this.entityRenderSystem.playWoodcuttingSwing(payload.playerEntityId);
   }
 
   getMyEntity(): Entity | undefined {

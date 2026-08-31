@@ -27,6 +27,10 @@ func CreateWoodcuttingAxe() *Item {
 	})
 }
 
+func CreateFishingRod() *Item {
+	return NewEquipableItem("Fishing Rod", "fishingRod", "fishingRod", SlotWeapon, nil)
+}
+
 func CreateWoodenBow() *Item {
 	return NewEquipableItem("Wooden Bow", "weapon", "woodenBow", SlotWeapon, &ItemCombatStats{
 		MinDamage:        4,

@@ -31,3 +31,16 @@ func TestSerializeItemOmitsEmptyRenderModel(t *testing.T) {
 		t.Fatal("serialized item includes an empty renderModel")
 	}
 }
+
+func TestSerializeFishingRodIdentityWithoutCombatStats(t *testing.T) {
+	serialized := SerializeItem(model.CreateFishingRod()).(util.JObject)
+	if !util.JsonEqual(serialized["name"], util.JString("Fishing Rod")) ||
+		!util.JsonEqual(serialized["type"], util.JString("fishingRod")) ||
+		!util.JsonEqual(serialized["renderModel"], util.JString("fishingRod")) ||
+		!util.JsonEqual(serialized["equipmentSlot"], util.JString("weapon")) {
+		t.Fatalf("serialized fishing rod = %#v", serialized)
+	}
+	if _, ok := serialized["combatStats"]; ok {
+		t.Fatal("serialized fishing rod includes combat bonuses")
+	}
+}

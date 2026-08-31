@@ -5,6 +5,9 @@ import type { ModelFactory, ModelPose } from "../types";
 
 const TAU = Math.PI * 2;
 
+export const HUMAN_CHOP_ANIMATION_SECONDS = 0.6;
+export const HUMAN_CHOP_CONTACT_SECONDS = 0.5;
+
 export const createHumanModel: ModelFactory = (options = {}) => {
   const root = new THREE.Group();
   root.name = "human";
@@ -144,10 +147,10 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const chop = animation("chop", 0.64, false, (phase): ModelPose => {
+  const chop = animation("chop", HUMAN_CHOP_ANIMATION_SECONDS, false, (phase): ModelPose => {
     const windUpEnd = 0.3;
     const sideEnd = 0.48;
-    const hitEnd = 0.68;
+    const hitEnd = HUMAN_CHOP_CONTACT_SECONDS / HUMAN_CHOP_ANIMATION_SECONDS;
     const down = new THREE.Vector3(0, -1, 0);
     const windUpDirection = new THREE.Vector3(
       -Math.cos(THREE.MathUtils.degToRad(10)) / Math.sqrt(2),
@@ -223,7 +226,43 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
-  const instance = createModelInstance(root, joints, [idle, run, attack, chop], {
+  const fishWait = animation("fishWait", 3.2, true, (phase): ModelPose => {
+    const wave = Math.sin(phase * Math.PI * 2);
+    return {
+      hips: { position: [0, wave * 0.003, 0] },
+      torso: { rotation: [0.025 + wave * 0.006, -0.025 + wave * 0.004, 0] },
+      head: { rotation: [-0.015 + wave * 0.004, wave * 0.006, 0] },
+      rightShoulder: { rotation: [-0.84 + wave * 0.018, 0.08, 0.16] },
+      rightElbow: { rotation: [-0.7 + wave * 0.015, 0, 0] },
+      rightHand: { rotation: [wave * 0.025, 0, wave * 0.018] },
+      leftShoulder: { rotation: [-0.32 - wave * 0.012, 0, -0.16] },
+      leftElbow: { rotation: [-0.44 + wave * 0.012, 0, 0] },
+    };
+  });
+
+  const fishAction = animation("fishAction", 0.5, false, (phase): ModelPose => {
+    const pull = Math.sin(phase * Math.PI);
+    const recover = Math.sin(Math.min(1, phase * 1.35) * Math.PI);
+    return {
+      hips: { rotation: [-0.08 * pull, 0, 0] },
+      torso: { rotation: [-0.22 * pull, -0.08 * pull, 0.06 * pull] },
+      head: { rotation: [0.12 * pull, 0, 0] },
+      rightShoulder: { rotation: [-0.82 - 0.72 * pull, 0.08, 0.18] },
+      rightElbow: { rotation: [-0.64 - 0.35 * recover, 0, 0] },
+      rightHand: { rotation: [-0.5 * pull, 0, 0.22 * pull] },
+      leftShoulder: { rotation: [-0.34 - 0.28 * pull, 0, -0.18] },
+      leftElbow: { rotation: [-0.45 - 0.2 * pull, 0, 0] },
+    };
+  });
+
+  const instance = createModelInstance(root, joints, [
+    idle,
+    run,
+    attack,
+    chop,
+    fishWait,
+    fishAction,
+  ], {
     headwear,
     rightHand,
   });

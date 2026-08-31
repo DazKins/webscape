@@ -30,8 +30,6 @@ export default class EntityRenderer {
 
   playAttackAnimation() {}
 
-  playChopAnimation() {}
-
   onRemove() {
     throw Error("onRemove not implemented");
   }

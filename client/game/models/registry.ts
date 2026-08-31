@@ -9,12 +9,15 @@ import { createRewardDropModel } from "./definitions/rewardDrop";
 import { createRockModel } from "./definitions/rock";
 import { createTreeModel } from "./definitions/tree";
 import { createWoodcuttingAxeModel } from "./definitions/woodcuttingAxe";
+import { createFishingRodModel } from "./definitions/fishingRod";
+import { createFishingSpotModel } from "./definitions/fishingSpot";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 
 export const modelRegistry = {
   human: createHumanModel,
   ironSword: createIronSwordModel,
   woodcuttingAxe: createWoodcuttingAxeModel,
+  fishingRod: createFishingRodModel,
   leatherHelmet: createLeatherHelmetModel,
   rat: createRatModel,
   tree: createTreeModel,
@@ -23,6 +26,7 @@ export const modelRegistry = {
   rock: createRockModel,
   building: createBuildingModel,
   rewarddrop: createRewardDropModel,
+  fishingSpot: createFishingSpotModel,
 } satisfies Record<string, ModelFactory>;
 
 export type ModelName = keyof typeof modelRegistry;

@@ -22,7 +22,8 @@ func TestPathingSystemRejectsUnreachablePathOnce(t *testing.T) {
 		}),
 		component.NewCInteracting(targetEntityId, component.InteractionOptionTalk),
 		component.NewCCombatState(targetEntityId),
-		component.NewCWoodcutting(targetEntityId, math.Vec2{X: 0, Y: 0}),
+		component.NewCWoodcutting(targetEntityId, 0, math.Vec2{X: 0, Y: 0}),
+		component.NewCFishing(targetEntityId, 0, math.Vec2{X: 0, Y: 0}),
 	)
 	emitter := &recordingEventEmitter{}
 
@@ -47,6 +48,9 @@ func TestPathingSystemRejectsUnreachablePathOnce(t *testing.T) {
 	}
 	if componentManager.GetEntityComponent(component.ComponentIdWoodcutting, entityId) != nil {
 		t.Fatal("woodcutting component was not removed after unreachable path")
+	}
+	if componentManager.GetEntityComponent(component.ComponentIdFishing, entityId) != nil {
+		t.Fatal("fishing component was not removed after unreachable path")
 	}
 	assertPathNotFoundChatEvent(t, emitter.events, entityId, 1)
 

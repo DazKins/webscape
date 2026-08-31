@@ -4045,6 +4045,34 @@
       }
     },
     {
+      "id": "fishing_spot_001",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 14
+        },
+        "metadata": {
+          "objectId": "fishing_spot_001",
+          "name": "Fishing Spot",
+          "type": "fishingSpot",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "fishingSpot"
+        },
+        "fishable": {
+          "catchChancePercent": 5,
+          "yield": {
+            "name": "Raw Fish",
+            "type": "fish",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
       "id": "player_spawn",
       "components": {
         "position": {

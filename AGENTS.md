@@ -47,7 +47,7 @@ Use a component/state update when late join, reconnect, or interest re-entry mus
 
 ### 3. Server-to-client stateless events
 
-Stateless events communicate that something happened once. Examples currently projected to the wire are `chatMessage`, `combatResolved`, and `woodcuttingSwing`. They are not authoritative snapshots, are not replayed to late joiners, and may be lost across disconnect/reconnect. The client reacts to them and owns presentation lifetime such as chat bubbles, hit splats, and animations.
+Stateless events communicate that something happened once. Examples currently projected to the wire are `chatMessage` and `combatResolved`. They are not authoritative snapshots, are not replayed to late joiners, and may be lost across disconnect/reconnect. The client reacts to them and owns presentation lifetime such as chat bubbles, hit splats, and animations. Ongoing actions such as fishing and woodcutting are replicated state so late joiners can reconstruct their current phase.
 
 Occurrence-driven gameplay begins as a typed domain event in `server/game/gameevent`. Emit it once from authoritative command or system logic. Registered dispatcher subscribers independently handle server concerns such as quest progression and safe client projection. The client projection must choose recipients using server-side interest/visibility, translate the internal payload into an explicit DTO in `server/message`, and must never serialize an internal event wholesale. Projected events are queued and flushed after state synchronization so a client sees the tick's authoritative state before reacting to its events.
 

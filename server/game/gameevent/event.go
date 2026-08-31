@@ -19,6 +19,7 @@ const (
 	EventIdChatSpoken       = "chat:spoken"
 	EventIdCombatResolved   = "combat:resolved"
 	EventIdWoodcuttingSwing = "woodcutting:swing"
+	EventIdFishingCatch     = "fishing:catch"
 )
 
 type ChatSpokenPayload struct {
@@ -69,6 +70,13 @@ func NewWoodcuttingSwing(playerEntityId model.EntityId, targetEntityId model.Ent
 	event := New(EventIdWoodcuttingSwing, playerEntityId)
 	event.TargetEntityId = targetEntityId
 	event.Payload = WoodcuttingSwingPayload{}
+	return event
+}
+
+func NewFishingCatch(playerEntityId model.EntityId, targetEntityId model.EntityId, count int) Event {
+	event := New(EventIdFishingCatch, playerEntityId)
+	event.TargetEntityId = targetEntityId
+	event.Count = count
 	return event
 }
 

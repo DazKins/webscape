@@ -10,4 +10,5 @@ const (
 	InteractionOptionOpen   = "open"
 	InteractionOptionClose  = "close"
 	InteractionOptionChop   = "chop"
+	InteractionOptionFish   = "fish"
 )

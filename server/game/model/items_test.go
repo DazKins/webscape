@@ -20,3 +20,16 @@ func TestWoodcuttingAxeIsAWeaponSlotAxeBelowIronSwordStats(t *testing.T) {
 		t.Fatalf("axe combat stats %#v are not modestly below sword %#v", axe.CombatStats, sword.CombatStats)
 	}
 }
+
+func TestFishingRodIsAWeaponSlotToolWithoutCombatBonuses(t *testing.T) {
+	rod := CreateFishingRod()
+	if rod.Name != "Fishing Rod" || rod.Type != "fishingRod" || rod.RenderModel != "fishingRod" {
+		t.Fatalf("rod identity = %#v", rod)
+	}
+	if rod.EquipmentSlot == nil || *rod.EquipmentSlot != SlotWeapon {
+		t.Fatalf("rod equipment slot = %#v, want weapon", rod.EquipmentSlot)
+	}
+	if rod.CombatStats != nil {
+		t.Fatalf("rod combat stats = %#v, want nil", rod.CombatStats)
+	}
+}

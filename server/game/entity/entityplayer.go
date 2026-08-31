@@ -7,7 +7,7 @@ import (
 	"webscape/server/util"
 )
 
-func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []component.Component {
+func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, currentTick uint64) []component.Component {
 	positionComponent := component.NewCPosition(position)
 
 	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
@@ -22,6 +22,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 	// Add some test items to the player's inventory
 	inventoryComponent.AddItem(model.CreateIronSword())
 	inventoryComponent.AddItem(model.CreateWoodcuttingAxe())
+	inventoryComponent.AddItem(model.CreateFishingRod())
 	inventoryComponent.AddItem(model.CreateLeatherHelmet())
 	inventoryComponent.AddItem(model.CreateHealthPotion())
 	inventoryComponent.AddItem(model.CreateBread())
@@ -33,6 +34,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 	playerComponent := component.NewCPlayer(name)
 	combatLogComponent := component.NewCCombatLog(10)
 	questLogComponent := component.NewCQuestLog()
+	locomotionComponent := component.NewCLocomotion(component.LocomotionPhaseIdle, currentTick)
 
 	return []component.Component{
 		positionComponent,
@@ -46,5 +48,6 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2) []co
 		playerComponent,
 		combatLogComponent,
 		questLogComponent,
+		locomotionComponent,
 	}
 }

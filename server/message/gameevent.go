@@ -15,11 +15,6 @@ type combatResolvedData struct {
 	IsCritical       bool   `json:"isCritical"`
 }
 
-type woodcuttingSwingData struct {
-	PlayerEntityId string `json:"playerEntityId"`
-	TargetEntityId string `json:"targetEntityId"`
-}
-
 func NewChatMessage(fromEntityId model.EntityId, text string) Message {
 	return newMessage(MessageTypeChatMessage, chatMessageData{
 		FromEntityId: fromEntityId.String(),
@@ -40,12 +35,5 @@ func NewCombatResolvedMessage(
 		DidHit:           didHit,
 		Damage:           damage,
 		IsCritical:       isCritical,
-	})
-}
-
-func NewWoodcuttingSwingMessage(playerEntityId model.EntityId, targetEntityId model.EntityId) Message {
-	return newMessage(MessageTypeWoodcuttingSwing, woodcuttingSwingData{
-		PlayerEntityId: playerEntityId.String(),
-		TargetEntityId: targetEntityId.String(),
 	})
 }

@@ -14,10 +14,12 @@ type entityUpdateData struct {
 }
 
 type gameUpdateData struct {
-	Entities []entityUpdateData `json:"entities"`
+	ServerTick uint64             `json:"serverTick"`
+	Entities   []entityUpdateData `json:"entities"`
 }
 
 func NewGameUpdateMessage(
+	serverTick uint64,
 	updatedComponents map[component.ComponentId]map[model.EntityId]util.Json,
 	removedComponents map[component.ComponentId][]model.EntityId,
 	availableInteractions map[model.EntityId][]component.InteractionOption,
@@ -49,7 +51,8 @@ func NewGameUpdateMessage(
 	return newMessage(
 		MessageTypeGameUpdate,
 		gameUpdateData{
-			Entities: entityUpdates,
+			ServerTick: serverTick,
+			Entities:   entityUpdates,
 		},
 	)
 }

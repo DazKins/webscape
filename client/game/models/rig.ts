@@ -93,6 +93,26 @@ class RiggedModelInstance implements ModelInstance {
     this.applyCurrentPose();
   }
 
+  playAt(animationName: string, normalizedTime: number, fadeSeconds = 0): void {
+    this.assertAvailable();
+    const animationDefinition = this.getAnimation(animationName);
+    const phase = THREE.MathUtils.clamp(normalizedTime, 0, 1);
+    if (this.active?.animation.name === animationName) {
+      this.active.time = phase * animationDefinition.duration;
+      this.applyCurrentPose();
+      return;
+    }
+
+    this.previous = this.active;
+    this.active = {
+      animation: animationDefinition,
+      time: phase * animationDefinition.duration,
+    };
+    this.fadeSeconds = Math.max(0, fadeSeconds);
+    this.fadeElapsed = 0;
+    this.applyCurrentPose();
+  }
+
   update(deltaSeconds: number): void {
     this.assertAvailable();
     const elapsed = Math.max(0, deltaSeconds);

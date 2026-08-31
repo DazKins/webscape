@@ -36,16 +36,6 @@ func TestClientGameEventMessagesSerializeDomainData(t *testing.T) {
 				}
 			},
 		},
-		{
-			name:    "woodcutting",
-			message: NewWoodcuttingSwingMessage(attackerId, targetId),
-			typeId:  "woodcuttingSwing",
-			assert: func(t *testing.T, data map[string]any) {
-				if data["playerEntityId"] != attackerId.String() || data["targetEntityId"] != targetId.String() {
-					t.Fatalf("woodcutting data = %#v", data)
-				}
-			},
-		},
 	}
 
 	for _, test := range tests {

@@ -407,10 +407,48 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateWoodcuttableComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
+			if err := validateFishableComponent(entity.Id+" child template", template); err != nil {
+				return err
+			}
 		}
 		if err := validateWoodcuttableComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
+		if err := validateFishableComponent(entity.Id, entity.Components); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateFishableComponent(entityId string, components map[string]any) error {
+	rawValue, exists := components["fishable"]
+	if !exists {
+		return nil
+	}
+	raw, ok := rawValue.(map[string]any)
+	if !ok {
+		return fmt.Errorf("entity %q fishable must be an object", entityId)
+	}
+	catchChancePercent, ok := numberToInt(raw["catchChancePercent"])
+	if !ok || catchChancePercent < 1 || catchChancePercent > 100 {
+		return fmt.Errorf("entity %q fishable.catchChancePercent must be an integer from 1 to 100", entityId)
+	}
+	yield, ok := raw["yield"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("entity %q fishable.yield must be an object", entityId)
+	}
+	name, nameOK := yield["name"].(string)
+	if !nameOK || strings.TrimSpace(name) == "" {
+		return fmt.Errorf("entity %q fishable.yield.name must be a non-empty string", entityId)
+	}
+	itemType, typeOK := yield["type"].(string)
+	if !typeOK || strings.TrimSpace(itemType) == "" {
+		return fmt.Errorf("entity %q fishable.yield.type must be a non-empty string", entityId)
+	}
+	count, ok := numberToInt(yield["count"])
+	if !ok || count < 1 {
+		return fmt.Errorf("entity %q fishable.yield.count must be a positive integer", entityId)
 	}
 	return nil
 }

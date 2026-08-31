@@ -5,14 +5,21 @@ import EntityHealthBar from "../../ui/components/entityHealthBar";
 import { createReactCss2dObject, type ReactCss2dObject } from "../../util/reactCss2dObject";
 import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
 import EquipmentAttachmentController from "./equipmentAttachmentController";
+import {
+  HUMAN_CHOP_ANIMATION_SECONDS,
+  HUMAN_CHOP_CONTACT_SECONDS,
+} from "../models/definitions/human";
 
-const SERVER_TICK_SECONDS = 0.52;
+const POSITION_INTERPOLATION_SECONDS = 0.5;
+const SERVER_TICK_SECONDS = 0.5;
 const HUMAN_HEALTH_BAR_Y = 1.55;
 const HUMAN_IDLE_ANIMATION_NAME = "idle";
 const HUMAN_RUN_ANIMATION_NAME = "run";
 const HUMAN_ANIMATION_FADE_SECONDS = 0.12;
 const HUMAN_ATTACK_ANIMATION_SECONDS = 0.38;
-const HUMAN_CHOP_ANIMATION_SECONDS = 0.64;
+const HUMAN_FISH_WAIT_ANIMATION_SECONDS = 3.2;
+const HUMAN_IDLE_ANIMATION_SECONDS = 2;
+const HUMAN_RUN_ANIMATION_SECONDS = 0.8;
 const HUMAN_MODEL_FORWARD_ROTATION_OFFSET = 0;
 const HUMAN_ROTATION_SPEED_RADIANS_PER_SECOND = 10;
 
@@ -26,20 +33,25 @@ export default class RendererHuman extends EntityRenderer {
   private segmentStartZ: number;
   private segmentTargetX: number;
   private segmentTargetZ: number;
-  private segmentElapsedSeconds = SERVER_TICK_SECONDS;
+  private segmentElapsedSeconds = POSITION_INTERPOLATION_SECONDS;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
   private attackAnimationSecondsRemaining = 0;
-  private chopAnimationSecondsRemaining = 0;
+  private previousFishingPhaseKey: string | null = null;
+  private previousWoodcuttingPhaseKey: string | null = null;
+  private previousLocomotionPhaseKey: string | null = null;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
+  private readonly getEstimatedServerTick: () => number;
 
   constructor(
     scene: THREE.Scene,
     entity: Entity,
     terrainHeightSampler?: TerrainHeightSampler,
     resolveEntity: (entityId: string) => Entity | undefined = () => undefined,
+    getEstimatedServerTick: () => number = () => 0,
   ) {
     super(scene, entity, terrainHeightSampler);
     this.resolveEntity = resolveEntity;
+    this.getEstimatedServerTick = getEstimatedServerTick;
 
     const metadata = entity.getComponent("metadata") ?? {};
     this.mesh = new THREE.Group();
@@ -51,7 +63,6 @@ export default class RendererHuman extends EntityRenderer {
     this.modelInstance = createModel("human", { color: metadata.color ?? "#00ff00" });
     this.visualRoot.add(this.modelInstance.root);
     this.equipmentAttachments = new EquipmentAttachmentController(this.modelInstance);
-
     const position = entity.getComponent("position");
     this.mesh.position.set(
       position.x,
@@ -83,7 +94,7 @@ export default class RendererHuman extends EntityRenderer {
     }
 
     this.segmentElapsedSeconds += deltaSeconds;
-    const progress = Math.min(this.segmentElapsedSeconds / SERVER_TICK_SECONDS, 1);
+    const progress = Math.min(this.segmentElapsedSeconds / POSITION_INTERPOLATION_SECONDS, 1);
     const renderedX = THREE.MathUtils.lerp(this.segmentStartX, this.segmentTargetX, progress);
     const renderedZ = THREE.MathUtils.lerp(this.segmentStartZ, this.segmentTargetZ, progress);
     this.mesh.position.set(
@@ -95,23 +106,24 @@ export default class RendererHuman extends EntityRenderer {
       this.faceSynchronizedTarget(targetX, targetZ);
     }
     this.updateFacing(deltaSeconds);
-    if (this.chopAnimationSecondsRemaining > 0) {
-      this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
-      this.chopAnimationSecondsRemaining = Math.max(
-        0,
-        this.chopAnimationSecondsRemaining - deltaSeconds,
-      );
-    } else if (this.attackAnimationSecondsRemaining > 0) {
-      this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
-      this.attackAnimationSecondsRemaining = Math.max(
-        0,
-        this.attackAnimationSecondsRemaining - deltaSeconds,
-      );
+    const isFishing = this.updateFishingAnimation();
+    if (isFishing) {
+      this.previousWoodcuttingPhaseKey = null;
+      this.previousLocomotionPhaseKey = null;
     } else {
-      this.modelInstance.play(
-        this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
-        HUMAN_ANIMATION_FADE_SECONDS,
-      );
+      const isWoodcutting = this.updateWoodcuttingAnimation();
+      if (isWoodcutting) {
+        this.previousLocomotionPhaseKey = null;
+      } else if (this.attackAnimationSecondsRemaining > 0) {
+        this.previousLocomotionPhaseKey = null;
+        this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
+        this.attackAnimationSecondsRemaining = Math.max(
+          0,
+          this.attackAnimationSecondsRemaining - deltaSeconds,
+        );
+      } else {
+        this.updateLocomotionAnimation();
+      }
     }
     this.modelInstance.update(deltaSeconds);
     this.equipmentAttachments.update(this.entity.getComponent("equipped"), deltaSeconds);
@@ -127,11 +139,6 @@ export default class RendererHuman extends EntityRenderer {
     this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
   }
 
-  playChopAnimation() {
-    this.chopAnimationSecondsRemaining = HUMAN_CHOP_ANIMATION_SECONDS;
-    this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
-  }
-
   onRemove() {
     if (this.healthBar) {
       this.mesh.remove(this.healthBar.object);
@@ -143,7 +150,192 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   private isMoving() {
-    return this.segmentElapsedSeconds < SERVER_TICK_SECONDS;
+    return this.segmentElapsedSeconds < POSITION_INTERPOLATION_SECONDS;
+  }
+
+  private updateLocomotionAnimation() {
+    const locomotion = this.entity.getComponent("locomotion");
+    const phase = this.locomotionPhase(locomotion);
+    const phaseStartedTick = this.locomotionPhaseStartedTick(locomotion);
+    if (phase === null || phaseStartedTick === null) {
+      this.previousLocomotionPhaseKey = null;
+      this.modelInstance.play(
+        this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
+        HUMAN_ANIMATION_FADE_SECONDS,
+      );
+      return;
+    }
+
+    const animationName = phase === "moving"
+      ? HUMAN_RUN_ANIMATION_NAME
+      : HUMAN_IDLE_ANIMATION_NAME;
+    const animationDuration = phase === "moving"
+      ? HUMAN_RUN_ANIMATION_SECONDS
+      : HUMAN_IDLE_ANIMATION_SECONDS;
+    const phaseKey = `${phase}:${phaseStartedTick}`;
+    if (phaseKey !== this.previousLocomotionPhaseKey) {
+      const phaseAgeTicks = Math.max(0, this.getEstimatedServerTick() - phaseStartedTick);
+      const elapsedSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+      this.modelInstance.playAt(
+        animationName,
+        (elapsedSeconds % animationDuration) / animationDuration,
+        HUMAN_ANIMATION_FADE_SECONDS,
+      );
+      this.previousLocomotionPhaseKey = phaseKey;
+    } else {
+      this.modelInstance.play(animationName, HUMAN_ANIMATION_FADE_SECONDS);
+    }
+  }
+
+  private locomotionPhase(locomotion: unknown): "idle" | "moving" | null {
+    if (typeof locomotion !== "object" || locomotion === null || !("phase" in locomotion)) {
+      return null;
+    }
+    return locomotion.phase === "idle" || locomotion.phase === "moving"
+      ? locomotion.phase
+      : null;
+  }
+
+  private locomotionPhaseStartedTick(locomotion: unknown): number | null {
+    if (
+      typeof locomotion !== "object" ||
+      locomotion === null ||
+      !("phaseStartedTick" in locomotion)
+    ) {
+      return null;
+    }
+    return typeof locomotion.phaseStartedTick === "number" &&
+      Number.isFinite(locomotion.phaseStartedTick)
+      ? locomotion.phaseStartedTick
+      : null;
+  }
+
+  private updateFishingAnimation(): boolean {
+    const fishing = this.entity.getComponent("fishing");
+    const phase = this.fishingPhase(fishing);
+    const phaseStartedTick = this.fishingPhaseStartedTick(fishing);
+    if (phase === null || phaseStartedTick === null) {
+      this.previousFishingPhaseKey = null;
+      return false;
+    }
+
+    const estimatedTick = this.getEstimatedServerTick();
+    const phaseAgeTicks = Math.max(0, estimatedTick - phaseStartedTick);
+    const phaseKey = `${phase}:${phaseStartedTick}`;
+    if (phaseKey !== this.previousFishingPhaseKey) {
+      if (phase === "waiting") {
+        const elapsedSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+        this.modelInstance.seek(
+          "fishWait",
+          (elapsedSeconds % HUMAN_FISH_WAIT_ANIMATION_SECONDS) /
+            HUMAN_FISH_WAIT_ANIMATION_SECONDS,
+        );
+      } else {
+        this.modelInstance.seek("fishAction", Math.min(phaseAgeTicks, 1));
+      }
+      this.previousFishingPhaseKey = phaseKey;
+    }
+
+    if (phase === "waiting" || phaseAgeTicks >= 1) {
+      this.modelInstance.play("fishWait", HUMAN_ANIMATION_FADE_SECONDS);
+    } else {
+      this.modelInstance.play("fishAction", HUMAN_ANIMATION_FADE_SECONDS);
+    }
+    return true;
+  }
+
+  private updateWoodcuttingAnimation(): boolean {
+    const woodcutting = this.entity.getComponent("woodcutting");
+    const phase = this.woodcuttingPhase(woodcutting);
+    const phaseStartedTick = this.woodcuttingPhaseStartedTick(woodcutting);
+    if (phase === null || phaseStartedTick === null) {
+      this.previousWoodcuttingPhaseKey = null;
+      return false;
+    }
+
+    const phaseAgeTicks = Math.max(0, this.getEstimatedServerTick() - phaseStartedTick);
+    const phaseAgeSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+    const contactPhase = HUMAN_CHOP_CONTACT_SECONDS / HUMAN_CHOP_ANIMATION_SECONDS;
+    const phaseKey = `${phase}:${phaseStartedTick}`;
+    if (phaseKey !== this.previousWoodcuttingPhaseKey) {
+      if (phase === "swinging") {
+        this.modelInstance.playAt(
+          "chop",
+          Math.min(phaseAgeSeconds / HUMAN_CHOP_ANIMATION_SECONDS, contactPhase),
+          HUMAN_ANIMATION_FADE_SECONDS,
+        );
+      } else {
+        const elapsedSeconds = HUMAN_CHOP_CONTACT_SECONDS + phaseAgeSeconds;
+        if (elapsedSeconds < HUMAN_CHOP_ANIMATION_SECONDS) {
+          this.modelInstance.playAt(
+            "chop",
+            elapsedSeconds / HUMAN_CHOP_ANIMATION_SECONDS,
+            HUMAN_ANIMATION_FADE_SECONDS,
+          );
+        } else {
+          this.modelInstance.play(HUMAN_IDLE_ANIMATION_NAME, HUMAN_ANIMATION_FADE_SECONDS);
+        }
+      }
+      this.previousWoodcuttingPhaseKey = phaseKey;
+    } else if (phase === "swinging" && phaseAgeSeconds < HUMAN_CHOP_CONTACT_SECONDS) {
+      this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
+    } else if (phase === "swinging") {
+      this.modelInstance.playAt("chop", contactPhase);
+    } else if (
+      HUMAN_CHOP_CONTACT_SECONDS + phaseAgeSeconds <
+      HUMAN_CHOP_ANIMATION_SECONDS
+    ) {
+      this.modelInstance.play("chop", HUMAN_ANIMATION_FADE_SECONDS);
+    } else {
+      this.modelInstance.play(HUMAN_IDLE_ANIMATION_NAME, HUMAN_ANIMATION_FADE_SECONDS);
+    }
+    return true;
+  }
+
+  private woodcuttingPhase(woodcutting: unknown): "swinging" | "recovering" | null {
+    if (
+      typeof woodcutting !== "object" ||
+      woodcutting === null ||
+      !("phase" in woodcutting)
+    ) {
+      return null;
+    }
+    return woodcutting.phase === "swinging" || woodcutting.phase === "recovering"
+      ? woodcutting.phase
+      : null;
+  }
+
+  private woodcuttingPhaseStartedTick(woodcutting: unknown): number | null {
+    if (
+      typeof woodcutting !== "object" ||
+      woodcutting === null ||
+      !("phaseStartedTick" in woodcutting)
+    ) {
+      return null;
+    }
+    return typeof woodcutting.phaseStartedTick === "number" &&
+      Number.isFinite(woodcutting.phaseStartedTick)
+      ? woodcutting.phaseStartedTick
+      : null;
+  }
+
+  private fishingPhase(fishing: unknown): "casting" | "waiting" | "reeling" | null {
+    if (typeof fishing !== "object" || fishing === null || !("phase" in fishing)) {
+      return null;
+    }
+    return fishing.phase === "casting" || fishing.phase === "waiting" || fishing.phase === "reeling"
+      ? fishing.phase
+      : null;
+  }
+
+  private fishingPhaseStartedTick(fishing: unknown): number | null {
+    if (typeof fishing !== "object" || fishing === null || !("phaseStartedTick" in fishing)) {
+      return null;
+    }
+    return typeof fishing.phaseStartedTick === "number" &&
+      Number.isFinite(fishing.phaseStartedTick)
+      ? fishing.phaseStartedTick
+      : null;
   }
 
   private updateHealthBar() {

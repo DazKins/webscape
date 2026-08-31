@@ -14,7 +14,7 @@ type CombatLogEntry = {
 };
 
 function entryClass(kind: string): string {
-  if (kind === "crit" || kind === "woodcutting-good" || kind === "woodcutting-reward") {
+  if (kind === "crit" || kind === "woodcutting-good" || kind === "woodcutting-reward" || kind === "fishing-reward") {
     return styles.entryCrit;
   }
   if (kind === "miss" || kind === "woodcutting-miss") {

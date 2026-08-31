@@ -41,4 +41,4 @@ Keep the three WebSocket communication paths distinct:
 2. Server state replication comes from per-client `world`, `chunkUpdate`, and delta-only `gameUpdate` messages produced by `Game.syncClient` after each tick.
 3. Server stateless events begin in `gameevent.Dispatcher`. Register event-specific subscribers, project only explicit safe DTOs from `server/message`, select recipients by server-side interest, and flush client events after state updates.
 
-Do not serialize an internal `gameevent.Event` directly. Domain events may contain server-only details and may have subscribers other than WebSocket delivery. Current projected event examples are chat, combat resolution, and woodcutting swings. The browser owns their visual lifetime; the ECS does not.
+Do not serialize an internal `gameevent.Event` directly. Domain events may contain server-only details and may have subscribers other than WebSocket delivery. Current projected event examples are chat and combat resolution. The browser owns their visual lifetime; the ECS does not. Ongoing fishing and woodcutting animations are derived from replicated phase state instead.

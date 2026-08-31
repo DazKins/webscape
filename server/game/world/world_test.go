@@ -134,6 +134,40 @@ func TestLoadChunksValidatesWoodcuttableComponents(t *testing.T) {
 	}
 }
 
+func TestLoadChunksValidatesFishableComponents(t *testing.T) {
+	valid := `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1}}`
+	tests := []struct {
+		name     string
+		fishable string
+		want     string
+	}{
+		{name: "not object", fishable: `[]`, want: "fishable must be an object"},
+		{name: "chance zero", fishable: `{"catchChancePercent":0,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "chance over 100", fishable: `{"catchChancePercent":101,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "chance fractional", fishable: `{"catchChancePercent":5.5,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "yield missing", fishable: `{"catchChancePercent":5}`, want: "yield must be an object"},
+		{name: "yield name empty", fishable: `{"catchChancePercent":5,"yield":{"name":" ","type":"fish","count":1}}`, want: "yield.name must be a non-empty string"},
+		{name: "yield type empty", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":" ","count":1}}`, want: "yield.type must be a non-empty string"},
+		{name: "count zero", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":0}}`, want: "yield.count must be a positive integer"},
+		{name: "count fractional", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1.5}}`, want: "yield.count must be a positive integer"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			entities := fmt.Sprintf(`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"spot","components":{"position":{"x":1,"y":0},"fishable":%s}}]`, test.fishable)
+			_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)}))
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+
+	entities := fmt.Sprintf(`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"spot","components":{"position":{"x":1,"y":0},"fishable":%s}}]`, valid)
+	if _, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)})); err != nil {
+		t.Fatalf("valid fishable rejected: %v", err)
+	}
+}
+
 func chunkFS(paths []string, documents map[string]string) fstest.MapFS {
 	quoted := make([]string, len(paths))
 	for i, path := range paths {

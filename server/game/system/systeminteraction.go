@@ -19,12 +19,18 @@ type WoodcuttingStarter interface {
 	StartWoodcuttingFor(playerEntityId model.EntityId, targetEntityId model.EntityId) bool
 }
 
+type FishingStarter interface {
+	StartFishingFor(playerEntityId model.EntityId, targetEntityId model.EntityId) bool
+}
+
 type InteractionSystem struct {
 	SystemBase
+	TickSource          TickSource
 	ConversationStarter ConversationStarter
 	EventEmitter        GameEventEmitter
 	LootHandler         LootHandler
 	WoodcuttingStarter  WoodcuttingStarter
+	FishingStarter      FishingStarter
 }
 
 func (s *InteractionSystem) processInteraction(
@@ -39,7 +45,7 @@ func (s *InteractionSystem) processInteraction(
 	case component.InteractionOptionAttack:
 		// Start combat with the target entity
 		combatState := component.NewCCombatState(interacting.GetTargetEntityId())
-		s.ComponentManager.SetEntityComponent(entityId, combatState)
+		s.entityStateTransitions(s.TickSource).BeginCombat(entityId, combatState)
 
 	case component.InteractionOptionLoot:
 		if s.LootHandler != nil {
@@ -59,6 +65,12 @@ func (s *InteractionSystem) processInteraction(
 	case component.InteractionOptionChop:
 		if s.WoodcuttingStarter == nil ||
 			!s.WoodcuttingStarter.StartWoodcuttingFor(entityId, interacting.GetTargetEntityId()) {
+			return
+		}
+
+	case component.InteractionOptionFish:
+		if s.FishingStarter == nil ||
+			!s.FishingStarter.StartFishingFor(entityId, interacting.GetTargetEntityId()) {
 			return
 		}
 	}
@@ -96,7 +108,7 @@ func (s *InteractionSystem) Update() {
 
 		if targetPositionComponent == nil {
 			// Target no longer exists, cancel interaction
-			s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+			s.entityStateTransitions(s.TickSource).FinishInteraction(entityId)
 			continue
 		}
 
@@ -117,11 +129,16 @@ func (s *InteractionSystem) Update() {
 
 		// Check if in range (1 tile away for interactions)
 		if distance <= 1 {
+			transitions := s.entityStateTransitions(s.TickSource)
+			if !transitions.SettleForInteraction(entityId) {
+				continue
+			}
+
 			// Ready to interact! Process the interaction
 			s.processInteraction(entityId, interacting)
 
 			// Remove the interacting component after processing
-			s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+			transitions.FinishInteraction(entityId)
 		}
 		// If not in range, keep the component and let pathing system handle movement
 	}

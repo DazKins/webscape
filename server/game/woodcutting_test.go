@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -11,7 +12,7 @@ import (
 	"webscape/server/message"
 )
 
-func TestWoodcuttingRollOutcomesAndTwoTickCooldown(t *testing.T) {
+func TestWoodcuttingRollOutcomesFollowPhaseTimeline(t *testing.T) {
 	tests := []struct {
 		name       string
 		roll       int
@@ -34,27 +35,39 @@ func TestWoodcuttingRollOutcomesAndTwoTickCooldown(t *testing.T) {
 			game.update()
 
 			tree := woodcuttableFor(t, game, treeId)
+			assertWoodcuttingPhase(t, game, playerId, component.WoodcuttingPhaseSwinging, 1)
+			if got := tree.GetCurrentDurability(); got != 5 {
+				t.Fatalf("durability on initial swinging tick = %d, want 5", got)
+			}
+			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 0 {
+				t.Fatalf("swing events on initial swinging tick = %d, want 0", got)
+			}
+
+			game.update()
+			assertWoodcuttingPhase(t, game, playerId, component.WoodcuttingPhaseRecovering, 2)
 			if got := tree.GetCurrentDurability(); got != 5-test.wantDamage {
-				t.Fatalf("durability after immediate attempt = %d, want %d", got, 5-test.wantDamage)
+				t.Fatalf("durability after resolved swing = %d, want %d", got, 5-test.wantDamage)
 			}
 			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
-				t.Fatalf("swing signals after immediate attempt = %d, want 1", got)
+				t.Fatalf("resolved swing events = %d, want 1", got)
 			}
 			assertActivityLogContains(t, game, playerId, test.wantLog)
 
 			game.update()
+			assertWoodcuttingPhase(t, game, playerId, component.WoodcuttingPhaseSwinging, 3)
 			if got := tree.GetCurrentDurability(); got != 5-test.wantDamage {
-				t.Fatalf("durability one tick later = %d, want unchanged %d", got, 5-test.wantDamage)
+				t.Fatalf("durability on next swinging tick = %d, want unchanged %d", got, 5-test.wantDamage)
 			}
 			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
-				t.Fatalf("swing signals during cooldown = %d, want 1 total", got)
+				t.Fatalf("swing events during next wind-up = %d, want 1 total", got)
 			}
+
 			game.update()
 			if got := tree.GetCurrentDurability(); got != 5-2*test.wantDamage {
-				t.Fatalf("durability two ticks later = %d, want %d", got, 5-2*test.wantDamage)
+				t.Fatalf("durability after second resolved swing = %d, want %d", got, 5-2*test.wantDamage)
 			}
 			if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 2 {
-				t.Fatalf("swing signals on second attempt = %d, want 2 total", got)
+				t.Fatalf("events after second resolved swing = %d, want 2 total", got)
 			}
 		})
 	}
@@ -91,6 +104,106 @@ func TestWoodcuttingRequiresEquippedAxeAndInventorySpace(t *testing.T) {
 		t.Fatal("woodcutting remained active with a full inventory")
 	}
 	assertActivityLogContains(t, game, playerId, "inventory is full")
+}
+
+func TestWoodcuttingStateReplicatesToObserversAndLateInterest(t *testing.T) {
+	game, treeId := setupWoodcuttingGame(t)
+	sent := map[string][]message.Message{}
+	game.RegisterSender(func(clientId string, msg message.Message) {
+		sent[clientId] = append(sent[clientId], msg)
+	})
+	playerId := joinWoodcutter(t, game, "client-1", "One")
+	joinPlayer(t, game, "client-2", "Two")
+	sent = map[string][]message.Message{}
+
+	game.HandleInteract("client-1", treeId, component.InteractionOptionChop)
+	game.update()
+	for _, clientId := range []string{"client-1", "client-2"} {
+		state, removed, serverTick := woodcuttingUpdateFor(t, sent[clientId], playerId)
+		if removed || state == nil || state.TargetEntityId != treeId.String() ||
+			state.Phase != string(component.WoodcuttingPhaseSwinging) ||
+			state.PhaseStartedTick != 1 || serverTick != 1 {
+			t.Fatalf("woodcutting for %s = %#v removed=%v at tick %d", clientId, state, removed, serverTick)
+		}
+	}
+
+	sent["client-3"] = nil
+	joinPlayer(t, game, "client-3", "Three")
+	state, removed, serverTick := woodcuttingUpdateFor(t, sent["client-3"], playerId)
+	if removed || state == nil || state.Phase != string(component.WoodcuttingPhaseSwinging) ||
+		state.PhaseStartedTick != 1 || serverTick != 1 {
+		t.Fatalf("late woodcutting snapshot = %#v removed=%v at tick %d", state, removed, serverTick)
+	}
+
+	game.woodcuttingSystem.RollSource = func() int { return 0 }
+	for clientId := range sent {
+		sent[clientId] = nil
+	}
+	game.update()
+	for _, clientId := range []string{"client-1", "client-2", "client-3"} {
+		state, removed, serverTick := woodcuttingUpdateFor(t, sent[clientId], playerId)
+		if removed || state == nil || state.Phase != string(component.WoodcuttingPhaseRecovering) ||
+			state.PhaseStartedTick != 2 || serverTick != 2 {
+			t.Fatalf("recovery for %s = %#v removed=%v at tick %d", clientId, state, removed, serverTick)
+		}
+		for _, msg := range sent[clientId] {
+			if msg.Metadata.Type.String() == "woodcuttingSwing" {
+				t.Fatalf("woodcutting swing was projected to %s", clientId)
+			}
+		}
+	}
+}
+
+func TestWoodcuttingCancellationReplicatesTombstoneFromEveryPhase(t *testing.T) {
+	for _, phase := range []component.WoodcuttingPhase{
+		component.WoodcuttingPhaseSwinging,
+		component.WoodcuttingPhaseRecovering,
+	} {
+		t.Run(string(phase), func(t *testing.T) {
+			game, treeId := setupWoodcuttingGame(t)
+			sent := map[string][]message.Message{}
+			game.RegisterSender(func(clientId string, msg message.Message) {
+				sent[clientId] = append(sent[clientId], msg)
+			})
+			playerId := joinWoodcutter(t, game, "client-1", "One")
+			game.woodcuttingSystem.RollSource = func() int { return 0 }
+			game.HandleInteract("client-1", treeId, component.InteractionOptionChop)
+			game.update()
+			if phase == component.WoodcuttingPhaseRecovering {
+				game.update()
+			}
+			assertWoodcuttingPhase(t, game, playerId, phase, game.CurrentTick())
+
+			sent["client-1"] = nil
+			game.HandleMove("client-1", 0, 0)
+			game.update()
+			state, removed, _ := woodcuttingUpdateFor(t, sent["client-1"], playerId)
+			if state != nil || !removed {
+				t.Fatalf("cancellation update = %#v removed=%v, want tombstone", state, removed)
+			}
+		})
+	}
+}
+
+func TestRestartingWoodcuttingStartsFreshSwingingPhase(t *testing.T) {
+	game, treeId := setupWoodcuttingGame(t)
+	playerId := joinWoodcutter(t, game, "client-1", "One")
+	events := recordGameEvents(game)
+	game.woodcuttingSystem.RollSource = func() int { return 0 }
+
+	game.HandleInteract("client-1", treeId, component.InteractionOptionChop)
+	game.update()
+	assertWoodcuttingPhase(t, game, playerId, component.WoodcuttingPhaseSwinging, 1)
+
+	game.HandleInteract("client-1", treeId, component.InteractionOptionChop)
+	if game.componentManager.GetEntityComponent(component.ComponentIdWoodcutting, playerId) != nil {
+		t.Fatal("new interaction did not cancel the existing woodcutting state immediately")
+	}
+	game.update()
+	assertWoodcuttingPhase(t, game, playerId, component.WoodcuttingPhaseSwinging, 2)
+	if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 0 {
+		t.Fatalf("restart emitted %d swing events, want 0", got)
+	}
 }
 
 func TestWoodcuttingCancelsOnMoveUnequipAndInvalidTarget(t *testing.T) {
@@ -179,14 +292,10 @@ func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testin
 	tree := woodcuttableFor(t, game, treeId)
 	tree.SetCurrentDurability(1)
 	game.componentManager.SetEntityComponent(treeId, tree)
-	positionOne := game.componentManager.GetEntityComponent(component.ComponentIdPosition, playerOne).(*component.CPosition)
-	positionTwo := game.componentManager.GetEntityComponent(component.ComponentIdPosition, playerTwo).(*component.CPosition)
-	stateOne := component.NewCWoodcutting(treeId, positionOne.GetPosition())
-	stateOne.SetCooldownRemaining(2)
-	game.componentManager.SetEntityComponent(playerOne, stateOne)
-	game.componentManager.SetEntityComponent(playerTwo, component.NewCWoodcutting(treeId, positionTwo.GetPosition()))
-
-	game.woodcuttingSystem.Update()
+	game.HandleInteract("client-1", treeId, component.InteractionOptionChop)
+	game.HandleInteract("client-2", treeId, component.InteractionOptionChop)
+	game.update()
+	game.update()
 
 	if got := countGameEvents(*events, gameevent.EventIdWoodcuttingSwing); got != 1 {
 		t.Fatalf("felling swing signals = %d, want 1", got)
@@ -194,11 +303,8 @@ func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testin
 	if !tree.IsDepleted() || tree.GetCurrentDurability() != 0 || tree.GetRemainingRespawnTicks() != 60 {
 		t.Fatalf("felled tree state = depleted %v durability %d respawn %d", tree.IsDepleted(), tree.GetCurrentDurability(), tree.GetRemainingRespawnTicks())
 	}
-	if countInventoryItemsByName(game, playerOne, "Logs") != 0 {
-		t.Fatal("non-felling player received Logs")
-	}
-	if countInventoryItemsByName(game, playerTwo, "Logs") != 1 {
-		t.Fatal("felling player did not receive exactly one Logs item")
+	if got := countInventoryItemsByName(game, playerOne, "Logs") + countInventoryItemsByName(game, playerTwo, "Logs"); got != 1 {
+		t.Fatalf("woodcutters received %d Logs items in total, want exactly one", got)
 	}
 	if game.componentManager.GetEntityComponent(component.ComponentIdWoodcutting, playerOne) != nil ||
 		game.componentManager.GetEntityComponent(component.ComponentIdWoodcutting, playerTwo) != nil {
@@ -217,7 +323,11 @@ func TestWoodcuttingSharesDurabilityAttributesFellingAndRegrowsExactly(t *testin
 		t.Fatalf("tree did not regrow at tick 60: %#v", tree.Serialize())
 	}
 	assertHasInteractionOption(t, game.getInteractionOptionsForEntity(treeId), component.InteractionOptionChop)
-	assertActivityLogContains(t, game, playerTwo, "tree has regrown")
+	if countInventoryItemsByName(game, playerOne, "Logs") == 1 {
+		assertActivityLogContains(t, game, playerOne, "tree has regrown")
+	} else {
+		assertActivityLogContains(t, game, playerTwo, "tree has regrown")
+	}
 }
 
 func recordGameEvents(game *Game) *[]gameevent.Event {
@@ -301,6 +411,84 @@ func woodcuttableFor(t *testing.T, game *Game, treeId model.EntityId) *component
 		t.Fatal("tree has no woodcuttable component")
 	}
 	return value.(*component.CWoodcuttable)
+}
+
+type serializedWoodcuttingState struct {
+	TargetEntityId   string `json:"targetEntityId"`
+	Phase            string `json:"phase"`
+	PhaseStartedTick uint64 `json:"phaseStartedTick"`
+}
+
+func woodcuttingUpdateFor(
+	t *testing.T,
+	messages []message.Message,
+	entityId model.EntityId,
+) (*serializedWoodcuttingState, bool, uint64) {
+	t.Helper()
+	var result *serializedWoodcuttingState
+	removed := false
+	var serverTick uint64
+	for _, msg := range messages {
+		if msg.Metadata.Type != message.MessageTypeGameUpdate {
+			continue
+		}
+		var payload struct {
+			Data struct {
+				ServerTick uint64 `json:"serverTick"`
+				Entities   []struct {
+					EntityId    string          `json:"entityId"`
+					ComponentId string          `json:"componentId"`
+					Data        json.RawMessage `json:"data"`
+				} `json:"entities"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal([]byte(msg.Marshal()), &payload); err != nil {
+			t.Fatal(err)
+		}
+		for _, update := range payload.Data.Entities {
+			if update.EntityId != entityId.String() ||
+				update.ComponentId != component.ComponentIdWoodcutting.String() {
+				continue
+			}
+			serverTick = payload.Data.ServerTick
+			if string(update.Data) == "null" {
+				result = nil
+				removed = true
+				continue
+			}
+			state := &serializedWoodcuttingState{}
+			if err := json.Unmarshal(update.Data, state); err != nil {
+				t.Fatal(err)
+			}
+			result = state
+			removed = false
+		}
+	}
+	return result, removed, serverTick
+}
+
+func assertWoodcuttingPhase(
+	t *testing.T,
+	game *Game,
+	entityId model.EntityId,
+	wantPhase component.WoodcuttingPhase,
+	wantStartedTick uint64,
+) {
+	t.Helper()
+	value := game.componentManager.GetEntityComponent(component.ComponentIdWoodcutting, entityId)
+	if value == nil {
+		t.Fatal("player has no woodcutting state")
+	}
+	woodcutting := value.(*component.CWoodcutting)
+	if woodcutting.GetPhase() != wantPhase || woodcutting.GetPhaseStartedTick() != wantStartedTick {
+		t.Fatalf(
+			"woodcutting = %q at tick %d, want %q at tick %d",
+			woodcutting.GetPhase(),
+			woodcutting.GetPhaseStartedTick(),
+			wantPhase,
+			wantStartedTick,
+		)
+	}
 }
 
 func assertActivityLogContains(t *testing.T, game *Game, playerId model.EntityId, want string) {

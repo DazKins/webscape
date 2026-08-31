@@ -100,6 +100,16 @@ func TestCreateAuthoredEntityParsesRandomWalkMaxDistanceAndOrigin(t *testing.T) 
 	if randomWalk.GetMaxDistance() != 6 {
 		t.Fatalf("maxDistance = %d, want 6", randomWalk.GetMaxDistance())
 	}
+	var locomotion *component.CLocomotion
+	for _, value := range components {
+		if candidate, ok := value.(*component.CLocomotion); ok {
+			locomotion = candidate
+			break
+		}
+	}
+	if locomotion == nil || locomotion.GetPhase() != component.LocomotionPhaseIdle {
+		t.Fatalf("random-walking entity locomotion = %#v, want idle state", locomotion)
+	}
 	if !randomWalk.HasOrigin() {
 		t.Fatal("randomwalk origin was not set")
 	}
@@ -143,6 +153,42 @@ func TestCreateAuthoredEntityParsesWoodcuttableComponent(t *testing.T) {
 		serialized["depleted"] != util.JBool(false) ||
 		serialized["remainingRespawnTicks"] != util.JNumber(0) {
 		t.Fatalf("serialized woodcuttable = %#v", serialized)
+	}
+}
+
+func TestCreateAuthoredEntityParsesFishableComponent(t *testing.T) {
+	components := CreateAuthoredEntity(world.WorldEntity{
+		Id: "fishing_spot_001",
+		Components: map[string]any{
+			"position": map[string]any{"x": 1, "y": 2},
+			"fishable": map[string]any{
+				"catchChancePercent": 5,
+				"yield": map[string]any{
+					"name": "Raw Fish", "type": "fish", "count": 2,
+				},
+			},
+		},
+	})
+
+	var fishable *component.CFishable
+	for _, comp := range components {
+		if candidate, ok := comp.(*component.CFishable); ok {
+			fishable = candidate
+			break
+		}
+	}
+	if fishable == nil {
+		t.Fatal("fishable component was not created")
+	}
+	if fishable.GetCatchChancePercent() != 5 {
+		t.Fatalf("catch chance = %d, want 5", fishable.GetCatchChancePercent())
+	}
+	yield := fishable.GetYield()
+	if yield.Name != "Raw Fish" || yield.Type != "fish" || yield.Count != 2 {
+		t.Fatalf("yield = %#v", yield)
+	}
+	if _, ok := any(fishable).(component.SerializeableComponent); ok {
+		t.Fatal("fishable authored configuration must not be replicated as mutable state")
 	}
 }
 

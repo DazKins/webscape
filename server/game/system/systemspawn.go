@@ -8,6 +8,7 @@ import (
 
 type SpawnSystem struct {
 	SystemBase
+	TickSource TickSource
 }
 
 func (s *SpawnSystem) Update() {
@@ -60,6 +61,14 @@ func (s *SpawnSystem) spawnChild(spawn *component.CSpawn) {
 		Id:         spawn.GetChildTemplateEntityId(),
 		Components: templateComponents,
 	})
+	for index, value := range components {
+		if value.GetId() == component.ComponentIdLocomotion {
+			components[index] = component.NewCLocomotion(
+				component.LocomotionPhaseIdle,
+				currentTick(s.TickSource),
+			)
+		}
+	}
 	childEntityId := s.ComponentManager.CreateNewEntity(components...)
 	spawn.SetChildEntityId(childEntityId)
 	spawn.SetRemainingRespawnTicks(0)

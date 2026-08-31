@@ -17,6 +17,7 @@ type CombatSystem struct {
 	World        *world.World
 	SpatialIndex SpatialCandidates
 	EventEmitter GameEventEmitter
+	TickSource   TickSource
 }
 
 func (s *CombatSystem) Update() {
@@ -233,9 +234,7 @@ func (s *CombatSystem) ensureCombatStats(entityId model.EntityId) *component.CCo
 }
 
 func (s *CombatSystem) clearCombatState(entityId model.EntityId) {
-	s.ComponentManager.RemoveComponent(component.ComponentIdCombatState, entityId)
-	s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
-	s.ComponentManager.RemoveComponent(component.ComponentIdInteracting, entityId)
+	s.entityStateTransitions(s.TickSource).EndCombat(entityId)
 }
 
 func (s *CombatSystem) setPathingToEntity(entityId model.EntityId, targetId model.EntityId) {
@@ -259,6 +258,7 @@ func (s *CombatSystem) stepOutFromTarget(attackerId model.EntityId, targetPositi
 			continue
 		}
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, attackerId).(*component.CPosition)
+		s.entityStateTransitions(s.TickSource).BeginMoving(attackerId)
 		positionComponent.SetPosition(candidate)
 		s.ComponentManager.SetEntityComponent(attackerId, positionComponent)
 		return true
