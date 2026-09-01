@@ -24,6 +24,10 @@ type InventoryItem = {
     critBonus: number;
     range: number;
     attackSpeedTicks: number;
+    attackMethod: string;
+    windUpTicks: number;
+    travelTicks: number;
+    projectileType: string;
   };
 };
 
@@ -31,6 +35,7 @@ type ItemIconKind =
   | "weapon"
   | "axe"
   | "fishingRod"
+  | "magicStaff"
   | "fish"
   | "helmet"
   | "armor"
@@ -83,6 +88,16 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
       <circle cx="45" cy="57" r="10" fill="none" stroke="#9ba8ae" stroke-width="5"/>
       <circle cx="45" cy="57" r="3" fill="#e4e9eb"/>
       <path d="M22 82 31 71" stroke="#4d3020" stroke-width="10" stroke-linecap="round"/>
+    `,
+  },
+  magicStaff: {
+    background: "#253143",
+    glow: "#9eeeff",
+    shape: `
+      <path d="M25 82 66 18" stroke="#6f482b" stroke-width="9" stroke-linecap="round"/>
+      <path d="M59 28c8 0 14-5 16-13" fill="none" stroke="#8b5d35" stroke-width="7" stroke-linecap="round"/>
+      <path d="M65 19 76 10 84 22 73 33 61 29Z" fill="#c9f4ff"/>
+      <circle cx="73" cy="22" r="7" fill="#f1fdff"/>
     `,
   },
   fish: {
@@ -235,6 +250,7 @@ const itemIconSrcCache = new Map<ItemIconKind, string>();
 
 function getItemIconKind(item: InventoryItem): ItemIconKind {
   const name = item.name.toLowerCase();
+  if (item.renderModel === "magicStaff") return "magicStaff";
   if (item.type === "axe") return "axe";
   if (item.type === "fishingRod") return "fishingRod";
   if (item.type === "fish") return "fish";

@@ -1,3 +1,4 @@
+import type * as THREE from "three";
 import {
   createModel,
   isModelName,
@@ -50,6 +51,10 @@ export default class EquipmentAttachmentController {
     for (const slot of [...this.attachments.keys()]) {
       this.remove(slot);
     }
+  }
+
+  getAttachmentObject(slot: string): THREE.Object3D | undefined {
+    return this.attachments.get(slot)?.modelInstance.root;
   }
 
   private sync(slot: string, item: EquippedItem | null): void {

@@ -311,8 +311,8 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 		t.Fatal("overflow rewards did not spawn a reward drop")
 	}
 	lootable := game.componentManager.GetEntityComponent(component.ComponentIdLootable, rewardDropEntityId).(*component.CLootable)
-	if lootable.ItemCount() != 7 {
-		t.Fatalf("reward drop item count = %d, want 7", lootable.ItemCount())
+	if lootable.ItemCount() != 8 {
+		t.Fatalf("reward drop item count = %d, want 8", lootable.ItemCount())
 	}
 	metadata := game.componentManager.GetEntityComponent(component.ComponentIdMetadata, rewardDropEntityId)
 	if metadata == nil {
@@ -323,11 +323,11 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 	if len(completion.Rewards) != 2 {
 		t.Fatalf("questCompleted rewards = %#v, want inventory and dropped entries", completion.Rewards)
 	}
-	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != 13 {
-		t.Fatalf("inventory reward delivery = %#v, want 13 inventory", completion.Rewards[0])
+	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != 12 {
+		t.Fatalf("inventory reward delivery = %#v, want 12 inventory", completion.Rewards[0])
 	}
-	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != 7 {
-		t.Fatalf("dropped reward delivery = %#v, want 7 dropped", completion.Rewards[1])
+	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != 8 {
+		t.Fatalf("dropped reward delivery = %#v, want 8 dropped", completion.Rewards[1])
 	}
 }
 

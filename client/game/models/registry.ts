@@ -11,6 +11,7 @@ import { createTreeModel } from "./definitions/tree";
 import { createWoodcuttingAxeModel } from "./definitions/woodcuttingAxe";
 import { createFishingRodModel } from "./definitions/fishingRod";
 import { createFishingSpotModel } from "./definitions/fishingSpot";
+import { createMagicStaffModel } from "./definitions/magicStaff";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 
 export const modelRegistry = {
@@ -27,6 +28,7 @@ export const modelRegistry = {
   building: createBuildingModel,
   rewarddrop: createRewardDropModel,
   fishingSpot: createFishingSpotModel,
+  magicStaff: createMagicStaffModel,
 } satisfies Record<string, ModelFactory>;
 
 export type ModelName = keyof typeof modelRegistry;

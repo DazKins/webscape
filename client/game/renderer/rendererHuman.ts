@@ -42,6 +42,7 @@ export default class RendererHuman extends EntityRenderer {
   private previousFishingPhaseKey: string | null = null;
   private previousWoodcuttingPhaseKey: string | null = null;
   private previousLocomotionPhaseKey: string | null = null;
+  private previousCombatPhaseKey: string | null = null;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
   private readonly getEstimatedServerTick: () => number;
 
@@ -118,6 +119,8 @@ export default class RendererHuman extends EntityRenderer {
       const isWoodcutting = this.updateWoodcuttingAnimation();
       if (isWoodcutting) {
         this.previousLocomotionPhaseKey = null;
+      } else if (this.updateCombatAnimation()) {
+        this.previousLocomotionPhaseKey = null;
       } else if (this.attackAnimationSecondsRemaining > 0) {
         this.previousLocomotionPhaseKey = null;
         this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
@@ -145,6 +148,16 @@ export default class RendererHuman extends EntityRenderer {
   playAttackAnimation() {
     this.attackAnimationSecondsRemaining = HUMAN_ATTACK_ANIMATION_SECONDS;
     this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
+  }
+
+  getProjectileOrigin(projectileType: string): THREE.Vector3 | null {
+    if (projectileType !== "magicBolt") {
+      return null;
+    }
+    const crown = this.equipmentAttachments
+      .getAttachmentObject("weapon")
+      ?.getObjectByName("magicStaffCrown");
+    return crown?.getWorldPosition(new THREE.Vector3()) ?? null;
   }
 
   onRemove() {
@@ -193,6 +206,38 @@ export default class RendererHuman extends EntityRenderer {
     } else {
       this.modelInstance.play(animationName, HUMAN_ANIMATION_FADE_SECONDS);
     }
+  }
+
+  private updateCombatAnimation(): boolean {
+    const combat = this.entity.getComponent("combatstate");
+    if (
+      typeof combat !== "object" || combat === null ||
+      combat.attackMethod !== "magic" ||
+      (combat.phase !== "casting" && combat.phase !== "recovering") ||
+      typeof combat.phaseStartedTick !== "number"
+    ) {
+      this.previousCombatPhaseKey = null;
+      return false;
+    }
+
+    const phaseAgeTicks = Math.max(
+      0,
+      this.getEstimatedServerTick() - combat.phaseStartedTick,
+    );
+    const windUpTicks = typeof combat.windUpTicks === "number"
+      ? Math.max(1, combat.windUpTicks)
+      : 2;
+    const normalizedTime = combat.phase === "casting"
+      ? Math.min(2 / 3, (phaseAgeTicks / windUpTicks) * (2 / 3))
+      : Math.min(1, 2 / 3 + phaseAgeTicks / 3);
+    const phaseKey = `${combat.phase}:${combat.phaseStartedTick}`;
+    if (phaseKey !== this.previousCombatPhaseKey) {
+      this.modelInstance.playAt("cast", normalizedTime, HUMAN_ANIMATION_FADE_SECONDS);
+      this.previousCombatPhaseKey = phaseKey;
+    } else {
+      this.modelInstance.playAt("cast", normalizedTime);
+    }
+    return true;
   }
 
   private locomotionPhase(locomotion: unknown): "idle" | "moving" | null {

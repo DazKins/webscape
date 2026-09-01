@@ -12,6 +12,7 @@ func CreateIronSword() *Item {
 		CritBonus:        0.05,
 		Range:            1,
 		AttackSpeedTicks: 2,
+		AttackMethod:     AttackMethodMelee,
 	})
 }
 
@@ -24,6 +25,7 @@ func CreateWoodcuttingAxe() *Item {
 		CritBonus:        0.02,
 		Range:            1,
 		AttackSpeedTicks: 3,
+		AttackMethod:     AttackMethodMelee,
 	})
 }
 
@@ -40,6 +42,7 @@ func CreateWoodenBow() *Item {
 		CritBonus:        0.03,
 		Range:            3,
 		AttackSpeedTicks: 3,
+		AttackMethod:     AttackMethodMelee,
 	})
 }
 
@@ -50,8 +53,12 @@ func CreateMagicStaff() *Item {
 		AccuracyBonus:    4,
 		ArmorBonus:       0,
 		CritBonus:        0.08,
-		Range:            2,
+		Range:            4,
 		AttackSpeedTicks: 3,
+		AttackMethod:     AttackMethodMagic,
+		WindUpTicks:      2,
+		TravelTicks:      1,
+		ProjectileType:   "magicBolt",
 	})
 }
 

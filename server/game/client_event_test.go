@@ -6,6 +6,7 @@ import (
 	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
+	servermath "webscape/server/math"
 	"webscape/server/message"
 )
 
@@ -41,6 +42,20 @@ func TestClientEventsAreProjectedToInterestedClients(t *testing.T) {
 	game.flushPendingClientEvents()
 	assertOnlyMessageType(t, sent["near-client"], message.MessageTypeCombatResolved)
 	assertOnlyMessageType(t, sent["far-client"], message.MessageTypeCombatResolved)
+
+	sent = map[string][]message.Message{}
+	game.EmitGameEvent(gameevent.NewCombatProjectileLaunched(
+		nearPlayerId,
+		farPlayerId,
+		"magicBolt",
+		servermath.Vec2{X: 0, Y: 0},
+		servermath.Vec2{X: 4, Y: 0},
+		10,
+		11,
+	))
+	game.flushPendingClientEvents()
+	assertOnlyMessageType(t, sent["near-client"], message.MessageTypeCombatProjectileLaunched)
+	assertOnlyMessageType(t, sent["far-client"], message.MessageTypeCombatProjectileLaunched)
 }
 
 func TestClientEventsAreSentAfterStateUpdates(t *testing.T) {

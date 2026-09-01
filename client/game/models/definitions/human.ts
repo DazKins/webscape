@@ -22,6 +22,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   const leftElbow = joint("leftElbow", leftShoulder, [0, -0.28, 0]);
   const rightElbow = joint("rightElbow", rightShoulder, [0, -0.28, 0]);
   const rightHand = joint("rightHand", rightElbow, [0, -0.25, 0]);
+  const leftHand = joint("leftHand", leftElbow, [0, -0.25, 0]);
   const leftHip = joint("leftHip", hips, [0.105, -0.07, 0]);
   const rightHip = joint("rightHip", hips, [-0.105, -0.07, 0]);
   const leftKnee = joint("leftKnee", leftHip, [0, -0.26, 0]);
@@ -93,6 +94,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     leftElbow,
     rightElbow,
     rightHand,
+    leftHand,
     leftHip,
     rightHip,
     leftKnee,
@@ -157,6 +159,28 @@ export const createHumanModel: ModelFactory = (options = {}) => {
       rightShoulder: { rotation: [shoulderSwing, 0, 0.12] },
       rightElbow: { rotation: [elbowBend, 0, 0] },
       leftShoulder: { rotation: [-0.12 * strike, 0, -0.04] },
+    };
+  });
+
+  const cast = animation("cast", 1.5, false, (phase): ModelPose => {
+    const gather = THREE.MathUtils.smoothstep(phase, 0, 0.45);
+    const release = THREE.MathUtils.smoothstep(phase, 0.45, 2 / 3);
+    const recover = THREE.MathUtils.smoothstep(phase, 2 / 3, 1);
+    const intensity = Math.max(gather, release) * (1 - recover);
+    return {
+      hips: { rotation: [-0.035 * intensity, 0, 0] },
+      torso: { rotation: [-0.08 * intensity, -0.08 * intensity, 0] },
+      head: { rotation: [0.07 * intensity, 0.05 * intensity, 0] },
+      rightShoulder: {
+        rotation: [-1.12 * intensity, 0.12 * intensity, 0.22 * intensity],
+      },
+      rightElbow: { rotation: [-0.72 * intensity, 0, 0] },
+      rightHand: { rotation: [-0.22 * intensity, 0, 0.16 * intensity] },
+      leftShoulder: {
+        rotation: [-0.82 * intensity, -0.12 * intensity, -0.34 * intensity],
+      },
+      leftElbow: { rotation: [-1.0 * intensity, 0, 0] },
+      leftHand: { rotation: [0.15 * intensity, 0, -0.2 * intensity] },
     };
   });
 
@@ -272,6 +296,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     idle,
     run,
     attack,
+    cast,
     chop,
     fishWait,
     fishAction,

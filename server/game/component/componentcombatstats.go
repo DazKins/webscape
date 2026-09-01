@@ -1,6 +1,9 @@
 package component
 
-import "webscape/server/util"
+import (
+	"webscape/server/game/model"
+	"webscape/server/util"
+)
 
 const ComponentIdBaseStats = ComponentId("basestats")
 const ComponentIdCombatStats = ComponentId("combatstats")
@@ -65,6 +68,10 @@ type CCombatStats struct {
 	critMultiplier   float64
 	attackRange      int
 	attackSpeedTicks int
+	attackMethod     model.AttackMethod
+	windUpTicks      int
+	travelTicks      int
+	projectileType   string
 }
 
 func NewCCombatStats(
@@ -88,6 +95,7 @@ func NewCCombatStats(
 		critMultiplier:   critMultiplier,
 		attackRange:      attackRange,
 		attackSpeedTicks: attackSpeedTicks,
+		attackMethod:     model.AttackMethodMelee,
 	}
 }
 
@@ -106,6 +114,10 @@ func (c *CCombatStats) Serialize() util.Json {
 		"critMultiplier":   util.JNumber(c.critMultiplier),
 		"attackRange":      util.JNumber(c.attackRange),
 		"attackSpeedTicks": util.JNumber(c.attackSpeedTicks),
+		"attackMethod":     util.JString(string(c.attackMethod)),
+		"windUpTicks":      util.JNumber(c.windUpTicks),
+		"travelTicks":      util.JNumber(c.travelTicks),
+		"projectileType":   util.JString(c.projectileType),
 	})
 }
 
@@ -179,4 +191,32 @@ func (c *CCombatStats) GetAttackSpeedTicks() int {
 
 func (c *CCombatStats) SetAttackSpeedTicks(attackSpeedTicks int) {
 	c.attackSpeedTicks = attackSpeedTicks
+}
+
+func (c *CCombatStats) GetAttackMethod() model.AttackMethod {
+	if c.attackMethod == "" {
+		return model.AttackMethodMelee
+	}
+	return c.attackMethod
+}
+
+func (c *CCombatStats) GetWindUpTicks() int { return c.windUpTicks }
+
+func (c *CCombatStats) GetTravelTicks() int { return c.travelTicks }
+
+func (c *CCombatStats) GetProjectileType() string { return c.projectileType }
+
+func (c *CCombatStats) SetAttackProfile(
+	attackMethod model.AttackMethod,
+	windUpTicks int,
+	travelTicks int,
+	projectileType string,
+) {
+	if attackMethod == "" {
+		attackMethod = model.AttackMethodMelee
+	}
+	c.attackMethod = attackMethod
+	c.windUpTicks = max(0, windUpTicks)
+	c.travelTicks = max(0, travelTicks)
+	c.projectileType = projectileType
 }

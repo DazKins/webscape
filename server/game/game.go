@@ -83,6 +83,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatProjectileLaunched, clientHandler)
 
 	game.loadWorldEntities()
 	game.spatialIndex = spatial.NewIndex(world, game.componentManager)
@@ -121,18 +122,20 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	})
 	game.RegisterSystem(woodcuttingSystem)
 	game.RegisterSystem(fishingSystem)
-	game.RegisterSystem(&system.CombatSystem{
+	combatSystem := &system.CombatSystem{
 		SystemBase: systemBase,
 		World:      world, SpatialIndex: game.spatialIndex,
 		EventEmitter: game, TickSource: game,
-	})
+	}
+	game.RegisterSystem(combatSystem)
 	game.RegisterSystem(&system.RandomWalkSystem{
 		SystemBase: systemBase,
 		World:      world, SpatialIndex: game.spatialIndex, TickSource: game,
 	})
 	game.RegisterSystem(&system.HealthSystem{
-		SystemBase: systemBase,
-		TickSource: game,
+		SystemBase:              systemBase,
+		TickSource:              game,
+		CombatImpactInvalidator: combatSystem,
 	})
 	game.RegisterSystem(&system.LocomotionSystem{
 		SystemBase: systemBase,
@@ -281,6 +284,7 @@ func isHighFrequencyEvent(eventId string) bool {
 	switch eventId {
 	case gameevent.EventIdChatSpoken,
 		gameevent.EventIdCombatResolved,
+		gameevent.EventIdCombatProjectileLaunched,
 		gameevent.EventIdWoodcuttingSwing:
 		return true
 	default:
@@ -431,6 +435,22 @@ func (g *Game) handleClientEvent(event gameevent.Event) {
 			payload.DidHit,
 			payload.Damage,
 			payload.IsCritical,
+			payload.AttackMethod,
+		)
+	case gameevent.EventIdCombatProjectileLaunched:
+		payload, ok := event.Payload.(gameevent.CombatProjectileLaunchedPayload)
+		if !ok {
+			return
+		}
+		entityIDs = append(entityIDs, event.TargetEntityId)
+		clientMessage = message.NewCombatProjectileLaunchedMessage(
+			event.ActorEntityId,
+			event.TargetEntityId,
+			payload.ProjectileType,
+			payload.Origin,
+			payload.TargetPosition,
+			payload.LaunchTick,
+			payload.ImpactTick,
 		)
 	default:
 		return
@@ -1137,6 +1157,7 @@ func (g *Game) HandleEquip(clientID string, itemId model.ItemId) {
 
 	combatStats := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
 	g.componentManager.SetEntityComponent(entityId, combatStats)
+	g.restartCombatAfterWeaponChange(entityId, slot, combatStats)
 }
 
 func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
@@ -1171,6 +1192,24 @@ func (g *Game) HandleUnequip(clientID string, slot model.EquipmentSlot) {
 
 	combatStats := component.CalculateCombatStats(baseStatsComponent, equippedComponent)
 	g.componentManager.SetEntityComponent(entityId, combatStats)
+	g.restartCombatAfterWeaponChange(entityId, slot, combatStats)
+}
+
+func (g *Game) restartCombatAfterWeaponChange(
+	entityId model.EntityId,
+	slot model.EquipmentSlot,
+	combatStats *component.CCombatStats,
+) {
+	if slot != model.SlotWeapon {
+		return
+	}
+	value := g.componentManager.GetEntityComponent(component.ComponentIdCombatState, entityId)
+	if value == nil {
+		return
+	}
+	combatState := value.(*component.CCombatState)
+	combatState.Restart(combatStats, g.currentTick)
+	g.componentManager.SetEntityComponent(entityId, combatState)
 }
 
 func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []component.InteractionOption {

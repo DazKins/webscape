@@ -2,12 +2,18 @@ package system
 
 import (
 	"webscape/server/game/component"
+	"webscape/server/game/model"
 	"webscape/server/math"
 )
 
 type HealthSystem struct {
 	SystemBase
-	TickSource TickSource
+	TickSource              TickSource
+	CombatImpactInvalidator CombatImpactInvalidator
+}
+
+type CombatImpactInvalidator interface {
+	HandleEntityDeath(entityId model.EntityId)
 }
 
 func (s *HealthSystem) Update() {
@@ -18,6 +24,9 @@ func (s *HealthSystem) Update() {
 
 		// If health is zero or below, mark entity for removal
 		if healthComponent.GetCurrentHealth() <= 0 {
+			if s.CombatImpactInvalidator != nil {
+				s.CombatImpactInvalidator.HandleEntityDeath(entityId)
+			}
 			if s.ComponentManager.GetEntityComponent(component.ComponentIdPlayer, entityId) != nil {
 				healthComponent.SetCurrentHealth(healthComponent.GetMaxHealth())
 				s.ComponentManager.SetEntityComponent(entityId, healthComponent)

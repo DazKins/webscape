@@ -14,6 +14,7 @@ import RendererRewardDrop from "./renderer/rendererRewardDrop";
 import RendererRat from "./renderer/rendererRat";
 import RendererFishingSpot from "./renderer/rendererFishingSpot";
 import type { TerrainHeightSampler } from "./renderer/renderer";
+import RendererMagicBolt from "./renderer/rendererMagicBolt";
 
 type VisualHeightWorld = {
   getVisualHeightAtWorldPosition(worldX: number, worldZ: number): number;
@@ -51,6 +52,24 @@ type RecentCombatAnchor = {
   expiresAt: number;
 };
 
+export type CombatProjectileLaunchedPayload = {
+  attackerEntityId: string;
+  targetEntityId: string;
+  projectileType: string;
+  origin: { x: number; y: number };
+  targetPosition: { x: number; y: number };
+  launchTick: number;
+  impactTick: number;
+};
+
+type ActiveCombatProjectile = {
+  renderer: RendererMagicBolt;
+  targetEntityId: string;
+  fallbackTarget: THREE.Vector3;
+  launchTick: number;
+  impactTick: number;
+};
+
 const CHAT_DISPLAY_MILLISECONDS = 5000;
 const COMBAT_TEXT_DISPLAY_MILLISECONDS = 2000;
 const EFFECT_RETRY_MILLISECONDS = 1000;
@@ -69,6 +88,7 @@ export default class EntityRenderSystem {
   private pendingChatEffects = new Map<string, PendingChatEffect>();
   private pendingCombatEffects: PendingCombatEffect[] = [];
   private recentCombatAnchors = new Map<string, RecentCombatAnchor>();
+  private combatProjectiles = new Set<ActiveCombatProjectile>();
 
   constructor(
     scene: THREE.Scene,
@@ -153,6 +173,7 @@ export default class EntityRenderSystem {
 
     this.flushPendingEffects();
     this.expireRecentCombatAnchors();
+    this.updateCombatProjectiles();
   }
 
   getRenderers(): Record<string, EntityRenderer | null> {
@@ -176,6 +197,7 @@ export default class EntityRenderSystem {
     didHit: boolean,
     damage: number,
     isCritical: boolean,
+    attackMethod: string = "melee",
   ) {
     const pending: PendingCombatEffect = {
       attackerEntityId,
@@ -183,13 +205,31 @@ export default class EntityRenderSystem {
       didHit,
       damage,
       isCritical,
-      attackPlayed: false,
+      attackPlayed: attackMethod === "magic",
       textShown: false,
       expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
     };
     if (!this.tryShowCombatResult(pending)) {
       this.pendingCombatEffects.push(pending);
     }
+  }
+
+  showCombatProjectile(payload: CombatProjectileLaunchedPayload) {
+    if (payload.projectileType !== "magicBolt" || payload.impactTick <= payload.launchTick) {
+      return;
+    }
+    const authoritativeOrigin = this.worldPosition(payload.origin, 1.1);
+    const start = this.renderers[payload.attackerEntityId]
+      ?.getProjectileOrigin(payload.projectileType) ?? authoritativeOrigin;
+    const projectile: ActiveCombatProjectile = {
+      renderer: new RendererMagicBolt(this.effectsRoot, start),
+      targetEntityId: payload.targetEntityId,
+      fallbackTarget: this.worldPosition(payload.targetPosition, 1.0),
+      launchTick: payload.launchTick,
+      impactTick: payload.impactTick,
+    };
+    this.combatProjectiles.add(projectile);
+    this.updateCombatProjectile(projectile);
   }
 
   clearTransientEffects() {
@@ -202,6 +242,10 @@ export default class EntityRenderSystem {
     this.pendingChatEffects.clear();
     this.pendingCombatEffects = [];
     this.recentCombatAnchors.clear();
+    for (const projectile of this.combatProjectiles) {
+      projectile.renderer.dispose();
+    }
+    this.combatProjectiles.clear();
   }
 
   private clearTransientEffectsFor(entityId: string) {
@@ -325,5 +369,35 @@ export default class EntityRenderSystem {
     window.clearTimeout(effect.timeoutId);
     effect.effect.dispose();
     this.combatEffects.delete(effect);
+  }
+
+  private updateCombatProjectiles() {
+    for (const projectile of [...this.combatProjectiles]) {
+      this.updateCombatProjectile(projectile);
+    }
+  }
+
+  private updateCombatProjectile(projectile: ActiveCombatProjectile) {
+    const tick = this.getEstimatedServerTick();
+    if (tick >= projectile.impactTick) {
+      projectile.renderer.dispose();
+      this.combatProjectiles.delete(projectile);
+      return;
+    }
+    const duration = projectile.impactTick - projectile.launchTick;
+    const progress = THREE.MathUtils.clamp((tick - projectile.launchTick) / duration, 0, 1);
+    const targetObject = this.renderers[projectile.targetEntityId]?.getObject3D();
+    const target = targetObject
+      ? targetObject.localToWorld(new THREE.Vector3(0.5, 1.0, 0.5))
+      : projectile.fallbackTarget;
+    projectile.renderer.update(progress, target);
+  }
+
+  private worldPosition(position: { x: number; y: number }, heightOffset: number) {
+    return new THREE.Vector3(
+      position.x + 0.5,
+      this.sampleVisualHeight(position.x + 0.5, position.y + 0.5) + heightOffset,
+      position.y + 0.5,
+    );
   }
 }

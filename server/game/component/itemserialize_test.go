@@ -44,3 +44,25 @@ func TestSerializeFishingRodIdentityWithoutCombatStats(t *testing.T) {
 		t.Fatal("serialized fishing rod includes combat bonuses")
 	}
 }
+
+func TestSerializeMagicStaffCombatProfile(t *testing.T) {
+	serialized := SerializeItem(model.CreateMagicStaff()).(util.JObject)
+	stats := serialized["combatStats"].(util.JObject)
+	if stats["attackMethod"] != util.JString("magic") ||
+		stats["windUpTicks"] != util.JNumber(2) ||
+		stats["travelTicks"] != util.JNumber(1) ||
+		stats["projectileType"] != util.JString("magicBolt") ||
+		stats["range"] != util.JNumber(4) {
+		t.Fatalf("serialized magic staff combat stats = %#v", stats)
+	}
+}
+
+func TestSerializeExistingWeaponDefaultsToMeleeProfile(t *testing.T) {
+	serialized := SerializeItem(model.CreateIronSword()).(util.JObject)
+	stats := serialized["combatStats"].(util.JObject)
+	if stats["attackMethod"] != util.JString("melee") ||
+		stats["windUpTicks"] != util.JNumber(0) ||
+		stats["travelTicks"] != util.JNumber(0) {
+		t.Fatalf("serialized sword combat profile = %#v", stats)
+	}
+}

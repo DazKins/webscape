@@ -127,8 +127,14 @@ func (s *InteractionSystem) Update() {
 		}
 		distance := dx + dy
 
-		// Check if in range (1 tile away for interactions)
-		if distance <= 1 {
+		interactionRange := 1
+		if interacting.GetOption() == component.InteractionOptionAttack {
+			if stats := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); stats != nil {
+				interactionRange = max(1, stats.(*component.CCombatStats).GetAttackRange())
+			}
+		}
+
+		if distance <= interactionRange {
 			transitions := s.entityStateTransitions(s.TickSource)
 			if !transitions.SettleForInteraction(entityId) {
 				continue

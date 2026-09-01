@@ -18,6 +18,10 @@ func SerializeItem(item *model.Item) util.Json {
 		itemObj["equipmentSlot"] = util.JString(string(*item.EquipmentSlot))
 	}
 	if item.CombatStats != nil {
+		attackMethod := item.CombatStats.AttackMethod
+		if attackMethod == "" {
+			attackMethod = model.AttackMethodMelee
+		}
 		itemObj["combatStats"] = util.JObject(map[string]util.Json{
 			"minDamage":        util.JNumber(item.CombatStats.MinDamage),
 			"maxDamage":        util.JNumber(item.CombatStats.MaxDamage),
@@ -26,6 +30,10 @@ func SerializeItem(item *model.Item) util.Json {
 			"critBonus":        util.JNumber(item.CombatStats.CritBonus),
 			"range":            util.JNumber(item.CombatStats.Range),
 			"attackSpeedTicks": util.JNumber(item.CombatStats.AttackSpeedTicks),
+			"attackMethod":     util.JString(string(attackMethod)),
+			"windUpTicks":      util.JNumber(item.CombatStats.WindUpTicks),
+			"travelTicks":      util.JNumber(item.CombatStats.TravelTicks),
+			"projectileType":   util.JString(item.CombatStats.ProjectileType),
 		})
 	}
 	return itemObj

@@ -16,6 +16,10 @@ func CalculateCombatStats(base *CBaseStats, equipped *CEquipped) *CCombatStats {
 	critMultiplier := 1.5
 	attackRange := 1
 	attackSpeedTicks := 2
+	attackMethod := model.AttackMethodMelee
+	windUpTicks := 0
+	travelTicks := 0
+	projectileType := ""
 
 	if equipped != nil {
 		for slot, item := range equipped.GetAllEquippedItems() {
@@ -35,6 +39,12 @@ func CalculateCombatStats(base *CBaseStats, equipped *CEquipped) *CCombatStats {
 				if stats.AttackSpeedTicks > 0 {
 					attackSpeedTicks = stats.AttackSpeedTicks
 				}
+				if stats.AttackMethod != "" {
+					attackMethod = stats.AttackMethod
+				}
+				windUpTicks = stats.WindUpTicks
+				travelTicks = stats.TravelTicks
+				projectileType = stats.ProjectileType
 			}
 		}
 	}
@@ -49,7 +59,7 @@ func CalculateCombatStats(base *CBaseStats, equipped *CEquipped) *CCombatStats {
 		critChance = 0
 	}
 
-	return NewCCombatStats(
+	result := NewCCombatStats(
 		minDamage,
 		maxDamage,
 		accuracy,
@@ -60,4 +70,6 @@ func CalculateCombatStats(base *CBaseStats, equipped *CEquipped) *CCombatStats {
 		attackRange,
 		attackSpeedTicks,
 	)
+	result.SetAttackProfile(attackMethod, windUpTicks, travelTicks, projectileType)
+	return result
 }

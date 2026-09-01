@@ -8,7 +8,7 @@ import { WebSocketClient } from "../ws.ts";
 import { CSS2DRenderer } from "three/examples/jsm/Addons.js";
 import { InteractionMenuOpenEvent } from "../events/interactionMenu.ts";
 import Camera from "./camera.ts";
-import EntityRenderSystem from "./entityRenderSystem.ts";
+import EntityRenderSystem, { type CombatProjectileLaunchedPayload } from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
@@ -60,6 +60,7 @@ export type CombatResolvedPayload = {
   didHit: boolean;
   damage: number;
   isCritical: boolean;
+  attackMethod?: string;
 };
 
 const SERVER_TICK_MILLISECONDS = 500;
@@ -487,7 +488,12 @@ class Game extends EventTarget implements InputReceiver {
       payload.didHit,
       payload.damage,
       payload.isCritical,
+      payload.attackMethod ?? "melee",
     );
+  }
+
+  handleCombatProjectileLaunched(payload: CombatProjectileLaunchedPayload) {
+    this.entityRenderSystem.showCombatProjectile(payload);
   }
 
   getMyEntity(): Entity | undefined {

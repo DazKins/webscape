@@ -33,3 +33,13 @@ func TestFishingRodIsAWeaponSlotToolWithoutCombatBonuses(t *testing.T) {
 		t.Fatalf("rod combat stats = %#v, want nil", rod.CombatStats)
 	}
 }
+
+func TestMagicStaffCombatProfile(t *testing.T) {
+	staff := CreateMagicStaff()
+	stats := staff.CombatStats
+	if stats == nil || stats.Range != 4 || stats.AttackSpeedTicks != 3 ||
+		stats.AttackMethod != AttackMethodMagic || stats.WindUpTicks != 2 ||
+		stats.TravelTicks != 1 || stats.ProjectileType != "magicBolt" {
+		t.Fatalf("magic staff combat stats = %#v", stats)
+	}
+}

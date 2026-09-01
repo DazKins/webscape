@@ -22,13 +22,15 @@ func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
 	hasSword := false
 	hasAxe := false
 	hasFishingRod := false
+	hasMagicStaff := false
 	for _, item := range inventory.GetAllItems() {
 		hasSword = hasSword || item.Name == "Iron Sword"
 		hasAxe = hasAxe || item.Name == "Woodcutting Axe" && item.Type == "axe"
 		hasFishingRod = hasFishingRod || item.Name == "Fishing Rod" && item.Type == "fishingRod" && item.RenderModel == "fishingRod"
+		hasMagicStaff = hasMagicStaff || item.Name == "Magic Staff" && item.RenderModel == "magicStaff"
 	}
-	if !hasSword || !hasAxe || !hasFishingRod {
-		t.Fatalf("starter inventory has sword=%v axe=%v fishingRod=%v", hasSword, hasAxe, hasFishingRod)
+	if !hasSword || !hasAxe || !hasFishingRod || !hasMagicStaff {
+		t.Fatalf("starter inventory has sword=%v axe=%v fishingRod=%v magicStaff=%v", hasSword, hasAxe, hasFishingRod, hasMagicStaff)
 	}
 }
 

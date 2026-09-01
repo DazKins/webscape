@@ -14,6 +14,13 @@ func (i ItemId) String() string {
 
 type EquipmentSlot string
 
+type AttackMethod string
+
+const (
+	AttackMethodMelee AttackMethod = "melee"
+	AttackMethodMagic AttackMethod = "magic"
+)
+
 const (
 	SlotHead    EquipmentSlot = "head"
 	SlotChest   EquipmentSlot = "chest"
@@ -51,6 +58,10 @@ type ItemCombatStats struct {
 	CritBonus        float64
 	Range            int
 	AttackSpeedTicks int
+	AttackMethod     AttackMethod
+	WindUpTicks      int
+	TravelTicks      int
+	ProjectileType   string
 }
 
 func NewEquipableItem(name string, itemType string, renderModel string, slot EquipmentSlot, combatStats *ItemCombatStats) *Item {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 	"webscape/server/game/model"
+	"webscape/server/math"
 )
 
 func TestClientGameEventMessagesSerializeDomainData(t *testing.T) {
@@ -27,12 +28,29 @@ func TestClientGameEventMessagesSerializeDomainData(t *testing.T) {
 		},
 		{
 			name:    "combat",
-			message: NewCombatResolvedMessage(attackerId, targetId, true, 9, true),
+			message: NewCombatResolvedMessage(attackerId, targetId, true, 9, true, model.AttackMethodMagic),
 			typeId:  "combatResolved",
 			assert: func(t *testing.T, data map[string]any) {
 				if data["attackerEntityId"] != attackerId.String() || data["targetEntityId"] != targetId.String() ||
-					data["didHit"] != true || data["damage"] != float64(9) || data["isCritical"] != true {
+					data["didHit"] != true || data["damage"] != float64(9) || data["isCritical"] != true || data["attackMethod"] != "magic" {
 					t.Fatalf("combat data = %#v", data)
+				}
+			},
+		},
+		{
+			name: "combat projectile",
+			message: NewCombatProjectileLaunchedMessage(
+				attackerId, targetId, "magicBolt",
+				math.Vec2{X: 1, Y: 2}, math.Vec2{X: 4, Y: 5}, 20, 21,
+			),
+			typeId: "combatProjectileLaunched",
+			assert: func(t *testing.T, data map[string]any) {
+				origin := data["origin"].(map[string]any)
+				target := data["targetPosition"].(map[string]any)
+				if data["attackerEntityId"] != attackerId.String() || data["targetEntityId"] != targetId.String() ||
+					data["projectileType"] != "magicBolt" || origin["x"] != float64(1) || origin["y"] != float64(2) ||
+					target["x"] != float64(4) || target["y"] != float64(5) || data["launchTick"] != float64(20) || data["impactTick"] != float64(21) {
+					t.Fatalf("combat projectile data = %#v", data)
 				}
 			},
 		},

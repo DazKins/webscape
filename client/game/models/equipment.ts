@@ -45,6 +45,16 @@ const equipmentPresentations = {
       rotation: [0, 0, Math.PI / 2],
     },
   },
+  magicStaff: {
+    equipped: {
+      socket: "rightHand",
+      position: [0, -0.48, 0.065],
+      rotation: [0, 0, 0],
+    },
+    dropped: {
+      rotation: [0, 0, Math.PI / 2],
+    },
+  },
   leatherHelmet: {
     equipped: {
       socket: "headwear",

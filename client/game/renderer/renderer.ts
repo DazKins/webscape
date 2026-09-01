@@ -30,6 +30,10 @@ export default class EntityRenderer {
 
   playAttackAnimation() {}
 
+  getProjectileOrigin(_projectileType: string): THREE.Vector3 | null {
+    return null;
+  }
+
   onRemove() {
     throw Error("onRemove not implemented");
   }

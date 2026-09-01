@@ -111,6 +111,9 @@ const wsClient = new WebSocketClient({
       case "combatResolved":
         game.handleCombatResolved(data);
         break;
+      case "combatProjectileLaunched":
+        game.handleCombatProjectileLaunched(data);
+        break;
       default:
         console.warn("Unknown message type:", type);
     }

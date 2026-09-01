@@ -24,6 +24,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 	inventoryComponent.AddItem(model.CreateIronSword())
 	inventoryComponent.AddItem(model.CreateWoodcuttingAxe())
 	inventoryComponent.AddItem(model.CreateFishingRod())
+	inventoryComponent.AddItem(model.CreateMagicStaff())
 	inventoryComponent.AddItem(model.CreateLeatherHelmet())
 	inventoryComponent.AddItem(model.CreateHealthPotion())
 	inventoryComponent.AddItem(model.CreateBread())

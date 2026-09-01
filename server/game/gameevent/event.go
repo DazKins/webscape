@@ -4,6 +4,7 @@ import (
 	"strings"
 	"unicode"
 	"webscape/server/game/model"
+	"webscape/server/math"
 )
 
 type Event struct {
@@ -16,10 +17,11 @@ type Event struct {
 }
 
 const (
-	EventIdChatSpoken       = "chat:spoken"
-	EventIdCombatResolved   = "combat:resolved"
-	EventIdWoodcuttingSwing = "woodcutting:swing"
-	EventIdFishingCatch     = "fishing:catch"
+	EventIdChatSpoken               = "chat:spoken"
+	EventIdCombatResolved           = "combat:resolved"
+	EventIdCombatProjectileLaunched = "combat:projectile-launched"
+	EventIdWoodcuttingSwing         = "woodcutting:swing"
+	EventIdFishingCatch             = "fishing:catch"
 )
 
 type ChatSpokenPayload struct {
@@ -27,9 +29,18 @@ type ChatSpokenPayload struct {
 }
 
 type CombatResolvedPayload struct {
-	DidHit     bool
-	Damage     int
-	IsCritical bool
+	DidHit       bool
+	Damage       int
+	IsCritical   bool
+	AttackMethod model.AttackMethod
+}
+
+type CombatProjectileLaunchedPayload struct {
+	ProjectileType string
+	Origin         math.Vec2
+	TargetPosition math.Vec2
+	LaunchTick     uint64
+	ImpactTick     uint64
 }
 
 type WoodcuttingSwingPayload struct{}
@@ -55,13 +66,40 @@ func NewCombatResolved(
 	didHit bool,
 	damage int,
 	isCritical bool,
+	attackMethods ...model.AttackMethod,
 ) Event {
+	attackMethod := model.AttackMethodMelee
+	if len(attackMethods) > 0 && attackMethods[0] != "" {
+		attackMethod = attackMethods[0]
+	}
 	event := New(EventIdCombatResolved, attackerEntityId)
 	event.TargetEntityId = targetEntityId
 	event.Payload = CombatResolvedPayload{
-		DidHit:     didHit,
-		Damage:     damage,
-		IsCritical: isCritical,
+		DidHit:       didHit,
+		Damage:       damage,
+		IsCritical:   isCritical,
+		AttackMethod: attackMethod,
+	}
+	return event
+}
+
+func NewCombatProjectileLaunched(
+	attackerEntityId model.EntityId,
+	targetEntityId model.EntityId,
+	projectileType string,
+	origin math.Vec2,
+	targetPosition math.Vec2,
+	launchTick uint64,
+	impactTick uint64,
+) Event {
+	event := New(EventIdCombatProjectileLaunched, attackerEntityId)
+	event.TargetEntityId = targetEntityId
+	event.Payload = CombatProjectileLaunchedPayload{
+		ProjectileType: projectileType,
+		Origin:         origin,
+		TargetPosition: targetPosition,
+		LaunchTick:     launchTick,
+		ImpactTick:     impactTick,
 	}
 	return event
 }

@@ -37,6 +37,10 @@ func (s *PathingSystem) Update() {
 		pathToPosition := math.Vec2{}
 		isEntityTarget := false
 		inCombat := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil
+		isAttackInteraction := false
+		if interacting := s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId); interacting != nil {
+			isAttackInteraction = interacting.(*component.CInteracting).GetOption() == component.InteractionOptionAttack
+		}
 
 		if target.Position.IsPresent() {
 			pathToPosition = target.Position.Unwrap()
@@ -70,7 +74,7 @@ func (s *PathingSystem) Update() {
 		shouldStop := false
 		stopDistance := 1
 		if isEntityTarget {
-			if inCombat {
+			if inCombat || isAttackInteraction {
 				if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
 					attackRange := combatStatsComponent.(*component.CCombatStats).GetAttackRange()
 					if attackRange > stopDistance {

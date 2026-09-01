@@ -3,16 +3,17 @@ package message
 type MessageType string
 
 const (
-	MessageTypeGameUpdate         = "gameUpdate"
-	MessageTypeRegistered         = "registered"
-	MessageTypeRegistrationFailed = "registrationFailed"
-	MessageTypeWorld              = "world"
-	MessageTypeChunkUpdate        = "chunkUpdate"
-	MessageTypeConversation       = "conversation"
-	MessageTypeQuestStarted       = "questStarted"
-	MessageTypeQuestCompleted     = "questCompleted"
-	MessageTypeChatMessage        = "chatMessage"
-	MessageTypeCombatResolved     = "combatResolved"
+	MessageTypeGameUpdate               = "gameUpdate"
+	MessageTypeRegistered               = "registered"
+	MessageTypeRegistrationFailed       = "registrationFailed"
+	MessageTypeWorld                    = "world"
+	MessageTypeChunkUpdate              = "chunkUpdate"
+	MessageTypeConversation             = "conversation"
+	MessageTypeQuestStarted             = "questStarted"
+	MessageTypeQuestCompleted           = "questCompleted"
+	MessageTypeChatMessage              = "chatMessage"
+	MessageTypeCombatResolved           = "combatResolved"
+	MessageTypeCombatProjectileLaunched = "combatProjectileLaunched"
 )
 
 func (m MessageType) String() string {
