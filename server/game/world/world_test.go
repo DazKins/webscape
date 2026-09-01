@@ -168,6 +168,43 @@ func TestLoadChunksValidatesFishableComponents(t *testing.T) {
 	}
 }
 
+func TestLoadChunksValidatesDirectAndSpawnedAppearances(t *testing.T) {
+	valid := `{"skinTone":"tan","hairStyle":"swept","hairColor":"chestnut","tunicColor":"forest","trousersColor":"charcoal","shoeColor":"darkBrown"}`
+	invalid := []struct {
+		name       string
+		appearance string
+		want       string
+	}{
+		{name: "not object", appearance: `[]`, want: "appearance must be an object"},
+		{name: "partial", appearance: `{"skinTone":"tan"}`, want: "appearance.hairStyle must be a non-empty string"},
+		{name: "unknown value", appearance: `{"skinTone":"green","hairStyle":"swept","hairColor":"chestnut","tunicColor":"forest","trousersColor":"charcoal","shoeColor":"darkBrown"}`, want: "appearance.skinTone must be one of"},
+		{name: "extra field", appearance: `{"skinTone":"tan","hairStyle":"swept","hairColor":"chestnut","tunicColor":"forest","trousersColor":"charcoal","shoeColor":"darkBrown","hat":"cap"}`, want: "appearance contains unknown field"},
+	}
+
+	for _, location := range []string{"direct", "spawned"} {
+		for _, test := range invalid {
+			t.Run(location+" "+test.name, func(t *testing.T) {
+				var subject string
+				if location == "direct" {
+					subject = fmt.Sprintf(`{"id":"npc","components":{"position":{"x":1,"y":0},"renderable":{"type":"human"},"appearance":%s}}`, test.appearance)
+				} else {
+					subject = fmt.Sprintf(`{"id":"npc_spawn","components":{"position":{"x":1,"y":0},"spawn":{"respawnTicks":1,"entity":{"components":{"renderable":{"type":"human"},"appearance":%s}}}}}`, test.appearance)
+				}
+				entities := `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},` + subject + `]`
+				_, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)}))
+				if err == nil || !strings.Contains(err.Error(), test.want) {
+					t.Fatalf("error = %v, want %q", err, test.want)
+				}
+			})
+		}
+	}
+
+	entities := fmt.Sprintf(`[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"npc","components":{"position":{"x":1,"y":0},"renderable":{"type":"human"},"appearance":%s}},{"id":"npc_spawn","components":{"position":{"x":2,"y":0},"spawn":{"respawnTicks":1,"entity":{"components":{"renderable":{"type":"human"},"appearance":%s}}}}}]`, valid, valid)
+	if _, err := LoadFromGameFS(chunkFS([]string{"chunks/a.json"}, map[string]string{"chunks/a.json": testChunk("a", 0, 0, entities)})); err != nil {
+		t.Fatalf("valid direct and spawned appearances rejected: %v", err)
+	}
+}
+
 func chunkFS(paths []string, documents map[string]string) fstest.MapFS {
 	quoted := make([]string, len(paths))
 	for i, path := range paths {

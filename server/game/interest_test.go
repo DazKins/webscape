@@ -36,6 +36,9 @@ func TestClientInterestStreamsChunksSnapshotsAndTombstones(t *testing.T) {
 	if nearKnown == 0 {
 		t.Fatal("registration omitted nearby entity snapshot")
 	}
+	if _, ok := state.baseline[component.ComponentIdAppearance][nearID]; !ok {
+		t.Fatal("registration omitted nearby human appearance")
+	}
 
 	sent = sent[:0]
 	movePlayerForTest(game, playerID, 4, 0)
@@ -58,6 +61,9 @@ func TestClientInterestStreamsChunksSnapshotsAndTombstones(t *testing.T) {
 	game.syncClient("client")
 	if knownComponentCount(state, nearID) != nearKnown {
 		t.Fatal("re-entry did not restore complete current snapshot")
+	}
+	if _, ok := state.baseline[component.ComponentIdAppearance][nearID]; !ok {
+		t.Fatal("re-entry did not restore nearby human appearance")
 	}
 	if tombstoneCount(t, sent, farID.String()) == 0 {
 		t.Fatal("far visibility loss emitted no tombstones")
@@ -111,7 +117,7 @@ func interestWorldFS() fstest.MapFS {
 	manifest := `{"formatVersion":2,"id":"interest","world":{"chunkSize":{"x":2,"y":2}},"files":{"chunks":["chunks/0.json","chunks/1.json","chunks/2.json"],"conversations":[],"quests":[]}}`
 	return fstest.MapFS{
 		"game.json":     {Data: []byte(manifest)},
-		"chunks/0.json": {Data: []byte(interestChunk("zero", 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"near","components":{"position":{"x":1,"y":0},"metadata":{"name":"Near"},"renderable":{"type":"rock"}}}]`))},
+		"chunks/0.json": {Data: []byte(interestChunk("zero", 0, `[{"id":"player_spawn","components":{"position":{"x":0,"y":0},"playerSpawn":{}}},{"id":"near","components":{"position":{"x":1,"y":0},"metadata":{"name":"Near"},"renderable":{"type":"human"}}}]`))},
 		"chunks/1.json": {Data: []byte(interestChunk("one", 1, `[]`))},
 		"chunks/2.json": {Data: []byte(interestChunk("two", 2, `[{"id":"far","components":{"position":{"x":0,"y":0},"metadata":{"name":"Far"},"renderable":{"type":"rock"}}}]`))},
 	}

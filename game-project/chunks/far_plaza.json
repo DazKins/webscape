@@ -3141,6 +3141,14 @@
         "renderable": {
           "type": "human"
         },
+        "appearance": {
+          "skinTone": "porcelain",
+          "hairStyle": "bob",
+          "hairColor": "golden",
+          "tunicColor": "plum",
+          "trousersColor": "taupe",
+          "shoeColor": "tan"
+        },
         "randomwalk": {
           "walkTimer": 1,
           "maxDistance": 6

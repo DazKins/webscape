@@ -118,6 +118,8 @@ components:
       properties:
         renderable:
           $ref: "#/components/schemas/RenderableComponent"
+        appearance:
+          $ref: "#/components/schemas/AppearanceComponent"
         openable:
           $ref: "#/components/schemas/OpenableComponent"
         randomwalk:
@@ -145,6 +147,37 @@ components:
             - west
           default: north
           description: Optional visual rotation for tile-aligned renderers.
+
+    AppearanceComponent:
+      type: object
+      additionalProperties: false
+      description: Curated authoritative visual appearance for a human entity.
+      required:
+        - skinTone
+        - hairStyle
+        - hairColor
+        - tunicColor
+        - trousersColor
+        - shoeColor
+      properties:
+        skinTone:
+          type: string
+          enum: [porcelain, fair, tan, brown, deep]
+        hairStyle:
+          type: string
+          enum: [cropped, swept, bob, curls]
+        hairColor:
+          type: string
+          enum: [black, darkBrown, chestnut, auburn, golden, gray]
+        tunicColor:
+          type: string
+          enum: [slateBlue, forest, rust, mustard, plum, teal, burgundy]
+        trousersColor:
+          type: string
+          enum: [charcoal, navy, umber, olive, taupe]
+        shoeColor:
+          type: string
+          enum: [darkBrown, oxblood, charcoal, tan]
 
     OpenableComponent:
       type: object
@@ -392,6 +425,13 @@ components:
                 entityType: dude
               renderable:
                 type: human
+              appearance:
+                skinTone: fair
+                hairStyle: cropped
+                hairColor: auburn
+                tunicColor: slateBlue
+                trousersColor: navy
+                shoeColor: oxblood
               conversation:
                 conversationId: guide_intro
           - id: rat_spawn_001
@@ -408,6 +448,13 @@ components:
                       entityType: rat
                     renderable:
                       type: human
+                    appearance:
+                      skinTone: brown
+                      hairStyle: curls
+                      hairColor: gray
+                      tunicColor: mustard
+                      trousersColor: umber
+                      shoeColor: charcoal
                     randomwalk:
                       walkTimer: 10
                       maxDistance: 5

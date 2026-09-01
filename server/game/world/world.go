@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"webscape/server/game/component"
 	"webscape/server/math"
 )
 
@@ -410,11 +411,17 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateFishableComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
+			if err := validateAppearanceComponent(entity.Id+" child template", template); err != nil {
+				return err
+			}
 		}
 		if err := validateWoodcuttableComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
 		if err := validateFishableComponent(entity.Id, entity.Components); err != nil {
+			return err
+		}
+		if err := validateAppearanceComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
 	}
@@ -449,6 +456,17 @@ func validateFishableComponent(entityId string, components map[string]any) error
 	count, ok := numberToInt(yield["count"])
 	if !ok || count < 1 {
 		return fmt.Errorf("entity %q fishable.yield.count must be a positive integer", entityId)
+	}
+	return nil
+}
+
+func validateAppearanceComponent(entityID string, components map[string]any) error {
+	raw, exists := components["appearance"]
+	if !exists {
+		return nil
+	}
+	if _, err := component.ParseAppearance(raw); err != nil {
+		return fmt.Errorf("entity %q %w", entityID, err)
 	}
 	return nil
 }

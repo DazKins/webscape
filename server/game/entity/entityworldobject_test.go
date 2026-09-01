@@ -192,6 +192,55 @@ func TestCreateAuthoredEntityParsesFishableComponent(t *testing.T) {
 	}
 }
 
+func TestCreateAuthoredHumanPreservesExplicitAppearance(t *testing.T) {
+	components := CreateAuthoredEntity(world.WorldEntity{
+		Id: "npc_explicit",
+		Components: map[string]any{
+			"renderable": map[string]any{"type": "human"},
+			"appearance": map[string]any{
+				"skinTone": "deep", "hairStyle": "curls", "hairColor": "black",
+				"tunicColor": "rust", "trousersColor": "olive", "shoeColor": "oxblood",
+			},
+		},
+	})
+	appearance := findAppearance(components)
+	if appearance == nil {
+		t.Fatal("explicit human appearance was not created")
+	}
+	want := component.Appearance{
+		SkinTone: "deep", HairStyle: "curls", HairColor: "black",
+		TunicColor: "rust", TrousersColor: "olive", ShoeColor: "oxblood",
+	}
+	if got := appearance.GetAppearance(); got != want {
+		t.Fatalf("appearance = %#v, want %#v", got, want)
+	}
+}
+
+func TestCreateAuthoredHumanGetsDeterministicFallback(t *testing.T) {
+	entity := world.WorldEntity{
+		Id:         "npc_fallback",
+		Components: map[string]any{"renderable": map[string]any{"type": "human"}},
+	}
+	first := findAppearance(CreateAuthoredEntity(entity))
+	second := findAppearance(CreateAuthoredEntity(entity))
+	if first == nil || second == nil {
+		t.Fatal("human fallback appearance was not created")
+	}
+	if first.GetAppearance() != second.GetAppearance() {
+		t.Fatalf("fallback changed: %#v then %#v", first.GetAppearance(), second.GetAppearance())
+	}
+}
+
+func TestCreateAuthoredNonHumanDoesNotGetAppearance(t *testing.T) {
+	components := CreateAuthoredEntity(world.WorldEntity{
+		Id:         "rock_001",
+		Components: map[string]any{"renderable": map[string]any{"type": "rock"}},
+	})
+	if appearance := findAppearance(components); appearance != nil {
+		t.Fatalf("non-human received appearance %#v", appearance.GetAppearance())
+	}
+}
+
 func findOpenable(components []component.Component) *component.COpenable {
 	for _, comp := range components {
 		if openable, ok := comp.(*component.COpenable); ok {
@@ -223,6 +272,15 @@ func findWoodcuttable(components []component.Component) *component.CWoodcuttable
 	for _, comp := range components {
 		if woodcuttable, ok := comp.(*component.CWoodcuttable); ok {
 			return woodcuttable
+		}
+	}
+	return nil
+}
+
+func findAppearance(components []component.Component) *component.CAppearance {
+	for _, comp := range components {
+		if appearance, ok := comp.(*component.CAppearance); ok {
+			return appearance
 		}
 	}
 	return nil

@@ -1,10 +1,12 @@
 import type * as THREE from "three";
+import type { HumanAppearance } from "./humanAppearance";
 
 export type ModelOptions = {
   color?: THREE.ColorRepresentation;
   width?: number;
   height?: number;
   damageStage?: number;
+  appearance?: HumanAppearance;
 };
 
 export type JointPose = {

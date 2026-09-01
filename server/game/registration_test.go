@@ -44,6 +44,36 @@ func TestRegistrationNormalizesAndSerializesPlayerName(t *testing.T) {
 	if !ok || metadataObject["name"] != util.JString("夜 空") {
 		t.Fatal("serialized metadata component did not contain the normalized name")
 	}
+	appearance := game.componentManager.GetEntityComponent(component.ComponentIdAppearance, playerID)
+	if appearance == nil {
+		t.Fatal("registered player has no appearance component")
+	}
+	if err := component.ValidateAppearance(appearance.(*component.CAppearance).GetAppearance()); err != nil {
+		t.Fatalf("registered player appearance is invalid: %v", err)
+	}
+}
+
+func TestAppearanceSnapshotIsDeltaOnly(t *testing.T) {
+	gameWorld, err := world.LoadFromGameFS(interestWorldFS())
+	if err != nil {
+		t.Fatal(err)
+	}
+	game := NewGameWithWorld(gameWorld)
+	sent := []message.Message{}
+	game.RegisterSender(func(_ string, msg message.Message) { sent = append(sent, msg) })
+	playerID := model.NewEntityId()
+	game.HandleRegister("client", playerID, "Player")
+
+	componentIDs, _ := streamedComponentIDs(t, sent)
+	if !componentIDs[component.ComponentIdAppearance.String()] {
+		t.Fatal("initial player snapshot omitted appearance")
+	}
+	sent = nil
+	game.syncClient("client")
+	componentIDs, _ = streamedComponentIDs(t, sent)
+	if componentIDs[component.ComponentIdAppearance.String()] {
+		t.Fatal("unchanged appearance produced a redundant delta")
+	}
 }
 
 func TestRegistrationRejectsInvalidNames(t *testing.T) {

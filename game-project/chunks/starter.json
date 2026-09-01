@@ -4096,6 +4096,14 @@
         "renderable": {
           "type": "human"
         },
+        "appearance": {
+          "skinTone": "tan",
+          "hairStyle": "swept",
+          "hairColor": "chestnut",
+          "tunicColor": "forest",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
         "randomwalk": {
           "walkTimer": 10,
           "maxDistance": 5
@@ -4129,6 +4137,14 @@
         },
         "renderable": {
           "type": "human"
+        },
+        "appearance": {
+          "skinTone": "deep",
+          "hairStyle": "curls",
+          "hairColor": "black",
+          "tunicColor": "rust",
+          "trousersColor": "olive",
+          "shoeColor": "oxblood"
         },
         "randomwalk": {
           "walkTimer": 10,

@@ -13,7 +13,7 @@ type EquippedItem = {
   renderModel?: string;
 };
 
-type EquippedComponent = {
+export type EquippedComponent = {
   slots?: Record<string, EquippedItem | null>;
 };
 

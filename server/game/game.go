@@ -731,6 +731,7 @@ func isPublicObserverComponent(componentID component.ComponentId) bool {
 	case component.ComponentIdPosition,
 		component.ComponentIdMetadata,
 		component.ComponentIdRenderable,
+		component.ComponentIdAppearance,
 		component.ComponentIdHealth,
 		component.ComponentIdFacing,
 		component.ComponentIdOpenable,

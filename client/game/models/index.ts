@@ -8,3 +8,5 @@ export type {
   ModelPose,
   ProceduralAnimation,
 } from "./types";
+export { humanAppearanceColors } from "./humanAppearance";
+export type { HairStyle, HumanAppearance } from "./humanAppearance";

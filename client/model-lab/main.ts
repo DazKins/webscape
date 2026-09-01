@@ -1,6 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { createModel, isModelName, modelNames, type ModelInstance, type ModelName } from "../game/models";
+import {
+  createModel,
+  humanAppearanceColors,
+  isModelName,
+  modelNames,
+  type HairStyle,
+  type HumanAppearance,
+  type ModelInstance,
+  type ModelName,
+} from "../game/models";
 import { applyModelTransform, getEquipmentPresentation } from "../game/models/equipment";
 import "./style.css";
 
@@ -12,6 +21,7 @@ const captureMode = params.get("capture") === "1";
 const requestedModel = params.get("model") ?? "human";
 const requestedEquipment = params.get("equipment");
 const requestedDamageStage = clampDamageStage(Number(params.get("damageStage") ?? 0));
+const requestedAppearance = parseHumanAppearance(params);
 let modelName: ModelName = isModelName(requestedModel) ? requestedModel : "human";
 let animationName = params.get("animation") ?? "";
 let phase = clampPhase(Number(params.get("phase") ?? 0));
@@ -124,7 +134,9 @@ function loadModel() {
   modelInstance?.dispose();
   modelInstance = createModel(
     modelName,
-    modelName === "building"
+    modelName === "human" && requestedAppearance
+      ? { appearance: requestedAppearance }
+      : modelName === "building"
       ? { width: 2, height: 2 }
       : modelName === "tree"
         ? { damageStage: requestedDamageStage }
@@ -227,6 +239,11 @@ function updateUrl() {
   if (modelName === "tree" && requestedDamageStage > 0) {
     next.set("damageStage", String(requestedDamageStage));
   }
+  if (modelName === "human" && requestedAppearance) {
+    for (const [key, value] of Object.entries(requestedAppearance)) {
+      next.set(key, value);
+    }
+  }
   if (!playing) {
     next.set("play", "0");
   }
@@ -235,6 +252,36 @@ function updateUrl() {
 
 function clampDamageStage(value: number) {
   return Number.isFinite(value) ? THREE.MathUtils.clamp(Math.floor(value), 0, 4) : 0;
+}
+
+function parseHumanAppearance(searchParams: URLSearchParams): HumanAppearance | undefined {
+  const fields = ["skinTone", "hairStyle", "hairColor", "tunicColor", "trousersColor", "shoeColor"];
+  if (!fields.some((field) => searchParams.has(field))) {
+    return undefined;
+  }
+  const hairStyles: readonly HairStyle[] = ["cropped", "swept", "bob", "curls"];
+  const hairStyleValue = searchParams.get("hairStyle") ?? "cropped";
+  const hairStyle = hairStyles.includes(hairStyleValue as HairStyle)
+    ? hairStyleValue as HairStyle
+    : "cropped";
+  return {
+    skinTone: paletteKey(searchParams.get("skinTone"), "fair", humanAppearanceColors.skin),
+    hairStyle,
+    hairColor: paletteKey(searchParams.get("hairColor"), "darkBrown", humanAppearanceColors.hair),
+    tunicColor: paletteKey(searchParams.get("tunicColor"), "slateBlue", humanAppearanceColors.tunic),
+    trousersColor: paletteKey(searchParams.get("trousersColor"), "navy", humanAppearanceColors.trousers),
+    shoeColor: paletteKey(searchParams.get("shoeColor"), "darkBrown", humanAppearanceColors.shoes),
+  };
+}
+
+function paletteKey<T extends Record<string, string>>(
+  value: string | null,
+  fallback: keyof T,
+  palette: T,
+): keyof T {
+  return value !== null && Object.prototype.hasOwnProperty.call(palette, value)
+    ? value
+    : fallback;
 }
 
 function attachRequestedEquipment() {
@@ -248,6 +295,12 @@ function attachRequestedEquipment() {
   const socket = modelInstance.getSocket(presentation.equipped.socket);
   if (!socket) {
     throw new Error(`model does not define equipment socket: ${presentation.equipped.socket}`);
+  }
+  if (presentation.equipped.socket === "headwear") {
+    const hair = modelInstance.root.getObjectByName("hair");
+    if (hair) {
+      hair.visible = false;
+    }
   }
   equipmentInstance = createModel(requestedEquipment);
   applyModelTransform(equipmentInstance.root, presentation.equipped);

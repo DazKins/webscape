@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { box, cylinder, sphere, sphereCap, taperedBox, torus } from "../primitives";
+import { box, cylinder, dodecahedron, sphere, sphereCap, taperedBox, torus } from "../primitives";
+import { humanAppearanceColors, type HairStyle } from "../humanAppearance";
 import { animation, createModelInstance, joint } from "../rig";
 import type { ModelFactory, ModelPose } from "../types";
 
@@ -26,12 +27,24 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   const leftKnee = joint("leftKnee", leftHip, [0, -0.26, 0]);
   const rightKnee = joint("rightKnee", rightHip, [0, -0.26, 0]);
 
-  const tunicColor = options.color ?? 0x4f8ab8;
+  const appearance = options.appearance;
+  const tunicColor = appearance
+    ? humanAppearanceColors.tunic[appearance.tunicColor]
+    : options.color ?? 0x4f8ab8;
   const tunicShadow = new THREE.Color(tunicColor).multiplyScalar(0.72);
   const tunicHighlight = new THREE.Color(tunicColor).offsetHSL(0, -0.04, 0.1);
-  const skinColor = 0xe3b58e;
-  const trousersColor = 0x34435a;
-  const bootColor = 0x553b2d;
+  const skinColor = appearance
+    ? humanAppearanceColors.skin[appearance.skinTone]
+    : 0xe3b58e;
+  const hairColor = appearance
+    ? humanAppearanceColors.hair[appearance.hairColor]
+    : 0x4b3327;
+  const trousersColor = appearance
+    ? humanAppearanceColors.trousers[appearance.trousersColor]
+    : 0x34435a;
+  const bootColor = appearance
+    ? humanAppearanceColors.shoes[appearance.shoeColor]
+    : 0x553b2d;
 
   const pelvis = box(0.34, 0.18, 0.22, trousersColor);
   hips.add(pelvis);
@@ -56,10 +69,10 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   face.scale.set(0.88, 1.05, 0.9);
   face.position.y = 0.105;
   head.add(face);
-  const hair = sphereCap(0.156, 10, 4, Math.PI * 0.44, 0x4b3327);
-  hair.scale.set(0.96, 1.08, 0.98);
-  hair.position.set(0, 0.122, -0.004);
+  const hair = new THREE.Group();
+  hair.name = "hair";
   head.add(hair);
+  addHair(hair, appearance?.hairStyle ?? "cropped", hairColor);
   for (const eyeX of [-0.052, 0.052]) {
     const eye = sphere(0.014, 6, 4, 0x27241f);
     eye.position.set(eyeX, 0.125, 0.133);
@@ -269,6 +282,65 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   instance.play("idle");
   return instance;
 };
+
+function addHair(
+  head: THREE.Group,
+  style: HairStyle,
+  color: THREE.ColorRepresentation,
+) {
+  switch (style) {
+    case "cropped": {
+      const cap = sphereCap(0.156, 10, 4, Math.PI * 0.44, color);
+      cap.scale.set(0.96, 1.08, 0.98);
+      cap.position.set(0, 0.122, -0.004);
+      head.add(cap);
+      break;
+    }
+    case "swept": {
+      const cap = sphereCap(0.158, 10, 4, Math.PI * 0.48, color);
+      cap.scale.set(0.98, 1.06, 1);
+      cap.position.set(0, 0.124, -0.006);
+      head.add(cap);
+
+      const fringe = taperedBox(0.16, 0.055, 0.055, 0.045, 0.075, color);
+      fringe.position.set(0.028, 0.19, 0.124);
+      fringe.rotation.z = -0.34;
+      fringe.rotation.x = -0.12;
+      head.add(fringe);
+      break;
+    }
+    case "bob": {
+      const cap = sphereCap(0.16, 10, 4, Math.PI * 0.52, color);
+      cap.scale.set(1, 1.04, 1);
+      cap.position.set(0, 0.122, -0.008);
+      head.add(cap);
+      for (const side of [-1, 1]) {
+        const sideLock = taperedBox(0.045, 0.105, 0.035, 0.08, 0.19, color);
+        sideLock.position.set(side * 0.137, 0.055, -0.012);
+        sideLock.rotation.z = side * -0.035;
+        head.add(sideLock);
+      }
+      const back = taperedBox(0.22, 0.045, 0.18, 0.035, 0.16, color);
+      back.position.set(0, 0.065, -0.132);
+      head.add(back);
+      break;
+    }
+    case "curls": {
+      const curlPositions: ReadonlyArray<readonly [number, number, number]> = [
+        [-0.09, 0.22, -0.035], [0, 0.245, -0.04], [0.09, 0.22, -0.035],
+        [-0.13, 0.15, -0.045], [-0.05, 0.17, -0.105], [0.05, 0.17, -0.105],
+        [0.13, 0.15, -0.045], [-0.135, 0.075, -0.035], [0.135, 0.075, -0.035],
+      ];
+      for (const [x, y, z] of curlPositions) {
+        const curl = dodecahedron(0.068, color);
+        curl.position.set(x, y, z);
+        curl.scale.y = 0.9;
+        head.add(curl);
+      }
+      break;
+    }
+  }
+}
 
 function addArm(
   shoulder: THREE.Group,

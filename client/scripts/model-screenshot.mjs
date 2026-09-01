@@ -41,6 +41,7 @@ try {
       animation: options.animation,
       phase: options.phase,
       damageStage: options.damageStage,
+      appearance: options.appearance,
       view: options.view,
     };
     await openPreview(page, baseUrl, capture);
@@ -75,6 +76,11 @@ async function openPreview(page, baseUrl, capture) {
   if (capture.damageStage > 0) {
     query.set("damageStage", String(capture.damageStage));
   }
+  if (capture.appearance) {
+    for (const [key, value] of Object.entries(capture.appearance)) {
+      query.set(key, value);
+    }
+  }
   await page.goto(`${baseUrl}/model-lab.html?${query}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.__MODEL_LAB_READY__ === true);
 }
@@ -91,6 +97,9 @@ function resolveSingleOutput(options, capture) {
   if (capture.animation) {
     parts.push(capture.animation, `phase-${formatPhase(capture.phase)}`);
   }
+  if (capture.appearance) {
+    parts.push(capture.appearance.hairStyle);
+  }
   parts.push(capture.view);
   return path.join(directory, `${parts.map(safeName).join("-")}.png`);
 }
@@ -103,6 +112,7 @@ function parseArguments(args) {
     animation: "",
     phase: 0,
     damageStage: 0,
+    appearance: undefined,
     view: "three-quarter",
     output: undefined,
   };
@@ -133,6 +143,31 @@ function parseArguments(args) {
           throw new Error("--damage-stage must be an integer between 0 and 4");
         }
         break;
+      case "--skin-tone":
+      case "--hair-style":
+      case "--hair-color":
+      case "--tunic-color":
+      case "--trousers-color":
+      case "--shoe-color": {
+        const keys = {
+          "--skin-tone": "skinTone",
+          "--hair-style": "hairStyle",
+          "--hair-color": "hairColor",
+          "--tunic-color": "tunicColor",
+          "--trousers-color": "trousersColor",
+          "--shoe-color": "shoeColor",
+        };
+        result.appearance ??= {
+          skinTone: "fair",
+          hairStyle: "cropped",
+          hairColor: "darkBrown",
+          tunicColor: "slateBlue",
+          trousersColor: "navy",
+          shoeColor: "darkBrown",
+        };
+        result.appearance[keys[argument]] = requiredValue(args, ++index, argument);
+        break;
+      }
       case "--view":
         result.view = requiredValue(args, ++index, argument);
         if (!["front", "back", "side", "top", "three-quarter"].includes(result.view)) {

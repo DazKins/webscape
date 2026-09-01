@@ -36,6 +36,14 @@ export type WorldWall = {
 const DEFAULT_SIZE: WorldSize = { x: 32, y: 32 };
 const MIN_HEIGHT = 0;
 const MAX_HEIGHT = 10;
+const APPEARANCE_VALUES = {
+  skinTone: ["porcelain", "fair", "tan", "brown", "deep"],
+  hairStyle: ["cropped", "swept", "bob", "curls"],
+  hairColor: ["black", "darkBrown", "chestnut", "auburn", "golden", "gray"],
+  tunicColor: ["slateBlue", "forest", "rust", "mustard", "plum", "teal", "burgundy"],
+  trousersColor: ["charcoal", "navy", "umber", "olive", "taupe"],
+  shoeColor: ["darkBrown", "oxblood", "charcoal", "tan"],
+} as const;
 
 export function createBlankWorld(size: WorldSize = DEFAULT_SIZE): WorldFormat {
   return {
@@ -160,12 +168,14 @@ export function validateWorld(world: WorldFormat): ValidationResult {
 
     validateWoodcuttable(entity.id, entity.components, errors);
     validateFishable(entity.id, entity.components, errors);
+    validateAppearance(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
     const templateComponents = template && isObject(template.components) ? template.components : null;
     if (templateComponents) {
       validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
       validateFishable(`${entity.id} child template`, templateComponents, errors);
+      validateAppearance(`${entity.id} child template`, templateComponents, errors);
     }
   }
 
@@ -201,6 +211,35 @@ function validateFishable(
   }
   if (!Number.isInteger(fishingYield.count) || Number(fishingYield.count) < 1) {
     errors.push(`entity "${entityId}" fishable.yield.count must be a positive integer`);
+  }
+}
+
+function validateAppearance(
+  entityId: string,
+  components: Record<string, unknown>,
+  errors: string[]
+): void {
+  if (!Object.prototype.hasOwnProperty.call(components, "appearance")) {
+    return;
+  }
+  const appearance = isObject(components.appearance) ? components.appearance : null;
+  if (!appearance) {
+    errors.push(`entity "${entityId}" appearance must be an object`);
+    return;
+  }
+
+  const fields = Object.keys(APPEARANCE_VALUES) as Array<keyof typeof APPEARANCE_VALUES>;
+  for (const key of Object.keys(appearance)) {
+    if (!fields.includes(key as keyof typeof APPEARANCE_VALUES)) {
+      errors.push(`entity "${entityId}" appearance contains unknown field "${key}"`);
+    }
+  }
+  for (const field of fields) {
+    const value = appearance[field];
+    const allowed: readonly string[] = APPEARANCE_VALUES[field];
+    if (typeof value !== "string" || !allowed.includes(value)) {
+      errors.push(`entity "${entityId}" appearance.${field} must be one of ${allowed.join(", ")}`);
+    }
   }
 }
 

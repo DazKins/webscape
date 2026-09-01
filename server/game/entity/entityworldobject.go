@@ -23,6 +23,9 @@ func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	if renderable := createRenderableComponent(entity.Components); renderable != nil {
 		components = append(components, renderable)
 	}
+	if appearance := createAppearanceComponent(entity.Id, entity.Components); appearance != nil {
+		components = append(components, appearance)
+	}
 	if openable := createOpenableComponent(entity.Components); openable != nil {
 		components = append(components, openable)
 	}
@@ -81,6 +84,23 @@ func createFishableComponent(components map[string]any) *component.CFishable {
 	return component.NewCFishable(catchChancePercent, component.LootItem{
 		Name: name, Type: itemType, Count: count,
 	})
+}
+
+func createAppearanceComponent(entityID string, components map[string]any) *component.CAppearance {
+	renderable, ok := components["renderable"].(map[string]any)
+	if !ok || renderable["type"] != "human" {
+		return nil
+	}
+	appearance := component.DeterministicAppearance(entityID)
+	if raw, exists := components["appearance"]; exists {
+		parsed, err := component.ParseAppearance(raw)
+		if err != nil {
+			return nil
+		}
+		appearance = parsed
+	}
+	result, _ := component.NewCAppearance(appearance)
+	return result
 }
 
 func createWoodcuttableComponent(components map[string]any) *component.CWoodcuttable {

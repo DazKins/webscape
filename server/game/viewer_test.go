@@ -58,6 +58,7 @@ func TestViewerReceivesOnlyPublicComponents(t *testing.T) {
 		component.ComponentIdPosition,
 		component.ComponentIdMetadata,
 		component.ComponentIdRenderable,
+		component.ComponentIdAppearance,
 	} {
 		if !componentIDs[publicID.String()] {
 			t.Fatalf("viewer snapshot omitted public component %q", publicID)

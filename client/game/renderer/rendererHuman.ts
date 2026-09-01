@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import Entity from "../entity/entity";
-import { createModel, type ModelInstance } from "../models";
+import { createModel, type HumanAppearance, type ModelInstance } from "../models";
 import EntityHealthBar from "../../ui/components/entityHealthBar";
 import { createReactCss2dObject, type ReactCss2dObject } from "../../util/reactCss2dObject";
 import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
-import EquipmentAttachmentController from "./equipmentAttachmentController";
+import EquipmentAttachmentController, {
+  type EquippedComponent,
+} from "./equipmentAttachmentController";
 import {
   HUMAN_CHOP_ANIMATION_SECONDS,
   HUMAN_CHOP_CONTACT_SECONDS,
@@ -29,6 +31,7 @@ export default class RendererHuman extends EntityRenderer {
   private readonly visualRoot: THREE.Group;
   private readonly modelInstance: ModelInstance;
   private readonly equipmentAttachments: EquipmentAttachmentController;
+  private readonly hair: THREE.Object3D | undefined;
   private segmentStartX: number;
   private segmentStartZ: number;
   private segmentTargetX: number;
@@ -53,14 +56,15 @@ export default class RendererHuman extends EntityRenderer {
     this.resolveEntity = resolveEntity;
     this.getEstimatedServerTick = getEstimatedServerTick;
 
-    const metadata = entity.getComponent("metadata") ?? {};
+    const appearance = entity.getComponent("appearance") as HumanAppearance;
     this.mesh = new THREE.Group();
     this.mesh.userData.entityId = entity.getId();
     this.visualRoot = new THREE.Group();
     this.visualRoot.position.set(0.5, 0, 0.5);
     this.mesh.add(this.visualRoot);
 
-    this.modelInstance = createModel("human", { color: metadata.color ?? "#00ff00" });
+    this.modelInstance = createModel("human", { appearance });
+    this.hair = this.modelInstance.root.getObjectByName("hair");
     this.visualRoot.add(this.modelInstance.root);
     this.equipmentAttachments = new EquipmentAttachmentController(this.modelInstance);
     const position = entity.getComponent("position");
@@ -126,7 +130,11 @@ export default class RendererHuman extends EntityRenderer {
       }
     }
     this.modelInstance.update(deltaSeconds);
-    this.equipmentAttachments.update(this.entity.getComponent("equipped"), deltaSeconds);
+    const equipped = this.entity.getComponent("equipped") as EquippedComponent | undefined;
+    if (this.hair) {
+      this.hair.visible = !equipped?.slots?.head;
+    }
+    this.equipmentAttachments.update(equipped, deltaSeconds);
     this.updateHealthBar();
   }
 

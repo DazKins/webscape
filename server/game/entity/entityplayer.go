@@ -15,6 +15,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 	}))
 
 	renderableComponent := component.NewCRenderable("human")
+	appearanceComponent, _ := component.NewCAppearance(component.RandomAppearance())
 
 	healthComponent := component.NewCHealth(100, 100)
 
@@ -40,6 +41,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 		positionComponent,
 		metadataComponent,
 		renderableComponent,
+		appearanceComponent,
 		healthComponent,
 		inventoryComponent,
 		equippedComponent,
