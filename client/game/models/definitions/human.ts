@@ -80,8 +80,8 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     head.add(eye);
   }
 
-  addArm(leftShoulder, leftElbow, skinColor, tunicColor);
-  addArm(rightShoulder, rightElbow, skinColor, tunicColor);
+  addArm(leftShoulder, leftElbow, leftHand, skinColor, tunicColor);
+  addArm(rightShoulder, rightElbow, rightHand, skinColor, tunicColor);
   addLeg(leftHip, leftKnee, trousersColor, bootColor);
   addLeg(rightHip, rightKnee, trousersColor, bootColor);
 
@@ -181,6 +181,24 @@ export const createHumanModel: ModelFactory = (options = {}) => {
       },
       leftElbow: { rotation: [-1.0 * intensity, 0, 0] },
       leftHand: { rotation: [0.15 * intensity, 0, -0.2 * intensity] },
+      ...staffArmPose(0.25 + 0.1 * intensity, 0.12 * intensity),
+    };
+  });
+
+  const shoot = animation("shoot", 1.5, false, (phase): ModelPose => {
+    const draw = THREE.MathUtils.smoothstep(phase, 0, 2 / 3);
+    const recover = THREE.MathUtils.smoothstep(phase, 2 / 3, 1);
+    const aim = draw * (1 - recover);
+    return {
+      hips: { rotation: [0, -0.08 * aim, 0] },
+      torso: { rotation: [-0.04 * aim, -0.2 * aim, 0] },
+      head: { rotation: [0.03 * aim, 0.15 * aim, 0] },
+      leftShoulder: { rotation: [-1.42 * aim, -0.08 * aim, -0.08 * aim] },
+      leftElbow: { rotation: [-0.12 * aim, 0, 0] },
+      leftHand: { rotation: [2.1 + (1.54 - 2.1) * aim, 0, -0.12 * aim] },
+      rightShoulder: { rotation: [-1.08 * aim, 0.55 * aim, 0.18 * aim] },
+      rightElbow: { rotation: [-1.15 * aim, 0, 0] },
+      rightHand: { rotation: [0, 0, 0.25 * aim] },
     };
   });
 
@@ -292,17 +310,46 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     };
   });
 
+  const bowIdle = animation("bowIdle", 2, true, (phase) => ({
+    ...idle.sample(phase),
+    leftHand: { rotation: [2.1, 0, 0] },
+  }));
+  const bowRun = animation("bowRun", 0.8, true, (phase) => ({
+    ...run.sample(phase),
+    leftShoulder: { rotation: [0, 0, -0.08] },
+    leftElbow: { rotation: [-0.12, 0, 0] },
+    leftHand: { rotation: [2.22, 0, 0] },
+  }));
+  const staffIdle = animation("staffIdle", 2, true, () => staffArmPose(0.25, 0));
+  const staffRun = animation("staffRun", 0.8, true, (phase) => {
+    // Lift the planted tip before the grip passes the body, keeping the
+    // stride compact. The wrist cancels the arm's rotation throughout.
+    const plantedUntil = 0.3;
+    const planted = phase < plantedUntil;
+    const swing = (phase - plantedUntil) / (1 - plantedUntil);
+    const z = planted ? THREE.MathUtils.lerp(0.3, 0.1, phase / plantedUntil)
+      : THREE.MathUtils.lerp(0.1, 0.3, THREE.MathUtils.smoothstep(swing, 0, 1));
+    const lift = planted ? 0 : Math.sin(swing * Math.PI) * 0.06;
+    return { ...run.sample(phase), ...staffArmPose(z, lift) };
+  });
+
   const instance = createModelInstance(root, joints, [
+    bowIdle,
+    bowRun,
+    staffIdle,
+    staffRun,
     idle,
     run,
     attack,
     cast,
+    shoot,
     chop,
     fishWait,
     fishAction,
   ], {
     headwear,
     rightHand,
+    leftHand,
   });
   instance.play("idle");
   return instance;
@@ -370,6 +417,7 @@ function addHair(
 function addArm(
   shoulder: THREE.Group,
   elbow: THREE.Group,
+  wrist: THREE.Group,
   skinColor: THREE.ColorRepresentation,
   tunicColor: THREE.ColorRepresentation,
 ) {
@@ -383,8 +431,27 @@ function addArm(
   forearm.position.y = -0.115;
   elbow.add(forearm);
   const hand = sphere(0.058, 7, 5, skinColor);
-  hand.position.y = -0.25;
-  elbow.add(hand);
+  wrist.add(hand);
+}
+
+// Solve a two-segment arm in the character's vertical forward plane. The
+// staff grip is 0.78 units above its tip, so a zero lift places it on the floor.
+function staffArmPose(z: number, lift: number): ModelPose {
+  const y = 0.78 + lift - 1.0;
+  const upper = 0.28;
+  const lower = 0.25;
+  const elbow = -Math.acos(THREE.MathUtils.clamp(
+    (y * y + z * z - upper * upper - lower * lower) / (2 * upper * lower), -1, 1,
+  ));
+  const shoulder = Math.atan2(-z, -y)
+    - Math.atan2(lower * Math.sin(elbow), upper + lower * Math.cos(elbow));
+  return {
+    hips: { position: [0, 0, 0], rotation: [0, 0, 0] },
+    torso: { rotation: [0, 0, 0] },
+    rightShoulder: { rotation: [shoulder, 0, 0] },
+    rightElbow: { rotation: [elbow, 0, 0] },
+    rightHand: { rotation: [-shoulder - elbow, 0, 0] },
+  };
 }
 
 function addLeg(

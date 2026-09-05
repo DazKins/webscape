@@ -299,9 +299,11 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 
 	playerEntityId := model.NewEntityId()
 	game.HandleRegister("client-1", playerEntityId, "player")
+	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
+	inventoryRewardCount := inventory.AvailableSlots()
+	droppedRewardCount := component.InventoryCapacity - inventoryRewardCount
 	game.EmitGameEvent(gameevent.New("finish:quest", playerEntityId))
 
-	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
 	if inventory.GetItemCount() != component.InventoryCapacity {
 		t.Fatalf("inventory count = %d, want full capacity %d", inventory.GetItemCount(), component.InventoryCapacity)
 	}
@@ -311,8 +313,8 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 		t.Fatal("overflow rewards did not spawn a reward drop")
 	}
 	lootable := game.componentManager.GetEntityComponent(component.ComponentIdLootable, rewardDropEntityId).(*component.CLootable)
-	if lootable.ItemCount() != 8 {
-		t.Fatalf("reward drop item count = %d, want 8", lootable.ItemCount())
+	if lootable.ItemCount() != droppedRewardCount {
+		t.Fatalf("reward drop item count = %d, want %d", lootable.ItemCount(), droppedRewardCount)
 	}
 	metadata := game.componentManager.GetEntityComponent(component.ComponentIdMetadata, rewardDropEntityId)
 	if metadata == nil {
@@ -323,11 +325,11 @@ func TestQuestRewardOverflowSpawnsLootableRewardDrop(t *testing.T) {
 	if len(completion.Rewards) != 2 {
 		t.Fatalf("questCompleted rewards = %#v, want inventory and dropped entries", completion.Rewards)
 	}
-	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != 12 {
-		t.Fatalf("inventory reward delivery = %#v, want 12 inventory", completion.Rewards[0])
+	if completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory || completion.Rewards[0].Count != inventoryRewardCount {
+		t.Fatalf("inventory reward delivery = %#v, want %d inventory", completion.Rewards[0], inventoryRewardCount)
 	}
-	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != 8 {
-		t.Fatalf("dropped reward delivery = %#v, want 8 dropped", completion.Rewards[1])
+	if completion.Rewards[1].Delivery != message.QuestRewardDeliveryDropped || completion.Rewards[1].Count != droppedRewardCount {
+		t.Fatalf("dropped reward delivery = %#v, want %d dropped", completion.Rewards[1], droppedRewardCount)
 	}
 }
 

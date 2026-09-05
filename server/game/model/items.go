@@ -42,7 +42,10 @@ func CreateWoodenBow() *Item {
 		CritBonus:        0.03,
 		Range:            3,
 		AttackSpeedTicks: 3,
-		AttackMethod:     AttackMethodMelee,
+		AttackMethod:     AttackMethodRanged,
+		WindUpTicks:      2,
+		TravelTicks:      1,
+		ProjectileType:   "arrow",
 	})
 }
 
@@ -152,6 +155,11 @@ func CreateLogs() *Item {
 
 func CreateStone() *Item {
 	return NewItem("Stone", "material")
+}
+
+// Non-Equipable Items - Ammunition
+func CreateArrow() *Item {
+	return NewItem("Arrow", ItemTypeArrow)
 }
 
 // Non-Equipable Items - Quest Items

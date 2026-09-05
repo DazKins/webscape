@@ -17,9 +17,12 @@ type EquipmentSlot string
 type AttackMethod string
 
 const (
-	AttackMethodMelee AttackMethod = "melee"
-	AttackMethodMagic AttackMethod = "magic"
+	AttackMethodMelee  AttackMethod = "melee"
+	AttackMethodMagic  AttackMethod = "magic"
+	AttackMethodRanged AttackMethod = "ranged"
 )
+
+const ItemTypeArrow = "arrow"
 
 const (
 	SlotHead    EquipmentSlot = "head"

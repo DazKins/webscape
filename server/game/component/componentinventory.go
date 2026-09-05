@@ -50,6 +50,25 @@ func (c *CInventory) RemoveItem(itemId model.ItemId) bool {
 	return false
 }
 
+func (c *CInventory) RemoveFirstItemByType(itemType string) *model.Item {
+	for i, item := range c.items {
+		if item.Type == itemType {
+			c.items = append(c.items[:i], c.items[i+1:]...)
+			return item
+		}
+	}
+	return nil
+}
+
+func (c *CInventory) HasItemType(itemType string) bool {
+	for _, item := range c.items {
+		if item.Type == itemType {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *CInventory) GetItem(itemId model.ItemId) *model.Item {
 	for _, item := range c.items {
 		if item.Id == itemId {

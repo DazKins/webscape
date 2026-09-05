@@ -57,6 +57,18 @@ func TestSerializeMagicStaffCombatProfile(t *testing.T) {
 	}
 }
 
+func TestSerializeWoodenBowCombatProfile(t *testing.T) {
+	serialized := SerializeItem(model.CreateWoodenBow()).(util.JObject)
+	stats := serialized["combatStats"].(util.JObject)
+	if stats["attackMethod"] != util.JString("ranged") ||
+		stats["windUpTicks"] != util.JNumber(2) ||
+		stats["travelTicks"] != util.JNumber(1) ||
+		stats["projectileType"] != util.JString("arrow") ||
+		stats["range"] != util.JNumber(3) {
+		t.Fatalf("serialized wooden bow combat stats = %#v", stats)
+	}
+}
+
 func TestSerializeExistingWeaponDefaultsToMeleeProfile(t *testing.T) {
 	serialized := SerializeItem(model.CreateIronSword()).(util.JObject)
 	stats := serialized["combatStats"].(util.JObject)

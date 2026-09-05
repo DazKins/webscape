@@ -151,13 +151,16 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   getProjectileOrigin(projectileType: string): THREE.Vector3 | null {
-    if (projectileType !== "magicBolt") {
-      return null;
+    const weapon = this.equipmentAttachments.getAttachmentObject("weapon");
+    if (projectileType === "magicBolt") {
+      return weapon?.getObjectByName("magicStaffCrown")
+        ?.getWorldPosition(new THREE.Vector3()) ?? null;
     }
-    const crown = this.equipmentAttachments
-      .getAttachmentObject("weapon")
-      ?.getObjectByName("magicStaffCrown");
-    return crown?.getWorldPosition(new THREE.Vector3()) ?? null;
+    if (projectileType === "arrow") {
+      return weapon?.getObjectByName("bowArrowRest")
+        ?.getWorldPosition(new THREE.Vector3()) ?? null;
+    }
+    return null;
   }
 
   onRemove() {
@@ -175,25 +178,31 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   private updateLocomotionAnimation() {
+    const equipped = this.entity.getComponent("equipped") as EquippedComponent | undefined;
+    const weapon = equipped?.slots?.weapon?.renderModel;
+    const idleName = weapon === "woodenBow" ? "bowIdle"
+      : weapon === "magicStaff" ? "staffIdle" : HUMAN_IDLE_ANIMATION_NAME;
+    const runName = weapon === "woodenBow" ? "bowRun"
+      : weapon === "magicStaff" ? "staffRun" : HUMAN_RUN_ANIMATION_NAME;
     const locomotion = this.entity.getComponent("locomotion");
     const phase = this.locomotionPhase(locomotion);
     const phaseStartedTick = this.locomotionPhaseStartedTick(locomotion);
     if (phase === null || phaseStartedTick === null) {
       this.previousLocomotionPhaseKey = null;
       this.modelInstance.play(
-        this.isMoving() ? HUMAN_RUN_ANIMATION_NAME : HUMAN_IDLE_ANIMATION_NAME,
+        this.isMoving() ? runName : idleName,
         HUMAN_ANIMATION_FADE_SECONDS,
       );
       return;
     }
 
     const animationName = phase === "moving"
-      ? HUMAN_RUN_ANIMATION_NAME
-      : HUMAN_IDLE_ANIMATION_NAME;
+      ? runName
+      : idleName;
     const animationDuration = phase === "moving"
       ? HUMAN_RUN_ANIMATION_SECONDS
       : HUMAN_IDLE_ANIMATION_SECONDS;
-    const phaseKey = `${phase}:${phaseStartedTick}`;
+    const phaseKey = `${animationName}:${phase}:${phaseStartedTick}`;
     if (phaseKey !== this.previousLocomotionPhaseKey) {
       const phaseAgeTicks = Math.max(0, this.getEstimatedServerTick() - phaseStartedTick);
       const elapsedSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
@@ -212,7 +221,7 @@ export default class RendererHuman extends EntityRenderer {
     const combat = this.entity.getComponent("combatstate");
     if (
       typeof combat !== "object" || combat === null ||
-      combat.attackMethod !== "magic" ||
+      (combat.attackMethod !== "magic" && combat.attackMethod !== "ranged") ||
       (combat.phase !== "casting" && combat.phase !== "recovering") ||
       typeof combat.phaseStartedTick !== "number"
     ) {
@@ -231,11 +240,12 @@ export default class RendererHuman extends EntityRenderer {
       ? Math.min(2 / 3, (phaseAgeTicks / windUpTicks) * (2 / 3))
       : Math.min(1, 2 / 3 + phaseAgeTicks / 3);
     const phaseKey = `${combat.phase}:${combat.phaseStartedTick}`;
+    const animationName = combat.attackMethod === "ranged" ? "shoot" : "cast";
     if (phaseKey !== this.previousCombatPhaseKey) {
-      this.modelInstance.playAt("cast", normalizedTime, HUMAN_ANIMATION_FADE_SECONDS);
+      this.modelInstance.playAt(animationName, normalizedTime, HUMAN_ANIMATION_FADE_SECONDS);
       this.previousCombatPhaseKey = phaseKey;
     } else {
-      this.modelInstance.playAt("cast", normalizedTime);
+      this.modelInstance.playAt(animationName, normalizedTime);
     }
     return true;
   }

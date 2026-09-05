@@ -12,6 +12,7 @@ import { createWoodcuttingAxeModel } from "./definitions/woodcuttingAxe";
 import { createFishingRodModel } from "./definitions/fishingRod";
 import { createFishingSpotModel } from "./definitions/fishingSpot";
 import { createMagicStaffModel } from "./definitions/magicStaff";
+import { createWoodenBowModel } from "./definitions/woodenBow";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 
 export const modelRegistry = {
@@ -29,6 +30,7 @@ export const modelRegistry = {
   rewarddrop: createRewardDropModel,
   fishingSpot: createFishingSpotModel,
   magicStaff: createMagicStaffModel,
+  woodenBow: createWoodenBowModel,
 } satisfies Record<string, ModelFactory>;
 
 export type ModelName = keyof typeof modelRegistry;

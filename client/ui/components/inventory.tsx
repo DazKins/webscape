@@ -36,6 +36,8 @@ type ItemIconKind =
   | "axe"
   | "fishingRod"
   | "magicStaff"
+  | "bow"
+  | "arrow"
   | "fish"
   | "helmet"
   | "armor"
@@ -98,6 +100,28 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
       <path d="M59 28c8 0 14-5 16-13" fill="none" stroke="#8b5d35" stroke-width="7" stroke-linecap="round"/>
       <path d="M65 19 76 10 84 22 73 33 61 29Z" fill="#c9f4ff"/>
       <circle cx="73" cy="22" r="7" fill="#f1fdff"/>
+    `,
+  },
+  bow: {
+    background: "#2b2118",
+    glow: "#ffc36f",
+    shape: `
+      <g transform="rotate(-24 48 48)">
+        <path d="M69 8C27 26 27 70 69 88" fill="none" stroke="#d18a42" stroke-width="10" stroke-linecap="round"/>
+        <path d="M69 8V88" fill="none" stroke="#fff0ca" stroke-width="4"/>
+        <path d="M36 40 34 56" stroke="#57331d" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="69" cy="8" r="5" fill="#6a3c20"/>
+        <circle cx="69" cy="88" r="5" fill="#6a3c20"/>
+      </g>
+    `,
+  },
+  arrow: {
+    background: "#302b27",
+    glow: "#d6dde0",
+    shape: `
+      <path d="M20 69 71 20" stroke="#8a5a32" stroke-width="7" stroke-linecap="round"/>
+      <path d="m65 17 18-5-6 18-12-13Z" fill="#d7dde0"/>
+      <path d="m22 66-3-14 13 4M25 70l14 3-4-13" fill="#c54e40"/>
     `,
   },
   fish: {
@@ -251,6 +275,8 @@ const itemIconSrcCache = new Map<ItemIconKind, string>();
 function getItemIconKind(item: InventoryItem): ItemIconKind {
   const name = item.name.toLowerCase();
   if (item.renderModel === "magicStaff") return "magicStaff";
+  if (item.renderModel === "woodenBow") return "bow";
+  if (item.type === "arrow") return "arrow";
   if (item.type === "axe") return "axe";
   if (item.type === "fishingRod") return "fishingRod";
   if (item.type === "fish") return "fish";

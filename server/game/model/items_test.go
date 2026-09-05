@@ -43,3 +43,20 @@ func TestMagicStaffCombatProfile(t *testing.T) {
 		t.Fatalf("magic staff combat stats = %#v", stats)
 	}
 }
+
+func TestWoodenBowUsesRangedProjectileProfile(t *testing.T) {
+	bow := CreateWoodenBow()
+	stats := bow.CombatStats
+	if bow.RenderModel != "woodenBow" || stats == nil ||
+		stats.AttackMethod != AttackMethodRanged || stats.WindUpTicks != 2 ||
+		stats.TravelTicks != 1 || stats.ProjectileType != "arrow" || stats.Range != 3 {
+		t.Fatalf("wooden bow = %#v", bow)
+	}
+}
+
+func TestArrowIsInventoryAmmunition(t *testing.T) {
+	arrow := CreateArrow()
+	if arrow.Name != "Arrow" || arrow.Type != ItemTypeArrow || arrow.IsEquipable() {
+		t.Fatalf("arrow = %#v", arrow)
+	}
+}

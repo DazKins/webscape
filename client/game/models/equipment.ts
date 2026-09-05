@@ -48,11 +48,22 @@ const equipmentPresentations = {
   magicStaff: {
     equipped: {
       socket: "rightHand",
-      position: [0, -0.48, 0.065],
+      position: [0, -0.78, 0],
       rotation: [0, 0, 0],
     },
     dropped: {
       rotation: [0, 0, Math.PI / 2],
+    },
+  },
+  woodenBow: {
+    equipped: {
+      socket: "leftHand",
+      position: [0, 0, 0],
+      rotation: [0, -Math.PI / 2, 0],
+      scale: [0.85, 0.85, 0.85],
+    },
+    dropped: {
+      rotation: [Math.PI / 2, 0, 0],
     },
   },
   leatherHelmet: {

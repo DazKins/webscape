@@ -15,6 +15,7 @@ import RendererRat from "./renderer/rendererRat";
 import RendererFishingSpot from "./renderer/rendererFishingSpot";
 import type { TerrainHeightSampler } from "./renderer/renderer";
 import RendererMagicBolt from "./renderer/rendererMagicBolt";
+import RendererArrow from "./renderer/rendererArrow";
 
 type VisualHeightWorld = {
   getVisualHeightAtWorldPosition(worldX: number, worldZ: number): number;
@@ -63,7 +64,7 @@ export type CombatProjectileLaunchedPayload = {
 };
 
 type ActiveCombatProjectile = {
-  renderer: RendererMagicBolt;
+  renderer: RendererMagicBolt | RendererArrow;
   targetEntityId: string;
   fallbackTarget: THREE.Vector3;
   launchTick: number;
@@ -205,7 +206,7 @@ export default class EntityRenderSystem {
       didHit,
       damage,
       isCritical,
-      attackPlayed: attackMethod === "magic",
+      attackPlayed: attackMethod === "magic" || attackMethod === "ranged",
       textShown: false,
       expiresAt: Date.now() + EFFECT_RETRY_MILLISECONDS,
     };
@@ -215,14 +216,22 @@ export default class EntityRenderSystem {
   }
 
   showCombatProjectile(payload: CombatProjectileLaunchedPayload) {
-    if (payload.projectileType !== "magicBolt" || payload.impactTick <= payload.launchTick) {
+    if (payload.impactTick <= payload.launchTick) {
       return;
     }
     const authoritativeOrigin = this.worldPosition(payload.origin, 1.1);
     const start = this.renderers[payload.attackerEntityId]
       ?.getProjectileOrigin(payload.projectileType) ?? authoritativeOrigin;
+    const renderer = payload.projectileType === "magicBolt"
+      ? new RendererMagicBolt(this.effectsRoot, start)
+      : payload.projectileType === "arrow"
+        ? new RendererArrow(this.effectsRoot, start)
+        : null;
+    if (!renderer) {
+      return;
+    }
     const projectile: ActiveCombatProjectile = {
-      renderer: new RendererMagicBolt(this.effectsRoot, start),
+      renderer,
       targetEntityId: payload.targetEntityId,
       fallbackTarget: this.worldPosition(payload.targetPosition, 1.0),
       launchTick: payload.launchTick,

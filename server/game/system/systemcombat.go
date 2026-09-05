@@ -69,10 +69,17 @@ func (s *CombatSystem) updateCombatStates() {
 			combatState.Restart(attackerStats, currentTick)
 			s.ComponentManager.SetEntityComponent(attackerId, combatState)
 		}
+		if !s.hasProjectileAmmo(attackerId, attackerStats.GetAttackMethod()) {
+			s.stopRangedCombatWithoutArrows(attackerId)
+			continue
+		}
 
 		if combatState.GetPhase() == component.CombatPhaseCasting {
 			if currentTick >= combatState.GetPhaseStartedTick()+uint64(combatState.GetWindUpTicks()) {
-				s.launchMagicAttack(attackerId, targetId, attackerPosition, targetPosition, attackerStats)
+				if !s.launchProjectileAttack(attackerId, targetId, attackerPosition, targetPosition, attackerStats) {
+					s.stopRangedCombatWithoutArrows(attackerId)
+					continue
+				}
 				combatState.BeginRecovering(currentTick, combatState.GetNextAttackTick())
 				s.ComponentManager.SetEntityComponent(attackerId, combatState)
 			}
@@ -98,7 +105,7 @@ func (s *CombatSystem) updateCombatStates() {
 			}
 		}
 
-		if attackerStats.GetAttackMethod() == model.AttackMethodMagic {
+		if isProjectileAttack(attackerStats.GetAttackMethod()) {
 			combatState.BeginCasting(
 				currentTick,
 				currentTick+uint64(attackerStats.GetAttackSpeedTicks()),
@@ -123,13 +130,16 @@ func (s *CombatSystem) updateCombatStates() {
 	}
 }
 
-func (s *CombatSystem) launchMagicAttack(
+func (s *CombatSystem) launchProjectileAttack(
 	attackerId model.EntityId,
 	targetId model.EntityId,
 	origin math.Vec2,
 	targetPosition math.Vec2,
 	attackerStats *component.CCombatStats,
-) {
+) bool {
+	if !s.consumeProjectileAmmo(attackerId, attackerStats.GetAttackMethod()) {
+		return false
+	}
 	launchTick := currentTick(s.TickSource)
 	impactTick := launchTick + uint64(attackerStats.GetTravelTicks())
 	s.pendingImpacts = append(s.pendingImpacts, pendingCombatImpact{
@@ -154,6 +164,40 @@ func (s *CombatSystem) launchMagicAttack(
 			impactTick,
 		))
 	}
+	return true
+}
+
+func isProjectileAttack(attackMethod model.AttackMethod) bool {
+	return attackMethod == model.AttackMethodMagic || attackMethod == model.AttackMethodRanged
+}
+
+func (s *CombatSystem) hasProjectileAmmo(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+	if attackMethod != model.AttackMethodRanged {
+		return true
+	}
+	inventory := s.ComponentManager.GetEntityComponent(component.ComponentIdInventory, attackerId)
+	return inventory != nil && inventory.(*component.CInventory).HasItemType(model.ItemTypeArrow)
+}
+
+func (s *CombatSystem) consumeProjectileAmmo(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+	if attackMethod != model.AttackMethodRanged {
+		return true
+	}
+	inventory := s.ComponentManager.GetEntityComponent(component.ComponentIdInventory, attackerId)
+	if inventory == nil {
+		return false
+	}
+	inventoryComponent := inventory.(*component.CInventory)
+	if inventoryComponent.RemoveFirstItemByType(model.ItemTypeArrow) == nil {
+		return false
+	}
+	s.ComponentManager.SetEntityComponent(attackerId, inventoryComponent)
+	return true
+}
+
+func (s *CombatSystem) stopRangedCombatWithoutArrows(attackerId model.EntityId) {
+	s.clearCombatState(attackerId)
+	s.addCombatLog(attackerId, "You have no arrows left", "miss")
 }
 
 func (s *CombatSystem) resolvePendingImpacts() {

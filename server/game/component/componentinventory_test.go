@@ -31,3 +31,25 @@ func TestInventoryAddItemEnforcesCapacity(t *testing.T) {
 		t.Fatalf("overflow changed inventory count to %d", inventory.GetItemCount())
 	}
 }
+
+func TestInventoryRemovesFirstItemByType(t *testing.T) {
+	inventory := NewCInventory()
+	bread := model.CreateBread()
+	firstArrow := model.CreateArrow()
+	secondArrow := model.CreateArrow()
+	inventory.AddItem(bread)
+	inventory.AddItem(firstArrow)
+	inventory.AddItem(secondArrow)
+
+	removed := inventory.RemoveFirstItemByType(model.ItemTypeArrow)
+	if removed != firstArrow || inventory.HasItem(firstArrow.Id) || !inventory.HasItem(secondArrow.Id) {
+		t.Fatalf("removed = %#v, remaining = %#v", removed, inventory.GetAllItems())
+	}
+	if !inventory.HasItemType(model.ItemTypeArrow) {
+		t.Fatal("second arrow was not found")
+	}
+	inventory.RemoveFirstItemByType(model.ItemTypeArrow)
+	if inventory.HasItemType(model.ItemTypeArrow) || inventory.RemoveFirstItemByType(model.ItemTypeArrow) != nil {
+		t.Fatal("empty arrow inventory still reports ammunition")
+	}
+}
