@@ -1,3 +1,6 @@
+declare const __BUILD_REVISION__: string;
+declare const __BUILD_DIRTY__: boolean;
+
 declare module "*.module.css";
 
 interface Window {

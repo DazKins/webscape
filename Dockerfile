@@ -8,7 +8,8 @@ COPY client/package.json client/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY client/ ./
-RUN pnpm run build
+ARG WEBSCAPE_BUILD_REVISION
+RUN WEBSCAPE_BUILD_REVISION="$WEBSCAPE_BUILD_REVISION" pnpm run build
 
 FROM golang:1.25.2-alpine AS server-builder
 

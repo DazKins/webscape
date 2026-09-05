@@ -40,6 +40,29 @@ go run .
 
 The editor runs separately from `editor/` with `pnpm run dev`.
 
+## Client build identifier
+
+The top-right build label identifies the loaded client assets by the first eight
+characters of their Git commit SHA. Hover over it for the full revision. The
+identifier is fixed when Vite starts or builds; rebuild and reload the client to
+pick up a different revision.
+
+Local builds detect Git HEAD automatically, including in Git worktrees, and append
+`-dirty` when the repository has uncommitted changes (including untracked files).
+Set `WEBSCAPE_BUILD_REVISION` to an explicit commit SHA to override detection. An
+explicit revision is used as supplied, without an automatic dirty suffix. Builds
+without Git metadata or an override show `Build unknown`.
+
+Docker excludes Git metadata, so pass the client source revision at build time:
+
+```sh
+docker build --build-arg WEBSCAPE_BUILD_REVISION="$(git rev-parse HEAD)" -t webscape .
+```
+
+Build deployments from a clean checkout so that this SHA identifies their source.
+The label identifies the client build; it does not version a separately deployed
+server or game content.
+
 ## License
 
 Copyright © 2025–2026 David Atkins.

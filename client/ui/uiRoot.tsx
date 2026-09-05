@@ -79,6 +79,9 @@ const rightTabs: TabDefinition<RightTab>[] = [
 ];
 
 const mobileTabs: TabDefinition<MobileTab>[] = [...leftTabs, ...rightTabs];
+const buildSuffix = __BUILD_DIRTY__ ? "-dirty" : "";
+const buildLabel = `Build ${__BUILD_REVISION__.slice(0, 8)}${buildSuffix}`;
+const buildTitle = `Client build ${__BUILD_REVISION__}${buildSuffix}`;
 const sourceUrl = "https://github.com/dazkins/webscape";
 
 function SourceLink() {
@@ -209,8 +212,25 @@ export default function UiRoot(props: Props) {
     <OnboardingOverlay state={props.registration} onRegister={props.onRegister} />
   );
 
+  const buildInfo = (
+    <div
+      className={styles.buildInfo}
+      onClick={stopHudEvent}
+      onContextMenu={stopHudEvent}
+      onPointerDown={handleHudPointerDown}
+      onPointerUp={handleHudPointerUp}
+      onPointerEnter={handleHudMouseEnter}
+      onPointerLeave={handleHudMouseLeave}
+    >
+      <span className={styles.buildRevision} title={buildTitle}>
+        {buildLabel}
+      </span>
+      <SourceLink />
+    </div>
+  );
+
   if (props.registration.phase !== "registered") {
-    return <div className={styles.root}>{onboarding}</div>;
+    return <div className={styles.root}>{buildInfo}{onboarding}</div>;
   }
 
   if (profile.isMobileLayout) {
@@ -257,7 +277,7 @@ export default function UiRoot(props: Props) {
         <ConversationPanel game={props.game} />
         <QuestStartedOverlay game={props.game} />
         <QuestCompletedOverlay game={props.game} />
-        <SourceLink />
+        {buildInfo}
         {onboarding}
       </div>
     );
@@ -321,7 +341,7 @@ export default function UiRoot(props: Props) {
       <ConversationPanel game={props.game} />
       <QuestStartedOverlay game={props.game} />
       <QuestCompletedOverlay game={props.game} />
-      <SourceLink />
+      {buildInfo}
       {onboarding}
     </div>
   );

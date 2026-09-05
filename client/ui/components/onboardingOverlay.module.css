@@ -5,7 +5,7 @@
   display: grid;
   place-items: center;
   box-sizing: border-box;
-  padding: max(20px, var(--safe-area-top)) max(20px, var(--safe-area-right)) max(20px, var(--safe-area-bottom)) max(20px, var(--safe-area-left));
+  padding: var(--build-info-clearance) max(20px, var(--safe-area-right)) max(20px, var(--safe-area-bottom)) max(20px, var(--safe-area-left));
   overflow-y: auto;
   background:
     radial-gradient(circle at 50% 32%, rgba(79, 126, 112, 0.1), transparent 42%),
