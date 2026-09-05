@@ -20,7 +20,7 @@ type PathingSystem struct {
 }
 
 func (s *PathingSystem) Update() {
-	entityIds := s.ComponentManager.GetEntitiesWithComponents(component.ComponentIdPosition, component.ComponentIdPathing)
+	entityIds := s.ComponentManager.GetEntitiesWithComponents(component.ComponentIdPathing, component.ComponentIdPosition)
 
 	for _, entityId := range entityIds {
 		positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId).(*component.CPosition)
@@ -28,11 +28,6 @@ func (s *PathingSystem) Update() {
 
 		target := pathingComponent.GetTarget()
 		path := pathingComponent.GetPath()
-
-		if path != nil && path.Size() == 0 {
-			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
-			continue
-		}
 
 		pathToPosition := math.Vec2{}
 		isEntityTarget := false
@@ -46,7 +41,12 @@ func (s *PathingSystem) Update() {
 			pathToPosition = target.Position.Unwrap()
 		} else if target.EntityId.IsPresent() {
 			targetEntityId := target.EntityId.Unwrap()
-			targetEntityPosition := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, targetEntityId).(*component.CPosition)
+			targetPositionValue := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, targetEntityId)
+			if targetPositionValue == nil {
+				s.entityStateTransitions(s.TickSource).RejectPathing(entityId)
+				continue
+			}
+			targetEntityPosition := targetPositionValue.(*component.CPosition)
 			pathToPosition = targetEntityPosition.GetPosition()
 			isEntityTarget = true
 		}
@@ -92,21 +92,19 @@ func (s *PathingSystem) Update() {
 			continue
 		}
 
-		if isEntityTarget {
-			stopPosition, ok := s.findEntityStopPosition(positionPos, pathToPosition, stopDistance)
-			if ok {
-				pathToPosition = stopPosition
+		if !isEntityTarget {
+			stopDistance = 0
+		}
+		checker := s.collision()
+		if !pathingComponent.HasPlan(pathToPosition, stopDistance) || !checker.CanStep(positionPos, *path.Peek()) {
+			newPath, err := checker.GetPathWithinRange(positionPos, pathToPosition, stopDistance)
+			if err != nil {
+				s.rejectPathing(entityId)
+				continue
 			}
+			pathingComponent.SetPlan(&newPath, pathToPosition, stopDistance)
+			path = &newPath
 		}
-
-		// It's easiest just to recompute the path every time for now...
-		newPath, err := s.collision().GetPath(positionPos, pathToPosition)
-		if err != nil {
-			s.rejectPathing(entityId)
-			continue
-		}
-		pathingComponent.SetPath(&newPath)
-		path = &newPath
 
 		nextPosition := path.Pop()
 		if nextPosition != nil {
@@ -151,43 +149,6 @@ func (s *PathingSystem) resolveOverlap(
 		s.ComponentManager.SetEntityComponent(entityId, positionComponent)
 		return
 	}
-}
-
-func (s *PathingSystem) findEntityStopPosition(
-	currentPosition math.Vec2,
-	targetPosition math.Vec2,
-	stopDistance int,
-) (math.Vec2, bool) {
-	bestPos := math.Vec2{}
-	bestLen := -1
-
-	for dx := -stopDistance; dx <= stopDistance; dx++ {
-		for dy := -stopDistance; dy <= stopDistance; dy++ {
-			if absInt(dx)+absInt(dy) > stopDistance {
-				continue
-			}
-			if dx == 0 && dy == 0 {
-				continue
-			}
-			candidate := math.Vec2{X: targetPosition.X + dx, Y: targetPosition.Y + dy}
-			if s.collision().IsBlocked(candidate.X, candidate.Y) {
-				continue
-			}
-			path, err := s.collision().GetPath(currentPosition, candidate)
-			if err != nil {
-				continue
-			}
-			if bestLen == -1 || path.Size() < bestLen {
-				bestLen = path.Size()
-				bestPos = candidate
-			}
-		}
-	}
-
-	if bestLen == -1 {
-		return math.Vec2{}, false
-	}
-	return bestPos, true
 }
 
 func (s *PathingSystem) collision() collision.Checker {

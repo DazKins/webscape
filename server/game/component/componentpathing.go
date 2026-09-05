@@ -14,8 +14,10 @@ type PathingTarget struct {
 }
 
 type CPathing struct {
-	target PathingTarget
-	path   *util.Path
+	target        PathingTarget
+	path          *util.Path
+	plannedTarget math.Vec2
+	plannedRange  int
 }
 
 func NewCPathing(target PathingTarget) *CPathing {
@@ -35,6 +37,7 @@ func (c *CPathing) GetTarget() PathingTarget {
 
 func (c *CPathing) SetTarget(target PathingTarget) {
 	c.target = target
+	c.path = nil
 }
 
 func (c *CPathing) GetPath() *util.Path {
@@ -43,4 +46,11 @@ func (c *CPathing) GetPath() *util.Path {
 
 func (c *CPathing) SetPath(path *util.Path) {
 	c.path = path
+}
+
+func (c *CPathing) HasPlan(target math.Vec2, distance int) bool {
+	return c.path != nil && c.path.Size() > 0 && c.plannedTarget == target && c.plannedRange == distance
+}
+func (c *CPathing) SetPlan(path *util.Path, target math.Vec2, distance int) {
+	c.path, c.plannedTarget, c.plannedRange = path, target, distance
 }

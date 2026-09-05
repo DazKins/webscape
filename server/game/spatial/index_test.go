@@ -44,3 +44,60 @@ func assertIndexed(t *testing.T, index *Index, coord world.ChunkCoord, entityID 
 		t.Fatalf("entity membership in %#v = %v, want %v", coord, found, want)
 	}
 }
+
+func TestTileBlockersTrackDoorsOverlapsAndFootprints(t *testing.T) {
+	manager := component.NewComponentManager()
+	index := NewIndex(world.NewWorld(4, 4), manager)
+	metadata := component.NewCMetadata(util.JObject{"width": util.JNumber(2), "blocksMovement": util.JBool(true)})
+	door := manager.CreateNewEntity(component.NewCPosition(math.Vec2{X: -1, Y: 1}), metadata, component.NewCOpenable(false))
+	if !index.BlocksMovement(-1, 1) || !index.BlocksMovement(0, 1) || index.BlocksMovement(1, 1) {
+		t.Fatal("wrong footprint occupancy")
+	}
+	if len(index.EntitiesAt(2, 1)) != 0 {
+		t.Fatal("tile query included other chunk entities")
+	}
+	overlapping := manager.CreateNewEntity(component.NewCPosition(math.Vec2{X: 0, Y: 1}), component.NewCMetadata(util.JObject{"blocksMovement": util.JBool(true)}))
+	openable := manager.GetEntityComponent(component.ComponentIdOpenable, door).(*component.COpenable)
+	openable.SetOpen(true)
+	manager.SetEntityComponent(door, openable)
+	if index.BlocksMovement(-1, 1) || !index.BlocksMovement(0, 1) {
+		t.Fatal("opening door lost overlapping blocker")
+	}
+	manager.RemoveEntity(overlapping)
+	if index.BlocksMovement(0, 1) {
+		t.Fatal("removed blocker remains")
+	}
+	openable.SetOpen(false)
+	manager.SetEntityComponent(door, openable)
+	position := manager.GetEntityComponent(component.ComponentIdPosition, door).(*component.CPosition)
+	position.SetPosition(math.Vec2{X: 3, Y: 1})
+	manager.SetEntityComponent(door, position)
+	if index.BlocksMovement(-1, 1) || !index.BlocksMovement(4, 1) {
+		t.Fatal("movement did not update tiles")
+	}
+	manager.SetEntityComponent(door, component.NewCMetadata(util.JObject{"blocksMovement": util.JBool(true)}))
+	if !index.BlocksMovement(3, 1) || index.BlocksMovement(4, 1) {
+		t.Fatal("resize did not update tiles")
+	}
+	manager.RemoveComponent(component.ComponentIdMetadata, door)
+	if index.BlocksMovement(3, 1) {
+		t.Fatal("metadata removal left blocker")
+	}
+	manager.RemoveComponent(component.ComponentIdPosition, door)
+	if len(index.EntitiesAt(3, 1)) != 0 {
+		t.Fatal("position removal left tile membership")
+	}
+}
+
+func TestBlockerLookupDoesNotAllocate(t *testing.T) {
+	manager := component.NewComponentManager()
+	index := NewIndex(world.NewWorld(4, 4), manager)
+	manager.CreateNewEntity(component.NewCPosition(math.Vec2{}), component.NewCMetadata(util.JObject{"blocksMovement": util.JBool(true)}))
+	if allocations := testing.AllocsPerRun(100, func() {
+		if !index.BlocksMovement(0, 0) {
+			panic("missing blocker")
+		}
+	}); allocations != 0 {
+		t.Fatalf("allocations=%f", allocations)
+	}
+}

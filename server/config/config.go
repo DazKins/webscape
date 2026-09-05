@@ -19,7 +19,8 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Address string `json:"address"`
+	Address        string `json:"address"`
+	TickIntervalMs int    `json:"tickIntervalMs"`
 }
 
 type ClientConfig struct {
@@ -51,7 +52,7 @@ func LoadFromFS(configFS fs.FS, path string) (Config, error) {
 }
 
 func load(data []byte) (Config, error) {
-	var result Config
+	result := Config{Server: ServerConfig{TickIntervalMs: 500}}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&result); err != nil {
@@ -80,6 +81,9 @@ func ensureEndOfJSON(decoder *json.Decoder) error {
 func (c Config) Validate() error {
 	if c.FormatVersion != 1 {
 		return fmt.Errorf("unsupported config format version %d", c.FormatVersion)
+	}
+	if c.Server.TickIntervalMs < 1 || c.Server.TickIntervalMs > 60000 {
+		return errors.New("config server.tickIntervalMs must be between 1 and 60000")
 	}
 	if c.Server.Address == "" {
 		return errors.New("config server.address is required")

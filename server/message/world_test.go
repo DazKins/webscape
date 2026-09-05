@@ -3,6 +3,7 @@ package message
 import (
 	"encoding/json"
 	"testing"
+	"time"
 	"webscape/server/game/world"
 )
 
@@ -56,5 +57,20 @@ func TestWorldMessageIncludesQuestRewards(t *testing.T) {
 	}
 	if len(payload.Data.Quests) == 0 || len(payload.Data.Quests[0].Rewards.Items) == 0 {
 		t.Fatal("quest rewards missing")
+	}
+}
+
+func TestWorldMessageAdvertisesTickInterval(t *testing.T) {
+	message := NewWorldMessage(world.NewWorld(4, 4), 250*time.Millisecond)
+	var payload struct {
+		Data struct {
+			TickIntervalMs int `json:"tickIntervalMs"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(message.Marshal()), &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.Data.TickIntervalMs != 250 {
+		t.Fatalf("interval=%d", payload.Data.TickIntervalMs)
 	}
 }

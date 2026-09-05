@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -49,5 +50,24 @@ func TestLoadFromFSRejectsInvalidAndUnknownSettings(t *testing.T) {
 				t.Fatalf("error = %v, want %q", err, test.wantError)
 			}
 		})
+	}
+}
+
+func TestTickIntervalDefaultsAndValidation(t *testing.T) {
+	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":1}}`
+	for _, test := range []struct {
+		setting string
+		want    int
+		valid   bool
+	}{
+		{"", 500, true}, {`,"tickIntervalMs":250`, 250, true}, {`,"tickIntervalMs":0`, 0, false}, {`,"tickIntervalMs":-1`, 0, false}, {`,"tickIntervalMs":60001`, 0, false}, {`,"tickIntervalMs":1.5`, 0, false},
+	} {
+		c, err := load([]byte(fmt.Sprintf(base, test.setting)))
+		if (err == nil) != test.valid {
+			t.Fatalf("%s: error=%v", test.setting, err)
+		}
+		if test.valid && c.Server.TickIntervalMs != test.want {
+			t.Fatalf("interval=%d want=%d", c.Server.TickIntervalMs, test.want)
+		}
 	}
 }

@@ -82,6 +82,7 @@ class Game extends EventTarget implements InputReceiver {
   activeConversation: ConversationPayload | null;
   observerFocus: { x: number; y: number };
   private latestServerTick = 0;
+  private serverTickMilliseconds = SERVER_TICK_MILLISECONDS;
   private serverTickReceivedAtMilliseconds = performance.now();
 
   input: Input;
@@ -102,6 +103,7 @@ class Game extends EventTarget implements InputReceiver {
       this.scene,
       () => this.world,
       () => this.estimatedServerTick(),
+      () => this.serverTickMilliseconds / 1000,
     );
     this.quests = [];
     this.activeConversation = null;
@@ -421,7 +423,7 @@ class Game extends EventTarget implements InputReceiver {
       0,
       performance.now() - this.serverTickReceivedAtMilliseconds,
     );
-    return this.latestServerTick + elapsedMilliseconds / SERVER_TICK_MILLISECONDS;
+    return this.latestServerTick + elapsedMilliseconds / this.serverTickMilliseconds;
   }
 
   private resetServerClock() {
@@ -459,6 +461,10 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   registerWorld(worldUpdate: any) {
+    this.serverTickMilliseconds =
+      typeof worldUpdate.tickIntervalMs === "number" &&
+      Number.isFinite(worldUpdate.tickIntervalMs) && worldUpdate.tickIntervalMs > 0
+        ? worldUpdate.tickIntervalMs : SERVER_TICK_MILLISECONDS;
     this.entityRenderSystem.clearTransientEffects();
     this.resetServerClock();
     this.world?.dispose();

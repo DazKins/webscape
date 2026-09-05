@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 	"webscape/server"
 	"webscape/server/config"
 	"webscape/server/game/world"
@@ -36,5 +37,6 @@ func main() {
 		gameWorld,
 		runtimeConfig.Server.Address,
 		runtimeConfig.Streaming.ChunkRadius,
+		time.Duration(runtimeConfig.Server.TickIntervalMs)*time.Millisecond,
 	)
 }

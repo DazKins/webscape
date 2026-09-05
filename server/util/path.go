@@ -37,3 +37,10 @@ func (p *Path) GetLast() *math.Vec2 {
 	}
 	return &p.nodes[len(p.nodes)-1]
 }
+
+func (p *Path) Peek() *math.Vec2 {
+	if len(p.nodes) == 0 {
+		return nil
+	}
+	return &p.nodes[0]
+}

@@ -12,8 +12,6 @@ import {
   HUMAN_CHOP_CONTACT_SECONDS,
 } from "../models/definitions/human";
 
-const POSITION_INTERPOLATION_SECONDS = 0.5;
-const SERVER_TICK_SECONDS = 0.5;
 const HUMAN_HEALTH_BAR_Y = 1.55;
 const HUMAN_IDLE_ANIMATION_NAME = "idle";
 const HUMAN_RUN_ANIMATION_NAME = "run";
@@ -36,7 +34,7 @@ export default class RendererHuman extends EntityRenderer {
   private segmentStartZ: number;
   private segmentTargetX: number;
   private segmentTargetZ: number;
-  private segmentElapsedSeconds = POSITION_INTERPOLATION_SECONDS;
+  private segmentElapsedSeconds = Infinity;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
   private attackAnimationSecondsRemaining = 0;
   private previousFishingPhaseKey: string | null = null;
@@ -45,6 +43,7 @@ export default class RendererHuman extends EntityRenderer {
   private previousCombatPhaseKey: string | null = null;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
   private readonly getEstimatedServerTick: () => number;
+  private readonly getTickSeconds: () => number;
 
   constructor(
     scene: THREE.Scene,
@@ -52,10 +51,12 @@ export default class RendererHuman extends EntityRenderer {
     terrainHeightSampler?: TerrainHeightSampler,
     resolveEntity: (entityId: string) => Entity | undefined = () => undefined,
     getEstimatedServerTick: () => number = () => 0,
+    getTickSeconds: () => number = () => 0.5,
   ) {
     super(scene, entity, terrainHeightSampler);
     this.resolveEntity = resolveEntity;
     this.getEstimatedServerTick = getEstimatedServerTick;
+    this.getTickSeconds = getTickSeconds;
 
     const appearance = entity.getComponent("appearance") as HumanAppearance;
     this.mesh = new THREE.Group();
@@ -99,7 +100,7 @@ export default class RendererHuman extends EntityRenderer {
     }
 
     this.segmentElapsedSeconds += deltaSeconds;
-    const progress = Math.min(this.segmentElapsedSeconds / POSITION_INTERPOLATION_SECONDS, 1);
+    const progress = Math.min(this.segmentElapsedSeconds / this.getTickSeconds(), 1);
     const renderedX = THREE.MathUtils.lerp(this.segmentStartX, this.segmentTargetX, progress);
     const renderedZ = THREE.MathUtils.lerp(this.segmentStartZ, this.segmentTargetZ, progress);
     this.mesh.position.set(
@@ -174,7 +175,7 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   private isMoving() {
-    return this.segmentElapsedSeconds < POSITION_INTERPOLATION_SECONDS;
+    return this.segmentElapsedSeconds < this.getTickSeconds();
   }
 
   private updateLocomotionAnimation() {
@@ -205,7 +206,7 @@ export default class RendererHuman extends EntityRenderer {
     const phaseKey = `${animationName}:${phase}:${phaseStartedTick}`;
     if (phaseKey !== this.previousLocomotionPhaseKey) {
       const phaseAgeTicks = Math.max(0, this.getEstimatedServerTick() - phaseStartedTick);
-      const elapsedSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+      const elapsedSeconds = phaseAgeTicks * this.getTickSeconds();
       this.modelInstance.playAt(
         animationName,
         (elapsedSeconds % animationDuration) / animationDuration,
@@ -287,7 +288,7 @@ export default class RendererHuman extends EntityRenderer {
     const phaseKey = `${phase}:${phaseStartedTick}`;
     if (phaseKey !== this.previousFishingPhaseKey) {
       if (phase === "waiting") {
-        const elapsedSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+        const elapsedSeconds = phaseAgeTicks * this.getTickSeconds();
         this.modelInstance.seek(
           "fishWait",
           (elapsedSeconds % HUMAN_FISH_WAIT_ANIMATION_SECONDS) /
@@ -317,7 +318,7 @@ export default class RendererHuman extends EntityRenderer {
     }
 
     const phaseAgeTicks = Math.max(0, this.getEstimatedServerTick() - phaseStartedTick);
-    const phaseAgeSeconds = phaseAgeTicks * SERVER_TICK_SECONDS;
+    const phaseAgeSeconds = phaseAgeTicks * this.getTickSeconds();
     const contactPhase = HUMAN_CHOP_CONTACT_SECONDS / HUMAN_CHOP_ANIMATION_SECONDS;
     const phaseKey = `${phase}:${phaseStartedTick}`;
     if (phaseKey !== this.previousWoodcuttingPhaseKey) {

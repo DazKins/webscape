@@ -5,7 +5,8 @@ import EntityHealthBar from "../../ui/components/entityHealthBar";
 import { createReactCss2dObject, type ReactCss2dObject } from "../../util/reactCss2dObject";
 import EntityRenderer, { type TerrainHeightSampler } from "./renderer";
 
-const SERVER_TICK_SECONDS = 0.52;
+// Keep the existing 20ms interpolation padding at the default tick interval.
+const INTERPOLATION_PADDING_SECONDS = 0.02;
 const HEALTH_BAR_Y = 0.75;
 const ANIMATION_FADE_SECONDS = 0.08;
 const ATTACK_ANIMATION_SECONDS = 0.32;
@@ -20,7 +21,8 @@ export default class RendererRat extends EntityRenderer {
   private segmentStartZ: number;
   private segmentTargetX: number;
   private segmentTargetZ: number;
-  private segmentElapsedSeconds = SERVER_TICK_SECONDS;
+  private segmentElapsedSeconds = Infinity;
+  private readonly getTickSeconds: () => number;
   private targetRotationY = 0;
   private attackAnimationSecondsRemaining = 0;
 
@@ -28,8 +30,10 @@ export default class RendererRat extends EntityRenderer {
     scene: THREE.Scene,
     entity: Entity,
     terrainHeightSampler?: TerrainHeightSampler,
+    getTickSeconds: () => number = () => 0.5,
   ) {
     super(scene, entity, terrainHeightSampler);
+    this.getTickSeconds = getTickSeconds;
 
     const metadata = entity.getComponent("metadata") ?? {};
     this.mesh = new THREE.Group();
@@ -72,7 +76,7 @@ export default class RendererRat extends EntityRenderer {
     }
 
     this.segmentElapsedSeconds += deltaSeconds;
-    const progress = Math.min(this.segmentElapsedSeconds / SERVER_TICK_SECONDS, 1);
+    const progress = Math.min(this.segmentElapsedSeconds / (this.getTickSeconds() + INTERPOLATION_PADDING_SECONDS), 1);
     const renderedX = THREE.MathUtils.lerp(this.segmentStartX, this.segmentTargetX, progress);
     const renderedZ = THREE.MathUtils.lerp(this.segmentStartZ, this.segmentTargetZ, progress);
     this.mesh.position.set(
@@ -113,7 +117,7 @@ export default class RendererRat extends EntityRenderer {
   }
 
   private isMoving() {
-    return this.segmentElapsedSeconds < SERVER_TICK_SECONDS;
+    return this.segmentElapsedSeconds < (this.getTickSeconds() + INTERPOLATION_PADDING_SECONDS);
   }
 
   private updateHealthBar() {

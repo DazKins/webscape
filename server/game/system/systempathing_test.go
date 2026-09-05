@@ -6,6 +6,7 @@ import (
 	"webscape/server/game/component"
 	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
+	"webscape/server/game/spatial"
 	"webscape/server/game/world"
 	"webscape/server/math"
 	"webscape/server/util"
@@ -115,5 +116,82 @@ func assertPathNotFoundChatEvent(
 
 	if chatEventCount != wantCount {
 		t.Fatalf("path not found chat event count = %d, want %d", chatEventCount, wantCount)
+	}
+}
+
+type countingPathIndex struct {
+	*spatial.Index
+	checks int
+}
+
+func (i *countingPathIndex) BlocksMovement(x, y int) bool {
+	i.checks++
+	return i.Index.BlocksMovement(x, y)
+}
+
+func TestPathingReusesPlanAndReplansWhenTargetMoves(t *testing.T) {
+	manager := component.NewComponentManager()
+	w := world.NewWorld(16, 16)
+	index := &countingPathIndex{Index: spatial.NewIndex(w, manager)}
+	target := manager.CreateNewEntity(component.NewCPosition(math.Vec2{X: 12, Y: 0}))
+	pathing := component.NewCPathing(component.PathingTarget{EntityId: util.OptionalSome(target)})
+	id := manager.CreateNewEntity(component.NewCPosition(math.Vec2{}), pathing)
+	s := PathingSystem{SystemBase: SystemBase{ComponentManager: manager}, World: w, SpatialIndex: index}
+	s.Update()
+	if pathing.GetPath() == nil {
+		t.Fatal("no initial path")
+	}
+	plan := pathing.GetPath()
+	index.checks = 0
+	s.Update()
+	if pathing.GetPath() != plan || index.checks > 3 {
+		t.Fatalf("did not reuse path: checks=%d", index.checks)
+	}
+	// Combat must preserve the path component while chasing the same target.
+	combat := CombatSystem{SystemBase: SystemBase{ComponentManager: manager}}
+	combat.setPathingToEntity(id, target)
+	if manager.GetEntityComponent(component.ComponentIdPathing, id) != pathing {
+		t.Fatal("combat discarded cached path")
+	}
+	targetPosition := manager.GetEntityComponent(component.ComponentIdPosition, target).(*component.CPosition)
+	targetPosition.SetPosition(math.Vec2{X: 12, Y: 6})
+	manager.SetEntityComponent(target, targetPosition)
+	s.Update()
+	if pathing.GetPath() == plan {
+		t.Fatal("target movement did not replan")
+	}
+	manager.RemoveEntity(target)
+	s.Update()
+	if manager.GetEntityComponent(component.ComponentIdPathing, id) != nil {
+		t.Fatal("missing target did not cancel path")
+	}
+}
+
+func TestCachedPathReplansWhenDoorCloses(t *testing.T) {
+	manager := component.NewComponentManager()
+	w := world.NewWorld(8, 3)
+	index := spatial.NewIndex(w, manager)
+	door := manager.CreateNewEntity(component.NewCPosition(math.Vec2{X: 2, Y: 1}), component.NewCMetadata(util.JObject{"blocksMovement": util.JBool(true)}), component.NewCOpenable(true))
+	pathing := component.NewCPathing(component.PathingTarget{Position: util.OptionalSome(math.Vec2{X: 7, Y: 1})})
+	position := component.NewCPosition(math.Vec2{X: 0, Y: 1})
+	manager.CreateNewEntity(position, pathing)
+	s := PathingSystem{SystemBase: SystemBase{ComponentManager: manager}, World: w, SpatialIndex: index}
+	s.Update()
+	original := pathing.GetPath()
+	if position.GetPosition() != (math.Vec2{X: 1, Y: 1}) {
+		t.Fatal("unexpected first step")
+	}
+	openable := manager.GetEntityComponent(component.ComponentIdOpenable, door).(*component.COpenable)
+	openable.SetOpen(false)
+	manager.SetEntityComponent(door, openable)
+	s.Update()
+	if pathing.GetPath() == original || position.GetPosition() == (math.Vec2{X: 2, Y: 1}) {
+		t.Fatal("cached path walked through closed door")
+	}
+	for range 12 {
+		s.Update()
+	}
+	if position.GetPosition() != (math.Vec2{X: 7, Y: 1}) {
+		t.Fatal("did not reach destination around door")
 	}
 }

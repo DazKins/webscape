@@ -24,6 +24,12 @@ components:
           additionalProperties: false
           required: [address]
           properties:
+            tickIntervalMs:
+              type: integer
+              minimum: 1
+              maximum: 60000
+              default: 500
+              description: Authoritative simulation step in milliseconds; 500 runs twice per second. Omitted values default to 500.
             address:
               type: string
               minLength: 1

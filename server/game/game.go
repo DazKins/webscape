@@ -28,7 +28,7 @@ type Game struct {
 	stateMutex          sync.Mutex
 	world               *world.World
 	clientIdToEntityId  *util.BiMap[string, model.EntityId]
-	ticker              *time.Ticker
+	tickInterval        time.Duration
 	done                chan bool
 	sendMessage         MessageSender
 	broadcastMessage    MessageBroadcaster
@@ -69,6 +69,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		clientIdToEntityId: util.NewBiMap[string, model.EntityId](),
 		world:              world,
 		done:               make(chan bool),
+		tickInterval:       DefaultTickInterval,
 
 		componentManager: component.NewComponentManager(),
 		systems:          []system.System{},
@@ -205,34 +206,34 @@ func (g *Game) RegisterSystem(system system.System) {
 	g.systems = append(g.systems, system)
 }
 
-func (g *Game) StartUpdateLoop() {
-	g.ticker = time.NewTicker(500 * time.Millisecond)
-	go func() {
-		for {
-			select {
-			case <-g.ticker.C:
-				g.update()
-			case <-g.done:
-				g.ticker.Stop()
-				return
-			}
-		}
-	}()
-}
-
-func (g *Game) update() {
+// update executes a complete authoritative step, including state before events.
+func (g *Game) update() tickTimings {
+	started := time.Now()
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
-
+	timings := tickTimings{lockWait: time.Since(started)}
 	g.currentTick++
+	timings.tick = g.currentTick
+	systemsStarted := time.Now()
 	for _, system := range g.systems {
+		systemStarted := time.Now()
 		system.Update()
+		duration := time.Since(systemStarted)
+		if duration > timings.slowestSystemDuration {
+			timings.slowestSystemDuration = duration
+			timings.slowestSystem = system
+		}
 	}
-
+	timings.systems = time.Since(systemsStarted)
+	syncStarted := time.Now()
 	for clientID := range g.clients {
 		g.syncClient(clientID)
 	}
+	timings.sync = time.Since(syncStarted)
+	eventsStarted := time.Now()
 	g.flushPendingClientEvents()
+	timings.events = time.Since(eventsStarted)
+	return timings
 }
 
 func (g *Game) CurrentTick() uint64 {
@@ -611,7 +612,7 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 
 	g.sendMessage(clientID, message.NewRegisteredMessage(id.String(), normalizedName))
 	if !hadViewerStream {
-		g.sendMessage(clientID, message.NewWorldMessage(g.world))
+		g.sendMessage(clientID, message.NewWorldMessage(g.world, g.tickInterval))
 	}
 	g.syncClient(clientID)
 }
@@ -631,7 +632,7 @@ func (g *Game) HandleConnect(clientID string) {
 		return
 	}
 	g.clients[clientID] = newClientStreamState()
-	g.sendMessage(clientID, message.NewWorldMessage(g.world))
+	g.sendMessage(clientID, message.NewWorldMessage(g.world, g.tickInterval))
 	g.syncClient(clientID)
 }
 

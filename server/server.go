@@ -4,12 +4,13 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"time"
 	"webscape/server/command"
 	"webscape/server/game"
 	"webscape/server/game/world"
 )
 
-func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int) {
+func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration) {
 	http.Handle("/", http.FileServer(http.FS(distFS)))
 
 	game := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
@@ -29,7 +30,7 @@ func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int
 
 	game.RegisterBroadcaster(wsServer.Broadcast)
 	game.RegisterSender(wsServer.SendToClient)
-	game.StartUpdateLoop()
+	game.StartUpdateLoop(tickInterval)
 	http.HandleFunc("/ws", wsServer.HandleWebSocket)
 
 	log.Printf("Starting server on %s", address)

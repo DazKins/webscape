@@ -82,6 +82,7 @@ export default class EntityRenderSystem {
   renderers: Record<string, EntityRenderer | null>;
   private sampleVisualHeight: TerrainHeightSampler;
   private readonly getEstimatedServerTick: () => number;
+  private readonly getTickSeconds: () => number;
   private effectsRoot = new THREE.Group();
   private entitiesById = new Map<string, Entity>();
   private chatEffects = new Map<string, TimedChatEffect>();
@@ -95,6 +96,7 @@ export default class EntityRenderSystem {
     scene: THREE.Scene,
     getWorld?: () => VisualHeightWorld | undefined,
     getEstimatedServerTick: () => number = () => 0,
+    getTickSeconds: () => number = () => 0.5,
   ) {
     this.scene = scene;
     this.renderers = {};
@@ -103,6 +105,7 @@ export default class EntityRenderSystem {
     this.sampleVisualHeight = (worldX: number, worldZ: number) =>
       getWorld?.()?.getVisualHeightAtWorldPosition(worldX, worldZ) ?? 0;
     this.getEstimatedServerTick = getEstimatedServerTick;
+    this.getTickSeconds = getTickSeconds;
   }
 
   createRenderer(renderableType: string, entity: Entity): EntityRenderer | null {
@@ -114,9 +117,10 @@ export default class EntityRenderSystem {
           this.sampleVisualHeight,
           (entityId) => this.entitiesById.get(entityId),
           this.getEstimatedServerTick,
+          this.getTickSeconds,
         );
       case "rat":
-        return new RendererRat(this.scene, entity, this.sampleVisualHeight);
+        return new RendererRat(this.scene, entity, this.sampleVisualHeight, this.getTickSeconds);
       case "tree":
         return new RendererTree(this.scene, entity, this.sampleVisualHeight);
       case "door":

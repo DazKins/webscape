@@ -1,11 +1,15 @@
 package message
 
-import "webscape/server/game/world"
+import (
+	"time"
+	"webscape/server/game/world"
+)
 
 type worldData struct {
-	ChunkSize   world.ChunkCoord `json:"chunkSize"`
-	PlayerSpawn positionData     `json:"playerSpawn"`
-	Quests      []questData      `json:"quests"`
+	TickIntervalMs int64            `json:"tickIntervalMs"`
+	ChunkSize      world.ChunkCoord `json:"chunkSize"`
+	PlayerSpawn    positionData     `json:"playerSpawn"`
+	Quests         []questData      `json:"quests"`
 }
 
 type positionData struct {
@@ -43,14 +47,19 @@ type questRewardItemData struct {
 	Count int    `json:"count"`
 }
 
-func NewWorldMessage(world *world.World) Message {
+func NewWorldMessage(world *world.World, intervals ...time.Duration) Message {
+	interval := 500 * time.Millisecond
+	if len(intervals) > 0 {
+		interval = intervals[0]
+	}
 	playerSpawn := world.GetPlayerSpawn()
 	return newMessage(
 		MessageTypeWorld,
 		worldData{
-			ChunkSize:   world.GetChunkSize(),
-			PlayerSpawn: positionData{X: playerSpawn.X, Y: playerSpawn.Y},
-			Quests:      serializeQuests(world.GetQuestRegistry().All()),
+			TickIntervalMs: interval.Milliseconds(),
+			ChunkSize:      world.GetChunkSize(),
+			PlayerSpawn:    positionData{X: playerSpawn.X, Y: playerSpawn.Y},
+			Quests:         serializeQuests(world.GetQuestRegistry().All()),
 		},
 	)
 }

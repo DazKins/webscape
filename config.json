@@ -1,7 +1,8 @@
 {
   "formatVersion": 1,
   "server": {
-    "address": ":8080"
+    "address": ":8080",
+    "tickIntervalMs": 500
   },
   "client": {
     "folder": "client/dist"

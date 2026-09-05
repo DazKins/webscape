@@ -468,6 +468,12 @@ func (s *CombatSystem) clearCombatState(entityId model.EntityId) {
 }
 
 func (s *CombatSystem) setPathingToEntity(entityId model.EntityId, targetId model.EntityId) {
+	if value := s.ComponentManager.GetEntityComponent(component.ComponentIdPathing, entityId); value != nil {
+		target := value.(*component.CPathing).GetTarget()
+		if target.EntityId.IsPresent() && target.EntityId.Unwrap() == targetId {
+			return
+		}
+	}
 	pathingComponent := component.NewCPathing(component.PathingTarget{
 		EntityId: util.OptionalSome(targetId),
 	})

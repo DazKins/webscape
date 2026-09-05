@@ -1,10 +1,8 @@
 package collision
 
 import (
-	"errors"
 	"webscape/server/game/component"
 	"webscape/server/game/model"
-	"webscape/server/math"
 	"webscape/server/util"
 )
 
@@ -26,6 +24,10 @@ func (c Checker) IsBlocked(x int, y int) bool {
 	}
 	if c.ComponentManager == nil {
 		return false
+	}
+
+	if index, ok := c.SpatialIndex.(interface{ BlocksMovement(int, int) bool }); ok {
+		return index.BlocksMovement(x, y)
 	}
 
 	candidates := make([]model.EntityId, 0)
@@ -51,84 +53,6 @@ func (c Checker) IsBlocked(x int, y int) bool {
 		}
 	}
 	return false
-}
-
-func (c Checker) GetPath(from math.Vec2, to math.Vec2) (util.Path, error) {
-	frontier := util.NewQueue[math.Vec2]()
-	cameFrom := make(map[math.Vec2]math.Vec2)
-	costSoFar := make(map[math.Vec2]float64)
-
-	frontier.Enqueue(from)
-	costSoFar[from] = 0.0
-
-	for frontier.Size() > 0 {
-		current := frontier.Dequeue()
-
-		if current.X == to.X && current.Y == to.Y {
-			break
-		}
-
-		canEast := !c.IsBlocked(current.X+1, current.Y)
-		canWest := !c.IsBlocked(current.X-1, current.Y)
-		canNorth := !c.IsBlocked(current.X, current.Y+1)
-		canSouth := !c.IsBlocked(current.X, current.Y-1)
-
-		checkStepXMin := -1
-		checkStepXMax := 1
-		checkStepYMin := -1
-		checkStepYMax := 1
-		if !canEast {
-			checkStepXMax = 0
-		}
-		if !canWest {
-			checkStepXMin = 0
-		}
-		if !canNorth {
-			checkStepYMax = 0
-		}
-		if !canSouth {
-			checkStepYMin = 0
-		}
-
-		for x := checkStepXMin; x <= checkStepXMax; x++ {
-			for y := checkStepYMin; y <= checkStepYMax; y++ {
-				if x == 0 && y == 0 {
-					continue
-				}
-
-				posX := current.X + x
-				posY := current.Y + y
-
-				if c.IsBlocked(posX, posY) {
-					continue
-				}
-
-				neighbor := math.Vec2{X: posX, Y: posY}
-				dist := 1.0
-				if x != 0 && y != 0 {
-					dist = 1.0001
-				}
-				newCost := costSoFar[current] + dist
-				if _, ok := costSoFar[neighbor]; !ok || newCost < costSoFar[neighbor] {
-					costSoFar[neighbor] = newCost
-					frontier.Enqueue(neighbor)
-					cameFrom[neighbor] = current
-				}
-			}
-		}
-	}
-
-	path := util.Path{}
-	current := to
-	for current != from {
-		path.Append(current)
-		cameFrom, ok := cameFrom[current]
-		if !ok {
-			return util.Path{}, errors.New("no path found")
-		}
-		current = cameFrom
-	}
-	return path.Reversed(), nil
 }
 
 func (c Checker) entityBlocksMovement(entityId model.EntityId) bool {
