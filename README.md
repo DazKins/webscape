@@ -63,6 +63,32 @@ Build deployments from a clean checkout so that this SHA identifies their source
 The label identifies the client build; it does not version a separately deployed
 server or game content.
 
+## Published Docker image
+
+The `Publish Docker image` GitHub Actions workflow builds the root Dockerfile on
+pushes to `master`, including merged pull requests, and publishes a Linux AMD64
+image to GitHub Container Registry:
+
+- `ghcr.io/dazkins/webscape:latest` tracks the latest successful publication.
+- `ghcr.io/dazkins/webscape:sha-<full-commit-sha>` identifies a specific revision.
+
+The workflow passes the source SHA into the client build identifier and image
+metadata. It authenticates with the automatic `GITHUB_TOKEN` using
+`contents: read` and `packages: write`; no additional registry secret is needed.
+Publication does not restart the running game server.
+
+Pull and run a published image with:
+
+```sh
+docker pull ghcr.io/dazkins/webscape:latest
+docker run --rm -p 8080:8080 ghcr.io/dazkins/webscape:latest
+```
+
+For a specific revision, replace `latest` with its `sha-<full-commit-sha>` tag.
+Package visibility is managed in GitHub Packages settings; make the package public
+if anonymous pulls are required, or authenticate to GHCR before pulling a private
+package.
+
 ## License
 
 Copyright © 2025–2026 David Atkins.
