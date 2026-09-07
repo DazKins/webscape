@@ -10,6 +10,7 @@ import EquipmentAttachmentController, {
 import {
   HUMAN_CHOP_ANIMATION_SECONDS,
   HUMAN_CHOP_CONTACT_SECONDS,
+  HUMAN_PICKUP_ANIMATION_SECONDS,
 } from "../models/definitions/human";
 
 const HUMAN_HEALTH_BAR_Y = 1.55;
@@ -37,6 +38,8 @@ export default class RendererHuman extends EntityRenderer {
   private segmentElapsedSeconds = Infinity;
   private targetRotationY = HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
   private attackAnimationSecondsRemaining = 0;
+  private pickupPendingSeconds = 0;
+  private pickupAnimationSecondsRemaining = 0;
   private previousFishingPhaseKey: string | null = null;
   private previousWoodcuttingPhaseKey: string | null = null;
   private previousLocomotionPhaseKey: string | null = null;
@@ -112,8 +115,11 @@ export default class RendererHuman extends EntityRenderer {
       this.faceSynchronizedTarget(targetX, targetZ);
     }
     this.updateFacing(deltaSeconds);
-    const isFishing = this.updateFishingAnimation();
-    if (isFishing) {
+    const isPickingUp = this.updatePickupAnimation(deltaSeconds);
+    const isFishing = !isPickingUp && this.updateFishingAnimation();
+    if (isPickingUp) {
+      this.previousLocomotionPhaseKey = null;
+    } else if (isFishing) {
       this.previousWoodcuttingPhaseKey = null;
       this.previousLocomotionPhaseKey = null;
     } else {
@@ -149,6 +155,31 @@ export default class RendererHuman extends EntityRenderer {
   playAttackAnimation() {
     this.attackAnimationSecondsRemaining = HUMAN_ATTACK_ANIMATION_SECONDS;
     this.modelInstance.play("attack", HUMAN_ANIMATION_FADE_SECONDS);
+  }
+
+  playPickupAnimation() {
+    // Wait for the last replicated movement segment to reach the item visually.
+    this.pickupPendingSeconds = 1;
+  }
+
+  cancelPickupAnimation() {
+    this.pickupPendingSeconds = 0;
+    this.pickupAnimationSecondsRemaining = 0;
+  }
+
+  private updatePickupAnimation(deltaSeconds: number): boolean {
+    if (this.pickupPendingSeconds > 0) {
+      this.pickupPendingSeconds = Math.max(0, this.pickupPendingSeconds - deltaSeconds);
+      if (!this.isMoving()) {
+        this.pickupPendingSeconds = 0;
+        this.pickupAnimationSecondsRemaining = HUMAN_PICKUP_ANIMATION_SECONDS;
+        this.modelInstance.playAt("pickup", 0, HUMAN_ANIMATION_FADE_SECONDS);
+      }
+    }
+    if (this.isMoving()) this.pickupAnimationSecondsRemaining = 0;
+    if (this.pickupAnimationSecondsRemaining <= 0) return false;
+    this.pickupAnimationSecondsRemaining = Math.max(0, this.pickupAnimationSecondsRemaining - deltaSeconds);
+    return true;
   }
 
   getProjectileOrigin(projectileType: string): THREE.Vector3 | null {

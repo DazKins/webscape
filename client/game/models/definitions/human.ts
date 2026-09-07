@@ -8,6 +8,7 @@ const TAU = Math.PI * 2;
 
 export const HUMAN_CHOP_ANIMATION_SECONDS = 0.6;
 export const HUMAN_CHOP_CONTACT_SECONDS = 0.5;
+export const HUMAN_PICKUP_ANIMATION_SECONDS = 0.65;
 
 export const createHumanModel: ModelFactory = (options = {}) => {
   const root = new THREE.Group();
@@ -137,6 +138,24 @@ export const createHumanModel: ModelFactory = (options = {}) => {
       rightHip: { rotation: [strideOpposite * 0.48, 0, 0] },
       leftKnee: { rotation: [Math.max(0, -stride) * 0.58, 0, 0] },
       rightKnee: { rotation: [Math.max(0, -strideOpposite) * 0.58, 0, 0] },
+    };
+  });
+
+  const pickup = animation("pickup", HUMAN_PICKUP_ANIMATION_SECONDS, false, (phase): ModelPose => {
+    const bend = THREE.MathUtils.smoothstep(phase, 0, 0.4)
+      * (1 - THREE.MathUtils.smoothstep(phase, 0.55, 1));
+    const legBend = 0.65 * bend;
+    return {
+      hips: { position: [0, -0.52 * (1 - Math.cos(legBend)), 0] },
+      leftHip: { rotation: [-legBend, 0, 0] },
+      rightHip: { rotation: [-legBend, 0, 0] },
+      leftKnee: { rotation: [2 * legBend, 0, 0] },
+      rightKnee: { rotation: [2 * legBend, 0, 0] },
+      torso: { rotation: [0.5 * bend, 0, 0] },
+      head: { rotation: [0.15 * bend, 0, 0] },
+      rightShoulder: { rotation: [-0.85 * bend, 0, -0.12 * bend] },
+      rightElbow: { rotation: [-0.15 * bend, 0, 0] },
+      leftShoulder: { rotation: [-0.2 * bend, 0, -0.08 * bend] },
     };
   });
 
@@ -341,6 +360,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     idle,
     run,
     attack,
+    pickup,
     cast,
     shoot,
     chop,

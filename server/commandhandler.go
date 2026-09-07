@@ -45,6 +45,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleEquipCommand(clientID, cmd)
 	case command.CommandTypeUnequip:
 		h.handleUnequipCommand(clientID, cmd)
+	case command.CommandTypeDrop:
+		h.handleDropCommand(clientID, cmd)
 	case command.CommandTypeConversationOption:
 		h.handleConversationOptionCommand(clientID, cmd)
 	}
@@ -96,6 +98,18 @@ func (h *ClientCommandHandler) handleInteractCommand(clientID string, cmd comman
 	}
 
 	h.game.HandleInteract(clientID, model.EntityId(uuid), component.InteractionOption(option))
+}
+
+func (h *ClientCommandHandler) handleDropCommand(clientID string, cmd command.Command) {
+	itemID, ok := cmd.Data["itemId"].(string)
+	if !ok {
+		return
+	}
+	id, err := uuid.Parse(itemID)
+	if err != nil {
+		return
+	}
+	h.game.HandleDrop(clientID, model.ItemId(id))
 }
 
 func (h *ClientCommandHandler) handleEquipCommand(clientID string, cmd command.Command) {

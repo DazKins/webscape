@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./inventory.module.css";
 import panelStyles from "./uiPanel.module.css";
 import Game from "../../game/game";
@@ -402,9 +403,55 @@ function useInventoryState(props: Props) {
 
 export function InventoryBackpackContent(props: Props) {
   const { items } = useInventoryState(props);
-  const handleEquip = (itemId: string) => {
-    props.game.handleEquipItem(itemId);
+  const [menu, setMenu] = useState<{ itemId: string; x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const selectedItem = items.find((item) => item.id === menu?.itemId);
+
+  const openMenu = (itemId: string, button: HTMLButtonElement, x: number, y: number) => {
+    triggerRef.current = button;
+    setMenu({ itemId, x, y });
   };
+
+  useLayoutEffect(() => {
+    const element = menuRef.current;
+    if (!menu || !element) return;
+    const bounds = element.getBoundingClientRect();
+    element.style.left = `${Math.max(8, Math.min(menu.x, window.innerWidth - bounds.width - 8))}px`;
+    element.style.top = `${Math.max(8, Math.min(menu.y, window.innerHeight - bounds.height - 8))}px`;
+    element.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+  }, [menu, selectedItem]);
+
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => {
+      setMenu(null);
+      props.game.setPointerOverUi(false);
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) close();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        triggerRef.current?.focus({ preventScroll: true });
+      } else if (event.key === "Tab") {
+        close();
+        triggerRef.current?.focus({ preventScroll: true });
+      }
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [menu, props.game]);
 
   const backpackItems = items.slice(0, INVENTORY_SLOT_COUNT);
   const backpackSlots = Array.from({ length: INVENTORY_SLOT_COUNT }, (_, index) => ({
@@ -420,10 +467,30 @@ export function InventoryBackpackContent(props: Props) {
       <div className={styles.itemsGrid}>
         {backpackSlots.map(({ index, item }) =>
           item ? (
-            <div
+            <button
+              type="button"
               key={item.id}
               className={`${styles.item} ${item.equipmentSlot ? styles.equipable : ""}`}
               title={getItemTitle(item)}
+              aria-label={item.name}
+              aria-haspopup="menu"
+              aria-expanded={menu?.itemId === item.id}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openMenu(item.id, event.currentTarget, event.clientX, event.clientY);
+              }}
+              onClick={(event) => {
+                // Keyboard activation has no pointer position.
+                if (event.detail !== 0) return;
+                const bounds = event.currentTarget.getBoundingClientRect();
+                openMenu(item.id, event.currentTarget, bounds.left, bounds.bottom);
+              }}
+              onPointerUp={(event) => {
+                if (event.pointerType === "touch") {
+                  openMenu(item.id, event.currentTarget, event.clientX, event.clientY);
+                }
+              }}
             >
               <img
                 className={styles.itemImage}
@@ -431,15 +498,7 @@ export function InventoryBackpackContent(props: Props) {
                 alt={item.name}
                 draggable={false}
               />
-              {item.equipmentSlot && (
-                <button
-                  className={styles.equipButton}
-                  onClick={() => handleEquip(item.id)}
-                >
-                  Equip
-                </button>
-              )}
-            </div>
+            </button>
           ) : (
             <div
               key={`empty-${index}`}
@@ -449,6 +508,54 @@ export function InventoryBackpackContent(props: Props) {
           )
         )}
       </div>
+      {menu && selectedItem && createPortal(
+        <div
+          ref={menuRef}
+          className={styles.itemMenu}
+          role="menu"
+          aria-label={`${selectedItem.name} actions`}
+          style={{ left: menu.x, top: menu.y }}
+          onContextMenu={(event) => event.preventDefault()}
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            props.game.setPointerOverUi(true);
+          }}
+          onPointerEnter={() => props.game.setPointerOverUi(true)}
+          onPointerLeave={() => props.game.setPointerOverUi(false)}
+          onKeyDown={(event) => {
+            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
+            const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 :
+              (current + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+            buttons[next]?.focus();
+          }}
+        >
+            <div className={styles.itemMenuName}>{selectedItem.name}</div>
+            {selectedItem.equipmentSlot && (
+              <button role="menuitem" onClick={() => {
+                props.game.handleEquipItem(selectedItem.id);
+                props.game.setPointerOverUi(false);
+                setMenu(null);
+              }}>
+                Equip
+              </button>
+            )}
+            <button
+              role="menuitem"
+              onClick={() => {
+                props.game.handleDropItem(selectedItem.id);
+                props.game.setPointerOverUi(false);
+                setMenu(null);
+              }}
+            >
+              Drop
+            </button>
+        </div>,
+        document.getElementById("uiLayerRoot")!,
+      )}
     </div>
   );
 }

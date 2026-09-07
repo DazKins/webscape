@@ -83,6 +83,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	}
 	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdItemPickedUp, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatProjectileLaunched, clientHandler)
 
@@ -418,6 +419,11 @@ func (g *Game) handleClientEvent(event gameevent.Event) {
 	entityIDs := []model.EntityId{event.ActorEntityId}
 
 	switch event.Id {
+	case gameevent.EventIdItemPickedUp:
+		if _, ok := event.Payload.(gameevent.ItemPickedUpPayload); !ok {
+			return
+		}
+		clientMessage = message.NewItemPickedUpMessage(event.ActorEntityId)
 	case gameevent.EventIdChatSpoken:
 		payload, ok := event.Payload.(gameevent.ChatSpokenPayload)
 		if !ok {
@@ -954,6 +960,10 @@ func (g *Game) entityVisibleToClient(clientID string, entityID model.EntityId) b
 }
 
 func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId) {
+	if drop := g.componentManager.GetEntityComponent(component.ComponentIdDroppedItem, targetEntityId); drop != nil {
+		g.pickUpDroppedItem(playerEntityId, targetEntityId, drop.(*component.CDroppedItem))
+		return
+	}
 	lootable := g.componentManager.GetEntityComponent(component.ComponentIdLootable, targetEntityId)
 	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId)
 	if lootable == nil || inventory == nil {
@@ -1221,7 +1231,8 @@ func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []compone
 	}
 
 	lootable := g.componentManager.GetEntityComponent(component.ComponentIdLootable, entityId)
-	if lootable != nil && lootable.(*component.CLootable).CanLoot() {
+	if g.componentManager.GetEntityComponent(component.ComponentIdDroppedItem, entityId) != nil ||
+		(lootable != nil && lootable.(*component.CLootable).CanLoot()) {
 		options = append(options, component.InteractionOptionLoot)
 	}
 

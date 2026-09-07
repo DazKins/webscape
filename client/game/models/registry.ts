@@ -14,6 +14,13 @@ import { createFishingSpotModel } from "./definitions/fishingSpot";
 import { createMagicStaffModel } from "./definitions/magicStaff";
 import { createWoodenBowModel } from "./definitions/woodenBow";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
+import {
+  createHealthPotionModel, createBreadModel, createAppleModel, createIronOreModel,
+  createStoneItemModel, createWoodModel, createLogsModel, createArrowModel,
+  createFishModel, createMysteriousKeyModel, createAncientScrollModel,
+  createChainmailChestplateModel, createIronLeggingsModel, createLeatherBootsModel,
+  createWoodenShieldModel, createUnknownItemModel,
+} from "./definitions/items";
 
 export const modelRegistry = {
   human: createHumanModel,
@@ -31,6 +38,22 @@ export const modelRegistry = {
   fishingSpot: createFishingSpotModel,
   magicStaff: createMagicStaffModel,
   woodenBow: createWoodenBowModel,
+  healthPotion: createHealthPotionModel,
+  bread: createBreadModel,
+  apple: createAppleModel,
+  ironOre: createIronOreModel,
+  stone: createStoneItemModel,
+  wood: createWoodModel,
+  logs: createLogsModel,
+  arrow: createArrowModel,
+  fish: createFishModel,
+  mysteriousKey: createMysteriousKeyModel,
+  ancientScroll: createAncientScrollModel,
+  chainmailChestplate: createChainmailChestplateModel,
+  ironLeggings: createIronLeggingsModel,
+  leatherBoots: createLeatherBootsModel,
+  woodenShield: createWoodenShieldModel,
+  unknownItem: createUnknownItemModel,
 } satisfies Record<string, ModelFactory>;
 
 export type ModelName = keyof typeof modelRegistry;

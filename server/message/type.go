@@ -13,6 +13,7 @@ const (
 	MessageTypeQuestCompleted           = "questCompleted"
 	MessageTypeChatMessage              = "chatMessage"
 	MessageTypeCombatResolved           = "combatResolved"
+	MessageTypeItemPickedUp             = "itemPickedUp"
 	MessageTypeCombatProjectileLaunched = "combatProjectileLaunched"
 )
 

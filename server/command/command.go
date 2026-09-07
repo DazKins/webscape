@@ -13,6 +13,7 @@ const (
 	CommandTypeInteract           = "interact"
 	CommandTypeEquip              = "equip"
 	CommandTypeUnequip            = "unequip"
+	CommandTypeDrop               = "drop"
 	CommandTypeConversationOption = "conversationOption"
 )
 

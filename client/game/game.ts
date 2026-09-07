@@ -283,6 +283,8 @@ class Game extends EventTarget implements InputReceiver {
       this.camera.getInnerCamera()
     );
     const object3Ds = Object.values(this.entityRenderSystem.getRenderers())
+      // The local player must not obscure selectable items beneath their feet.
+      .filter((renderer) => renderer?.entity.getId() !== this.myPlayerId)
       .map((renderer) => renderer?.getObject3D() ?? null)
       .filter((object3d): object3d is THREE.Object3D => object3d !== null);
     const intersects = raycaster.intersectObjects(object3Ds, true);
@@ -498,6 +500,10 @@ class Game extends EventTarget implements InputReceiver {
     );
   }
 
+  handleItemPickedUp(payload: { playerEntityId: string }) {
+    this.entityRenderSystem.showItemPickup(payload.playerEntityId);
+  }
+
   handleCombatProjectileLaunched(payload: CombatProjectileLaunchedPayload) {
     this.entityRenderSystem.showCombatProjectile(payload);
   }
@@ -626,6 +632,10 @@ class Game extends EventTarget implements InputReceiver {
         itemId,
       })
     );
+  }
+
+  handleDropItem(itemId: string) {
+    this.wsClient.sendMessage(createCommand("drop", { itemId }));
   }
 
   handleUnequipSlot(slot: string) {

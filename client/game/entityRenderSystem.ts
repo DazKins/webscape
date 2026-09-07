@@ -11,6 +11,7 @@ import RendererError from "./renderer/rendererError";
 import RendererRock from "./renderer/rendererRock";
 import RendererTree from "./renderer/rendererTree";
 import RendererRewardDrop from "./renderer/rendererRewardDrop";
+import RendererDroppedItem from "./renderer/rendererDroppedItem";
 import RendererRat from "./renderer/rendererRat";
 import RendererFishingSpot from "./renderer/rendererFishingSpot";
 import type { TerrainHeightSampler } from "./renderer/renderer";
@@ -88,6 +89,7 @@ export default class EntityRenderSystem {
   private chatEffects = new Map<string, TimedChatEffect>();
   private combatEffects = new Set<TimedCombatEffect>();
   private pendingChatEffects = new Map<string, PendingChatEffect>();
+  private pendingPickups = new Map<string, number>();
   private pendingCombatEffects: PendingCombatEffect[] = [];
   private recentCombatAnchors = new Map<string, RecentCombatAnchor>();
   private combatProjectiles = new Set<ActiveCombatProjectile>();
@@ -133,6 +135,8 @@ export default class EntityRenderSystem {
         return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":
         return new RendererRewardDrop(this.scene, entity, this.sampleVisualHeight);
+      case "droppeditem":
+        return new RendererDroppedItem(this.scene, entity, this.sampleVisualHeight);
       case "fishingSpot":
         return new RendererFishingSpot(this.scene, entity, this.sampleVisualHeight);
     }
@@ -246,6 +250,10 @@ export default class EntityRenderSystem {
   }
 
   clearTransientEffects() {
+    this.pendingPickups.clear();
+    for (const renderer of Object.values(this.renderers)) {
+      if (renderer instanceof RendererHuman) renderer.cancelPickupAnimation();
+    }
     for (const entityId of [...this.chatEffects.keys()]) {
       this.removeChatEffect(entityId);
     }
@@ -262,6 +270,7 @@ export default class EntityRenderSystem {
   }
 
   private clearTransientEffectsFor(entityId: string) {
+    this.pendingPickups.delete(entityId);
     this.removeChatEffect(entityId);
     this.detachCombatEffectsFrom(entityId);
     this.pendingChatEffects.delete(entityId);
@@ -327,6 +336,9 @@ export default class EntityRenderSystem {
 
   private flushPendingEffects() {
     const now = Date.now();
+    for (const [entityId, expiresAt] of this.pendingPickups) {
+      if (expiresAt <= now || this.tryShowItemPickup(entityId)) this.pendingPickups.delete(entityId);
+    }
     for (const [entityId, effect] of this.pendingChatEffects) {
       if (effect.expiresAt <= now || this.tryShowChatMessage(entityId, effect.message)) {
         this.pendingChatEffects.delete(entityId);
@@ -347,6 +359,19 @@ export default class EntityRenderSystem {
       position: object.localToWorld(COMBAT_TEXT_LOCAL_POSITION.clone()),
       expiresAt: Date.now() + RECENT_COMBAT_ANCHOR_MILLISECONDS,
     });
+  }
+
+  showItemPickup(playerEntityId: string) {
+    if (!this.tryShowItemPickup(playerEntityId)) {
+      this.pendingPickups.set(playerEntityId, Date.now() + EFFECT_RETRY_MILLISECONDS);
+    }
+  }
+
+  private tryShowItemPickup(playerEntityId: string): boolean {
+    const renderer = this.renderers[playerEntityId];
+    if (!(renderer instanceof RendererHuman)) return false;
+    renderer.playPickupAnimation();
+    return true;
   }
 
   private expireRecentCombatAnchors() {

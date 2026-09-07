@@ -22,6 +22,7 @@ const (
 	EventIdCombatProjectileLaunched = "combat:projectile-launched"
 	EventIdWoodcuttingSwing         = "woodcutting:swing"
 	EventIdFishingCatch             = "fishing:catch"
+	EventIdItemPickedUp             = "item:picked-up"
 )
 
 type ChatSpokenPayload struct {
@@ -44,6 +45,15 @@ type CombatProjectileLaunchedPayload struct {
 }
 
 type WoodcuttingSwingPayload struct{}
+
+type ItemPickedUpPayload struct{}
+
+func NewItemPickedUp(playerID, droppedEntityID model.EntityId) Event {
+	event := New(EventIdItemPickedUp, playerID)
+	event.TargetEntityId = droppedEntityID
+	event.Payload = ItemPickedUpPayload{}
+	return event
+}
 
 func New(id string, actorEntityId model.EntityId) Event {
 	return Event{

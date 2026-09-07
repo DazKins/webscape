@@ -128,6 +128,10 @@ func (s *InteractionSystem) Update() {
 		distance := dx + dy
 
 		interactionRange := 1
+		if interacting.GetOption() == component.InteractionOptionLoot &&
+			s.ComponentManager.GetEntityComponent(component.ComponentIdDroppedItem, interacting.GetTargetEntityId()) != nil {
+			interactionRange = 0
+		}
 		if interacting.GetOption() == component.InteractionOptionAttack {
 			if stats := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); stats != nil {
 				interactionRange = max(1, stats.(*component.CCombatStats).GetAttackRange())

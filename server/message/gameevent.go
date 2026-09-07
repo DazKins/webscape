@@ -5,6 +5,14 @@ import (
 	"webscape/server/math"
 )
 
+type itemPickedUpData struct {
+	PlayerEntityId string `json:"playerEntityId"`
+}
+
+func NewItemPickedUpMessage(playerID model.EntityId) Message {
+	return newMessage(MessageTypeItemPickedUp, itemPickedUpData{PlayerEntityId: playerID.String()})
+}
+
 type chatMessageData struct {
 	FromEntityId string `json:"fromEntityId"`
 	Message      string `json:"message"`

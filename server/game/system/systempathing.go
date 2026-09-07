@@ -31,6 +31,7 @@ func (s *PathingSystem) Update() {
 
 		pathToPosition := math.Vec2{}
 		isEntityTarget := false
+		isGroundPickup := false
 		inCombat := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil
 		isAttackInteraction := false
 		if interacting := s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId); interacting != nil {
@@ -49,6 +50,10 @@ func (s *PathingSystem) Update() {
 			targetEntityPosition := targetPositionValue.(*component.CPosition)
 			pathToPosition = targetEntityPosition.GetPosition()
 			isEntityTarget = true
+			if interacting := s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId); interacting != nil {
+				isGroundPickup = interacting.(*component.CInteracting).GetOption() == component.InteractionOptionLoot &&
+					s.ComponentManager.GetEntityComponent(component.ComponentIdDroppedItem, targetEntityId) != nil
+			}
 		}
 
 		// Calculate Manhattan distance
@@ -63,18 +68,20 @@ func (s *PathingSystem) Update() {
 		}
 		distance := dx + dy
 
-		if isEntityTarget && distance == 0 {
+		if isEntityTarget && !isGroundPickup && distance == 0 {
 			s.resolveOverlap(entityId, pathToPosition)
 			s.ComponentManager.RemoveComponent(component.ComponentIdPathing, entityId)
 			continue
 		}
 
-		// For entity targets, stop at combat range if in combat, otherwise stop when adjacent.
+		// Ground pickups require the exact tile; other entity interactions use range.
 		// For position targets, stop when at exact position.
 		shouldStop := false
 		stopDistance := 1
 		if isEntityTarget {
-			if inCombat || isAttackInteraction {
+			if isGroundPickup {
+				stopDistance = 0
+			} else if inCombat || isAttackInteraction {
 				if combatStatsComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdCombatStats, entityId); combatStatsComponent != nil {
 					attackRange := combatStatsComponent.(*component.CCombatStats).GetAttackRange()
 					if attackRange > stopDistance {

@@ -22,7 +22,7 @@ const equipmentPresentations = {
       rotation: [Math.PI / 2 + 0.08, Math.PI / 2, 0],
     },
     dropped: {
-      rotation: [0, 0, Math.PI / 2],
+      rotation: [Math.PI / 2, 0, Math.PI / 2],
     },
   },
   woodcuttingAxe: {
@@ -32,7 +32,7 @@ const equipmentPresentations = {
       rotation: [Math.PI / 2 + 0.08, Math.PI / 2, 0],
     },
     dropped: {
-      rotation: [0, 0, Math.PI / 2],
+      rotation: [Math.PI / 2, 0, Math.PI / 2],
     },
   },
   fishingRod: {
@@ -42,7 +42,7 @@ const equipmentPresentations = {
       rotation: [Math.PI / 2 + 0.08, Math.PI / 2, 0],
     },
     dropped: {
-      rotation: [0, 0, Math.PI / 2],
+      rotation: [Math.PI / 2, 0, Math.PI / 2],
     },
   },
   magicStaff: {
@@ -52,7 +52,7 @@ const equipmentPresentations = {
       rotation: [0, 0, 0],
     },
     dropped: {
-      rotation: [0, 0, Math.PI / 2],
+      rotation: [Math.PI / 2, 0, Math.PI / 2],
     },
   },
   woodenBow: {

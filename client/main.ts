@@ -111,6 +111,9 @@ const wsClient = new WebSocketClient({
       case "combatResolved":
         game.handleCombatResolved(data);
         break;
+      case "itemPickedUp":
+        game.handleItemPickedUp(data);
+        break;
       case "combatProjectileLaunched":
         game.handleCombatProjectileLaunched(data);
         break;
