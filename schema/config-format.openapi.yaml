@@ -24,6 +24,10 @@ components:
           additionalProperties: false
           required: [address]
           properties:
+            devMode:
+              type: boolean
+              default: false
+              description: Disable browser and proxy caching of frontend resources for development previews.
             tickIntervalMs:
               type: integer
               minimum: 1

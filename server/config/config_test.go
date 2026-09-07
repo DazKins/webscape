@@ -71,3 +71,19 @@ func TestTickIntervalDefaultsAndValidation(t *testing.T) {
 		}
 	}
 }
+
+func TestDevModeDefaultsAndValidation(t *testing.T) {
+	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":1}}`
+	for _, test := range []struct {
+		setting string
+		want    bool
+		valid   bool
+	}{
+		{"", false, true}, {`,"devMode":false`, false, true}, {`,"devMode":true`, true, true}, {`,"devMode":"true"`, false, false},
+	} {
+		c, err := load([]byte(fmt.Sprintf(base, test.setting)))
+		if (err == nil) != test.valid || (test.valid && c.Server.DevMode != test.want) {
+			t.Fatalf("%s: devMode=%v error=%v", test.setting, c.Server.DevMode, err)
+		}
+	}
+}

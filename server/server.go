@@ -10,8 +10,11 @@ import (
 	"webscape/server/game/world"
 )
 
-func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration) {
-	http.Handle("/", http.FileServer(http.FS(distFS)))
+func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool) {
+	http.Handle("/", frontendHandler(distFS, devMode))
+	if devMode {
+		log.Print("Development mode: frontend caching disabled")
+	}
 
 	game := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
 
@@ -38,4 +41,17 @@ func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int
 	if err := http.ListenAndServe(address, nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func frontendHandler(distFS fs.FS, devMode bool) http.Handler {
+	files := http.FileServer(http.FS(distFS))
+	if !devMode {
+		return files
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		files.ServeHTTP(w, r)
+	})
 }

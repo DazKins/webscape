@@ -38,5 +38,6 @@ func main() {
 		runtimeConfig.Server.Address,
 		runtimeConfig.Streaming.ChunkRadius,
 		time.Duration(runtimeConfig.Server.TickIntervalMs)*time.Millisecond,
+		runtimeConfig.Server.DevMode,
 	)
 }

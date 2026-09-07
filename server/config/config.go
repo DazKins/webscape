@@ -19,6 +19,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
+	DevMode        bool   `json:"devMode"`
 	Address        string `json:"address"`
 	TickIntervalMs int    `json:"tickIntervalMs"`
 }

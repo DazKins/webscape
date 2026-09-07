@@ -1,6 +1,7 @@
 {
   "formatVersion": 1,
   "server": {
+    "devMode": false,
     "address": ":8080",
     "tickIntervalMs": 500
   },
