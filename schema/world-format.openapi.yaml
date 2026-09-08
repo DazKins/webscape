@@ -298,6 +298,42 @@ components:
           type: integer
           minimum: 0
 
+    ShopComponent:
+      type: object
+      additionalProperties: false
+      required: [offers]
+      description: |
+        An unlimited-stock shop. Trade opens when the player reaches the entity.
+        Purchases and sales exchange inventory items for stackable Gold (type gold).
+        Gold quantities share one slot, from 1 through 2147483647; a zero balance
+        removes the stack. New players receive a stack of 100 Gold.
+      properties:
+        offers:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: Each itemId must be unique. sellPrice must be below buyPrice.
+          items:
+            $ref: "#/components/schemas/ShopOffer"
+
+    ShopOffer:
+      type: object
+      additionalProperties: false
+      required: [itemId, buyPrice, sellPrice]
+      properties:
+        itemId:
+          type: string
+          description: Stable item factory id; purchases retain the item's equipment and combat properties.
+          enum: [ironSword, woodcuttingAxe, fishingRod, magicStaff, woodenBow, arrow, leatherHelmet, chainmailChestplate, ironLeggings, leatherBoots, woodenShield, healthPotion, bread, apple, ironOre, wood, logs, stone, rawFish]
+        buyPrice:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        sellPrice:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+
   examples:
     TinyWorld:
       summary: A 3 by 2 world using flat row-major tile arrays.
@@ -468,39 +504,3 @@ components:
                       vitality: 6
                     equipped: {}
                     combatstats: {}
-
-    ShopComponent:
-      type: object
-      additionalProperties: false
-      required: [offers]
-      description: |
-        An unlimited-stock shop. Trade opens when the player reaches the entity.
-        Purchases and sales exchange inventory items for stackable Gold (type gold).
-        Gold quantities share one slot, from 1 through 2147483647; a zero balance
-        removes the stack. New players receive a stack of 100 Gold.
-      properties:
-        offers:
-          type: array
-          minItems: 1
-          maxItems: 100
-          description: Each itemId must be unique. sellPrice must be below buyPrice.
-          items:
-            $ref: "#/components/schemas/ShopOffer"
-
-    ShopOffer:
-      type: object
-      additionalProperties: false
-      required: [itemId, buyPrice, sellPrice]
-      properties:
-        itemId:
-          type: string
-          description: Stable item factory id; purchases retain the item's equipment and combat properties.
-          enum: [ironSword, woodcuttingAxe, fishingRod, magicStaff, woodenBow, arrow, leatherHelmet, chainmailChestplate, ironLeggings, leatherBoots, woodenShield, healthPotion, bread, apple, ironOre, wood, logs, stone, rawFish]
-        buyPrice:
-          type: integer
-          minimum: 1
-          maximum: 1000000
-        sellPrice:
-          type: integer
-          minimum: 1
-          maximum: 1000000
