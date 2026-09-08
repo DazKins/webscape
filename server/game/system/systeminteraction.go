@@ -11,6 +11,10 @@ type ConversationStarter interface {
 	StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
+type TradingStarter interface {
+	StartTradingFor(playerEntityId, targetEntityId model.EntityId) bool
+}
+
 type LootHandler interface {
 	LootEntityFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
@@ -27,6 +31,7 @@ type InteractionSystem struct {
 	SystemBase
 	TickSource          TickSource
 	ConversationStarter ConversationStarter
+	TradingStarter      TradingStarter
 	EventEmitter        GameEventEmitter
 	LootHandler         LootHandler
 	WoodcuttingStarter  WoodcuttingStarter
@@ -41,6 +46,11 @@ func (s *InteractionSystem) processInteraction(
 	case component.InteractionOptionTalk:
 		s.ConversationStarter.StartConversationFor(
 			entityId, interacting.GetTargetEntityId())
+
+	case component.InteractionOptionTrade:
+		if s.TradingStarter == nil || !s.TradingStarter.StartTradingFor(entityId, interacting.GetTargetEntityId()) {
+			return
+		}
 
 	case component.InteractionOptionAttack:
 		// Start combat with the target entity

@@ -10,6 +10,11 @@ import (
 
 func CreateAuthoredEntity(entity world.WorldEntity) []component.Component {
 	components := []component.Component{}
+	if raw, exists := entity.Components["shop"]; exists {
+		if shop, err := component.ParseShop(raw); err == nil {
+			components = append(components, shop)
+		}
+	}
 	position := createPositionComponent(entity.Components)
 	if position != nil {
 		components = append(components, position)

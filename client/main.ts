@@ -76,6 +76,9 @@ const wsClient = new WebSocketClient({
     const data = msg.data;
 
     switch (type) {
+      case "tradeResult":
+        game.handleTradeResult(data);
+        break;
       case "gameUpdate":
         game.handleGameUpdate(data);
         break;

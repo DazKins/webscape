@@ -7,9 +7,11 @@ import (
 
 func SerializeItem(item *model.Item) util.Json {
 	itemObj := util.JObject(map[string]util.Json{
-		"id":   util.JString(item.Id.String()),
-		"name": util.JString(item.Name),
-		"type": util.JString(item.Type),
+		"id":        util.JString(item.Id.String()),
+		"name":      util.JString(item.Name),
+		"type":      util.JString(item.Type),
+		"quantity":  util.JNumber(item.Quantity),
+		"stackable": util.JBool(item.IsStackable()),
 	})
 	if item.RenderModel != "" {
 		itemObj["renderModel"] = util.JString(item.RenderModel)

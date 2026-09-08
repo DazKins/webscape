@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
-	"webscape/server/game/model"
 	"webscape/server/game/world"
 	"webscape/server/math"
 )
@@ -33,7 +32,7 @@ func (s *RandomWalkSystem) Update() {
 		if s.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil {
 			continue
 		}
-		if s.isConversationTarget(entityId) {
+		if isSocialParticipant(s.ComponentManager, entityId) {
 			continue
 		}
 		if s.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId) != nil {
@@ -74,16 +73,6 @@ func (s *RandomWalkSystem) collision() collision.Checker {
 		ComponentManager: s.ComponentManager,
 		SpatialIndex:     s.SpatialIndex,
 	}
-}
-
-func (s *RandomWalkSystem) isConversationTarget(entityId model.EntityId) bool {
-	for _, active := range s.ComponentManager.GetComponent(component.ComponentIdActiveConversation) {
-		activeConversation := active.(*component.CActiveConversation)
-		if activeConversation.GetTargetEntityId() == entityId {
-			return true
-		}
-	}
-	return false
 }
 
 func (s *RandomWalkSystem) isWithinRandomWalkBounds(randomWalk *component.CRandomWalk, position math.Vec2) bool {

@@ -1,3 +1,4 @@
+import { ShopUpdateEventName, TradeResultEvent, type TradeResultPayload } from "../events/shop";
 import Entity from "./entity/entity.ts";
 import World, { type ChunkUpdate } from "./world/world.ts";
 import Input, { InputReceiver } from "../input.ts";
@@ -363,6 +364,7 @@ class Game extends EventTarget implements InputReceiver {
       this.serverTickReceivedAtMilliseconds = performance.now();
     }
     const entityComponentsUpdates = gameUpdate.entities;
+    let inventoryChanged = false;
 
     for (const entityComponentUpdate of entityComponentsUpdates) {
       const entityId = entityComponentUpdate.entityId;
@@ -381,6 +383,9 @@ class Game extends EventTarget implements InputReceiver {
           : []
       );
 
+      if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
+        inventoryChanged = true;
+      }
       if (data === null) {
         localEntity.removeComponent(componentId);
         continue;
@@ -388,10 +393,6 @@ class Game extends EventTarget implements InputReceiver {
 
       localEntity.updateComponent(componentId, data);
 
-      // Dispatch inventory update event if this is the player's inventory
-      if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
-        this.dispatchEvent(new InventoryUpdateEvent());
-      }
 
       if (componentId === "combatlog" && entityId === this.myPlayerId) {
         this.dispatchEvent(new CombatLogUpdateEvent());
@@ -406,6 +407,10 @@ class Game extends EventTarget implements InputReceiver {
     if (emptyEntities.length > 0) {
       this.entities = this.entities.filter((e) => !e.isEmpty());
     }
+    // UI observers read a complete snapshot, including removed components.
+    if (inventoryChanged) this.dispatchEvent(new InventoryUpdateEvent());
+    if (this.getMyEntity()?.getComponent("trading")) this.closeActiveConversation();
+    this.dispatchEvent(new Event(ShopUpdateEventName));
   }
 
   update(deltaSeconds: number) {
@@ -458,6 +463,7 @@ class Game extends EventTarget implements InputReceiver {
   prepareForReconnect() {
     this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
+    this.dispatchEvent(new Event(ShopUpdateEventName));
     this.activeConversation = null;
     this.resetServerClock();
   }
@@ -514,6 +520,22 @@ class Game extends EventTarget implements InputReceiver {
 
   getQuestDefinitions(): QuestDefinition[] {
     return this.quests;
+  }
+
+  getEntity(entityId: string): Entity | undefined {
+    return this.entities.find((entity) => entity.getId() === entityId);
+  }
+
+  handleTrade(targetEntityId: string, action: "buy" | "sell", itemId: string) {
+    this.wsClient.sendMessage(createCommand("trade", { targetEntityId, action, itemId }));
+  }
+
+  handleTradeClose(targetEntityId: string) {
+    this.wsClient.sendMessage(createCommand("tradeClose", { targetEntityId }));
+  }
+
+  handleTradeResult(payload: TradeResultPayload) {
+    this.dispatchEvent(new TradeResultEvent(payload));
   }
 
   getEntityName(entityId: string, fallback = "Unknown"): string {

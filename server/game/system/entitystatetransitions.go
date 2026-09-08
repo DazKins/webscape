@@ -9,6 +9,7 @@ import (
 type entityStateTransition string
 
 const (
+	transitionSocial      entityStateTransition = "social"
 	transitionPathing     entityStateTransition = "pathing"
 	transitionInteraction entityStateTransition = "interaction"
 	transitionMoving      entityStateTransition = "moving"
@@ -24,8 +25,14 @@ const (
 // persistent entity states. Transition methods below apply these removals and
 // then install the destination state as one server-side operation.
 var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
+	transitionSocial: {
+		component.ComponentIdActiveConversation, component.ComponentIdTrading,
+		component.ComponentIdPathing, component.ComponentIdInteracting,
+		component.ComponentIdCombatState, component.ComponentIdWoodcutting, component.ComponentIdFishing,
+	},
 	transitionPathing: {
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 		component.ComponentIdInteracting,
 		component.ComponentIdCombatState,
 		component.ComponentIdWoodcutting,
@@ -33,16 +40,19 @@ var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
 	},
 	transitionInteraction: {
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 		component.ComponentIdCombatState,
 		component.ComponentIdWoodcutting,
 		component.ComponentIdFishing,
 	},
 	transitionMoving: {
+		component.ComponentIdTrading,
 		component.ComponentIdWoodcutting,
 		component.ComponentIdFishing,
 	},
 	transitionFishing: {
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 		component.ComponentIdCombatState,
 		component.ComponentIdPathing,
 		component.ComponentIdInteracting,
@@ -51,6 +61,7 @@ var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
 	},
 	transitionWoodcutting: {
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 		component.ComponentIdCombatState,
 		component.ComponentIdPathing,
 		component.ComponentIdInteracting,
@@ -59,6 +70,7 @@ var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
 	},
 	transitionCombat: {
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 		component.ComponentIdPathing,
 		component.ComponentIdInteracting,
 		component.ComponentIdWoodcutting,
@@ -70,6 +82,7 @@ var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
 		component.ComponentIdInteracting,
 	},
 	transitionPathReject: {
+		component.ComponentIdTrading,
 		component.ComponentIdPathing,
 		component.ComponentIdInteracting,
 		component.ComponentIdCombatState,
@@ -83,6 +96,7 @@ var incompatibleComponents = map[entityStateTransition][]component.ComponentId{
 		component.ComponentIdWoodcutting,
 		component.ComponentIdFishing,
 		component.ComponentIdActiveConversation,
+		component.ComponentIdTrading,
 	},
 }
 
@@ -99,6 +113,13 @@ func NewEntityStateTransitions(
 		ComponentManager: manager,
 		TickSource:       tickSource,
 	}
+}
+
+// BeginSocialInteraction gives conversations and trading the same entry policy.
+func (t *EntityStateTransitions) BeginSocialInteraction(id model.EntityId, active component.Component) {
+	t.applyPolicy(id, transitionSocial)
+	t.setLocomotionIdle(id)
+	t.ComponentManager.SetEntityComponent(id, active)
 }
 
 func (t *EntityStateTransitions) BeginPathing(
@@ -248,6 +269,7 @@ func ValidateEntityState(
 		}
 		if conflicting := firstPresentComponent(manager, entityId,
 			component.ComponentIdActiveConversation,
+			component.ComponentIdTrading,
 			component.ComponentIdPathing,
 			component.ComponentIdInteracting,
 			component.ComponentIdCombatState,
@@ -263,6 +285,7 @@ func ValidateEntityState(
 		}
 		if conflicting := firstPresentComponent(manager, entityId,
 			component.ComponentIdActiveConversation,
+			component.ComponentIdTrading,
 			component.ComponentIdPathing,
 			component.ComponentIdInteracting,
 			component.ComponentIdCombatState,
@@ -275,6 +298,7 @@ func ValidateEntityState(
 	if manager.GetEntityComponent(component.ComponentIdCombatState, entityId) != nil {
 		if conflicting := firstPresentComponent(manager, entityId,
 			component.ComponentIdActiveConversation,
+			component.ComponentIdTrading,
 			component.ComponentIdInteracting,
 			component.ComponentIdWoodcutting,
 			component.ComponentIdFishing,
@@ -285,6 +309,7 @@ func ValidateEntityState(
 
 	if manager.GetEntityComponent(component.ComponentIdActiveConversation, entityId) != nil {
 		if conflicting := firstPresentComponent(manager, entityId,
+			component.ComponentIdTrading,
 			component.ComponentIdPathing,
 			component.ComponentIdInteracting,
 			component.ComponentIdCombatState,
@@ -295,10 +320,23 @@ func ValidateEntityState(
 		}
 	}
 
+	if manager.GetEntityComponent(component.ComponentIdTrading, entityId) != nil {
+		if locomotionValue == nil || isMoving {
+			return fmt.Errorf("entity %s is trading without idle locomotion", entityId)
+		}
+		if conflicting := firstPresentComponent(manager, entityId,
+			component.ComponentIdActiveConversation, component.ComponentIdPathing,
+			component.ComponentIdInteracting, component.ComponentIdCombatState,
+			component.ComponentIdWoodcutting, component.ComponentIdFishing,
+		); conflicting != "" {
+			return fmt.Errorf("entity %s is trading with incompatible %s state", entityId, conflicting)
+		}
+	}
 	if healthValue := manager.GetEntityComponent(component.ComponentIdHealth, entityId); healthValue != nil &&
 		healthValue.(*component.CHealth).GetCurrentHealth() <= 0 {
 		if conflicting := firstPresentComponent(manager, entityId,
 			component.ComponentIdActiveConversation,
+			component.ComponentIdTrading,
 			component.ComponentIdPathing,
 			component.ComponentIdInteracting,
 			component.ComponentIdCombatState,

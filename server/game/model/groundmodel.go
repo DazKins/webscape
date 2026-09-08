@@ -28,6 +28,8 @@ func (item *Item) GroundRenderModel() string {
 		return "ancientScroll"
 	}
 	switch item.Type {
+	case ItemTypeGold:
+		return "gold"
 	case ItemTypeArrow:
 		return "arrow"
 	case "fish":

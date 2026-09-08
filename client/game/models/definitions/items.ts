@@ -180,3 +180,11 @@ export const createWoodenShieldModel = itemModel("woodenShield", (root) => {
 export const createUnknownItemModel = itemModel("unknownItem", (root) => {
   root.add(dodecahedron(0.16, 0xc675db));
 });
+
+export const createGoldModel = itemModel("gold", (root) => {
+  for (const [x, z, count] of [[-0.1, 0.06, 3], [0.1, -0.04, 5], [0.12, 0.15, 1]]) {
+    for (let index = 0; index < count; index++) {
+      place(root, cylinder(0.105, 0.105, 0.028, 12, index % 2 ? 0xdca531 : 0xf5c653), x, 0.014 + index * 0.031, z);
+    }
+  }
+});

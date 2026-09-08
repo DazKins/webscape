@@ -45,6 +45,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleEquipCommand(clientID, cmd)
 	case command.CommandTypeUnequip:
 		h.handleUnequipCommand(clientID, cmd)
+	case command.CommandTypeTrade, command.CommandTypeTradeClose:
+		h.handleTradeCommand(clientID, cmd)
 	case command.CommandTypeDrop:
 		h.handleDropCommand(clientID, cmd)
 	case command.CommandTypeConversationOption:
@@ -157,4 +159,28 @@ func (h *ClientCommandHandler) handleConversationOptionCommand(clientID string, 
 	}
 
 	h.game.HandleConversationOption(clientID, conversationId, nodeId, optionId)
+}
+
+func (h *ClientCommandHandler) handleTradeCommand(clientID string, cmd command.Command) {
+	target, ok := cmd.Data["targetEntityId"].(string)
+	if !ok {
+		return
+	}
+	id, err := uuid.Parse(target)
+	if err != nil {
+		return
+	}
+	if cmd.Type == command.CommandTypeTradeClose {
+		h.game.HandleTradeClose(clientID, model.EntityId(id))
+		return
+	}
+	action, ok := cmd.Data["action"].(string)
+	if !ok || (action != "buy" && action != "sell") {
+		return
+	}
+	itemID, ok := cmd.Data["itemId"].(string)
+	if !ok || itemID == "" {
+		return
+	}
+	h.game.HandleTrade(clientID, model.EntityId(id), action, itemID)
 }

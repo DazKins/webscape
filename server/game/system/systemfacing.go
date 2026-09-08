@@ -10,8 +10,8 @@ const (
 	facingPriorityIncomingCombat
 	facingPriorityOutgoingWoodcutting
 	facingPriorityOutgoingFishing
-	facingPriorityOutgoingConversation
-	facingPriorityIncomingConversation
+	facingPriorityOutgoingSocial
+	facingPriorityIncomingSocial
 )
 
 type facingCandidate struct {
@@ -38,14 +38,14 @@ func (s *FacingSystem) Update() {
 		)
 	}
 
-	for entityId, value := range s.ComponentManager.GetComponent(component.ComponentIdActiveConversation) {
-		targetEntityId := value.(*component.CActiveConversation).GetTargetEntityId()
+	for _, pair := range socialParticipants(s.ComponentManager) {
+		entityId, targetEntityId := pair.Actor, pair.Target
 		s.addPair(
 			desired,
 			entityId,
 			targetEntityId,
-			facingPriorityOutgoingConversation,
-			facingPriorityIncomingConversation,
+			facingPriorityOutgoingSocial,
+			facingPriorityIncomingSocial,
 		)
 	}
 

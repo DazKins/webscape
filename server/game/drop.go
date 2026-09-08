@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"webscape/server/game/component"
 	"webscape/server/game/gameevent"
 	"webscape/server/game/model"
@@ -30,11 +31,15 @@ func (g *Game) HandleDrop(clientID string, itemID model.ItemId) {
 		return
 	}
 	g.componentManager.SetEntityComponent(playerID, inventory)
+	name := item.Name
+	if item.IsStackable() {
+		name = fmt.Sprintf("%s × %d", name, item.Quantity)
+	}
 	g.componentManager.CreateNewEntity(
 		component.NewCPosition(position),
 		component.NewCRenderable("droppeditem"),
 		component.NewCMetadata(util.JObject{
-			"name":           util.JString(item.Name),
+			"name":           util.JString(name),
 			"renderModel":    util.JString(item.GroundRenderModel()),
 			"width":          util.JNumber(1),
 			"height":         util.JNumber(1),

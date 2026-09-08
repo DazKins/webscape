@@ -33,6 +33,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 	inventoryComponent.AddItem(model.CreateHealthPotion())
 	inventoryComponent.AddItem(model.CreateBread())
 	inventoryComponent.AddItem(model.CreateIronOre())
+	inventoryComponent.AddItem(model.CreateGold(100))
 
 	equippedComponent := component.NewCEquipped()
 	baseStatsComponent := component.NewCBaseStats(8, 7, 7)

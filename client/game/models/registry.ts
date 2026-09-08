@@ -15,7 +15,7 @@ import { createMagicStaffModel } from "./definitions/magicStaff";
 import { createWoodenBowModel } from "./definitions/woodenBow";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 import {
-  createHealthPotionModel, createBreadModel, createAppleModel, createIronOreModel,
+  createGoldModel, createHealthPotionModel, createBreadModel, createAppleModel, createIronOreModel,
   createStoneItemModel, createWoodModel, createLogsModel, createArrowModel,
   createFishModel, createMysteriousKeyModel, createAncientScrollModel,
   createChainmailChestplateModel, createIronLeggingsModel, createLeatherBootsModel,
@@ -38,6 +38,7 @@ export const modelRegistry = {
   fishingSpot: createFishingSpotModel,
   magicStaff: createMagicStaffModel,
   woodenBow: createWoodenBowModel,
+  gold: createGoldModel,
   healthPotion: createHealthPotionModel,
   bread: createBreadModel,
   apple: createAppleModel,

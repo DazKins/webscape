@@ -34,6 +34,7 @@ const (
 )
 
 type Item struct {
+	Quantity      int
 	Id            ItemId
 	Name          string
 	Type          string
@@ -43,8 +44,12 @@ type Item struct {
 }
 
 func NewItem(name string, itemType string) *Item {
+	if itemType == ItemTypeGold {
+		name = "Gold"
+	}
 	return &Item{
 		Id:            NewItemId(),
+		Quantity:      1,
 		Name:          name,
 		Type:          itemType,
 		RenderModel:   "",
@@ -70,6 +75,7 @@ type ItemCombatStats struct {
 func NewEquipableItem(name string, itemType string, renderModel string, slot EquipmentSlot, combatStats *ItemCombatStats) *Item {
 	return &Item{
 		Id:            NewItemId(),
+		Quantity:      1,
 		Name:          name,
 		Type:          itemType,
 		RenderModel:   renderModel,
