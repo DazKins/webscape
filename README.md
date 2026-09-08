@@ -109,6 +109,8 @@ expose it through Tailscale Serve, and post a verified preview URL and revision 
 the PR. Preview links require tailnet access. Each revision gets its own ports;
 the agent replaces the link after validation and stops the old preview. After
 feature acceptance and a successful merge, it removes only that PR's preview.
+An explicit cancellation or an observed PR closure without merge also stops the
+owned preview; cleanup requires the agent to be active.
 
 This repository copy is the reviewable source for the skill. If using an installed
 copy at `~/.codex/skills/webscape-next-task`, synchronize its `SKILL.md` and

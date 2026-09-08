@@ -84,7 +84,7 @@ running while awaiting feature acceptance; do not merge based on plan approval.
 
 ## Cleanup
 
-For each old, failed, or merged preview, inspect its container labels and port
+For each old, failed, merged, or explicitly abandoned preview, inspect its container labels and port
 mapping again. Require the repository, PR, and worktree to match this task. Before
 disabling Serve, verify that the endpoint contains only the expected `/` proxy to
 that exact loopback port and has no unrelated TCP handler or Funnel configuration.
@@ -97,3 +97,11 @@ Never use `tailscale serve reset`, bulk container deletion, or Docker prune. Do 
 delete images or GHCR tags as part of cleanup. On successful PR merge, mark the
 preview comment as stopped and retain the reviewed revision and image reference.
 If the merge fails, keep the active preview available.
+
+When the user explicitly cancels/abandons the feature, or when resuming work reveals
+that the PR is closed without a merge, clean up its owned preview the same way and
+mark the comment as stopped because the feature was abandoned or closed unmerged.
+Do not mark the Notion ticket Done in that case. Requests for fixes or more review
+keep the preview available; they do not count as abandonment. Cleanup runs when
+the agent handles the cancellation or observes the closed PR, not automatically
+while no agent is active.
