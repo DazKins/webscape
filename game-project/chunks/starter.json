@@ -4200,6 +4200,97 @@
           }
         }
       }
+    },
+    {
+      "id": "starter_shopkeeper",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 14
+        },
+        "metadata": {
+          "name": "Mara the Merchant",
+          "entityType": "npc",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "brown",
+          "hairStyle": "bob",
+          "hairColor": "black",
+          "tunicColor": "mustard",
+          "trousersColor": "umber",
+          "shoeColor": "darkBrown"
+        },
+        "shop": {
+          "offers": [
+            {
+              "itemId": "ironSword",
+              "buyPrice": 40,
+              "sellPrice": 16
+            },
+            {
+              "itemId": "woodcuttingAxe",
+              "buyPrice": 25,
+              "sellPrice": 10
+            },
+            {
+              "itemId": "fishingRod",
+              "buyPrice": 25,
+              "sellPrice": 10
+            },
+            {
+              "itemId": "woodenBow",
+              "buyPrice": 40,
+              "sellPrice": 16
+            },
+            {
+              "itemId": "magicStaff",
+              "buyPrice": 50,
+              "sellPrice": 20
+            },
+            {
+              "itemId": "arrow",
+              "buyPrice": 3,
+              "sellPrice": 1
+            },
+            {
+              "itemId": "leatherHelmet",
+              "buyPrice": 20,
+              "sellPrice": 8
+            },
+            {
+              "itemId": "bread",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "healthPotion",
+              "buyPrice": 15,
+              "sellPrice": 6
+            },
+            {
+              "itemId": "logs",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "rawFish",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "ironOre",
+              "buyPrice": 10,
+              "sellPrice": 4
+            }
+          ]
+        }
+      }
     }
   ]
 }

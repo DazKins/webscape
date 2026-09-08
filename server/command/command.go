@@ -14,6 +14,8 @@ const (
 	CommandTypeEquip              = "equip"
 	CommandTypeUnequip            = "unequip"
 	CommandTypeDrop               = "drop"
+	CommandTypeTrade              = "trade"
+	CommandTypeTradeClose         = "tradeClose"
 	CommandTypeConversationOption = "conversationOption"
 )
 

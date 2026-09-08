@@ -55,3 +55,19 @@ func TestCommandHandlerRejectsInvalidDropPayloadsWithoutPanicking(t *testing.T) 
 		handler.HandleCommand("client", command.Command{Type: command.CommandTypeDrop, Data: payload})
 	}
 }
+
+func TestMalformedTradeCommandsDoNotPanic(t *testing.T) {
+	testGame := newCommandHandlerTestGame(t)
+	testGame.HandleRegister("client", model.NewEntityId(), "Player")
+	handler := NewClientCommandHandler(testGame)
+	for _, typ := range []command.CommandType{command.CommandTypeTrade, command.CommandTypeTradeClose} {
+		for _, data := range []map[string]any{
+			nil, {}, {"targetEntityId": 42}, {"targetEntityId": "bad"},
+			{"targetEntityId": model.NewEntityId().String()},
+			{"targetEntityId": model.NewEntityId().String(), "action": "buy", "itemId": 42},
+			{"targetEntityId": model.NewEntityId().String(), "action": "hack", "itemId": "ironSword"},
+		} {
+			handler.HandleCommand("client", command.Command{Type: typ, Data: data})
+		}
+	}
+}

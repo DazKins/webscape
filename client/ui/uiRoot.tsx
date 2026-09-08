@@ -4,6 +4,7 @@ import { ChatBoxContent } from "./components/chatBox";
 import InteractionMenu from "./components/interactionMenu";
 import { EquipmentContent, InventoryBackpackContent } from "./components/inventory";
 import { CombatLogContent } from "./components/combatLog";
+import ShopPanel from "./components/shopPanel";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
 import QuestCompletedOverlay from "./components/questCompletedOverlay";
@@ -275,6 +276,7 @@ export default function UiRoot(props: Props) {
 
         <InteractionMenu game={props.game} />
         <ConversationPanel game={props.game} />
+        <ShopPanel game={props.game} />
         <QuestStartedOverlay game={props.game} />
         <QuestCompletedOverlay game={props.game} />
         {buildInfo}
@@ -339,6 +341,7 @@ export default function UiRoot(props: Props) {
 
       <InteractionMenu game={props.game} />
       <ConversationPanel game={props.game} />
+        <ShopPanel game={props.game} />
       <QuestStartedOverlay game={props.game} />
       <QuestCompletedOverlay game={props.game} />
       {buildInfo}

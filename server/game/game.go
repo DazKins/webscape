@@ -82,6 +82,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		game.RegisterGameEventHandlerFor(eventId, questHandler)
 	}
 	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
+	game.RegisterGameEventHandlerFor(gameevent.EventIdTradeResolved, gameevent.HandlerFunc(game.projectTradeResult))
 	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdItemPickedUp, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
@@ -117,6 +118,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		SystemBase:          systemBase,
 		TickSource:          game,
 		ConversationStarter: game,
+		TradingStarter:      game,
 		EventEmitter:        game,
 		LootHandler:         game,
 		WoodcuttingStarter:  woodcuttingSystem,
@@ -148,6 +150,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		TickSource: game,
 	}
 	game.RegisterSystem(spawnSystem)
+	game.RegisterSystem(&system.TradingSystem{SystemBase: systemBase, Validator: game})
 	game.RegisterSystem(&system.FacingSystem{
 		SystemBase: systemBase,
 	})
@@ -717,7 +720,7 @@ func (g *Game) syncClient(clientID string) {
 			state.baseline[componentID] = make(map[model.EntityId]util.Json)
 		}
 		for entityID, value := range entities {
-			if !visible[entityID] {
+			if !visible[entityID] || (componentID == component.ComponentIdTrading && entityID != playerID) {
 				continue
 			}
 			serializable, ok := value.(component.SerializeableComponent)
@@ -737,7 +740,7 @@ func (g *Game) syncClient(clientID string) {
 	}
 	for componentID, entities := range state.baseline {
 		for entityID := range entities {
-			if visible[entityID] && g.componentManager.GetEntityComponent(componentID, entityID) != nil {
+			if visible[entityID] && (componentID != component.ComponentIdTrading || entityID == playerID) && g.componentManager.GetEntityComponent(componentID, entityID) != nil {
 				continue
 			}
 			removed[componentID] = append(removed[componentID], entityID)
@@ -788,10 +791,14 @@ func (g *Game) addItemToPlayerInventory(playerEntityId model.EntityId, item *mod
 	g.componentManager.SetEntityComponent(playerEntityId, inventoryComponent)
 
 	if emitEvents && item.Type != "" {
-		g.EmitGameEvent(gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type), playerEntityId))
+		event := gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type), playerEntityId)
+		event.Count = item.Quantity
+		g.EmitGameEvent(event)
 	}
 	if emitEvents && item.Name != "" {
-		g.EmitGameEvent(gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId))
+		event := gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId)
+		event.Count = item.Quantity
+		g.EmitGameEvent(event)
 	}
 	return true
 }
@@ -976,16 +983,23 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 	}
 
 	inventoryComponent := inventory.(*component.CInventory)
-	totalItemCount := 0
+	trial := inventoryComponent.Clone()
 	for _, lootItem := range lootableComponent.GetItems() {
-		count := lootItem.Count
-		if count < 1 {
-			count = 1
+		count := max(1, lootItem.Count)
+		if lootItem.Type == model.ItemTypeGold {
+			if !trial.AddItem(model.CreateGold(count)) {
+				return
+			}
+		} else {
+			if count > trial.AvailableSlots() {
+				return
+			}
+			for i := 0; i < count; i++ {
+				if !trial.AddItem(lootItem.CreateItem()) {
+					return
+				}
+			}
 		}
-		totalItemCount += count
-	}
-	if totalItemCount > inventoryComponent.AvailableSlots() {
-		return
 	}
 
 	allItemsAdded := true
@@ -993,6 +1007,13 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 		count := lootItem.Count
 		if count < 1 {
 			count = 1
+		}
+		if lootItem.Type == model.ItemTypeGold {
+			if !g.AddItemToPlayerInventory(playerEntityId, model.CreateGold(count)) {
+				allItemsAdded = false
+				break
+			}
+			continue
 		}
 		for i := 0; i < count; i++ {
 			if !g.AddItemToPlayerInventory(playerEntityId, lootItem.CreateItem()) {
@@ -1034,7 +1055,7 @@ func (g *Game) StartConversationFor(playerEntityId model.EntityId, targetEntityI
 		targetEntityId,
 		conversation.StartNodeId,
 	)
-	g.componentManager.SetEntityComponent(playerEntityId, activeConversation)
+	g.stateTransitions.BeginSocialInteraction(playerEntityId, activeConversation)
 	g.sendConversationNode(playerEntityId, targetEntityId, conversationId, conversation.StartNodeId)
 }
 
@@ -1225,6 +1246,9 @@ func (g *Game) restartCombatAfterWeaponChange(
 
 func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []component.InteractionOption {
 	options := []component.InteractionOption{}
+	if g.componentManager.GetEntityComponent(component.ComponentIdShop, entityId) != nil {
+		options = append(options, component.InteractionOptionTrade)
+	}
 
 	if g.componentManager.GetEntityComponent(component.ComponentIdConversation, entityId) != nil {
 		options = append(options, component.InteractionOptionTalk)

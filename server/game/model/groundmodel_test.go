@@ -7,7 +7,7 @@ func TestExistingItemsHaveIndividualGroundModels(t *testing.T) {
 		CreateIronSword(), CreateWoodcuttingAxe(), CreateFishingRod(), CreateMagicStaff(), CreateWoodenBow(),
 		CreateLeatherHelmet(), CreateChainmailChestplate(), CreateIronLeggings(), CreateLeatherBoots(), CreateWoodenShield(),
 		CreateHealthPotion(), CreateBread(), CreateApple(), CreateIronOre(), CreateWood(), CreateLogs(), CreateStone(),
-		CreateArrow(), CreateMysteriousKey(), CreateAncientScroll(), NewItem("Raw Fish", "fish"),
+		CreateGold(100), CreateArrow(), CreateMysteriousKey(), CreateAncientScroll(), NewItem("Raw Fish", "fish"),
 	}
 	seen := map[string]bool{}
 	for _, item := range items {

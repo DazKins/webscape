@@ -169,6 +169,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     validateWoodcuttable(entity.id, entity.components, errors);
     validateFishable(entity.id, entity.components, errors);
     validateAppearance(entity.id, entity.components, errors);
+    validateShop(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
     const templateComponents = template && isObject(template.components) ? template.components : null;
@@ -176,6 +177,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
       validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
       validateFishable(`${entity.id} child template`, templateComponents, errors);
       validateAppearance(`${entity.id} child template`, templateComponents, errors);
+      validateShop(`${entity.id} child template`, templateComponents, errors);
     }
   }
 
@@ -338,4 +340,27 @@ export function entitySize(entity: WorldEntity): { width: number; height: number
 
 function isInBounds(size: WorldSize, x: number, y: number): boolean {
   return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < size.x && y < size.y;
+}
+
+const SHOP_ITEM_IDS = new Set(['ironSword', 'woodcuttingAxe', 'fishingRod', 'magicStaff', 'woodenBow', 'arrow', 'leatherHelmet', 'chainmailChestplate', 'ironLeggings', 'leatherBoots', 'woodenShield', 'healthPotion', 'bread', 'apple', 'ironOre', 'wood', 'logs', 'stone', 'rawFish']);
+
+function validateShop(entityId: string, components: Record<string, unknown>, errors: string[]) {
+  if (!("shop" in components)) return;
+  const shop = components.shop;
+  if (!isObject(shop) || Object.keys(shop).length !== 1 || !Array.isArray(shop.offers) || shop.offers.length < 1 || shop.offers.length > 100) {
+    errors.push(`entity "${entityId}" shop must contain only offers, with 1 to 100 entries`);
+    return;
+  }
+  const seen = new Set<string>();
+  for (const offer of shop.offers) {
+    if (!isObject(offer) || Object.keys(offer).length !== 3 || typeof offer.itemId !== "string" || !SHOP_ITEM_IDS.has(offer.itemId) || seen.has(offer.itemId)) {
+      errors.push(`entity "${entityId}" shop offer must have a known, unique itemId, buyPrice and sellPrice`);
+      continue;
+    }
+    seen.add(offer.itemId);
+    if (!Number.isInteger(offer.buyPrice) || !Number.isInteger(offer.sellPrice) ||
+      Number(offer.sellPrice) < 1 || Number(offer.buyPrice) > 1000000 || Number(offer.sellPrice) >= Number(offer.buyPrice)) {
+      errors.push(`entity "${entityId}" shop prices must be integers from 1 to 1000000 with sellPrice below buyPrice`);
+    }
+  }
 }

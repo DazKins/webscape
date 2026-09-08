@@ -33,7 +33,21 @@ func (c *CInventory) Serialize() util.Json {
 }
 
 func (c *CInventory) AddItem(item *model.Item) bool {
-	if item == nil || c.IsFull() {
+	if item == nil || !item.ValidQuantity() || c.HasItem(item.Id) {
+		return false
+	}
+	if item.IsStackable() {
+		for _, existing := range c.items {
+			if existing.Type == item.Type {
+				if item.Quantity > model.MaxStackQuantity-existing.Quantity {
+					return false
+				}
+				existing.Quantity += item.Quantity
+				return true
+			}
+		}
+	}
+	if c.IsFull() {
 		return false
 	}
 	c.items = append(c.items, item)
@@ -103,4 +117,42 @@ func (c *CInventory) AvailableSlots() int {
 		return 0
 	}
 	return available
+}
+
+// Clone isolates quantity mutations while preparing atomic inventory operations.
+func (c *CInventory) Clone() *CInventory {
+	result := NewCInventory()
+	for _, item := range c.items {
+		copied := *item
+		result.items = append(result.items, &copied)
+	}
+	return result
+}
+
+func (c *CInventory) FindByType(itemType string) *model.Item {
+	for _, item := range c.items {
+		if item.Type == itemType {
+			return item
+		}
+	}
+	return nil
+}
+
+// Exchange commits only if payment and the resulting slot/stack layout both fit.
+func (c *CInventory) Exchange(paymentID model.ItemId, quantity int, received *model.Item) bool {
+	trial := c.Clone()
+	payment := trial.GetItem(paymentID)
+	if payment == nil || quantity <= 0 || payment.Quantity < quantity {
+		return false
+	}
+	if payment.Quantity == quantity {
+		trial.RemoveItem(paymentID)
+	} else {
+		payment.Quantity -= quantity
+	}
+	if !trial.AddItem(received) {
+		return false
+	}
+	c.items = trial.items
+	return true
 }

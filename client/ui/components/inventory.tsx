@@ -11,7 +11,9 @@ type Props = {
 
 const INVENTORY_SLOT_COUNT = 20;
 
-type InventoryItem = {
+export type InventoryItem = {
+  quantity: number;
+  stackable: boolean;
   id: string;
   name: string;
   type: string;
@@ -33,6 +35,7 @@ type InventoryItem = {
 };
 
 type ItemIconKind =
+  | "gold"
   | "weapon"
   | "axe"
   | "fishingRod"
@@ -61,6 +64,15 @@ type ItemIconDefinition = {
 };
 
 const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
+  gold: {
+    background: "#382d16", glow: "#ffd970",
+    shape: `<ellipse cx="39" cy="65" rx="23" ry="12" fill="#9a6214"/>
+      <path d="M16 55v10c0 16 46 16 46 0V55" fill="#b98725"/>
+      <ellipse cx="39" cy="55" rx="23" ry="12" fill="#f5c54f" stroke="#ffdf88" stroke-width="3"/>
+      <path d="M35 39v11c0 16 46 16 46 0V39" fill="#b98725"/>
+      <ellipse cx="58" cy="39" rx="23" ry="12" fill="#f5c54f" stroke="#ffdf88" stroke-width="3"/>
+      <path d="M53 34h10m-10 5h10m-10 5h10" stroke="#b98725" stroke-width="3"/>`,
+  },
   weapon: {
     background: "#2c3342",
     glow: "#a9c7ff",
@@ -274,6 +286,7 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
 const itemIconSrcCache = new Map<ItemIconKind, string>();
 
 function getItemIconKind(item: InventoryItem): ItemIconKind {
+  if (item.type === "gold") return "gold";
   const name = item.name.toLowerCase();
   if (item.renderModel === "magicStaff") return "magicStaff";
   if (item.renderModel === "woodenBow") return "bow";
@@ -323,7 +336,7 @@ function getItemIconKind(item: InventoryItem): ItemIconKind {
   }
 }
 
-function getItemIconSrc(item: InventoryItem): string {
+export function getItemIconSrc(item: InventoryItem): string {
   const kind = getItemIconKind(item);
   const cached = itemIconSrcCache.get(kind);
   if (cached) {
@@ -345,7 +358,7 @@ function getItemIconSrc(item: InventoryItem): string {
 }
 
 function getItemTitle(item: InventoryItem): string {
-  return `${item.name} (${item.type})${
+  return `${item.name}${item.stackable ? ` × ${item.quantity}` : ""} (${item.type})${
     item.equipmentSlot ? ` - Equipable: ${item.equipmentSlot}` : ""
   }${
     item.combatStats
@@ -472,7 +485,7 @@ export function InventoryBackpackContent(props: Props) {
               key={item.id}
               className={`${styles.item} ${item.equipmentSlot ? styles.equipable : ""}`}
               title={getItemTitle(item)}
-              aria-label={item.name}
+              aria-label={item.stackable ? `${item.name}, ${item.quantity}` : item.name}
               aria-haspopup="menu"
               aria-expanded={menu?.itemId === item.id}
               onContextMenu={(event) => {
@@ -498,6 +511,7 @@ export function InventoryBackpackContent(props: Props) {
                 alt={item.name}
                 draggable={false}
               />
+              {item.stackable && <span className={styles.quantity}>{item.quantity.toLocaleString()}</span>}
             </button>
           ) : (
             <div
@@ -551,7 +565,7 @@ export function InventoryBackpackContent(props: Props) {
                 setMenu(null);
               }}
             >
-              Drop
+              {selectedItem.stackable ? `Drop all (${selectedItem.quantity})` : "Drop"}
             </button>
         </div>,
         document.getElementById("uiLayerRoot")!,
