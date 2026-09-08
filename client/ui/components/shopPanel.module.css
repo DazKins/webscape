@@ -7,9 +7,7 @@
   background: #20272bf5; border-color: #8c7850;
   box-shadow: 0 16px 55px #0009;
 }
-.header { min-height: 64px; height: auto; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
-.header > div { display: flex; flex-direction: column; gap: 4px; }
-.eyebrow { font-size: 10px; letter-spacing: 2px; color: #e0bc72; }
+.header { min-height: 52px; height: auto; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
 .close { font-size: 24px; width: 40px; height: 40px; background: transparent; color: #ede6d8; border: 0; cursor: pointer; }
 .balance { display: flex; justify-content: space-between; padding: 14px 18px; color: #cfcbc3; background: #171d20; }
 .balance strong { color: #f2ca6a; font-size: 18px; }

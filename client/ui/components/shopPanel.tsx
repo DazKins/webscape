@@ -92,7 +92,7 @@ export default function ShopPanel({ game }: { game: Game }) {
       onPointerLeave={() => game.setPointerOverUi(false)}
       onPointerUp={(event) => { if (event.pointerType !== "mouse") game.setPointerOverUi(false); }}>
       <div className={`${panelStyles.panelHeader} ${styles.header}`}>
-        <div><span className={styles.eyebrow}>GENERAL STORE</span><span id="shop-title">{shop.name}</span></div>
+        <span id="shop-title">{shop.name}</span>
         <button ref={closeRef} type="button" className={styles.close} aria-label="Close shop"
           onClick={() => game.handleTradeClose(shop.targetId)}>×</button>
       </div>
@@ -101,7 +101,7 @@ export default function ShopPanel({ game }: { game: Game }) {
         <button type="button" aria-pressed={tab === "buy"} onClick={() => { setTab("buy"); setFeedback(""); }}>Buy goods</button>
         <button type="button" aria-pressed={tab === "sell"} onClick={() => { setTab("sell"); setFeedback(""); }}>Sell from backpack</button>
       </div>
-      <p className={styles.hint}>{tab === "buy" ? "Tools, supplies, and materials. Prices are per item." : "Sell gathered materials and spare gear for gold."}</p>
+      {tab === "sell" && <p className={styles.hint}>Sell gathered materials and spare gear for gold.</p>}
       <div ref={itemsRef} className={styles.items}>
         {rows.map(({ item, offer }) => {
           const price = tab === "buy" ? offer.buyPrice : offer.sellPrice;
@@ -117,7 +117,7 @@ export default function ShopPanel({ game }: { game: Game }) {
         })}
         {rows.length === 0 && <p className={styles.empty}>No items this shop buys. Try gathering logs or catching fish.</p>}
       </div>
-      <div className={styles.footer} role="status" aria-live="polite">{pending ? "Trading…" : feedback || `${shop.items.length}/20 backpack slots · Gold stacks in one slot`}</div>
+      <div className={styles.footer} role="status" aria-live="polite">{pending ? "Trading…" : feedback || `${shop.items.length}/20 backpack slots`}</div>
     </section>
   );
 }
