@@ -103,19 +103,14 @@ flag; the explicit tags and metadata distinguish previews. They never receive
 `latest`, production `sha-...` tags, or release version tags. The production image
 workflow remains unchanged.
 
-The versioned [webscape-next-task skill](.agents/skills/webscape-next-task/SKILL.md)
-instructs the local agent to pull the matching image, run an isolated container,
-expose it through Tailscale Serve, and post a verified preview URL and revision on
-the PR. Preview links require tailnet access. Each revision gets its own ports;
-the agent replaces the link after validation and stops the old preview. After
-feature acceptance and a successful merge, it removes only that PR's preview.
-An explicit cancellation or an observed PR closure without merge also stops the
-owned preview; cleanup requires the agent to be active.
-
-This repository copy is the reviewable source for the skill. If using an installed
-copy at `~/.codex/skills/webscape-next-task`, synchronize its `SKILL.md` and
-`references/pr-previews.md` from the accepted default-branch version after merging
-skill changes.
+Image publication does not host a preview. The local agent pulls the matching
+image, runs an isolated container, exposes it through Tailscale Serve, and posts
+the verified preview URL and revision on the PR. Preview links require tailnet
+access. Each revision gets its own ports; the agent replaces the link after
+validation and stops the old preview. After feature acceptance and a successful
+merge, it removes only that PR's preview. An explicit cancellation or an observed
+PR closure without merge also stops the owned preview; cleanup requires the agent
+to be active.
 
 ## License
 
