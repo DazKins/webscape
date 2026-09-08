@@ -68,7 +68,7 @@ jobs:
           fi
 
           # Do not follow redirects or retry a request that may already have queued a deployment.
-          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+          status=$(curl --request POST --silent --show-error --output /dev/null --write-out '%{http_code}' \
             --connect-timeout 10 --max-time 60 --proto '=https' \
             --header "Authorization: Bearer $COOLIFY_TOKEN" \
             "$COOLIFY_WEBHOOK")

@@ -105,6 +105,9 @@ Actions**:
   GitHub-hosted runners.
 - `COOLIFY_TOKEN`: the API token with Deploy permission.
 
+The workflow sends an authenticated HTTPS `POST` to `/api/v1/deploy`, preserving
+the application UUID and other query parameters from the copied webhook URL.
+
 Only the `master` publication workflow calls this webhook, after the image push
 succeeds. PR preview builds publish their separate prerelease images and never
 request a Coolify deployment. Publication and the webhook request share the same
