@@ -75,7 +75,8 @@ image to GitHub Container Registry:
 The workflow passes the source SHA into the client build identifier and image
 metadata. It authenticates with the automatic `GITHUB_TOKEN` using
 `contents: read` and `packages: write`; no additional registry secret is needed.
-Publication does not restart the running game server.
+After successful publication, the workflow requests a Coolify deployment of the
+new `latest` image. A failed build or publication never triggers deployment.
 
 Pull and run a published image with:
 
@@ -88,6 +89,34 @@ For a specific revision, replace `latest` with its `sha-<full-commit-sha>` tag.
 Package visibility is managed in GitHub Packages settings; make the package public
 if anonymous pulls are required, or authenticate to GHCR before pulling a private
 package.
+
+## Coolify auto-deploy
+
+Configure the Coolify application to deploy the Docker image
+`ghcr.io/dazkins/webscape:latest`. In Coolify, create an API token under
+**Keys & Tokens → API Tokens** with the **Deploy** permission, and copy the
+application's **Webhook → Deploy webhook** URL. See the
+[Coolify GitHub Actions guide](https://coolify.io/docs/applications/ci-cd/github/actions/).
+
+Add these repository secrets under GitHub **Settings → Secrets and variables →
+Actions**:
+
+- `COOLIFY_WEBHOOK`: the application's HTTPS deploy webhook URL, reachable from
+  GitHub-hosted runners.
+- `COOLIFY_TOKEN`: the API token with Deploy permission.
+
+Only the `master` publication workflow calls this webhook, after the image push
+succeeds. PR preview builds publish their separate prerelease images and never
+request a Coolify deployment. Publication and the webhook request share the same
+workflow concurrency group.
+
+Missing secrets, network errors, and non-2xx responses fail the workflow's
+deployment step even though the image has already been published. The request
+has a 60-second timeout and is not automatically retried: a timeout can occur
+after Coolify has queued a deployment. Check Coolify before retrying. A successful
+request means Coolify accepted it; monitor the rollout in Coolify to confirm the
+game is running the expected revision. Keep tokens in GitHub secrets, never in
+source control.
 
 ## License
 
