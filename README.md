@@ -89,29 +89,6 @@ Package visibility is managed in GitHub Packages settings; make the package publ
 if anonymous pulls are required, or authenticate to GHCR before pulling a private
 package.
 
-## PR preview images
-
-The `Build PR preview image` workflow builds each new PR head revision when a PR
-opens, receives commits, or reopens. Same-repository PRs publish a testing-only
-prerelease image at
-`ghcr.io/dazkins/webscape:pr-<number>-sha-<full-head-sha>`. Fork and Dependabot PRs
-validate the Docker build without publishing an image.
-
-Preview images carry the PR head revision, a testing-only description, and
-`io.webscape.prerelease=true`. GHCR does not have a GitHub Release-style prerelease
-flag; the explicit tags and metadata distinguish previews. They never receive
-`latest`, production `sha-...` tags, or release version tags. The production image
-workflow remains unchanged.
-
-Image publication does not host a preview. The local agent pulls the matching
-image, runs an isolated container, exposes it through Tailscale Serve, and posts
-the verified preview URL and revision on the PR. Preview links require tailnet
-access. Each revision gets its own ports; the agent replaces the link after
-validation and stops the old preview. After feature acceptance and a successful
-merge, it removes only that PR's preview. An explicit cancellation or an observed
-PR closure without merge also stops the owned preview; cleanup requires the agent
-to be active.
-
 ## License
 
 Copyright © 2025–2026 David Atkins.
