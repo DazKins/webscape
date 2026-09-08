@@ -1,0 +1,77 @@
+name: Build PR preview image
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+# Each pushed PR revision gets its own build, even if a newer revision arrives.
+concurrency:
+  group: preview-image-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out PR source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set preview image tag
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVISION: ${{ github.event.pull_request.head.sha }}
+        run: echo "tag=ghcr.io/${REPOSITORY,,}:pr-${PR_NUMBER}-sha-${REVISION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      # Fork and Dependabot PRs can build, but their read-only tokens cannot publish.
+      - name: Log in to GitHub Container Registry
+        if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build prerelease image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+          tags: ${{ steps.image.outputs.tag }}
+          build-args: |
+            WEBSCAPE_BUILD_REVISION=${{ github.event.pull_request.head.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.event.pull_request.head.sha }}
+            org.opencontainers.image.version=pr-${{ github.event.pull_request.number }}-sha-${{ github.event.pull_request.head.sha }}
+            org.opencontainers.image.description=Prerelease PR preview for testing only
+            io.webscape.prerelease=true
+          cache-from: type=gha,scope=pr-preview
+          cache-to: type=gha,mode=max,scope=pr-preview
+
+      - name: Summarize preview build
+        env:
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+          PUBLISHED: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ "$PUBLISHED" = true ]; then
+            echo "Testing-only prerelease image: \`$IMAGE_TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Build validated; registry publication is disabled for fork and Dependabot PRs.' >> "$GITHUB_STEP_SUMMARY"
+          fi
