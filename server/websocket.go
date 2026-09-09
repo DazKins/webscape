@@ -186,3 +186,12 @@ func (wss *wsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	go client.readPump(wss.onMessage, wss.unregister)
 }
+
+// Close terminates upgraded connections when the runtime stops serving the game.
+func (w *wsServer) Close() {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	for _, client := range w.clients {
+		client.conn.Close()
+	}
+}

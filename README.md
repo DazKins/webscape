@@ -152,3 +152,109 @@ Logs use these searchable event names:
 - `tick_recovery_finished`: recovery tick count and elapsed recovery time.
 
 Pathfinding uses one A* search to reach any valid tile within interaction range, then validates and follows cached steps. Tile blocker counts track doors and entity footprints. Each search is limited to 16,384 expanded nodes; routes exceeding this work limit are rejected rather than allowing an unbounded search to stall a tick.
+
+## Game persistence
+
+Persistence is independent of `server.devMode`. The checked-in `config.json` uses
+`"persistence": {"driver": "none"}`, which keeps development sessions ephemeral.
+For restart/reconnect testing, use PostgreSQL, the same backend as deployment.
+There is no embedded SQLite database.
+
+Deploy PostgreSQL separately and set these options in your mounted `config.json`:
+
+```json
+"persistence": {
+  "driver": "postgres",
+  "worldKey": "webscape-production",
+  "timeoutSeconds": 10,
+  "postgres": {
+    "connectionStringEnv": "WEBSCAPE_DATABASE_URL"
+  }
+}
+```
+
+Set `WEBSCAPE_DATABASE_URL` in the game container's environment to a PostgreSQL
+connection URL, for example
+`postgres://webscape:PASSWORD@postgres.example.net:5432/webscape?sslmode=verify-full`.
+Percent-encode special characters in URL credentials. The value is read at startup;
+a missing/empty variable fails startup. Connection strings and passwords are never
+logged. PostgreSQL's keyword connection-string syntax is also supported.
+
+Alternatively, configure individual fields:
+
+```json
+"persistence": {
+  "driver": "postgres",
+  "worldKey": "webscape-production",
+  "timeoutSeconds": 10,
+  "postgres": {
+    "host": "postgres.example.net",
+    "port": 5432,
+    "database": "webscape",
+    "user": "webscape",
+    "passwordEnv": "WEBSCAPE_DATABASE_PASSWORD",
+    "sslMode": "verify-full",
+    "sslRootCert": "/certs/postgres-ca.pem"
+  }
+}
+```
+
+`port` defaults to 5432, `sslMode` to `verify-full`, `worldKey` to `default`, and
+`timeoutSeconds` to 10. `sslRootCert` is optional when the issuing CA is already
+trusted. Optional `sslCert` and `sslKey` support client certificates; certificate
+paths must be readable inside the game container. `password` supports an inline
+password, but cannot be combined with `passwordEnv`. `connectionStringEnv`, when
+set, overrides the individual connection fields, including TLS settings. Local
+isolated database tests can explicitly use `sslMode: "disable"`.
+
+The database/user must already exist. On startup the adapter creates
+`webscape_snapshots` if needed, so the user needs schema CREATE permission and
+SELECT/INSERT/UPDATE permissions on that table. Use a direct PostgreSQL connection
+or a session-pooling endpoint: a session advisory lock prevents two game servers
+from writing the same `worldKey`. Transaction-pooling endpoints are unsupported.
+Use different keys/databases for independent worlds and previews. A rolling
+replacement must stop the old server before the new server acquires its key.
+
+The game exposes storage-independent snapshot/restore methods. Component save
+codecs live beside the components and are separate from client serialization.
+`server/persistence` accepts opaque snapshots and owns PostgreSQL, the SQL schema,
+and atomic writes; `server/server.go` coordinates startup and saves. Game systems
+and command handlers have no database dependency. Adding a component requires an
+explicit save codec or an explicit transient classification.
+
+Each snapshot saves entity IDs, durable components (including server-only fields),
+the simulation tick, and offline player entities. A save atomically replaces the
+whole world's record, including entity deletions and item transfers. Saves run
+after ticks, commands, disconnects, and graceful shutdown. Database I/O happens
+outside the game mutex, and capture/save operations are serialized to prevent
+older snapshots overwriting newer ones. Startup/load/save failures stop the server;
+they never reset progress or silently switch to `none`. Abrupt termination restores
+the last committed snapshot; changes since that checkpoint can be lost. Whole-world
+snapshots favor simplicity at the current scale; snapshot size and save latency
+should be monitored before growing the world substantially.
+
+Restored players stay outside the active ECS until they reconnect using their
+existing browser player ID. Their name, appearance, items, equipment, health and
+quest progress survive; no starter inventory is granted again. Clearing browser
+storage loses that identifier. This ticket retains the existing identity mechanism;
+account authentication and recovery are separate work. Movement, combat, fishing,
+woodcutting, facing targets, conversations and trading sessions resume idle rather
+than replaying old actions or events. Resource/spawn countdowns pause while the
+server is stopped. Authored terrain and registries still load from `game-project`.
+
+Snapshots and component payloads are versioned and validated before restoration.
+A fingerprint of `game.json` and its referenced content files rejects restores
+against changed authored content. Back up and explicitly migrate a saved world
+when changing that content, or choose a new `worldKey` for a fresh world. The
+existing row is never discarded automatically. PostgreSQL backups must include
+`webscape_snapshots`; restoring that row restores the corresponding checkpoint.
+
+Run the isolated storage integration tests with:
+
+```sh
+WEBSCAPE_TEST_DATABASE_URL='postgres://USER:PASSWORD@127.0.0.1:5432/TEST_DB?sslmode=disable' go test ./... -count=1
+```
+
+The integration test creates a unique world key and removes its row afterward.
+Without that variable, database integration tests are skipped; snapshot/restore,
+configuration and coordinator tests still run under `go test ./...`.

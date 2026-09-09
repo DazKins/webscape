@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 	"webscape/server"
 	"webscape/server/config"
@@ -32,12 +35,18 @@ func main() {
 	}
 	log.Printf("Using client folder %q", runtimeConfig.Client.Folder)
 
-	server.Start(
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := server.Start(
+		ctx,
 		os.DirFS(runtimeConfig.Client.Folder),
 		gameWorld,
 		runtimeConfig.Server.Address,
 		runtimeConfig.Streaming.ChunkRadius,
 		time.Duration(runtimeConfig.Server.TickIntervalMs)*time.Millisecond,
 		runtimeConfig.Server.DevMode,
-	)
+		runtimeConfig.Persistence,
+	); err != nil {
+		log.Fatal(err)
+	}
 }

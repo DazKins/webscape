@@ -1,46 +1,156 @@
 package server
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 	"webscape/server/command"
+	"webscape/server/config"
 	"webscape/server/game"
 	"webscape/server/game/world"
+	"webscape/server/persistence"
 )
 
-func Start(distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool) {
-	http.Handle("/", frontendHandler(distFS, devMode))
+// Start owns runtime coordination; core game code never opens a database.
+func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig) error {
+	mux := http.NewServeMux()
+	mux.Handle("/", frontendHandler(distFS, devMode))
 	if devMode {
 		log.Print("Development mode: frontend caching disabled")
 	}
+	g := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
+	timeout := time.Duration(storageConfig.TimeoutSeconds) * time.Second
+	var coordinator *persistence.Coordinator
+	if storageConfig.Driver == "postgres" {
+		connectionString, err := storageConfig.Postgres.ConnectionString()
+		if err != nil {
+			return err
+		}
+		openCtx, cancel := context.WithTimeout(ctx, timeout)
+		store, err := persistence.OpenPostgres(openCtx, connectionString, storageConfig.WorldKey)
+		cancel()
+		if err != nil {
+			return err
+		}
+		defer func() {
+			closeCtx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			store.Close(closeCtx)
+		}()
+		loadCtx, cancel := context.WithTimeout(ctx, timeout)
+		data, err := store.Load(loadCtx)
+		cancel()
+		if err != nil {
+			return err
+		}
+		g.RetainOfflinePlayers()
+		if data != nil {
+			if err := g.RestoreSnapshot(data); err != nil {
+				return err
+			}
+			log.Print("Restored PostgreSQL game snapshot")
+		}
+		coordinator = persistence.NewCoordinator(g, store)
+		saveCtx, cancel := context.WithTimeout(ctx, timeout)
+		err = coordinator.Save(saveCtx)
+		cancel()
+		if err != nil {
+			return err
+		}
+	} else if storageConfig.Driver == "none" {
+		log.Print("Persistence disabled: game state is ephemeral")
+	} else {
+		return fmt.Errorf("unsupported persistence driver %q", storageConfig.Driver)
+	}
 
-	game := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
-
-	clientCommandHandler := NewClientCommandHandler(game)
-	wsServer := NewWsServer()
-	wsServer.SetConnectHandler(game.HandleConnect)
-	wsServer.SetIncomingMessageHandler(func(clientID string, message string) {
-		command, err := command.Unmarshal(message)
+	failures := make(chan error, 1)
+	save := func() error {
+		if coordinator == nil {
+			return nil
+		}
+		saveCtx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		return coordinator.Save(saveCtx)
+	}
+	checkpoint := func() {
+		if err := save(); err != nil {
+			select {
+			case failures <- fmt.Errorf("game checkpoint failed: %w", err):
+			default:
+			}
+		}
+	}
+	if coordinator != nil {
+		g.SetAfterTick(checkpoint)
+	}
+	handler := NewClientCommandHandler(g)
+	ws := NewWsServer()
+	// Drain in-flight commands before the final save. WebSockets are hijacked
+	// connections and must be closed explicitly during HTTP shutdown.
+	var lifecycle sync.RWMutex
+	stopping := false
+	ws.SetConnectHandler(func(id string) {
+		lifecycle.RLock()
+		defer lifecycle.RUnlock()
+		if !stopping {
+			g.HandleConnect(id)
+		}
+	})
+	ws.SetIncomingMessageHandler(func(clientID string, raw string) {
+		lifecycle.RLock()
+		defer lifecycle.RUnlock()
+		if stopping {
+			return
+		}
+		cmd, err := command.Unmarshal(raw)
 		if err != nil {
 			log.Printf("error unmarshalling command: %v", err)
 			return
 		}
-		clientCommandHandler.HandleCommand(clientID, command)
+		handler.HandleCommand(clientID, cmd)
+		checkpoint()
 	})
-	wsServer.SetDisconnectHandler(game.HandleLeave)
-
-	game.RegisterBroadcaster(wsServer.Broadcast)
-	game.RegisterSender(wsServer.SendToClient)
-	game.StartUpdateLoop(tickInterval)
-	http.HandleFunc("/ws", wsServer.HandleWebSocket)
-
+	ws.SetDisconnectHandler(func(clientID string) {
+		lifecycle.RLock()
+		defer lifecycle.RUnlock()
+		if stopping {
+			return
+		}
+		g.HandleLeave(clientID)
+		checkpoint()
+	})
+	g.RegisterBroadcaster(ws.Broadcast)
+	g.RegisterSender(ws.SendToClient)
+	g.StartUpdateLoop(tickInterval)
+	mux.HandleFunc("/ws", ws.HandleWebSocket)
+	httpServer := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	httpErrors := make(chan error, 1)
+	go func() { httpErrors <- httpServer.ListenAndServe() }()
 	log.Printf("Starting server on %s", address)
-
-	if err := http.ListenAndServe(address, nil); err != nil {
-		log.Fatal(err)
+	var result error
+	select {
+	case <-ctx.Done():
+	case result = <-failures:
+	case result = <-httpErrors:
+		if errors.Is(result, http.ErrServerClosed) {
+			result = nil
+		}
 	}
+	lifecycle.Lock()
+	stopping = true
+	lifecycle.Unlock()
+	g.Stop()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	shutdownErr := httpServer.Shutdown(shutdownCtx)
+	ws.Close()
+	saveErr := save()
+	return errors.Join(result, shutdownErr, saveErr)
 }
 
 func frontendHandler(distFS fs.FS, devMode bool) http.Handler {

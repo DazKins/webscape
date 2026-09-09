@@ -30,7 +30,7 @@ FROM alpine:3.22.1
 LABEL org.opencontainers.image.source="https://github.com/dazkins/webscape" \
       org.opencontainers.image.licenses="AGPL-3.0-only"
 
-RUN adduser -D -s /bin/sh appuser
+RUN apk add --no-cache ca-certificates && adduser -D -s /bin/sh appuser
 WORKDIR /app
 
 COPY --from=server-builder /app/main ./main
