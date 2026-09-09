@@ -153,12 +153,12 @@ func TestInvalidSnapshotsDoNotPartiallyReplaceWorld(t *testing.T) {
 		func(s *gameSnapshot) { s.Version = 99 },
 		func(s *gameSnapshot) { s.ContentHash = "different-content" },
 		func(s *gameSnapshot) { s.Entities = nil },
-		func(s *gameSnapshot) { delete(s.Entities[id.String()], component.ComponentIdInventory) },
+		func(s *gameSnapshot) { delete(s.Entities[id.String()], string(component.ComponentIdInventory)) },
 		func(s *gameSnapshot) {
 			s.Entities[id.String()]["unknown"] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{}`)}
 		},
 		func(s *gameSnapshot) {
-			s.Entities[id.String()][component.ComponentIdInventory] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{"items":[null]}`)}
+			s.Entities[id.String()][string(component.ComponentIdInventory)] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{"items":[null]}`)}
 		},
 	} {
 		var s gameSnapshot

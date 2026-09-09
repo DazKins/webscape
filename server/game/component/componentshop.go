@@ -82,3 +82,6 @@ func (c *CTrading) GetTargetEntityId() model.EntityId { return c.TargetEntityId 
 func (c *CTrading) Serialize() util.Json {
 	return util.JObject{"targetEntityId": util.JString(c.TargetEntityId.String())}
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CTrading) transientSave() {}

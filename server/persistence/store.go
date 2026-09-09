@@ -1,5 +1,5 @@
-// Package persistence stores opaque snapshots. It imports no game, component,
-// command or transport packages; save format ownership remains with the game.
+// Package persistence stores a neutral entity/component envelope. It imports no
+// game, component, command or transport packages and never interprets payloads.
 package persistence
 
 import (

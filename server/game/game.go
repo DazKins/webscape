@@ -912,7 +912,7 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	g.stateTransitions.BeginPathing(entityId, pathingComponent)
 }
 
-func (g *Game) HandleLeave(clientID string) {
+func (g *Game) HandleLeave(clientID string) bool {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
@@ -932,6 +932,7 @@ func (g *Game) HandleLeave(clientID string) {
 		g.clientIdToEntityId.Delete(clientID)
 	}
 	delete(g.clients, clientID)
+	return ok
 }
 
 func (g *Game) HandleChat(clientID string, chatMessage string) {

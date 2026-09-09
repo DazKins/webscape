@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"webscape/server/snapshot"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -17,6 +18,8 @@ type Postgres struct {
 	mu       sync.Mutex
 	conn     *pgx.Conn
 	worldKey string
+	baseline *snapshot.State
+	loaded   bool
 }
 
 func OpenPostgres(ctx context.Context, connectionString, worldKey string) (*Postgres, error) {
@@ -42,16 +45,10 @@ func OpenPostgres(ctx context.Context, connectionString, worldKey string) (*Post
 	if !locked {
 		return nil, errors.New("another server already owns persistence.worldKey")
 	}
-	// Schema v1: an atomic whole-world record. JSON save versions are independently
-	// validated by the game. Future SQL migrations belong in this adapter only.
-	if _, err := conn.Exec(ctx, `CREATE TABLE IF NOT EXISTS webscape_snapshots (
- world_key text PRIMARY KEY,
- schema_version integer NOT NULL CHECK (schema_version > 0),
- snapshot jsonb NOT NULL,
- saved_at timestamptz NOT NULL DEFAULT now()
- )`); err != nil {
-		return nil, dbError("initialize schema", err)
+	if err := p.initializeSchema(ctx); err != nil {
+		return nil, err
 	}
+
 	success = true
 	return p, nil
 }
@@ -59,35 +56,44 @@ func OpenPostgres(ctx context.Context, connectionString, worldKey string) (*Post
 func (p *Postgres) Load(ctx context.Context) ([]byte, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	var version int
-	var data []byte
-	err := p.conn.QueryRow(ctx, "SELECT schema_version, snapshot FROM webscape_snapshots WHERE world_key=$1", p.worldKey).Scan(&version, &data)
-	if errors.Is(err, pgx.ErrNoRows) {
+	state, err := p.loadCheckpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+	p.baseline, p.loaded = state, true
+	if state == nil {
 		return nil, nil
 	}
-	if err != nil {
-		return nil, dbError("load", err)
-	}
-	if version != 1 {
-		return nil, fmt.Errorf("unsupported PostgreSQL snapshot schema version %d", version)
-	}
-	return data, nil
+	return json.Marshal(state)
 }
 
 func (p *Postgres) Save(ctx context.Context, data []byte) error {
-	if !json.Valid(data) {
-		return errors.New("snapshot is not valid JSON")
+	state, err := snapshot.Decode(data)
+	if err != nil {
+		return err
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// One statement is one transaction: entity additions, deletions and item
-	// transfers either all commit or leave the previous snapshot intact.
-	_, err := p.conn.Exec(ctx, `INSERT INTO webscape_snapshots (world_key,schema_version,snapshot)
- VALUES ($1,1,$2::jsonb) ON CONFLICT (world_key) DO UPDATE
- SET snapshot=EXCLUDED.snapshot, schema_version=1, saved_at=now()`, p.worldKey, string(data))
-	if err != nil {
-		return dbError("save", err)
+	if !p.loaded {
+		p.baseline, err = p.loadCheckpoint(ctx)
+		if err != nil {
+			return err
+		}
+		p.loaded = true
 	}
+	tx, err := p.conn.Begin(ctx)
+	if err != nil {
+		return dbError("begin save", err)
+	}
+	defer tx.Rollback(ctx)
+	if err := p.writeCheckpoint(ctx, tx, state, p.baseline); err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return dbError("commit save", err)
+	}
+	// Never advance the delta baseline before a successful commit.
+	p.baseline = &state
 	return nil
 }
 

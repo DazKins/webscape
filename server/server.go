@@ -113,7 +113,8 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 			return
 		}
 		handler.HandleCommand(clientID, cmd)
-		checkpoint()
+		// Persistence follows the fixed tick cadence, not peer traffic. Rejected,
+		// unknown and transient commands cannot trigger snapshot work or DB I/O.
 	})
 	ws.SetDisconnectHandler(func(clientID string) {
 		lifecycle.RLock()
@@ -121,8 +122,9 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 		if stopping {
 			return
 		}
-		g.HandleLeave(clientID)
-		checkpoint()
+		if g.HandleLeave(clientID) {
+			checkpoint()
+		}
 	})
 	g.RegisterBroadcaster(ws.Broadcast)
 	g.RegisterSender(ws.SendToClient)

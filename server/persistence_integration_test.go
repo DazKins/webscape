@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"os"
+	"reflect"
 	"sync"
 	"testing"
 	"testing/fstest"
@@ -16,10 +18,17 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func TestServerRestartsWithPostgresProgress(t *testing.T) {
+type persistenceServerTest struct {
+	t      *testing.T
+	config config.Config
+	admin  *pgx.Conn
+}
+
+func newPersistenceServerTest(t *testing.T) *persistenceServerTest {
+	t.Helper()
 	dsn := os.Getenv("WEBSCAPE_TEST_DATABASE_URL")
 	if dsn == "" {
-		t.Skip("set WEBSCAPE_TEST_DATABASE_URL for server restart integration test")
+		t.Skip("set WEBSCAPE_TEST_DATABASE_URL for runtime persistence tests")
 	}
 	cfg, err := config.LoadFromFile("../config.json")
 	if err != nil {
@@ -32,132 +41,232 @@ func TestServerRestartsWithPostgresProgress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer admin.Close(context.Background())
-	defer admin.Exec(context.Background(), "DELETE FROM webscape_snapshots WHERE world_key=$1", cfg.Persistence.WorldKey)
-	start := func() (string, func()) {
-		t.Helper()
-		listener, err := net.Listen("tcp", "127.0.0.1:0")
-		if err != nil {
-			t.Fatal(err)
-		}
-		addr := listener.Addr().String()
-		listener.Close()
-		w, err := world.LoadFromGameFolder("../game-project")
-		if err != nil {
-			t.Fatal(err)
-		}
-		ctx, cancel := context.WithCancel(context.Background())
-		done := make(chan error, 1)
-		go func() {
-			done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, 100*time.Millisecond, false, cfg.Persistence)
-		}()
-		var once sync.Once
-		stop := func() {
-			once.Do(func() {
-				cancel()
-				select {
-				case err := <-done:
-					if err != nil {
-						t.Errorf("server shutdown: %v", err)
-					}
-				case <-time.After(15 * time.Second):
-					t.Error("server did not stop")
+	f := &persistenceServerTest{t: t, config: cfg, admin: admin}
+	t.Cleanup(func() {
+		admin.Exec(context.Background(), "DELETE FROM webscape_worlds WHERE world_key=$1", cfg.Persistence.WorldKey)
+		admin.Close(context.Background())
+	})
+	return f
+}
+func (f *persistenceServerTest) start(interval time.Duration) (string, func()) {
+	t := f.t
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := listener.Addr().String()
+	listener.Close()
+	w, err := world.LoadFromGameFolder("../game-project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, interval, false, f.config.Persistence)
+	}()
+	var once sync.Once
+	stop := func() {
+		once.Do(func() {
+			cancel()
+			select {
+			case err := <-done:
+				if err != nil {
+					t.Errorf("shutdown: %v", err)
 				}
-			})
-		}
-		t.Cleanup(stop)
-		return "ws://" + addr + "/ws", stop
-	}
-	connect := func(address, id string) *websocket.Conn {
-		t.Helper()
-		var ws *websocket.Conn
-		var err error
-		for deadline := time.Now().Add(10 * time.Second); time.Now().Before(deadline); {
-			ws, _, err = websocket.DefaultDialer.Dial(address, nil)
-			if err == nil {
-				break
+			case <-time.After(15 * time.Second):
+				t.Error("server did not stop")
 			}
-			time.Sleep(20 * time.Millisecond)
+		})
+	}
+	t.Cleanup(stop)
+	return "ws://" + addr + "/ws", stop
+}
+func (f *persistenceServerTest) connect(address string) *websocket.Conn {
+	t := f.t
+	t.Helper()
+	var ws *websocket.Conn
+	var err error
+	for deadline := time.Now().Add(10 * time.Second); time.Now().Before(deadline); {
+		ws, _, err = websocket.DefaultDialer.Dial(address, nil)
+		if err == nil {
+			break
 		}
-		if err != nil {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { ws.Close() })
+	return ws
+}
+func sendTestCommand(t *testing.T, ws *websocket.Conn, kind string, data any) {
+	t.Helper()
+	if err := ws.WriteJSON(map[string]any{"type": kind, "data": data}); err != nil {
+		t.Fatal(err)
+	}
+}
+func registerTestPlayer(t *testing.T, ws *websocket.Conn, id string) {
+	sendTestCommand(t, ws, "register", map[string]any{"id": id, "name": "Restart Player"})
+}
+
+type wireItem struct {
+	ID       string `json:"id"`
+	Quantity int    `json:"quantity"`
+}
+
+func testInventory(t *testing.T, ws *websocket.Conn, id string) []wireItem {
+	t.Helper()
+	ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+	for {
+		var msg struct {
+			Metadata struct {
+				Type string `json:"type"`
+			} `json:"metadata"`
+			Data struct {
+				Entities []struct {
+					EntityID    string `json:"entityId"`
+					ComponentID string `json:"componentId"`
+					Data        struct {
+						Items []wireItem `json:"items"`
+					} `json:"data"`
+				} `json:"entities"`
+			} `json:"data"`
+		}
+		if err := ws.ReadJSON(&msg); err != nil {
 			t.Fatal(err)
 		}
-		t.Cleanup(func() { ws.Close() })
-		if err := ws.WriteJSON(map[string]any{"type": "register", "data": map[string]any{"id": id, "name": "Restart Player"}}); err != nil {
-			t.Fatal(err)
+		if msg.Metadata.Type == "registrationFailed" {
+			t.Fatal("returning player rejected")
 		}
-		return ws
-	}
-	type wireItem struct {
-		ID       string `json:"id"`
-		Quantity int    `json:"quantity"`
-	}
-	inventory := func(ws *websocket.Conn, id string) []wireItem {
-		t.Helper()
-		ws.SetReadDeadline(time.Now().Add(10 * time.Second))
-		for {
-			var msg struct {
-				Metadata struct {
-					Type string `json:"type"`
-				} `json:"metadata"`
-				Data struct {
-					Entities []struct {
-						EntityID    string `json:"entityId"`
-						ComponentID string `json:"componentId"`
-						Data        struct {
-							Items []wireItem `json:"items"`
-						} `json:"data"`
-					} `json:"entities"`
-				} `json:"data"`
-			}
-			if err := ws.ReadJSON(&msg); err != nil {
-				t.Fatal(err)
-			}
-			if msg.Metadata.Type == "registrationFailed" {
-				t.Fatal("returning player rejected")
-			}
-			for _, entity := range msg.Data.Entities {
-				if entity.EntityID == id && entity.ComponentID == "inventory" {
-					return entity.Data.Items
-				}
+		for _, e := range msg.Data.Entities {
+			if e.EntityID == id && e.ComponentID == "inventory" {
+				return e.Data.Items
 			}
 		}
 	}
-	address, stop := start()
+}
+func (f *persistenceServerTest) savedAt() time.Time {
+	f.t.Helper()
+	var saved time.Time
+	if err := f.admin.QueryRow(context.Background(), "SELECT saved_at FROM webscape_worlds WHERE world_key=$1", f.config.Persistence.WorldKey).Scan(&saved); err != nil {
+		f.t.Fatal(err)
+	}
+	return saved
+}
+func (f *persistenceServerTest) waitForDisconnectSave(previous time.Time) {
+	f.t.Helper()
+	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); {
+		if f.savedAt().After(previous) {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	f.t.Fatal("disconnect did not checkpoint before next tick")
+}
+
+func TestServerRestartsWithPostgresProgress(t *testing.T) {
+	f := newPersistenceServerTest(t)
+	address, stop := f.start(100 * time.Millisecond)
 	id := uuid.NewString()
-	ws := connect(address, id)
-	original := inventory(ws, id)
+	ws := f.connect(address)
+	registerTestPlayer(t, ws, id)
+	original := testInventory(t, ws, id)
 	if len(original) < 2 {
 		t.Fatal("missing starter items")
 	}
-	dropped := original[0].ID
-	if err := ws.WriteJSON(map[string]any{"type": "drop", "data": map[string]any{"itemId": dropped}}); err != nil {
-		t.Fatal(err)
-	}
-	after := inventory(ws, id)
+	sendTestCommand(t, ws, "drop", map[string]any{"itemId": original[0].ID})
+	after := testInventory(t, ws, id)
 	if len(after) != len(original)-1 {
 		t.Fatal("drop did not update inventory")
 	}
-	// Stop with the player connected: shutdown must snapshot the active player and
-	// explicitly close the upgraded WebSocket before releasing the database owner.
-	stop()
-	address, stop = start()
-	ws = connect(address, id)
-	restored := inventory(ws, id)
-	if len(restored) != len(after) {
-		t.Fatal("restart reset inventory")
-	}
-	for i, item := range restored {
-		if item != after[i] {
-			t.Fatal("restart changed item identity or quantity")
-		}
+	stop() // Player is still connected: final save must include active players.
+	address, stop = f.start(100 * time.Millisecond)
+	ws = f.connect(address)
+	registerTestPlayer(t, ws, id)
+	if restored := testInventory(t, ws, id); !reflect.DeepEqual(restored, after) {
+		t.Fatal("restart changed inventory IDs/quantities")
 	}
 	var drops int
-	err = admin.QueryRow(context.Background(), `SELECT count(*) FROM webscape_snapshots,
- jsonb_each(snapshot->'entities') AS entity
- WHERE world_key=$1 AND entity.value ? 'droppeditem'`, cfg.Persistence.WorldKey).Scan(&drops)
-	if err != nil || drops != 1 {
-		t.Fatalf("saved ground drops=%d, err=%v", drops, err)
+	if err := f.admin.QueryRow(context.Background(), "SELECT count(*) FROM webscape_components WHERE world_key=$1 AND component_id='droppeditem'", f.config.Persistence.WorldKey).Scan(&drops); err != nil || drops != 1 {
+		t.Fatalf("ground drops=%d: %v", drops, err)
 	}
+	stop()
+}
+
+func TestDisconnectedPlayerReconnectsBeforeAndAfterRestart(t *testing.T) {
+	f := newPersistenceServerTest(t)
+	// A long tick proves disconnect itself flushes accepted mutations, without
+	// relying on either a periodic checkpoint or a graceful shutdown save.
+	address, stop := f.start(time.Minute)
+	id := uuid.NewString()
+	ws := f.connect(address)
+	registerTestPlayer(t, ws, id)
+	original := testInventory(t, ws, id)
+	before := f.savedAt()
+	sendTestCommand(t, ws, "drop", map[string]any{"itemId": original[0].ID})
+	ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	ws.Close()
+	f.waitForDisconnectSave(before)
+	var count int
+	if err := f.admin.QueryRow(context.Background(), "SELECT jsonb_array_length(data->'items') FROM webscape_components WHERE world_key=$1 AND entity_id=$2::uuid AND component_id='inventory'", f.config.Persistence.WorldKey, id).Scan(&count); err != nil || count != len(original)-1 {
+		t.Fatalf("disconnect lost accepted command: %d %v", count, err)
+	}
+	ws = f.connect(address)
+	registerTestPlayer(t, ws, id)
+	expected := original[1:]
+	if restored := testInventory(t, ws, id); !reflect.DeepEqual(restored, expected) {
+		t.Fatal("disconnect/reconnect reset inventory")
+	}
+	before = f.savedAt()
+	ws.Close()
+	f.waitForDisconnectSave(before)
+	stop() // Already offline when the server stops.
+	address, stop = f.start(time.Minute)
+	ws = f.connect(address)
+	registerTestPlayer(t, ws, id)
+	if restored := testInventory(t, ws, id); !reflect.DeepEqual(restored, expected) {
+		t.Fatal("offline/restart/reconnect reset inventory")
+	}
+	stop()
+}
+
+func TestRejectedCommandsCannotTriggerCheckpoints(t *testing.T) {
+	f := newPersistenceServerTest(t)
+	address, stop := f.start(time.Minute)
+	ws := f.connect(address)
+	before := f.savedAt()
+	for range 30 {
+		if err := ws.WriteMessage(websocket.TextMessage, []byte(`{}`)); err != nil {
+			t.Fatal(err)
+		}
+		sendTestCommand(t, ws, "unknown", map[string]any{})
+		sendTestCommand(t, ws, "register", map[string]any{"id": "invalid"})
+	}
+	// A successful registration reply acts as a barrier for all previous frames.
+	id := uuid.NewString()
+	registerTestPlayer(t, ws, id)
+	ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+	for {
+		var msg struct {
+			Metadata struct {
+				Type string `json:"type"`
+			} `json:"metadata"`
+			Data json.RawMessage `json:"data"`
+		}
+		if err := ws.ReadJSON(&msg); err != nil {
+			t.Fatal(err)
+		}
+		if msg.Metadata.Type == "registered" {
+			break
+		}
+	}
+	if !f.savedAt().Equal(before) {
+		t.Fatal("peer commands triggered a checkpoint before the tick")
+	}
+	// Disconnect still saves the newly registered player.
+	ws.Close()
+	f.waitForDisconnectSave(before)
 	stop()
 }

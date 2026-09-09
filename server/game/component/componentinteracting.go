@@ -37,3 +37,6 @@ func (c *CInteracting) GetOption() InteractionOption {
 func (c *CInteracting) SetOption(option InteractionOption) {
 	c.option = option
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CInteracting) transientSave() {}

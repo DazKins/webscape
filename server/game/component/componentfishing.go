@@ -68,3 +68,6 @@ func (c *CFishing) StartPhase(phase FishingPhase, tick uint64) {
 	c.phase = phase
 	c.phaseStartedTick = tick
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CFishing) transientSave() {}

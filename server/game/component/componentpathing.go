@@ -54,3 +54,6 @@ func (c *CPathing) HasPlan(target math.Vec2, distance int) bool {
 func (c *CPathing) SetPlan(path *util.Path, target math.Vec2, distance int) {
 	c.path, c.plannedTarget, c.plannedRange = path, target, distance
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CPathing) transientSave() {}

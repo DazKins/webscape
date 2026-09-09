@@ -92,3 +92,6 @@ func (c *CCombatState) BeginApproaching(tick uint64) {
 	c.phase = CombatPhaseApproaching
 	c.phaseStartedTick = tick
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CCombatState) transientSave() {}
