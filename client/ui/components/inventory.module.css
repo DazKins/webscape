@@ -266,3 +266,22 @@
   overflow-wrap: anywhere;
   pointer-events: none;
 }
+
+.itemTooltip {
+  position: fixed;
+  z-index: 200;
+  max-width: min(260px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid #727b85;
+  border-radius: 5px;
+  background: #22272d;
+  color: #e6e6e6;
+  box-shadow: 0 3px 12px #0008;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
