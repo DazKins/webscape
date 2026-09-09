@@ -13,5 +13,10 @@
   },
   "streaming": {
     "chunkRadius": 1
+  },
+  "persistence": {
+    "driver": "none",
+    "worldKey": "default",
+    "timeoutSeconds": 10
   }
 }

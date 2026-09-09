@@ -67,3 +67,6 @@ func (c *CWoodcutting) StartPhase(phase WoodcuttingPhase, tick uint64) {
 	c.phase = phase
 	c.phaseStartedTick = tick
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CWoodcutting) transientSave() {}

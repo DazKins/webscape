@@ -1,6 +1,9 @@
 package model
 
-import "github.com/google/uuid"
+import (
+	"fmt"
+	"github.com/google/uuid"
+)
 
 type ItemId uuid.UUID
 
@@ -99,4 +102,12 @@ func ParseEquipmentSlot(value string) (EquipmentSlot, bool) {
 	default:
 		return "", false
 	}
+}
+
+// ValidateSaved checks item invariants independently of inventories or storage.
+func (i *Item) ValidateSaved() error {
+	if i == nil || i.Id == (ItemId{}) || !i.ValidQuantity() || i.Type == "" {
+		return fmt.Errorf("invalid saved item")
+	}
+	return nil
 }

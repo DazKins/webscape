@@ -66,8 +66,10 @@ func (g *Game) StartUpdateLoop(interval time.Duration) {
 		panic("tick interval must be positive")
 	}
 	g.tickInterval = interval
+	g.loopStopped = make(chan struct{})
 	log.Printf("tick_loop_started interval=%s ticks_per_second=%.2f", interval, float64(time.Second)/float64(interval))
 	go func() {
+		defer close(g.loopStopped)
 		schedule := newTickSchedule(time.Now(), interval)
 		timer := time.NewTimer(interval)
 		defer timer.Stop()
@@ -88,7 +90,14 @@ func (g *Game) StartUpdateLoop(interval time.Duration) {
 			}
 			started := time.Now()
 			timings := g.update()
+			if g.afterTick != nil {
+				g.afterTick()
+			}
 			schedule.complete(started, time.Now(), timings, log.Printf)
 		}
 	}()
 }
+
+// SetAfterTick installs a runtime observer before the loop starts. The callback
+// runs after the game mutex is released.
+func (g *Game) SetAfterTick(handler func()) { g.afterTick = handler }

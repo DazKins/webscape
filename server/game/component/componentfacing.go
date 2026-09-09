@@ -28,3 +28,6 @@ func (c *CFacing) Serialize() util.Json {
 func (c *CFacing) GetTargetEntityId() model.EntityId {
 	return c.targetEntityId
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CFacing) transientSave() {}

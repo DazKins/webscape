@@ -69,3 +69,6 @@ func (c *CActiveConversation) GetCurrentNodeId() string {
 func (c *CActiveConversation) SetCurrentNodeId(currentNodeId string) {
 	c.currentNodeId = currentNodeId
 }
+
+// transientSave excludes connection activity from durable saves.
+func (*CActiveConversation) transientSave() {}

@@ -44,6 +44,9 @@ type Game struct {
 	fishingSystem     *system.FishingSystem
 	stateTransitions  *system.EntityStateTransitions
 
+	offlinePlayers   map[model.EntityId][]component.Component
+	afterTick        func()
+	loopStopped      chan struct{}
 	componentManager *component.ComponentManager
 }
 
@@ -246,6 +249,7 @@ func (g *Game) CurrentTick() uint64 {
 
 func (g *Game) Stop() {
 	g.done <- true
+	<-g.loopStopped
 }
 
 func (g *Game) RegisterBroadcaster(messageBroadcaster MessageBroadcaster) {
@@ -585,6 +589,10 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
+	if id == (model.EntityId{}) {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("invalid player id"))
+		return
+	}
 	if _, ok := g.clientIdToEntityId.Get(clientID); ok {
 		g.sendMessage(clientID, message.NewRegistrationFailedMessage("this connection is already registered"))
 		return
@@ -605,7 +613,21 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 		return
 	}
 
-	components := entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick)
+	if g.componentManager.HasEntity(id) {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage("player id belongs to a world entity"))
+		return
+	}
+	components, returning := g.offlinePlayers[id]
+	if !returning {
+		components = entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick)
+	} else {
+		for _, c := range components {
+			if player, ok := c.(*component.CPlayer); ok {
+				normalizedName = player.GetName()
+			}
+		}
+		delete(g.offlinePlayers, id)
+	}
 	g.componentManager.SetEntityComponents(id, components...)
 
 	g.clientIdToEntityId.Put(clientID, id)
@@ -890,16 +912,27 @@ func (g *Game) HandleMove(clientID string, x int, y int) {
 	g.stateTransitions.BeginPathing(entityId, pathingComponent)
 }
 
-func (g *Game) HandleLeave(clientID string) {
+func (g *Game) HandleLeave(clientID string) bool {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
 	entityId, ok := g.clientIdToEntityId.Get(clientID)
 	if ok {
+		if g.offlinePlayers != nil {
+			components := []component.Component{}
+			for _, entities := range g.componentManager.GetAllComponents() {
+				if c := entities[entityId]; c != nil {
+					components = append(components, c)
+				}
+			}
+			// Clear session activity without serializing or performing storage I/O.
+			g.offlinePlayers[entityId] = component.IdleComponents(components, g.currentTick)
+		}
 		g.componentManager.RemoveEntity(entityId)
 		g.clientIdToEntityId.Delete(clientID)
 	}
 	delete(g.clients, clientID)
+	return ok
 }
 
 func (g *Game) HandleChat(clientID string, chatMessage string) {

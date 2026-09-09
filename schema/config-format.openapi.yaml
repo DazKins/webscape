@@ -65,3 +65,95 @@ components:
               type: integer
               minimum: 1
               description: Square chunk radius streamed around each player.
+        persistence:
+          $ref: '#/components/schemas/PersistenceConfig'
+    PersistenceConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        driver:
+          type: string
+          enum: [none, postgres]
+          default: none
+          description: Independent of server.devMode. PostgreSQL failures never fall back to none.
+        worldKey:
+          type: string
+          minLength: 1
+          default: default
+          description: Unique saved-world namespace; only one running server may own this key.
+        timeoutSeconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 10
+          description: Deadline for database startup, load, save and shutdown operations.
+        postgres:
+          $ref: '#/components/schemas/PostgresConfig'
+      allOf:
+        - if:
+            required: [driver]
+            properties:
+              driver:
+                const: postgres
+          then:
+            required: [postgres]
+            properties:
+              postgres:
+                anyOf:
+                  - required: [connectionStringEnv]
+                    properties:
+                      connectionStringEnv:
+                        minLength: 1
+                  - required: [host, database, user]
+                    properties:
+                      host:
+                        minLength: 1
+                      database:
+                        minLength: 1
+                      user:
+                        minLength: 1
+    PostgresConfig:
+      type: object
+      additionalProperties: false
+      description: connectionStringEnv overrides individual fields. Password and passwordEnv must not both be non-empty.
+      properties:
+        connectionStringEnv:
+          type: string
+          description: Name of an environment variable containing a PostgreSQL URL or keyword connection string. Missing or empty values fail startup.
+        host:
+          type: string
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          default: 5432
+        database:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        passwordEnv:
+          type: string
+          description: Name of an environment variable containing the password. Missing or empty values fail startup.
+        sslMode:
+          type: string
+          enum: [disable, require, verify-ca, verify-full]
+          default: verify-full
+        sslRootCert:
+          type: string
+          description: Path inside the server environment to the trusted CA certificate file.
+        sslCert:
+          type: string
+          description: Optional client certificate path.
+        sslKey:
+          type: string
+          description: Optional client private key path.
+      not:
+        required: [password, passwordEnv]
+        properties:
+          password:
+            minLength: 1
+          passwordEnv:
+            minLength: 1
