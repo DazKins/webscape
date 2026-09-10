@@ -417,11 +417,15 @@ function useInventoryState(props: Props) {
 export function InventoryBackpackContent(props: Props) {
   const { items } = useInventoryState(props);
   const [menu, setMenu] = useState<{ itemId: string; x: number; y: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{ itemId: string; button: HTMLButtonElement } | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const tooltipItem = items.slice(0, INVENTORY_SLOT_COUNT).find((item) => item.id === tooltip?.itemId);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const selectedItem = items.find((item) => item.id === menu?.itemId);
 
   const openMenu = (itemId: string, button: HTMLButtonElement, x: number, y: number) => {
+    setTooltip(null);
     triggerRef.current = button;
     setMenu({ itemId, x, y });
   };
@@ -466,6 +470,36 @@ export function InventoryBackpackContent(props: Props) {
     };
   }, [menu, props.game]);
 
+  useLayoutEffect(() => {
+    const element = tooltipRef.current;
+    if (!tooltip || !tooltipItem || !element) return;
+    const anchor = tooltip.button.getBoundingClientRect();
+    const bounds = element.getBoundingClientRect();
+    const top = anchor.top - bounds.height - 8;
+    element.style.left = `${Math.max(8, Math.min(anchor.left + (anchor.width - bounds.width) / 2, window.innerWidth - bounds.width - 8))}px`;
+    element.style.top = `${Math.max(8, Math.min(top >= 8 ? top : anchor.bottom + 8, window.innerHeight - bounds.height - 8))}px`;
+  }, [tooltip, tooltipItem]);
+
+  useEffect(() => {
+    if (!tooltip) return;
+    if (!tooltipItem) {
+      setTooltip(null);
+      return;
+    }
+    const close = () => setTooltip(null);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [tooltip, tooltipItem]);
+
   const backpackItems = items.slice(0, INVENTORY_SLOT_COUNT);
   const backpackSlots = Array.from({ length: INVENTORY_SLOT_COUNT }, (_, index) => ({
     index,
@@ -484,7 +518,18 @@ export function InventoryBackpackContent(props: Props) {
               type="button"
               key={item.id}
               className={`${styles.item} ${item.equipmentSlot ? styles.equipable : ""}`}
-              title={getItemTitle(item)}
+              onPointerEnter={(event) => {
+                if (event.pointerType !== "touch" && !menu) {
+                  setTooltip({ itemId: item.id, button: event.currentTarget });
+                }
+              }}
+              onPointerLeave={() => setTooltip(null)}
+              onFocus={(event) => {
+                if (!menu && event.currentTarget.matches(":focus-visible")) {
+                  setTooltip({ itemId: item.id, button: event.currentTarget });
+                }
+              }}
+              onBlur={() => setTooltip(null)}
               aria-label={item.stackable ? `${item.name}, ${item.quantity}` : item.name}
               aria-haspopup="menu"
               aria-expanded={menu?.itemId === item.id}
@@ -522,6 +567,12 @@ export function InventoryBackpackContent(props: Props) {
           )
         )}
       </div>
+      {tooltip && tooltipItem && !menu && createPortal(
+        <div ref={tooltipRef} className={styles.itemTooltip} role="tooltip">
+          {tooltipItem.name}
+        </div>,
+        document.getElementById("uiLayerRoot")!,
+      )}
       {menu && selectedItem && createPortal(
         <div
           ref={menuRef}
