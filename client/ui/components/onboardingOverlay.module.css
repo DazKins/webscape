@@ -9,7 +9,7 @@
   overflow-y: auto;
   background:
     radial-gradient(circle at 50% 32%, rgba(79, 126, 112, 0.1), transparent 42%),
-    linear-gradient(150deg, rgba(7, 15, 18, 0.34), rgba(13, 23, 27, 0.46));
+    linear-gradient(150deg, #0e1d21, #192e30);
   pointer-events: auto;
   touch-action: pan-y;
 }

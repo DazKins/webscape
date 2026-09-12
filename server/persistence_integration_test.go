@@ -4,14 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"net"
+	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 	"testing/fstest"
 	"time"
+	"webscape/server/auth"
 	"webscape/server/config"
 	"webscape/server/game/world"
+	"webscape/server/internal/oidctest"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -19,9 +23,10 @@ import (
 )
 
 type persistenceServerTest struct {
-	t      *testing.T
-	config config.Config
-	admin  *pgx.Conn
+	t        *testing.T
+	config   config.Config
+	admin    *pgx.Conn
+	provider *oidctest.Provider
 }
 
 func newPersistenceServerTest(t *testing.T) *persistenceServerTest {
@@ -41,7 +46,7 @@ func newPersistenceServerTest(t *testing.T) *persistenceServerTest {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := &persistenceServerTest{t: t, config: cfg, admin: admin}
+	f := &persistenceServerTest{t: t, config: cfg, admin: admin, provider: oidctest.New(t)}
 	t.Cleanup(func() {
 		admin.Exec(context.Background(), "DELETE FROM webscape_worlds WHERE world_key=$1", cfg.Persistence.WorldKey)
 		admin.Close(context.Background())
@@ -61,10 +66,11 @@ func (f *persistenceServerTest) start(interval time.Duration) (string, func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	authConfig := f.provider.Config("http://" + addr)
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, interval, false, f.config.Persistence)
+		done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, interval, true, f.config.Persistence, authConfig)
 	}()
 	var once sync.Once
 	stop := func() {
@@ -89,7 +95,21 @@ func (f *persistenceServerTest) connect(address string) *websocket.Conn {
 	var ws *websocket.Conn
 	var err error
 	for deadline := time.Now().Add(10 * time.Second); time.Now().Before(deadline); {
-		ws, _, err = websocket.DefaultDialer.Dial(address, nil)
+		resp, getErr := http.Get(strings.Replace(address, "ws://", "http://", 1))
+		if getErr != nil {
+			time.Sleep(20 * time.Millisecond)
+			continue
+		}
+		resp.Body.Close()
+		browser := oidctest.Browser()
+		app := strings.TrimSuffix(strings.Replace(address, "ws://", "http://", 1), "/ws")
+		oidctest.Login(t, browser, app, "restart")
+		req, _ := http.NewRequest("GET", app, nil)
+		for _, cookie := range browser.Jar.Cookies(req.URL) {
+			req.AddCookie(cookie)
+		}
+		req.Header.Set("Origin", app)
+		ws, _, err = websocket.DefaultDialer.Dial(address, req.Header)
 		if err == nil {
 			break
 		}
@@ -108,7 +128,7 @@ func sendTestCommand(t *testing.T, ws *websocket.Conn, kind string, data any) {
 	}
 }
 func registerTestPlayer(t *testing.T, ws *websocket.Conn, id string) {
-	sendTestCommand(t, ws, "register", map[string]any{"id": id, "name": "Restart Player"})
+	sendTestCommand(t, ws, "register", map[string]any{"name": "Restart Player"})
 }
 
 type wireItem struct {
@@ -169,7 +189,7 @@ func (f *persistenceServerTest) waitForDisconnectSave(previous time.Time) {
 func TestServerRestartsWithPostgresProgress(t *testing.T) {
 	f := newPersistenceServerTest(t)
 	address, stop := f.start(100 * time.Millisecond)
-	id := uuid.NewString()
+	id := auth.PlayerID(f.provider.URL, "restart").String()
 	ws := f.connect(address)
 	registerTestPlayer(t, ws, id)
 	original := testInventory(t, ws, id)
@@ -200,7 +220,7 @@ func TestDisconnectedPlayerReconnectsBeforeAndAfterRestart(t *testing.T) {
 	// A long tick proves disconnect itself flushes accepted mutations, without
 	// relying on either a periodic checkpoint or a graceful shutdown save.
 	address, stop := f.start(time.Minute)
-	id := uuid.NewString()
+	id := auth.PlayerID(f.provider.URL, "restart").String()
 	ws := f.connect(address)
 	registerTestPlayer(t, ws, id)
 	original := testInventory(t, ws, id)
@@ -245,7 +265,7 @@ func TestRejectedCommandsCannotTriggerCheckpoints(t *testing.T) {
 		sendTestCommand(t, ws, "register", map[string]any{"id": "invalid"})
 	}
 	// A successful registration reply acts as a barrier for all previous frames.
-	id := uuid.NewString()
+	id := auth.PlayerID(f.provider.URL, "restart").String()
 	registerTestPlayer(t, ws, id)
 	ws.SetReadDeadline(time.Now().Add(10 * time.Second))
 	for {

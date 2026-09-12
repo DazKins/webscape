@@ -15,6 +15,25 @@ components:
         - client
         - game
         - streaming
+        - auth
+      allOf:
+        - if:
+            properties:
+              server:
+                required: [devMode]
+                properties:
+                  devMode:
+                    const: true
+          else:
+            properties:
+              auth:
+                properties:
+                  mode:
+                    enum: [oidc]
+                  issuer:
+                    pattern: '^https://'
+                  publicUrl:
+                    pattern: '^https://'
       properties:
         formatVersion:
           type: integer
@@ -27,7 +46,7 @@ components:
             devMode:
               type: boolean
               default: false
-              description: Disable browser and proxy caching of frontend resources for development previews.
+              description: Disable frontend caching and permit HTTP loopback OIDC URLs for local development; authentication is still required.
             tickIntervalMs:
               type: integer
               minimum: 1
@@ -65,6 +84,8 @@ components:
               type: integer
               minimum: 1
               description: Square chunk radius streamed around each player.
+        auth:
+          $ref: '#/components/schemas/AuthConfig'
         persistence:
           $ref: '#/components/schemas/PersistenceConfig'
     PersistenceConfig:
@@ -157,3 +178,48 @@ components:
             minLength: 1
           passwordEnv:
             minLength: 1
+
+    AuthConfig:
+      type: object
+      additionalProperties: false
+      required: [publicUrl, sessionLifetimeSeconds]
+      allOf:
+        - if:
+            required: [mode]
+            properties:
+              mode:
+                const: none
+          else:
+            required: [issuer, clientId, clientSecretEnv]
+      description: OIDC is the default. Explicit none mode permits guest play for testing with server.devMode; there is no automatic fallback.
+      properties:
+        mode:
+          type: string
+          enum: [oidc, none]
+          default: oidc
+          description: none requires server.devMode and creates guest sessions without contacting a provider.
+        issuer:
+          $ref: '#/components/schemas/AuthURL'
+          description: Exact OIDC issuer; discovery supplies the authorization, token and JWKS endpoints. No query, fragment or credentials.
+        clientId:
+          type: string
+          minLength: 1
+        clientSecretEnv:
+          type: string
+          minLength: 1
+          description: Name of the environment variable containing the OIDC client secret. Empty or missing environment values fail startup; the secret itself is never stored here.
+        publicUrl:
+          allOf:
+            - $ref: '#/components/schemas/AuthURL'
+            - pattern: '^https?://[^/?#@]+/?$'
+          description: Browser-facing origin, with an optional trailing slash and no other path. Used for the exact WebSocket Origin and /auth/callback URL; independent of the listen address.
+        sessionLifetimeSeconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          description: Absolute session lifetime, additionally capped by ID-token expiry. Sessions end on server restart.
+    AuthURL:
+      type: string
+      format: uri
+      description: HTTPS is required in production. With server.devMode true, HTTP loopback URLs are also allowed; use localhost, canonical 127.x.x.x addresses or [::1]. Credentials, queries and fragments are forbidden.
+      pattern: '^(https://[^/?#@]+|http://(localhost|127(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|\[::1\])(:[0-9]+)?)(/[^?#]*)?$'

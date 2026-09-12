@@ -11,6 +11,8 @@
   right: max(8px, var(--safe-area-right));
   z-index: 101;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
   align-items: center;
   max-width: calc(100% - max(8px, var(--safe-area-left)) - max(8px, var(--safe-area-right)));
@@ -239,4 +241,13 @@
     padding: 5px;
     font-size: 10px;
   }
+}
+
+.signOut {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .root { --build-info-clearance: calc(max(8px, var(--safe-area-top)) + 64px); }
 }

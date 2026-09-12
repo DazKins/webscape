@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"math"
 	"webscape/server/command"
 	"webscape/server/game"
 	"webscape/server/game/component"
@@ -14,17 +15,18 @@ import (
 type MessageSender func(clientId string, message message.Message)
 
 type ClientCommandHandler struct {
-	game *game.Game
+	game     *game.Game
+	playerID func(string) (model.EntityId, bool)
 }
 
-func NewClientCommandHandler(game *game.Game) *ClientCommandHandler {
+func NewClientCommandHandler(game *game.Game, playerID func(string) (model.EntityId, bool)) *ClientCommandHandler {
 	return &ClientCommandHandler{
-		game,
+		game: game, playerID: playerID,
 	}
 }
 
 func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Command) {
-	log.Printf("Received %s command: %v\n", cmd.Type, cmd.Data)
+	log.Printf("Received %s command", cmd.Type)
 
 	if cmd.Type == command.CommandTypeRegister {
 		h.handleRegisterCommand(clientID, cmd)
@@ -55,9 +57,13 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 }
 
 func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd command.Command) {
-	id, ok := cmd.Data["id"].(string)
+	id, ok := h.playerID(clientID)
 	if !ok {
-		h.game.RejectRegistration(clientID, "invalid player id")
+		h.game.RejectRegistration(clientID, "sign in required")
+		return
+	}
+	if _, supplied := cmd.Data["id"]; supplied {
+		h.game.RejectRegistration(clientID, "player id must not be supplied")
 		return
 	}
 	name, ok := cmd.Data["name"].(string)
@@ -66,32 +72,34 @@ func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd comman
 		return
 	}
 
-	uuidValue, err := uuid.Parse(id)
-	if err != nil {
-		log.Printf("Invalid UUID: %v", err)
-		h.game.RejectRegistration(clientID, "invalid player id")
-		return
-	}
-
-	h.game.HandleRegister(clientID, model.EntityId(uuidValue), name)
+	h.game.HandleRegister(clientID, id, name)
 }
 
 func (h *ClientCommandHandler) handleMoveCommand(clientID string, cmd command.Command) {
-	x := cmd.Data["x"].(float64)
-	y := cmd.Data["y"].(float64)
+	x, xok := cmd.Data["x"].(float64)
+	y, yok := cmd.Data["y"].(float64)
+	if !xok || !yok || math.IsNaN(x) || math.IsNaN(y) || math.IsInf(x, 0) || math.IsInf(y, 0) || x != math.Trunc(x) || y != math.Trunc(y) || x < math.MinInt32 || x > math.MaxInt32 || y < math.MinInt32 || y > math.MaxInt32 {
+		return
+	}
 
 	h.game.HandleMove(clientID, int(x), int(y))
 }
 
 func (h *ClientCommandHandler) handleChatCommand(clientID string, cmd command.Command) {
-	message := cmd.Data["message"].(string)
+	message, ok := cmd.Data["message"].(string)
+	if !ok {
+		return
+	}
 
 	h.game.HandleChat(clientID, message)
 }
 
 func (h *ClientCommandHandler) handleInteractCommand(clientID string, cmd command.Command) {
-	entityId := cmd.Data["entityId"].(string)
-	option := cmd.Data["option"].(string)
+	entityId, idOK := cmd.Data["entityId"].(string)
+	option, optionOK := cmd.Data["option"].(string)
+	if !idOK || !optionOK {
+		return
+	}
 
 	uuid, err := uuid.Parse(entityId)
 	if err != nil {
@@ -115,7 +123,10 @@ func (h *ClientCommandHandler) handleDropCommand(clientID string, cmd command.Co
 }
 
 func (h *ClientCommandHandler) handleEquipCommand(clientID string, cmd command.Command) {
-	itemId := cmd.Data["itemId"].(string)
+	itemId, ok := cmd.Data["itemId"].(string)
+	if !ok {
+		return
+	}
 	uuidValue, err := uuid.Parse(itemId)
 	if err != nil {
 		log.Printf("Invalid item UUID: %v", err)

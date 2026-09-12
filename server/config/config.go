@@ -11,6 +11,7 @@ import (
 )
 
 type Config struct {
+	Auth          AuthConfig        `json:"auth"`
 	Persistence   PersistenceConfig `json:"persistence"`
 	FormatVersion int               `json:"formatVersion"`
 	Server        ServerConfig      `json:"server"`
@@ -102,5 +103,5 @@ func (c Config) Validate() error {
 	if c.Streaming.ChunkRadius < 1 {
 		return errors.New("config streaming.chunkRadius must be at least 1")
 	}
-	return nil
+	return c.Auth.Validate(c.Server.DevMode)
 }

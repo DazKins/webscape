@@ -28,7 +28,10 @@ Internal domain events and WebSocket messages are intentionally different contra
 
 ## Development
 
-Build the playable client before starting the server:
+Configure an OIDC provider and the `auth` settings in `config.json` as described in
+[Authentication](docs/authentication.md), including the client-secret environment
+variable. The checked-in URLs are placeholders; startup fails closed until auth
+is configured. Then build the playable client before starting the server:
 
 ```sh
 cd client
@@ -78,12 +81,20 @@ metadata. It authenticates with the automatic `GITHUB_TOKEN` using
 After successful publication, the workflow requests a Coolify deployment of the
 new `latest` image. A failed build or publication never triggers deployment.
 
-Pull and run a published image with:
+First configure `config.json` and export `WEBSCAPE_OIDC_CLIENT_SECRET` as described
+in [Authentication](docs/authentication.md). Then pull and run a published image
+behind your HTTPS reverse proxy:
 
 ```sh
 docker pull ghcr.io/dazkins/webscape:latest
-docker run --rm -p 8080:8080 ghcr.io/dazkins/webscape:latest
+docker run --rm -p 127.0.0.1:8080:8080 \
+  --mount type=bind,src="$(pwd)/config.json",dst=/app/config.json,readonly \
+  --env WEBSCAPE_OIDC_CLIENT_SECRET \
+  ghcr.io/dazkins/webscape:latest
 ```
+
+If `auth.clientSecretEnv` uses a different variable name, export and pass that name
+instead. The mounted config must be readable by the container user.
 
 For a specific revision, replace `latest` with its `sha-<full-commit-sha>` tag.
 Package visibility is managed in GitHub Packages settings; make the package public
@@ -248,10 +259,12 @@ and transactional assembly on load. Snapshot capture and comparison still scan t
 in-memory world; incremental dirty tracking is a separate future optimization.
 
 Restored players stay outside the active ECS until they reconnect using their
-existing browser player ID. Their name, appearance, items, equipment, health and
-quest progress survive; no starter inventory is granted again. Clearing browser
-storage loses that identifier. This ticket retains the existing identity mechanism;
-account authentication and recovery are separate work. Movement, combat, fishing,
+verified OIDC account (issuer and subject). Their name, appearance, items, equipment,
+health and quest progress survive; no starter inventory is granted again. Clearing
+browser storage requires signing in again but does not lose account ownership.
+Legacy anonymous saves remain intact and require an explicit administrative
+migration to associate with an account. See [Authentication](docs/authentication.md).
+Movement, combat, fishing,
 woodcutting, facing targets, conversations and trading sessions resume idle rather
 than replaying old actions or events. Resource/spawn countdowns pause while the
 server is stopped. Authored terrain and registries still load from `game-project`.
@@ -281,3 +294,5 @@ Integration tests create unique world keys and remove their rows afterward. Use 
 isolated test database: rollback tests also install and remove a temporary test trigger.
 Without that variable, database integration tests are skipped; snapshot/restore,
 configuration and coordinator tests still run under `go test ./...`.
+
+For provider-free testing, see [no-auth testing mode](docs/authentication.md#no-auth-testing-mode) (`auth.mode: "none"` with `server.devMode: true`).

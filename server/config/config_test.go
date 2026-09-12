@@ -14,7 +14,7 @@ func TestLoadFromFS(t *testing.T) {
 			"server":{"address":":9090"},
 			"client":{"folder":"web"},
 			"game":{"folder":"content"},
-			"streaming":{"chunkRadius":2}
+			"auth":{"issuer":"https://id.example.com","clientId":"game","clientSecretEnv":"TEST_SECRET","publicUrl":"https://game.example.com","sessionLifetimeSeconds":3600},"streaming":{"chunkRadius":2}
 		}`)},
 	}, "config.json")
 	if err != nil {
@@ -34,12 +34,12 @@ func TestLoadFromFSRejectsInvalidAndUnknownSettings(t *testing.T) {
 	}{
 		{
 			name:      "radius below one",
-			data:      `{"formatVersion":1,"server":{"address":":8080"},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":0}}`,
+			data:      `{"formatVersion":1,"server":{"address":":8080"},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"auth":{"issuer":"https://id.example.com","clientId":"game","clientSecretEnv":"TEST_SECRET","publicUrl":"https://game.example.com","sessionLifetimeSeconds":3600},"streaming":{"chunkRadius":0}}`,
 			wantError: "chunkRadius must be at least 1",
 		},
 		{
 			name:      "unknown setting",
-			data:      `{"formatVersion":1,"server":{"address":":8080","port":8080},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":1}}`,
+			data:      `{"formatVersion":1,"server":{"address":":8080","port":8080},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"auth":{"issuer":"https://id.example.com","clientId":"game","clientSecretEnv":"TEST_SECRET","publicUrl":"https://game.example.com","sessionLifetimeSeconds":3600},"streaming":{"chunkRadius":1}}`,
 			wantError: "unknown field",
 		},
 	}
@@ -54,7 +54,7 @@ func TestLoadFromFSRejectsInvalidAndUnknownSettings(t *testing.T) {
 }
 
 func TestTickIntervalDefaultsAndValidation(t *testing.T) {
-	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":1}}`
+	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"auth":{"issuer":"https://id.example.com","clientId":"game","clientSecretEnv":"TEST_SECRET","publicUrl":"https://game.example.com","sessionLifetimeSeconds":3600},"streaming":{"chunkRadius":1}}`
 	for _, test := range []struct {
 		setting string
 		want    int
@@ -73,7 +73,7 @@ func TestTickIntervalDefaultsAndValidation(t *testing.T) {
 }
 
 func TestDevModeDefaultsAndValidation(t *testing.T) {
-	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"streaming":{"chunkRadius":1}}`
+	base := `{"formatVersion":1,"server":{"address":":8080"%s},"client":{"folder":"client/dist"},"game":{"folder":"game-project"},"auth":{"issuer":"https://id.example.com","clientId":"game","clientSecretEnv":"TEST_SECRET","publicUrl":"https://game.example.com","sessionLifetimeSeconds":3600},"streaming":{"chunkRadius":1}}`
 	for _, test := range []struct {
 		setting string
 		want    bool
