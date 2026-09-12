@@ -144,6 +144,29 @@ func TestDisconnectRetainsProgressAndResetsActivity(t *testing.T) {
 	}
 }
 
+func TestSnapshotRestoresAcrossContentChanges(t *testing.T) {
+	g := snapshotGame(t)
+	g.HandleRegister("one", model.NewEntityId(), "Saved Player")
+	before := savedBytes(t, g)
+	var saved gameSnapshot
+	if err := json.Unmarshal(before, &saved); err != nil {
+		t.Fatal(err)
+	}
+	saved.ContentHash = "previous-authored-content"
+	data, err := json.Marshal(saved)
+	if err != nil {
+		t.Fatal(err)
+	}
+	restored := snapshotGame(t)
+	if err := restored.RestoreSnapshot(data); err != nil {
+		t.Fatal(err)
+	}
+	// Player and world state survive; the next save records the current content hash.
+	if after := savedBytes(t, restored); !bytes.Equal(before, after) {
+		t.Fatal("content change altered saved state or retained the old hash")
+	}
+}
+
 func TestInvalidSnapshotsDoNotPartiallyReplaceWorld(t *testing.T) {
 	g := snapshotGame(t)
 	id := model.NewEntityId()
@@ -151,7 +174,6 @@ func TestInvalidSnapshotsDoNotPartiallyReplaceWorld(t *testing.T) {
 	valid := savedBytes(t, g)
 	for _, change := range []func(*gameSnapshot){
 		func(s *gameSnapshot) { s.Version = 99 },
-		func(s *gameSnapshot) { s.ContentHash = "different-content" },
 		func(s *gameSnapshot) { s.Entities = nil },
 		func(s *gameSnapshot) { delete(s.Entities[id.String()], string(component.ComponentIdInventory)) },
 		func(s *gameSnapshot) {

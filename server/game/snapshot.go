@@ -59,6 +59,8 @@ func (g *Game) Snapshot() ([]byte, error) {
 
 // RestoreSnapshot validates the entire save before replacing any entities. Authored
 // entities are replaced as a set, preserving deletions and preventing duplicate spawns.
+// Content hashes are informational; authors are responsible for keeping world
+// edits compatible with saved state.
 // Call only during startup, before installing clients or starting the update loop.
 func (g *Game) RestoreSnapshot(data []byte) error {
 	g.stateMutex.Lock()
@@ -72,9 +74,6 @@ func (g *Game) RestoreSnapshot(data []byte) error {
 	}
 	if s.Version != 1 {
 		return fmt.Errorf("unsupported snapshot version %d", s.Version)
-	}
-	if s.ContentHash != g.world.ContentHash() {
-		return fmt.Errorf("saved content hash differs from authored game; migrate the save or use a new persistence.worldKey")
 	}
 	entities, err := decodeSnapshotEntities(s, g.world)
 	if err != nil {
