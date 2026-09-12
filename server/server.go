@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync"
 	"time"
+	"webscape/server/auth"
 	"webscape/server/command"
 	"webscape/server/config"
 	"webscape/server/game"
@@ -17,8 +18,14 @@ import (
 )
 
 // Start owns runtime coordination; core game code never opens a database.
-func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig) error {
+func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig, authConfig config.AuthConfig) error {
+	authManager, err := auth.New(ctx, authConfig, devMode)
+	if err != nil {
+		return err
+	}
+	defer authManager.Close()
 	mux := http.NewServeMux()
+	authManager.RegisterRoutes(mux)
 	mux.Handle("/", frontendHandler(distFS, devMode))
 	if devMode {
 		log.Print("Development mode: frontend caching disabled")
@@ -88,8 +95,8 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 	if coordinator != nil {
 		g.SetAfterTick(checkpoint)
 	}
-	handler := NewClientCommandHandler(g)
 	ws := NewWsServer()
+	handler := NewClientCommandHandler(g, ws.PlayerID)
 	// Drain in-flight commands before the final save. WebSockets are hijacked
 	// connections and must be closed explicitly during HTTP shutdown.
 	var lifecycle sync.RWMutex
@@ -129,7 +136,7 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 	g.RegisterBroadcaster(ws.Broadcast)
 	g.RegisterSender(ws.SendToClient)
 	g.StartUpdateLoop(tickInterval)
-	mux.HandleFunc("/ws", ws.HandleWebSocket)
+	mux.Handle("/ws", authManager.RequireSocket(ws.HandleWebSocket))
 	httpServer := &http.Server{Addr: address, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	httpErrors := make(chan error, 1)
 	go func() { httpErrors <- httpServer.ListenAndServe() }()

@@ -18,6 +18,10 @@ type Props = {
   game: Game;
   registration: RegistrationViewState;
   onRegister: (name: string) => void;
+  onLogin: () => void;
+  onRetry: () => void;
+  onLogout: () => void;
+  authenticated: boolean;
 };
 
 type LeftTab = "chat" | "combat";
@@ -210,7 +214,7 @@ export default function UiRoot(props: Props) {
   const activeMobileLabel =
     mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
   const onboarding = (
-    <OnboardingOverlay state={props.registration} onRegister={props.onRegister} />
+    <OnboardingOverlay state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} />
   );
 
   const buildInfo = (
@@ -227,6 +231,7 @@ export default function UiRoot(props: Props) {
         {buildLabel}
       </span>
       <SourceLink />
+      {props.authenticated && <button className={`${styles.sourceLink} ${styles.signOut}`} type="button" onClick={props.onLogout} disabled={props.registration.phase === "signingOut"}>Sign out</button>}
     </div>
   );
 

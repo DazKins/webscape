@@ -2,6 +2,9 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import styles from "./onboardingOverlay.module.css";
 
 export type RegistrationPhase =
+  | "signedOut"
+  | "signingOut"
+  | "connectionError"
   | "connecting"
   | "nameEntry"
   | "registering"
@@ -17,6 +20,8 @@ export type RegistrationViewState = {
 type Props = {
   state: RegistrationViewState;
   onRegister: (name: string) => void;
+  onLogin: () => void;
+  onRetry: () => void;
 };
 
 function validateName(name: string): string {
@@ -30,7 +35,7 @@ function validateName(name: string): string {
   return "";
 }
 
-export default function OnboardingOverlay({ state, onRegister }: Props) {
+export default function OnboardingOverlay({ state, onRegister, onLogin, onRetry }: Props) {
   const [name, setName] = useState(state.name);
   const [validationError, setValidationError] = useState("");
   const [serverError, setServerError] = useState(state.error);
@@ -76,7 +81,18 @@ export default function OnboardingOverlay({ state, onRegister }: Props) {
         aria-labelledby="onboarding-title"
         aria-describedby="onboarding-description"
       >
-        {isNameEntry ? (
+        {state.phase === "signedOut" || state.phase === "connectionError" ? (
+          <div>
+            <h1 id="onboarding-title">{state.phase === "signedOut" ? "Your adventure awaits" : "The path is interrupted"}</h1>
+            <p id="onboarding-description" className={styles.description}>
+              {state.phase === "signedOut" ? "Sign in to enter the world and return to your character." : "Check your connection, then try again."}
+            </p>
+            {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
+            <button type="button" onClick={state.phase === "signedOut" ? onLogin : onRetry}>
+              {state.phase === "signedOut" ? "Sign in" : "Try again"}
+            </button>
+          </div>
+        ) : isNameEntry ? (
           <form onSubmit={handleSubmit} noValidate>
             <h1 id="onboarding-title">What’s your name, adventurer?</h1>
             <p id="onboarding-description" className={styles.description}>
@@ -115,7 +131,7 @@ export default function OnboardingOverlay({ state, onRegister }: Props) {
           <div className={styles.status} aria-live="polite">
             <div className={styles.spinner} aria-hidden="true" />
             <h1 id="onboarding-title">
-              {state.phase === "reconnecting"
+              {state.phase === "signingOut" ? "Signing out…" : state.phase === "reconnecting"
                 ? "Finding the path back…"
                 : state.phase === "connecting"
                   ? "Opening the way…"

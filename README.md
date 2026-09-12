@@ -28,7 +28,10 @@ Internal domain events and WebSocket messages are intentionally different contra
 
 ## Development
 
-Build the playable client before starting the server:
+Configure an OIDC provider and the `auth` settings in `config.json` as described in
+[Authentication](docs/authentication.md), including the client-secret environment
+variable. The checked-in URLs are placeholders; startup fails closed until auth
+is configured. Then build the playable client before starting the server:
 
 ```sh
 cd client
@@ -248,10 +251,12 @@ and transactional assembly on load. Snapshot capture and comparison still scan t
 in-memory world; incremental dirty tracking is a separate future optimization.
 
 Restored players stay outside the active ECS until they reconnect using their
-existing browser player ID. Their name, appearance, items, equipment, health and
-quest progress survive; no starter inventory is granted again. Clearing browser
-storage loses that identifier. This ticket retains the existing identity mechanism;
-account authentication and recovery are separate work. Movement, combat, fishing,
+verified OIDC account (issuer and subject). Their name, appearance, items, equipment,
+health and quest progress survive; no starter inventory is granted again. Clearing
+browser storage requires signing in again but does not lose account ownership.
+Legacy anonymous saves remain intact and require an explicit administrative
+migration to associate with an account. See [Authentication](docs/authentication.md).
+Movement, combat, fishing,
 woodcutting, facing targets, conversations and trading sessions resume idle rather
 than replaying old actions or events. Resource/spawn countdowns pause while the
 server is stopped. Authored terrain and registries still load from `game-project`.

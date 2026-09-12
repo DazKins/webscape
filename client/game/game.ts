@@ -87,7 +87,7 @@ class Game extends EventTarget implements InputReceiver {
   private serverTickReceivedAtMilliseconds = performance.now();
 
   input: Input;
-  world!: World;
+  world?: World;
 
   typedChatText: string;
 
@@ -458,6 +458,16 @@ class Game extends EventTarget implements InputReceiver {
 
   registerMyPlayerId(myPlayerId: string) {
     this.myPlayerId = myPlayerId;
+  }
+
+  clearSession() {
+    this.prepareForReconnect();
+    this.world?.dispose();
+    this.world = undefined;
+    this.entities = [];
+    this.quests = [];
+    this.typedChatText = "";
+    this.entityRenderSystem.update(this.entities, 0);
   }
 
   prepareForReconnect() {

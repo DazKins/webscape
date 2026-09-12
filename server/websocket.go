@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
+	"webscape/server/auth"
+	"webscape/server/game/model"
 	"webscape/server/message"
 
 	"github.com/google/uuid"
@@ -11,9 +14,12 @@ import (
 )
 
 type client struct {
-	conn *websocket.Conn
-	send chan []byte
-	id   string
+	conn    *websocket.Conn
+	send    chan []byte
+	id      string
+	session *auth.Session
+	ready   chan struct{}
+	done    chan struct{}
 }
 
 type MessageHandler func(clientID string, message string)
@@ -66,7 +72,7 @@ func (w *wsServer) SendToClient(clientID string, message message.Message) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
-	if client, ok := w.clients[clientID]; ok {
+	if client, ok := w.clients[clientID]; ok && client.session.Active() {
 		select {
 		case client.send <- []byte(message.Marshal()):
 		default:
@@ -83,9 +89,12 @@ func (w *wsServer) run() {
 			w.mutex.Lock()
 			w.clients[client.id] = client
 			w.mutex.Unlock()
-			if w.onConnect != nil {
-				w.onConnect(client.id)
-			}
+			client.session.WithActive(func() {
+				if w.onConnect != nil {
+					w.onConnect(client.id)
+				}
+			})
+			close(client.ready)
 		case client := <-w.unregister:
 			w.mutex.Lock()
 			if _, ok := w.clients[client.id]; ok {
@@ -94,11 +103,14 @@ func (w *wsServer) run() {
 			}
 			w.mutex.Unlock()
 			if w.onDisconnect != nil {
-				go w.onDisconnect(client.id)
+				w.onDisconnect(client.id)
 			}
 		case message := <-w.broadcast:
 			w.mutex.Lock()
 			for _, client := range w.clients {
+				if !client.session.Active() {
+					continue
+				}
 				select {
 				case client.send <- message:
 				default:
@@ -113,10 +125,13 @@ func (w *wsServer) run() {
 
 func (c *client) readPump(onMessage MessageHandler, unregister chan *client) {
 	defer func() {
+		close(c.done)
 		unregister <- c
 		c.conn.Close()
 	}()
 
+	<-c.ready
+	c.conn.SetReadLimit(16 * 1024)
 	for {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
@@ -126,7 +141,9 @@ func (c *client) readPump(onMessage MessageHandler, unregister chan *client) {
 			break
 		}
 		if onMessage != nil {
-			onMessage(c.id, string(msg))
+			if !c.session.WithActive(func() { onMessage(c.id, string(msg)) }) {
+				return
+			}
 		}
 	}
 }
@@ -138,11 +155,12 @@ func (c *client) writePump() {
 
 	for {
 		message, ok := <-c.send
-		if !ok {
+		if !ok || !c.session.Active() {
 			c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 			return
 		}
 
+		c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 		w, err := c.conn.NextWriter(websocket.TextMessage)
 		if err != nil {
 			return
@@ -155,16 +173,14 @@ func (c *client) writePump() {
 	}
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:    1024,
-	WriteBufferSize:   1024,
-	EnableCompression: true,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins for development
-	},
-}
+func (wss *wsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request, session *auth.Session) {
+	if session == nil || !session.Active() {
+		http.Error(w, "Sign in required", http.StatusUnauthorized)
+		return
+	}
+	// Origin was checked against the configured public URL by RequireSocket.
+	upgrader := websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024, EnableCompression: true, CheckOrigin: func(*http.Request) bool { return true }}
 
-func (wss *wsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -176,15 +192,24 @@ func (wss *wsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	clientID := uuid.New().String()
 
 	client := &client{
-		conn: conn,
-		send: make(chan []byte, 256),
-		id:   clientID,
+		conn:    conn,
+		send:    make(chan []byte, 256),
+		id:      clientID,
+		session: session, ready: make(chan struct{}), done: make(chan struct{}),
 	}
 
 	wss.register <- client
 
 	go client.writePump()
 	go client.readPump(wss.onMessage, wss.unregister)
+	go func() {
+		select {
+		case <-session.Done:
+			conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(4001, "Session ended"), time.Now().Add(time.Second))
+			conn.Close()
+		case <-client.done:
+		}
+	}()
 }
 
 // Close terminates upgraded connections when the runtime stops serving the game.
@@ -194,4 +219,15 @@ func (w *wsServer) Close() {
 	for _, client := range w.clients {
 		client.conn.Close()
 	}
+}
+
+// PlayerID resolves an account only from the authenticated connection.
+func (w *wsServer) PlayerID(clientID string) (model.EntityId, bool) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	c := w.clients[clientID]
+	if c == nil || !c.session.Active() {
+		return model.EntityId{}, false
+	}
+	return c.session.PlayerID, true
 }

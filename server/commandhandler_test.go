@@ -26,7 +26,7 @@ func newCommandHandlerTestGame(t *testing.T) *game.Game {
 
 func TestCommandHandlerIgnoresGameplayBeforeRegistration(t *testing.T) {
 	testGame := newCommandHandlerTestGame(t)
-	handler := NewClientCommandHandler(testGame)
+	handler := NewClientCommandHandler(testGame, func(string) (model.EntityId, bool) { return model.EntityId{}, false })
 
 	for _, commandType := range []command.CommandType{
 		command.CommandTypeMove,
@@ -47,7 +47,7 @@ func TestCommandHandlerIgnoresGameplayBeforeRegistration(t *testing.T) {
 
 func TestCommandHandlerRejectsInvalidDropPayloadsWithoutPanicking(t *testing.T) {
 	testGame := newCommandHandlerTestGame(t)
-	handler := NewClientCommandHandler(testGame)
+	handler := NewClientCommandHandler(testGame, func(string) (model.EntityId, bool) { return model.EntityId{}, false })
 	testGame.HandleRegister("client", model.NewEntityId(), "Player")
 	for _, payload := range []map[string]any{
 		nil, {}, {"itemId": nil}, {"itemId": 42}, {"itemId": "bad-id"}, {"itemId": model.NewItemId().String()},
@@ -59,7 +59,7 @@ func TestCommandHandlerRejectsInvalidDropPayloadsWithoutPanicking(t *testing.T) 
 func TestMalformedTradeCommandsDoNotPanic(t *testing.T) {
 	testGame := newCommandHandlerTestGame(t)
 	testGame.HandleRegister("client", model.NewEntityId(), "Player")
-	handler := NewClientCommandHandler(testGame)
+	handler := NewClientCommandHandler(testGame, func(string) (model.EntityId, bool) { return model.EntityId{}, false })
 	for _, typ := range []command.CommandType{command.CommandTypeTrade, command.CommandTypeTradeClose} {
 		for _, data := range []map[string]any{
 			nil, {}, {"targetEntityId": 42}, {"targetEntityId": "bad"},
