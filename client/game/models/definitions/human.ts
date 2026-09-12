@@ -29,6 +29,9 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   const leftKnee = joint("leftKnee", leftHip, [0, -0.26, 0]);
   const rightKnee = joint("rightKnee", rightHip, [0, -0.26, 0]);
 
+  const leftAnkle = joint("leftAnkle", leftKnee, [0, -0.235, 0]);
+  const rightAnkle = joint("rightAnkle", rightKnee, [0, -0.235, 0]);
+
   const appearance = options.appearance;
   const tunicColor = appearance
     ? humanAppearanceColors.tunic[appearance.tunicColor]
@@ -48,7 +51,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     ? humanAppearanceColors.shoes[appearance.shoeColor]
     : 0x553b2d;
 
-  const pelvis = box(0.34, 0.18, 0.22, trousersColor);
+  const pelvis = taperedBox(0.3, 0.2, 0.33, 0.22, 0.18, tunicShadow);
   hips.add(pelvis);
 
   const chest = taperedBox(0.38, 0.22, 0.3, 0.18, 0.32, tunicColor);
@@ -60,9 +63,18 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   collar.position.set(0, 0.325, 0.006);
   torso.add(collar);
 
-  const belt = box(0.31, 0.06, 0.2, tunicShadow);
+  const belt = box(0.32, 0.05, 0.21, 0x543c2c);
   belt.position.y = 0.035;
   torso.add(belt);
+  const buckle = box(0.065, 0.055, 0.022, 0xc7a05a, { metalness: 0.45 });
+  buckle.position.set(0, 0.035, 0.114);
+  torso.add(buckle);
+  const buckleInset = box(0.033, 0.028, 0.006, 0x543c2c);
+  buckleInset.position.set(0, 0.035, 0.128);
+  torso.add(buckleInset);
+  const placket = box(0.025, 0.16, 0.012, tunicShadow);
+  placket.position.set(0, 0.23, 0.108);
+  torso.add(placket);
 
   const neck = cylinder(0.06, 0.07, 0.09, 8, skinColor);
   neck.position.y = -0.035;
@@ -81,10 +93,21 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     head.add(eye);
   }
 
+  const nose = sphere(0.028, 6, 4, skinColor);
+  nose.scale.set(0.75, 0.85, 1);
+  nose.position.set(0, 0.09, 0.139);
+  head.add(nose);
+  for (const side of [-1, 1]) {
+    const ear = sphere(0.032, 6, 4, skinColor);
+    ear.scale.set(0.5, 1, 0.7);
+    ear.position.set(side * 0.132, 0.09, 0);
+    head.add(ear);
+  }
+
   addArm(leftShoulder, leftElbow, leftHand, skinColor, tunicColor);
   addArm(rightShoulder, rightElbow, rightHand, skinColor, tunicColor);
-  addLeg(leftHip, leftKnee, trousersColor, bootColor);
-  addLeg(rightHip, rightKnee, trousersColor, bootColor);
+  addLeg(leftHip, leftKnee, leftAnkle, trousersColor, bootColor);
+  addLeg(rightHip, rightKnee, rightAnkle, trousersColor, bootColor);
 
   const joints = {
     hips,
@@ -100,6 +123,8 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     rightHip,
     leftKnee,
     rightKnee,
+    leftAnkle,
+    rightAnkle,
   };
 
   const idle = animation("idle", 2, true, (phase): ModelPose => {
@@ -118,40 +143,34 @@ export const createHumanModel: ModelFactory = (options = {}) => {
   });
 
   const run = animation("run", 0.8, true, (phase): ModelPose => {
-    const stride = Math.sin(phase * TAU);
-    const strideOpposite = Math.sin(phase * TAU + Math.PI);
-    const bob = Math.abs(Math.sin(phase * TAU));
-    const verticalBounce = Math.cos(phase * TAU * 2);
-    const weightShift = stride;
+    const stride = Math.cos(phase * TAU);
+    const bounce = -0.06 + Math.sin(phase * TAU) ** 2 * 0.025;
     return {
-      hips: {
-        position: [weightShift * 0.012, verticalBounce * 0.022, 0],
-        rotation: [0.035, stride * 0.025, -weightShift * 0.012],
-      },
-      torso: { rotation: [-0.055, -stride * 0.04, -weightShift * 0.018] },
-      head: { rotation: [0.02 + bob * 0.01, stride * 0.015, weightShift * 0.008] },
-      leftShoulder: { rotation: [strideOpposite * 0.48, 0, -0.025] },
-      rightShoulder: { rotation: [stride * 0.48, 0, 0.025] },
-      leftElbow: { rotation: [-0.12 - Math.max(0, stride) * 0.2, 0, 0] },
-      rightElbow: { rotation: [-0.12 - Math.max(0, strideOpposite) * 0.2, 0, 0] },
-      leftHip: { rotation: [stride * 0.48, 0, 0] },
-      rightHip: { rotation: [strideOpposite * 0.48, 0, 0] },
-      leftKnee: { rotation: [Math.max(0, -stride) * 0.58, 0, 0] },
-      rightKnee: { rotation: [Math.max(0, -strideOpposite) * 0.58, 0, 0] },
+      hips: { position: [stride * 0.008, bounce, 0] },
+      torso: { rotation: [0.045, stride * 0.035, stride * 0.012] },
+      head: { rotation: [-0.035, -stride * 0.02, 0] },
+      leftShoulder: { rotation: [-stride * 0.48, 0, -0.04] },
+      rightShoulder: { rotation: [stride * 0.48, 0, 0.04] },
+      leftElbow: { rotation: [-0.28 - Math.max(0, stride) * 0.2, 0, 0] },
+      rightElbow: { rotation: [-0.28 - Math.max(0, -stride) * 0.2, 0, 0] },
+      ...strideLegPose("left", phase, bounce),
+      ...strideLegPose("right", phase + 0.5, bounce),
     };
   });
 
   const pickup = animation("pickup", HUMAN_PICKUP_ANIMATION_SECONDS, false, (phase): ModelPose => {
     const bend = THREE.MathUtils.smoothstep(phase, 0, 0.4)
       * (1 - THREE.MathUtils.smoothstep(phase, 0.55, 1));
-    const legBend = 0.65 * bend;
+    const legBend = 1.0 * bend;
     return {
       hips: { position: [0, -0.52 * (1 - Math.cos(legBend)), 0] },
       leftHip: { rotation: [-legBend, 0, 0] },
       rightHip: { rotation: [-legBend, 0, 0] },
       leftKnee: { rotation: [2 * legBend, 0, 0] },
       rightKnee: { rotation: [2 * legBend, 0, 0] },
-      torso: { rotation: [0.5 * bend, 0, 0] },
+      leftAnkle: { rotation: [-legBend, 0, 0] },
+      rightAnkle: { rotation: [-legBend, 0, 0] },
+      torso: { rotation: [1.05 * bend, 0, 0] },
       head: { rotation: [0.15 * bend, 0, 0] },
       rightShoulder: { rotation: [-0.85 * bend, 0, -0.12 * bend] },
       rightElbow: { rotation: [-0.15 * bend, 0, 0] },
@@ -163,21 +182,21 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     const windUp = THREE.MathUtils.smoothstep(phase, 0, 0.28);
     const strike = THREE.MathUtils.smoothstep(phase, 0.28, 0.58);
     const recover = THREE.MathUtils.smoothstep(phase, 0.58, 1);
-    const shoulderSwing = THREE.MathUtils.lerp(0, 0.55, windUp)
-      + THREE.MathUtils.lerp(0, -1.75, strike)
-      + THREE.MathUtils.lerp(0, 1.2, recover);
+    const shoulderSwing = -1.9 * windUp + 0.9 * strike + recover;
     const elbowBend = THREE.MathUtils.lerp(0, -0.65, windUp)
       + THREE.MathUtils.lerp(0, 0.5, strike)
       + THREE.MathUtils.lerp(0, 0.15, recover);
     const torsoTwist = THREE.MathUtils.lerp(0, 0.22, windUp)
       + THREE.MathUtils.lerp(0, -0.42, strike)
       + THREE.MathUtils.lerp(0, 0.2, recover);
+    const followThrough = strike * (1 - recover);
     return {
       hips: { rotation: [0, -torsoTwist * 0.25, 0] },
-      torso: { rotation: [0.08 * strike, torsoTwist, -0.04 * strike] },
-      rightShoulder: { rotation: [shoulderSwing, 0, 0.12] },
+      torso: { rotation: [0.08 * followThrough, torsoTwist, -0.04 * followThrough] },
+      rightShoulder: { rotation: [shoulderSwing, 0, 0.12 * (windUp - recover)] },
       rightElbow: { rotation: [elbowBend, 0, 0] },
-      leftShoulder: { rotation: [-0.12 * strike, 0, -0.04] },
+      rightHand: { rotation: [-0.25 * windUp + 1.35 * strike - 1.1 * recover, 0, 0] },
+      leftShoulder: { rotation: [-0.12 * followThrough, 0, -0.04 * followThrough] },
     };
   });
 
@@ -294,7 +313,12 @@ export const createHumanModel: ModelFactory = (options = {}) => {
       );
     }
     const handEuler = new THREE.Euler().setFromQuaternion(handRotation, "XYZ");
+    const effort = Math.sin(phase * Math.PI) ** 2;
     return {
+      torso: { rotation: [0.035 * effort, 0.065 * effort, 0] },
+      head: { rotation: [-0.025 * effort, -0.04 * effort, 0] },
+      leftShoulder: { rotation: [-0.18 * effort, 0, -0.12 * effort] },
+      leftElbow: { rotation: [-0.3 * effort, 0, 0] },
       rightShoulder: { rotation: [shoulderEuler.x, shoulderEuler.y, shoulderEuler.z] },
       rightHand: { rotation: [handEuler.x, handEuler.y, handEuler.z] },
     };
@@ -308,7 +332,7 @@ export const createHumanModel: ModelFactory = (options = {}) => {
       head: { rotation: [-0.015 + wave * 0.004, wave * 0.006, 0] },
       rightShoulder: { rotation: [-0.84 + wave * 0.018, 0.08, 0.16] },
       rightElbow: { rotation: [-0.7 + wave * 0.015, 0, 0] },
-      rightHand: { rotation: [wave * 0.025, 0, wave * 0.018] },
+      rightHand: { rotation: [0.65 + wave * 0.025, 0, wave * 0.018] },
       leftShoulder: { rotation: [-0.32 - wave * 0.012, 0, -0.16] },
       leftElbow: { rotation: [-0.44 + wave * 0.012, 0, 0] },
     };
@@ -319,13 +343,13 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     const recover = Math.sin(Math.min(1, phase * 1.35) * Math.PI);
     return {
       hips: { rotation: [-0.08 * pull, 0, 0] },
-      torso: { rotation: [-0.22 * pull, -0.08 * pull, 0.06 * pull] },
-      head: { rotation: [0.12 * pull, 0, 0] },
-      rightShoulder: { rotation: [-0.82 - 0.72 * pull, 0.08, 0.18] },
-      rightElbow: { rotation: [-0.64 - 0.35 * recover, 0, 0] },
-      rightHand: { rotation: [-0.5 * pull, 0, 0.22 * pull] },
-      leftShoulder: { rotation: [-0.34 - 0.28 * pull, 0, -0.18] },
-      leftElbow: { rotation: [-0.45 - 0.2 * pull, 0, 0] },
+      torso: { rotation: [0.025 - 0.22 * pull, -0.025 - 0.08 * pull, 0.06 * pull] },
+      head: { rotation: [-0.015 + 0.12 * pull, 0, 0] },
+      rightShoulder: { rotation: [-0.84 - 0.72 * pull, 0.08, 0.16] },
+      rightElbow: { rotation: [-0.7 - 0.35 * recover, 0, 0] },
+      rightHand: { rotation: [0.65 - 0.65 * pull, 0, 0.22 * pull] },
+      leftShoulder: { rotation: [-0.32 - 0.28 * pull, 0, -0.16] },
+      leftElbow: { rotation: [-0.44 - 0.2 * pull, 0, 0] },
     };
   });
 
@@ -339,26 +363,29 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     leftElbow: { rotation: [-0.12, 0, 0] },
     leftHand: { rotation: [2.22, 0, 0] },
   }));
-  const staffIdle = animation("staffIdle", 2, true, () => staffArmPose(0.25, 0));
+  const staffIdle = animation("staffIdle", 2, true, (phase) => ({
+    ...idle.sample(phase), ...staffArmPose(0.25, 0),
+  }));
   const staffRun = animation("staffRun", 0.8, true, (phase) => {
     // Lift the planted tip before the grip passes the body, keeping the
     // stride compact. The wrist cancels the arm's rotation throughout.
     const plantedUntil = 0.3;
     const planted = phase < plantedUntil;
     const swing = (phase - plantedUntil) / (1 - plantedUntil);
-    const z = planted ? THREE.MathUtils.lerp(0.3, 0.1, phase / plantedUntil)
+    const z = planted ? THREE.MathUtils.lerp(0.3, 0.1, THREE.MathUtils.smoothstep(phase, 0, plantedUntil))
       : THREE.MathUtils.lerp(0.1, 0.3, THREE.MathUtils.smoothstep(swing, 0, 1));
-    const lift = planted ? 0 : Math.sin(swing * Math.PI) * 0.06;
-    return { ...run.sample(phase), ...staffArmPose(z, lift) };
+    const lift = planted ? 0 : Math.sin(swing * Math.PI) ** 2 * 0.06;
+    const stridePose = run.sample(phase);
+    return { ...stridePose, ...staffArmPose(z, lift, stridePose.hips.position?.[1] ?? 0) };
   });
 
   const instance = createModelInstance(root, joints, [
+    idle,
+    run,
     bowIdle,
     bowRun,
     staffIdle,
     staffRun,
-    idle,
-    run,
     attack,
     pickup,
     cast,
@@ -456,8 +483,8 @@ function addArm(
 
 // Solve a two-segment arm in the character's vertical forward plane. The
 // staff grip is 0.78 units above its tip, so a zero lift places it on the floor.
-function staffArmPose(z: number, lift: number): ModelPose {
-  const y = 0.78 + lift - 1.0;
+function staffArmPose(z: number, lift: number, bounce = 0): ModelPose {
+  const y = 0.78 + lift - 1.0 - bounce;
   const upper = 0.28;
   const lower = 0.25;
   const elbow = -Math.acos(THREE.MathUtils.clamp(
@@ -466,7 +493,7 @@ function staffArmPose(z: number, lift: number): ModelPose {
   const shoulder = Math.atan2(-z, -y)
     - Math.atan2(lower * Math.sin(elbow), upper + lower * Math.cos(elbow));
   return {
-    hips: { position: [0, 0, 0], rotation: [0, 0, 0] },
+    hips: { position: [0, bounce, 0], rotation: [0, 0, 0] },
     torso: { rotation: [0, 0, 0] },
     rightShoulder: { rotation: [shoulder, 0, 0] },
     rightElbow: { rotation: [elbow, 0, 0] },
@@ -477,6 +504,7 @@ function staffArmPose(z: number, lift: number): ModelPose {
 function addLeg(
   hip: THREE.Group,
   knee: THREE.Group,
+  ankle: THREE.Group,
   trousersColor: THREE.ColorRepresentation,
   bootColor: THREE.ColorRepresentation,
 ) {
@@ -487,6 +515,29 @@ function addLeg(
   shin.position.y = -0.11;
   knee.add(shin);
   const foot = box(0.12, 0.08, 0.2, bootColor);
-  foot.position.set(0, -0.235, 0.04);
-  knee.add(foot);
+  foot.position.set(0, 0, 0.04);
+  ankle.add(foot);
+  const cuff = cylinder(0.066, 0.065, 0.045, 7, bootColor);
+  cuff.position.y = -0.025;
+  knee.add(cuff);
+}
+
+// Swing feet clear the ground; stance feet stay level while travelling backward.
+function strideLegPose(side: "left" | "right", phase: number, bounce: number): ModelPose {
+  const angle = phase * TAU;
+  const z = -Math.cos(angle) * 0.22;
+  const lift = Math.max(0, Math.sin(angle)) ** 2 * 0.1;
+  const y = 0.045 + lift - (0.54 + bounce);
+  const upper = 0.26;
+  const lower = 0.235;
+  const knee = Math.acos(THREE.MathUtils.clamp(
+    (y * y + z * z - upper * upper - lower * lower) / (2 * upper * lower), -1, 1,
+  ));
+  const hip = Math.atan2(-z, -y)
+    - Math.atan2(lower * Math.sin(knee), upper + lower * Math.cos(knee));
+  return {
+    [`${side}Hip`]: { rotation: [hip, 0, 0] },
+    [`${side}Knee`]: { rotation: [knee, 0, 0] },
+    [`${side}Ankle`]: { rotation: [-hip - knee, 0, 0] },
+  };
 }

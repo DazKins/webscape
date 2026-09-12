@@ -5,7 +5,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:watch": "vite build --watch",
-    "model:screenshot": "node scripts/model-screenshot.mjs"
+    "model:screenshot": "node scripts/model-screenshot.mjs",
+    "model:check": "node scripts/model-check.mjs"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",

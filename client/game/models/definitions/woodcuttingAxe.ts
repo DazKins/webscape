@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { box, cylinder } from "../primitives";
+import { box, cylinder, taperedBox } from "../primitives";
 import { createModelInstance } from "../rig";
 import type { ModelFactory } from "../types";
 
@@ -30,12 +30,12 @@ export const createWoodcuttingAxeModel: ModelFactory = () => {
   });
   axeHead.add(eye);
 
-  const blade = box(0.23, 0.2, 0.045, 0xaeb8be, {
+  const blade = taperedBox(0.22, 0.025, 0.1, 0.085, 0.23, 0xaeb8be, {
     roughness: 0.3,
     metalness: 0.68,
   });
   blade.position.x = -0.15;
-  blade.rotation.z = 0.13;
+  blade.rotation.z = Math.PI / 2;
   axeHead.add(blade);
 
   const edge = box(0.025, 0.22, 0.052, 0xe1e7e9, {
@@ -43,7 +43,6 @@ export const createWoodcuttingAxeModel: ModelFactory = () => {
     metalness: 0.74,
   });
   edge.position.x = -0.275;
-  edge.rotation.z = 0.13;
   axeHead.add(edge);
 
   const poll = box(0.12, 0.09, 0.085, 0x68737a, {

@@ -18,6 +18,7 @@ export const createFishingRodModel: ModelFactory = () => {
 
   const shaft = cylinder(0.012, 0.025, 0.86, 8, 0x8a5d32, { roughness: 0.8 });
   shaft.position.y = 0.65;
+  shaft.position.x = 0.035;
   shaft.rotation.z = -0.08;
   rod.add(shaft);
 
@@ -40,6 +41,22 @@ export const createFishingRodModel: ModelFactory = () => {
   reelHub.position.copy(reel.position);
   reelHub.rotation.z = Math.PI / 2;
   rod.add(reelHub);
+  for (const y of [0.48, 0.75, 1.02]) {
+    const guide = torus(0.024, 0.005, 4, 8, 0xb1bac0, { metalness: 0.5 });
+    guide.rotation.x = Math.PI / 2;
+    guide.position.set((y - 0.22) * 0.08, y, 0.025);
+    rod.add(guide);
+  }
+  const line = cylinder(0.0025, 0.0025, 0.74, 4, 0xd9d6bb);
+  line.position.set(0.028, 0.67, 0.03);
+  line.rotation.z = -0.08;
+  rod.add(line);
+  const crank = cylinder(0.01, 0.01, 0.09, 6, 0xb1bac0, { metalness: 0.5 });
+  crank.position.set(-0.1, 0.25, 0);
+  rod.add(crank);
+  const knob = sphere(0.024, 6, 4, 0x4c3020);
+  knob.position.set(-0.11, 0.21, 0);
+  rod.add(knob);
 
   return createModelInstance(root);
 };

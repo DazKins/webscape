@@ -57,6 +57,13 @@ export default class EquipmentAttachmentController {
     return this.attachments.get(slot)?.modelInstance.root;
   }
 
+  seekWeaponAnimation(name: string, phase: number): void {
+    const model = this.attachments.get("weapon")?.modelInstance;
+    if (model?.animations.some(animation => animation.name === name)) {
+      model.seek(name, phase);
+    }
+  }
+
   private sync(slot: string, item: EquippedItem | null): void {
     const current = this.attachments.get(slot);
     if (!item?.renderModel) {

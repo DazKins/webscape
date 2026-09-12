@@ -13,13 +13,15 @@ export const createRatModel: ModelFactory = (options = {}) => {
   const head = joint("head", body, [0, 0.035, 0.3]);
   const leftEar = joint("leftEar", head, [0.105, 0.12, 0.02]);
   const rightEar = joint("rightEar", head, [-0.105, 0.12, 0.02]);
-  const tailBase = joint("tailBase", body, [0, 0, -0.36]);
+  const tailBase = joint("tailBase", body, [0, -0.095, -0.32]);
+  tailBase.rotation.x = -0.12;
+  tailBase.rotation.y = 0.18;
   const tailMiddle = joint("tailMiddle", tailBase, [0, 0, -0.25]);
   const tailTip = joint("tailTip", tailMiddle, [0, 0, -0.21]);
-  const leftFrontLeg = joint("leftFrontLeg", body, [0.16, -0.14, 0.2]);
-  const rightFrontLeg = joint("rightFrontLeg", body, [-0.16, -0.14, 0.2]);
-  const leftBackLeg = joint("leftBackLeg", body, [0.2, -0.13, -0.22]);
-  const rightBackLeg = joint("rightBackLeg", body, [-0.2, -0.13, -0.22]);
+  const leftFrontLeg = joint("leftFrontLeg", body, [0.14, -0.12, 0.17]);
+  const rightFrontLeg = joint("rightFrontLeg", body, [-0.14, -0.12, 0.17]);
+  const leftBackLeg = joint("leftBackLeg", body, [0.16, -0.12, -0.19]);
+  const rightBackLeg = joint("rightBackLeg", body, [-0.16, -0.12, -0.19]);
 
   const furColor = options.color ?? 0x74675f;
   const darkFurColor = new THREE.Color(furColor).multiplyScalar(0.7);
@@ -66,6 +68,12 @@ export const createRatModel: ModelFactory = (options = {}) => {
   }
 
   addWhiskers(head);
+  for (const leg of [leftFrontLeg, rightFrontLeg, leftBackLeg, rightBackLeg]) {
+    const haunch = sphere(0.092, 7, 5, furColor);
+    haunch.scale.set(0.8, 1, 1.1);
+    haunch.position.y = 0.025;
+    leg.add(haunch);
+  }
   addFoot(leftFrontLeg, skinColor, 0.11);
   addFoot(rightFrontLeg, skinColor, 0.11);
   addFoot(leftBackLeg, skinColor, 0.15);
@@ -92,7 +100,7 @@ export const createRatModel: ModelFactory = (options = {}) => {
     const sniff = Math.sin(phase * TAU * 2);
     const sway = Math.sin(phase * TAU);
     return {
-      body: { position: [0, Math.max(0, sniff) * 0.008, 0] },
+      body: { position: [0, Math.max(0, sniff) ** 2 * 0.008, 0] },
       head: { rotation: [sniff * 0.055, sway * 0.08, sway * 0.018] },
       leftEar: { rotation: [0, 0, sniff * 0.08] },
       rightEar: { rotation: [0, 0, -sniff * 0.08] },
@@ -105,7 +113,7 @@ export const createRatModel: ModelFactory = (options = {}) => {
   const run = animation("run", 0.42, true, (phase): ModelPose => {
     const stride = Math.sin(phase * TAU);
     const oppositeStride = Math.sin(phase * TAU + Math.PI);
-    const bob = Math.abs(stride);
+    const bob = stride * stride;
     return {
       body: {
         position: [0, bob * 0.035, 0],
@@ -175,7 +183,8 @@ function addTailSegment(
   length: number,
   color: THREE.ColorRepresentation,
 ) {
-  const segment = cylinder(radiusTop, radiusBottom, length, 7, color);
+  // After rotation, cylinder +y points toward -z: its top is the distal end.
+  const segment = cylinder(radiusBottom, radiusTop, length, 7, color);
   segment.rotation.x = Math.PI / 2;
   segment.position.z = -length / 2;
   tailJoint.add(segment);

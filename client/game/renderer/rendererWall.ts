@@ -146,6 +146,8 @@ function addSlopedBox(
   geometry.computeVertexNormals();
 
   const wall = new THREE.Mesh(geometry, material);
+  wall.castShadow = true;
+  wall.receiveShadow = true;
   wall.position.set(
     (startX + endX) / 2,
     (startTerrainHeight + endTerrainHeight) / 2 + WALL_HEIGHT / 2,
@@ -168,6 +170,8 @@ function addBox(
     new RoundedBoxGeometry(width, height, depth, 2, BEVEL_RADIUS),
     material
   );
+  wall.castShadow = true;
+  wall.receiveShadow = true;
   wall.position.set(x, terrainHeight + height / 2, z);
   scene.add(wall);
 }
@@ -220,6 +224,25 @@ function createWallTexture(type: string): THREE.CanvasTexture {
   }
   ctx.globalAlpha = 1;
 
+  if (type === "stone") {
+    ctx.strokeStyle = colorToCss(offsetColor(base, -0.09));
+    ctx.lineWidth = 3;
+    for (let row = 0; row < 4; row++) {
+      const y = row * 32;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(size, y);
+      for (let x = (row % 2) * 32; x <= size; x += 64) {
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + 32);
+      }
+      ctx.stroke();
+    }
+  } else if (type === "wood") {
+    ctx.fillStyle = colorToCss(offsetColor(base, -0.07));
+    for (let x = 0; x < size; x += 32) ctx.fillRect(x, 0, 2, size);
+  }
+
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -237,7 +260,7 @@ function offsetColor(color: THREE.Color, amount: number): THREE.Color {
 }
 
 function colorToCss(color: THREE.Color): string {
-  return `rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`;
+  return `#${color.getHexString()}`;
 }
 
 function clamp(value: number): number {

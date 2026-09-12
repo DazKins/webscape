@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { box, cone, cylinder } from "../primitives";
+import { box, cone, cylinder, torus } from "../primitives";
 import { animation, createModelInstance } from "../rig";
 import type { ModelFactory } from "../types";
 
@@ -38,6 +38,13 @@ export const createTreeModel: ModelFactory = (options = {}) => {
   trunk.name = "treeTrunk";
   trunk.position.y = 0.4;
   standingTree.add(trunk);
+  for (let index = 0; index < 5; index++) {
+    const angle = index * Math.PI * 2 / 5;
+    const rootWood = cylinder(0.055, 0.09, 0.24, 5, 0x68442c);
+    rootWood.position.set(Math.sin(angle) * 0.11, 0.1, Math.cos(angle) * 0.11);
+    rootWood.rotation.set(Math.cos(angle) * 0.6, 0, -Math.sin(angle) * 0.6);
+    standingTree.add(rootWood);
+  }
 
   const canopyColors = [
     [0x2f6b3b, 0x3d7b48],
@@ -77,14 +84,20 @@ export const createTreeModel: ModelFactory = (options = {}) => {
   const cutSurface = cylinder(0.125, 0.125, 0.012, 8, 0xc39258);
   cutSurface.position.y = 0.226;
   stump.add(cutSurface);
+  for (const radius of [0.045, 0.09]) {
+    const ring = torus(radius, 0.004, 4, 8, 0x966537);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.234;
+    stump.add(ring);
+  }
 
   setTreeDamageStage(root, options.damageStage ?? 0);
   const hit = animation("hit", TREE_HIT_ANIMATION_SECONDS, false, (phase) => {
-    const strength = (1 - phase) * TREE_HIT_SHAKE_RADIANS;
+    const strength = (1 - phase) ** 2 * TREE_HIT_SHAKE_RADIANS;
     return {
       treeShake: {
         rotation: [
-          Math.sin(phase * Math.PI * 4 + Math.PI / 3) * strength * 0.38,
+          Math.sin(phase * Math.PI * 4) * strength * 0.38,
           0,
           Math.sin(phase * Math.PI * 6) * strength,
         ],
@@ -100,12 +113,23 @@ function createDamagedCanopy(
 ) {
   const canopy = new THREE.Group();
   const fullness = 1 - stage * 0.035;
-  const lowerLeaves = cone(0.48 * fullness, 0.78 * fullness, 9, colors[0]);
-  lowerLeaves.position.y = 0.95;
-  canopy.add(lowerLeaves);
-  const upperLeaves = cone(0.36 * fullness, 0.72 * fullness, 9, colors[1]);
-  upperLeaves.position.y = 1.34 - stage * 0.012;
-  canopy.add(upperLeaves);
+  for (let tier = 0; tier < 3; tier++) {
+    const leaves = cone((0.48 - tier * 0.115) * fullness, (0.75 - tier * 0.1) * fullness, 8, colors[tier === 2 ? 1 : 0]);
+    // Alternating, slightly irregular skirts break up the stacked-cone silhouette.
+    const positions = leaves.geometry.getAttribute("position");
+    for (let index = 0; index < positions.count; index++) {
+      const x = positions.getX(index);
+      const z = positions.getZ(index);
+      if (positions.getY(index) < 0) {
+        const variation = Math.sin(Math.atan2(z, x) * 3 + tier) * 0.035;
+        positions.setY(index, positions.getY(index) + variation);
+      }
+    }
+    leaves.geometry.computeVertexNormals();
+    leaves.position.set(tier * 0.012, 0.92 + tier * 0.29 - stage * 0.008, 0);
+    leaves.rotation.y = tier * 0.4;
+    canopy.add(leaves);
+  }
   return canopy;
 }
 
