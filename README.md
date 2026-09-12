@@ -81,12 +81,20 @@ metadata. It authenticates with the automatic `GITHUB_TOKEN` using
 After successful publication, the workflow requests a Coolify deployment of the
 new `latest` image. A failed build or publication never triggers deployment.
 
-Pull and run a published image with:
+First configure `config.json` and export `WEBSCAPE_OIDC_CLIENT_SECRET` as described
+in [Authentication](docs/authentication.md). Then pull and run a published image
+behind your HTTPS reverse proxy:
 
 ```sh
 docker pull ghcr.io/dazkins/webscape:latest
-docker run --rm -p 8080:8080 ghcr.io/dazkins/webscape:latest
+docker run --rm -p 127.0.0.1:8080:8080 \
+  --mount type=bind,src="$(pwd)/config.json",dst=/app/config.json,readonly \
+  --env WEBSCAPE_OIDC_CLIENT_SECRET \
+  ghcr.io/dazkins/webscape:latest
 ```
+
+If `auth.clientSecretEnv` uses a different variable name, export and pass that name
+instead. The mounted config must be readable by the container user.
 
 For a specific revision, replace `latest` with its `sha-<full-commit-sha>` tag.
 Package visibility is managed in GitHub Packages settings; make the package public
