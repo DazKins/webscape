@@ -39,8 +39,8 @@ export default class RendererMagicBolt {
     const eased = THREE.MathUtils.smoothstep(progress, 0, 1);
     this.root.position.lerpVectors(this.start, target, eased);
     this.root.position.y += Math.sin(progress * Math.PI) * 0.2;
-    this.root.rotation.x += 0.12;
-    this.root.rotation.y += 0.18;
+    // Derive spin from flight progress so high-refresh displays do not spin faster.
+    this.root.rotation.set(progress * Math.PI * 4, progress * Math.PI * 6, 0);
   }
 
   dispose() {

@@ -44,6 +44,7 @@ export default class RendererHuman extends EntityRenderer {
   private previousWoodcuttingPhaseKey: string | null = null;
   private previousLocomotionPhaseKey: string | null = null;
   private previousCombatPhaseKey: string | null = null;
+  private bowDrawPhase = 0;
   private readonly resolveEntity: (entityId: string) => Entity | undefined;
   private readonly getEstimatedServerTick: () => number;
   private readonly getTickSeconds: () => number;
@@ -86,6 +87,7 @@ export default class RendererHuman extends EntityRenderer {
   }
 
   update(deltaSeconds: number) {
+    this.bowDrawPhase = 0;
     const position = this.entity.getComponent("position");
     if (!position) {
       return;
@@ -145,6 +147,7 @@ export default class RendererHuman extends EntityRenderer {
       this.hair.visible = !equipped?.slots?.head;
     }
     this.equipmentAttachments.update(equipped, deltaSeconds);
+    this.equipmentAttachments.seekWeaponAnimation("draw", this.bowDrawPhase);
     this.updateHealthBar();
   }
 
@@ -273,6 +276,7 @@ export default class RendererHuman extends EntityRenderer {
       : Math.min(1, 2 / 3 + phaseAgeTicks / 3);
     const phaseKey = `${combat.phase}:${combat.phaseStartedTick}`;
     const animationName = combat.attackMethod === "ranged" ? "shoot" : "cast";
+    if (combat.attackMethod === "ranged") this.bowDrawPhase = normalizedTime;
     if (phaseKey !== this.previousCombatPhaseKey) {
       this.modelInstance.playAt(animationName, normalizedTime, HUMAN_ANIMATION_FADE_SECONDS);
       this.previousCombatPhaseKey = phaseKey;

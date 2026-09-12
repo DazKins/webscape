@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { box, cone, cylinder, sphere } from "../primitives";
+import { box, cylinder, sphere, taperedBox } from "../primitives";
 import { createModelInstance } from "../rig";
 import type { ModelFactory } from "../types";
 
@@ -43,26 +43,24 @@ export const createIronSwordModel: ModelFactory = () => {
     root.add(guardTip);
   }
 
-  const blade = box(0.09, 0.43, 0.035, iron, {
+  const blade = taperedBox(0.07, 0.028, 0.1, 0.038, 0.43, iron, {
     roughness: 0.36,
     metalness: 0.48,
   });
   blade.position.y = 0.4525;
   root.add(blade);
 
-  const fuller = box(0.018, 0.42, 0.039, ironEdge, {
+  const fuller = taperedBox(0.012, 0.031, 0.021, 0.042, 0.4, ironEdge, {
     roughness: 0.3,
     metalness: 0.55,
   });
   fuller.position.y = 0.4525;
   root.add(fuller);
 
-  const point = cone(0.064, 0.14, 4, iron, {
+  const point = taperedBox(0, 0, 0.07, 0.028, 0.14, ironEdge, {
     roughness: 0.36,
     metalness: 0.48,
   });
-  point.rotation.y = Math.PI / 4;
-  point.scale.z = 0.42;
   point.position.y = 0.7375;
   root.add(point);
 

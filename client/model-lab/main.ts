@@ -30,6 +30,7 @@ let playing = !captureMode && params.get("play") !== "0";
 let modelInstance: ModelInstance;
 let equipmentInstance: ModelInstance | undefined;
 let previousFrame: number | null = null;
+let renderRequested = true;
 
 const viewport = requireElement<HTMLElement>("viewport");
 const modelSelect = requireElement<HTMLSelectElement>("model");
@@ -162,6 +163,8 @@ function loadModel() {
 
 function animate(frameTime: number) {
   requestAnimationFrame(animate);
+  // Batch captures only need a new WebGL frame when the pose/view changes.
+  if (captureMode && window.__MODEL_LAB_READY__ && !renderRequested) return;
   const deltaSeconds = previousFrame === null ? 0 : Math.min((frameTime - previousFrame) / 1000, 0.1);
   previousFrame = frameTime;
 
@@ -172,10 +175,15 @@ function animate(frameTime: number) {
     phase = animation.loop ? phase % 1 : Math.min(1, phase);
     updateControls();
   }
-  equipmentInstance?.update(deltaSeconds);
+  if (equipmentInstance?.animations.some(animation => animation.name === "draw")) {
+    equipmentInstance.seek("draw", animationName === "shoot" ? phase : 0);
+  } else if (playing) {
+    equipmentInstance?.update(deltaSeconds);
+  }
 
   orbit.update();
   renderer.render(scene, camera);
+  renderRequested = false;
   if (!window.__MODEL_LAB_READY__) {
     requestAnimationFrame(() => {
       renderer.render(scene, camera);
@@ -186,6 +194,7 @@ function animate(frameTime: number) {
 }
 
 function frameCamera() {
+  renderRequested = true;
   const bounds = new THREE.Box3().setFromObject(modelInstance.root);
   const size = bounds.getSize(new THREE.Vector3());
   const center = bounds.getCenter(new THREE.Vector3());
@@ -208,6 +217,7 @@ function frameCamera() {
 }
 
 function resize() {
+  renderRequested = true;
   const width = captureMode ? CAPTURE_SIZE : Math.max(1, viewport.clientWidth);
   const height = captureMode ? CAPTURE_SIZE : Math.max(1, viewport.clientHeight);
   renderer.setSize(width, height, false);
@@ -216,6 +226,7 @@ function resize() {
 }
 
 function updateControls() {
+  renderRequested = true;
   modelSelect.value = modelName;
   animationSelect.value = animationName;
   phaseInput.disabled = animationName === "";

@@ -33,6 +33,25 @@ try {
       const output = path.join(outputDirectory, `${safeName(model)}.png`);
       await page.screenshot({ path: output });
       process.stdout.write(`${output}\n`);
+      if (options.animations) {
+        const animations = await page.locator("#animation option").evaluateAll(
+          options => options.map(option => option.value).filter(Boolean),
+        );
+        for (const animation of animations) {
+          await page.selectOption("#animation", animation, { force: true });
+          for (const phase of [0, 0.25, 0.5, 0.75, 1]) {
+            await page.locator("#phase").evaluate((input, value) => {
+              input.value = String(value);
+              input.dispatchEvent(new Event("input", { bubbles: true }));
+            }, phase);
+            await page.evaluate(() => new Promise(resolve => {
+              requestAnimationFrame(() => requestAnimationFrame(resolve));
+            }));
+            const output = path.join(outputDirectory, `${safeName(model)}-${safeName(animation)}-${formatPhase(phase)}.png`);
+            await page.screenshot({ path: output });
+          }
+        }
+      }
     }
   } else {
     const capture = {
@@ -107,6 +126,7 @@ function resolveSingleOutput(options, capture) {
 function parseArguments(args) {
   const result = {
     all: false,
+    animations: false,
     model: "human",
     equipment: "",
     animation: "",
@@ -121,6 +141,10 @@ function parseArguments(args) {
     switch (argument) {
       case "--all":
         result.all = true;
+        break;
+      case "--animations":
+        result.all = true;
+        result.animations = true;
         break;
       case "--model":
         result.model = requiredValue(args, ++index, argument);
