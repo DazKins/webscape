@@ -11,6 +11,7 @@ import (
 // AuthConfig describes a confidential OIDC web client. Credentials are resolved
 // only at startup, never exposed by the browser configuration endpoint.
 type AuthConfig struct {
+	Mode                   string `json:"mode,omitempty"`
 	Issuer                 string `json:"issuer"`
 	ClientID               string `json:"clientId"`
 	ClientSecretEnv        string `json:"clientSecretEnv"`
@@ -19,13 +20,23 @@ type AuthConfig struct {
 }
 
 func (a AuthConfig) Validate(devMode bool) error {
-	if a.ClientID == "" || a.ClientSecretEnv == "" {
+	if a.Mode != "" && a.Mode != "oidc" && a.Mode != "none" {
+		return errors.New("config auth.mode must be oidc or none")
+	}
+	if a.Mode == "none" && !devMode {
+		return errors.New("auth.mode none requires server.devMode for testing")
+	}
+	if a.Mode != "none" && (a.ClientID == "" || a.ClientSecretEnv == "") {
 		return errors.New("config auth.clientId and auth.clientSecretEnv are required")
 	}
 	if a.SessionLifetimeSeconds < 60 || a.SessionLifetimeSeconds > 86400 {
 		return errors.New("config auth.sessionLifetimeSeconds must be between 60 and 86400")
 	}
-	for _, raw := range []string{a.Issuer, a.PublicURL} {
+	urls := []string{a.PublicURL}
+	if a.Mode != "none" {
+		urls = append(urls, a.Issuer)
+	}
+	for _, raw := range urls {
 		u, err := url.Parse(raw)
 		if err != nil || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
 			return errors.New("auth URLs must be absolute URLs without credentials, query or fragment")

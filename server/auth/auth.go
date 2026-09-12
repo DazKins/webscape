@@ -69,6 +69,7 @@ func PlayerID(issuer, subject string) model.EntityId {
 var sessionDefaults = scs.New()
 
 type Manager struct {
+	guest    bool
 	sessions *scs.SessionManager
 	store    *memstore.MemStore
 	oauth    oauth2.Config
@@ -88,6 +89,9 @@ type Manager struct {
 func New(ctx context.Context, cfg config.AuthConfig, devMode bool) (*Manager, error) {
 	if err := cfg.Validate(devMode); err != nil {
 		return nil, err
+	}
+	if cfg.Mode == "none" {
+		return newSessionManager(cfg), nil
 	}
 	secret, err := cfg.ClientSecret()
 	if err != nil {
@@ -147,6 +151,14 @@ func New(ctx context.Context, cfg config.AuthConfig, devMode bool) (*Manager, er
 		}
 	}
 	endpoint.AuthStyle = style
+	m := newSessionManager(cfg)
+	m.client = client
+	m.oauth = oauth2.Config{ClientID: cfg.ClientID, ClientSecret: secret, Endpoint: endpoint, RedirectURL: m.origin + "/auth/callback", Scopes: []string{oidc.ScopeOpenID}}
+	m.verifier = provider.Verifier(&oidc.Config{ClientID: cfg.ClientID})
+	return m, nil
+}
+
+func newSessionManager(cfg config.AuthConfig) *Manager {
 	origin := strings.TrimSuffix(cfg.PublicURL, "/")
 	sessionConfig := *sessionDefaults
 	sessions := &sessionConfig
@@ -158,14 +170,14 @@ func New(ctx context.Context, cfg config.AuthConfig, devMode bool) (*Manager, er
 		sessions.Cookie.Name = "webscape_local"
 		sessions.Cookie.Secure = false
 	}
+	if cfg.Mode == "none" {
+		sessions.Cookie.Name += "_guest"
+	}
 	sessions.Cookie.HttpOnly = true
 	sessions.Cookie.SameSite = http.SameSiteLaxMode
 	sessions.Cookie.Persist = false
-	return &Manager{sessions: sessions, store: store, client: client, origin: origin, issuer: cfg.Issuer,
-		lifetime: sessions.Lifetime, leases: make(map[string]*Session), timers: make(map[string]*time.Timer),
-		oauth:    oauth2.Config{ClientID: cfg.ClientID, ClientSecret: secret, Endpoint: endpoint, RedirectURL: origin + "/auth/callback", Scopes: []string{oidc.ScopeOpenID}},
-		verifier: provider.Verifier(&oidc.Config{ClientID: cfg.ClientID}),
-	}, nil
+	return &Manager{sessions: sessions, store: store, origin: origin, issuer: cfg.Issuer,
+		guest: cfg.Mode == "none", lifetime: sessions.Lifetime, leases: make(map[string]*Session), timers: make(map[string]*time.Timer)}
 }
 
 func (m *Manager) Close() {
@@ -221,6 +233,11 @@ func (m *Manager) login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Login unavailable", 500)
 		return
 	}
+	if m.guest {
+		m.startSession(r.Context(), model.EntityId(uuid.New()), time.Now().Add(m.lifetime))
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	state, nonce, verifier := oauth2.GenerateVerifier(), oauth2.GenerateVerifier(), oauth2.GenerateVerifier()
 	m.sessions.Put(r.Context(), "state", state)
 	m.sessions.Put(r.Context(), "nonce", nonce)
@@ -229,6 +246,10 @@ func (m *Manager) login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, m.oauth.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier), oidc.Nonce(nonce)), http.StatusFound)
 }
 func (m *Manager) callback(w http.ResponseWriter, r *http.Request) {
+	if m.guest {
+		http.NotFound(w, r)
+		return
+	}
 	var nonce, verifier string
 	valid := false
 	// Consume and commit the transaction before network I/O. Concurrent or replayed
@@ -275,14 +296,18 @@ func (m *Manager) callback(w http.ResponseWriter, r *http.Request) {
 		if id.Expiry.Before(expires) {
 			expires = id.Expiry
 		}
-		m.sessions.SetDeadline(r.Context(), expires)
-		m.sessions.Put(r.Context(), "csrf", oauth2.GenerateVerifier())
-		key := m.sessions.Token(r.Context())
-		s := &Session{PlayerID: PlayerID(m.issuer, id.Subject), Expires: expires, Done: make(chan struct{})}
-		m.leases[key] = s
-		m.timers[key] = time.AfterFunc(time.Until(expires), func() { m.mu.Lock(); defer m.mu.Unlock(); m.revoke(key) })
+		m.startSession(r.Context(), PlayerID(m.issuer, id.Subject), expires)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}).ServeHTTP(w, r)
+}
+
+// Called with the session transaction lock held in both OIDC and guest modes.
+func (m *Manager) startSession(ctx context.Context, playerID model.EntityId, expires time.Time) {
+	m.sessions.SetDeadline(ctx, expires)
+	m.sessions.Put(ctx, "csrf", oauth2.GenerateVerifier())
+	key := m.sessions.Token(ctx)
+	m.leases[key] = &Session{PlayerID: playerID, Expires: expires, Done: make(chan struct{})}
+	m.timers[key] = time.AfterFunc(time.Until(expires), func() { m.mu.Lock(); defer m.mu.Unlock(); m.revoke(key) })
 }
 func (m *Manager) loginFailed(w http.ResponseWriter, r *http.Request) {
 	// Never echo provider errors, codes or tokens to the browser or logs.
@@ -292,10 +317,10 @@ func (m *Manager) status(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s := m.lease(r.Context())
 	if s == nil {
-		json.NewEncoder(w).Encode(map[string]any{"authenticated": false})
+		json.NewEncoder(w).Encode(map[string]any{"authenticated": false, "guest": m.guest})
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]any{"authenticated": true, "accountId": s.PlayerID.String(), "csrfToken": m.sessions.GetString(r.Context(), "csrf"), "expiresAt": s.Expires})
+	json.NewEncoder(w).Encode(map[string]any{"authenticated": true, "guest": m.guest, "accountId": s.PlayerID.String(), "csrfToken": m.sessions.GetString(r.Context(), "csrf"), "expiresAt": s.Expires})
 }
 func (m *Manager) logout(w http.ResponseWriter, r *http.Request) {
 	csrf := m.sessions.GetString(r.Context(), "csrf")

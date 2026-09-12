@@ -9,6 +9,7 @@ import type { RegistrationViewState } from "./ui/components/onboardingOverlay.ts
 let accountId = "";
 let csrfToken = "";
 let authenticated = false;
+let guest = false;
 let authGeneration = 0;
 const loginFailed = new URLSearchParams(location.search).get("login") === "failed";
 if (loginFailed) history.replaceState(null, "", location.pathname);
@@ -41,6 +42,7 @@ function renderUi() {
       onRetry: () => { wsClient.disconnect(); setRegistration({ phase: "connecting", error: "" }); void wsClient.connect(); },
       onLogout: () => { void logout(); },
       authenticated,
+      guest,
     })
   );
 }
@@ -66,6 +68,7 @@ async function checkSession(): Promise<boolean> {
   if (!response.ok) throw new Error("Session check failed");
   const session = await response.json();
   if (generation !== authGeneration) return false;
+  guest = session.guest === true;
   if (!session.authenticated) {
     authenticated = false;
     csrfToken = "";

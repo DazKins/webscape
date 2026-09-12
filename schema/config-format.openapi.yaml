@@ -28,6 +28,8 @@ components:
             properties:
               auth:
                 properties:
+                  mode:
+                    enum: [oidc]
                   issuer:
                     pattern: '^https://'
                   publicUrl:
@@ -180,9 +182,22 @@ components:
     AuthConfig:
       type: object
       additionalProperties: false
-      required: [issuer, clientId, clientSecretEnv, publicUrl, sessionLifetimeSeconds]
-      description: Confidential OIDC web client. Missing configuration or credentials fails startup; there is no guest fallback.
+      required: [publicUrl, sessionLifetimeSeconds]
+      allOf:
+        - if:
+            required: [mode]
+            properties:
+              mode:
+                const: none
+          else:
+            required: [issuer, clientId, clientSecretEnv]
+      description: OIDC is the default. Explicit none mode permits guest play for testing with server.devMode; there is no automatic fallback.
       properties:
+        mode:
+          type: string
+          enum: [oidc, none]
+          default: oidc
+          description: none requires server.devMode and creates guest sessions without contacting a provider.
         issuer:
           $ref: '#/components/schemas/AuthURL'
           description: Exact OIDC issuer; discovery supplies the authorization, token and JWKS endpoints. No query, fragment or credentials.

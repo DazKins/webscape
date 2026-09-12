@@ -22,6 +22,7 @@ type Props = {
   onRetry: () => void;
   onLogout: () => void;
   authenticated: boolean;
+  guest: boolean;
 };
 
 type LeftTab = "chat" | "combat";
@@ -214,7 +215,7 @@ export default function UiRoot(props: Props) {
   const activeMobileLabel =
     mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
   const onboarding = (
-    <OnboardingOverlay state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} />
+    <OnboardingOverlay guest={props.guest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} />
   );
 
   const buildInfo = (
@@ -231,7 +232,7 @@ export default function UiRoot(props: Props) {
         {buildLabel}
       </span>
       <SourceLink />
-      {props.authenticated && <button className={`${styles.sourceLink} ${styles.signOut}`} type="button" onClick={props.onLogout} disabled={props.registration.phase === "signingOut"}>Sign out</button>}
+      {props.authenticated && <button className={`${styles.sourceLink} ${styles.signOut}`} type="button" onClick={props.onLogout} disabled={props.registration.phase === "signingOut"}>{props.guest ? "End guest session" : "Sign out"}</button>}
     </div>
   );
 

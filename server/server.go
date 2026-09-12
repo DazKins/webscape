@@ -24,6 +24,9 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 		return err
 	}
 	defer authManager.Close()
+	if authConfig.Mode == "none" {
+		log.Print("Testing mode: anyone can play as a guest without authentication")
+	}
 	mux := http.NewServeMux()
 	authManager.RegisterRoutes(mux)
 	mux.Handle("/", frontendHandler(distFS, devMode))

@@ -32,3 +32,21 @@ func TestAuthFailsClosed(t *testing.T) {
 		t.Fatal("missing auth accepted")
 	}
 }
+
+func TestExplicitGuestConfiguration(t *testing.T) {
+	c := AuthConfig{Mode: "none", PublicURL: "http://127.0.0.1:8080", SessionLifetimeSeconds: 3600}
+	if err := c.Validate(true); err != nil {
+		t.Fatal(err)
+	}
+	if c.Validate(false) == nil {
+		t.Fatal("guest mode accepted outside development")
+	}
+	c.Mode = ""
+	if c.Validate(true) == nil {
+		t.Fatal("missing mode implicitly enabled guests")
+	}
+	c.Mode = "typo"
+	if c.Validate(true) == nil {
+		t.Fatal("unknown mode accepted")
+	}
+}

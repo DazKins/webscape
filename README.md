@@ -294,3 +294,5 @@ Integration tests create unique world keys and remove their rows afterward. Use 
 isolated test database: rollback tests also install and remove a temporary test trigger.
 Without that variable, database integration tests are skipped; snapshot/restore,
 configuration and coordinator tests still run under `go test ./...`.
+
+For provider-free testing, see [no-auth testing mode](docs/authentication.md#no-auth-testing-mode) (`auth.mode: "none"` with `server.devMode: true`).

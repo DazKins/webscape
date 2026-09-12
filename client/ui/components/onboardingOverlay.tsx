@@ -18,6 +18,7 @@ export type RegistrationViewState = {
 };
 
 type Props = {
+  guest: boolean;
   state: RegistrationViewState;
   onRegister: (name: string) => void;
   onLogin: () => void;
@@ -35,7 +36,7 @@ function validateName(name: string): string {
   return "";
 }
 
-export default function OnboardingOverlay({ state, onRegister, onLogin, onRetry }: Props) {
+export default function OnboardingOverlay({ state, guest, onRegister, onLogin, onRetry }: Props) {
   const [name, setName] = useState(state.name);
   const [validationError, setValidationError] = useState("");
   const [serverError, setServerError] = useState(state.error);
@@ -85,11 +86,11 @@ export default function OnboardingOverlay({ state, onRegister, onLogin, onRetry 
           <div>
             <h1 id="onboarding-title">{state.phase === "signedOut" ? "Your adventure awaits" : "The path is interrupted"}</h1>
             <p id="onboarding-description" className={styles.description}>
-              {state.phase === "signedOut" ? "Sign in to enter the world and return to your character." : "Check your connection, then try again."}
+              {state.phase === "signedOut" ? (guest ? "Play without an account. Your guest character lasts for this session." : "Sign in to enter the world and return to your character.") : "Check your connection, then try again."}
             </p>
             {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
             <button type="button" onClick={state.phase === "signedOut" ? onLogin : onRetry}>
-              {state.phase === "signedOut" ? "Sign in" : "Try again"}
+              {state.phase === "signedOut" ? (guest ? "Play as guest" : "Sign in") : "Try again"}
             </button>
           </div>
         ) : isNameEntry ? (

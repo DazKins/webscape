@@ -2,7 +2,7 @@
 
 Webscape uses a configurable OpenID Connect (OIDC) provider. The provider runs the
 login page and owns passwords, signup and account recovery. Webscape is a
-confidential web client; it does not implement those account-management features.
+confidential web client in the default OIDC mode; it does not implement those account-management features.
 
 ## Configure a provider
 
@@ -28,7 +28,7 @@ Replace the example URLs/client ID. Set the named environment variable to the
 provider-issued client secret through your deployment's secret settings. Never
 commit the secret or include it in a URL. Missing auth settings or credentials,
 failed discovery and unsupported configuration prevent server startup. The
-checked-in example deliberately requires configuration; there is no guest bypass.
+checked-in example deliberately requires configuration; there is no automatic guest fallback.
 
 Allow exactly `https://game.example.com/auth/callback` as a callback at the
 provider. `publicUrl` is the browser-facing origin, without a path, query or
@@ -51,7 +51,7 @@ URLs (for example `http://127.0.0.1:8080` and
 `http://127.0.0.1:5556/dex`). Configure the provider's exact loopback callback URL.
 Use a compatible local provider such as Dex, or your hosted provider's development
 application. HTTP is rejected for non-loopback auth URLs even in development;
-there is no mode that accepts an unverified identity. Use the Go server to serve
+OIDC mode always verifies identity. Use the Go server to serve
 the built client, so auth routes, cookies and `/ws` share one origin.
 
 For a tailnet preview, set `publicUrl` to that preview's HTTPS origin (including
@@ -59,6 +59,35 @@ its allocated port), register its `/auth/callback`, and supply a test provider
 secret to the runtime securely. A preview without a configured provider cannot
 start. Do not treat a passing unauthenticated handshake as success: `/ws` should
 return 401 with a valid Origin and no session, then upgrade only after login.
+
+## No-auth testing mode
+
+To test without any provider, explicitly set `server.devMode` to `true` and use:
+
+```json
+"auth": {
+  "mode": "none",
+  "publicUrl": "http://127.0.0.1:8080",
+  "sessionLifetimeSeconds": 28800
+}
+```
+
+No issuer, client ID or secret is needed in this mode. Use the actual HTTPS origin
+for a hosted testing preview. The client shows **Play as guest**, followed by name
+entry. Anyone who can access this server can play; this mode is for testing.
+
+The server assigns a random guest character ID and keeps it in a cookie-backed
+session. Reload/reconnect keeps that ID while the session remains valid. Ending
+the session, expiry, clearing cookies or restarting the server loses access to
+that guest character; a new session starts with a new ID. Guest IDs cannot claim
+OIDC characters or old anonymous saves. With persistence enabled, guest snapshots
+may remain stored but are not recoverable after the session ends; prefer a
+separate test world with `persistence.driver: "none"`.
+
+Origin checks, CSRF-protected session termination, socket expiry and server-side
+command validation still apply. Guest cookies are separate from OIDC cookies.
+Omitting `auth.mode` means `oidc`; unknown modes, missing OIDC credentials and
+provider discovery errors fail startup rather than enabling guest play.
 
 ## Sessions, logout and saved characters
 
