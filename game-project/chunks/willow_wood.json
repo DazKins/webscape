@@ -1,0 +1,6319 @@
+{
+  "formatVersion": 2,
+  "id": "willow_wood",
+  "displayName": "Willow Wood",
+  "coordinate": {
+    "x": -1,
+    "y": 0
+  },
+  "terrain": [
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass"
+  ],
+  "heights": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "blockers": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "walls": [
+    {
+      "id": "willow_wood_wall_23_6",
+      "type": "wood",
+      "x": 23,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_23_12",
+      "type": "wood",
+      "x": 23,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_24_6",
+      "type": "wood",
+      "x": 24,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_24_12",
+      "type": "wood",
+      "x": 24,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_25_6",
+      "type": "wood",
+      "x": 25,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_25_12",
+      "type": "wood",
+      "x": 25,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_26_6",
+      "type": "wood",
+      "x": 26,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_27_6",
+      "type": "wood",
+      "x": 27,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_27_12",
+      "type": "wood",
+      "x": 27,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_28_6",
+      "type": "wood",
+      "x": 28,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_28_12",
+      "type": "wood",
+      "x": 28,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_29_6",
+      "type": "wood",
+      "x": 29,
+      "y": 6
+    },
+    {
+      "id": "willow_wood_wall_29_12",
+      "type": "wood",
+      "x": 29,
+      "y": 12
+    },
+    {
+      "id": "willow_wood_wall_23_7",
+      "type": "wood",
+      "x": 23,
+      "y": 7
+    },
+    {
+      "id": "willow_wood_wall_29_7",
+      "type": "wood",
+      "x": 29,
+      "y": 7
+    },
+    {
+      "id": "willow_wood_wall_23_8",
+      "type": "wood",
+      "x": 23,
+      "y": 8
+    },
+    {
+      "id": "willow_wood_wall_29_8",
+      "type": "wood",
+      "x": 29,
+      "y": 8
+    },
+    {
+      "id": "willow_wood_wall_23_9",
+      "type": "wood",
+      "x": 23,
+      "y": 9
+    },
+    {
+      "id": "willow_wood_wall_29_9",
+      "type": "wood",
+      "x": 29,
+      "y": 9
+    },
+    {
+      "id": "willow_wood_wall_23_10",
+      "type": "wood",
+      "x": 23,
+      "y": 10
+    },
+    {
+      "id": "willow_wood_wall_29_10",
+      "type": "wood",
+      "x": 29,
+      "y": 10
+    },
+    {
+      "id": "willow_wood_wall_23_11",
+      "type": "wood",
+      "x": 23,
+      "y": 11
+    },
+    {
+      "id": "willow_wood_wall_29_11",
+      "type": "wood",
+      "x": 29,
+      "y": 11
+    },
+    {
+      "id": "willow_wood_wall_6_21",
+      "type": "stone",
+      "x": 6,
+      "y": 21
+    },
+    {
+      "id": "willow_wood_wall_7_21",
+      "type": "stone",
+      "x": 7,
+      "y": 21
+    },
+    {
+      "id": "willow_wood_wall_8_21",
+      "type": "stone",
+      "x": 8,
+      "y": 21
+    },
+    {
+      "id": "willow_wood_wall_10_21",
+      "type": "stone",
+      "x": 10,
+      "y": 21
+    },
+    {
+      "id": "willow_wood_wall_6_22",
+      "type": "stone",
+      "x": 6,
+      "y": 22
+    },
+    {
+      "id": "willow_wood_wall_6_25",
+      "type": "stone",
+      "x": 6,
+      "y": 25
+    },
+    {
+      "id": "willow_wood_wall_6_26",
+      "type": "stone",
+      "x": 6,
+      "y": 26
+    },
+    {
+      "id": "willow_wood_wall_10_26",
+      "type": "stone",
+      "x": 10,
+      "y": 26
+    },
+    {
+      "id": "willow_wood_wall_10_25",
+      "type": "stone",
+      "x": 10,
+      "y": 25
+    }
+  ],
+  "entities": [
+    {
+      "id": "forester_lodge_door",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Rowan\u2019s Lodge door",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "woodcutting_tutor",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 17
+        },
+        "metadata": {
+          "name": "Rowan Moss \u2014 Woodcutting Tutor",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "tan",
+          "hairStyle": "swept",
+          "hairColor": "chestnut",
+          "tunicColor": "forest",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "woodcutting_tutor"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "woodcuttingAxe"
+          }
+        }
+      }
+    },
+    {
+      "id": "forester",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 9
+        },
+        "metadata": {
+          "name": "Old Fen \u2014 Keeper of the Wood",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "deep",
+          "hairStyle": "swept",
+          "hairColor": "gray",
+          "tunicColor": "burgundy",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "forest_keeper"
+        }
+      }
+    },
+    {
+      "id": "chest_001",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Old wayfarer chest \u2014 mysterious key",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": false,
+          "items": [
+            {
+              "name": "Mysterious Key",
+              "type": "quest",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "forest_relic",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Moss-covered reliquary",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Ancient Scroll",
+              "type": "quest",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "willow_wood_fish_7_6",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Deepwood pool \u2014 fish here",
+          "type": "fishingSpot",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "fishingSpot"
+        },
+        "fishable": {
+          "catchChancePercent": 25,
+          "yield": {
+            "name": "Raw Fish",
+            "type": "fish",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_5_1",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_8_2",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_2",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_2",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_16_1",
+      "components": {
+        "position": {
+          "x": 16,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_18_2",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_20_1",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_22_1",
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_24_2",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_25_1",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_27_2",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_30_2",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_3",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_9_3",
+      "components": {
+        "position": {
+          "x": 9,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_4",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_3",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_18_3",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_20_4",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_21_4",
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_24_3",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_26_3",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_28_4",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_30_4",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_5",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_9_5",
+      "components": {
+        "position": {
+          "x": 9,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_6",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_5",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_7",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 7
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_11_7",
+      "components": {
+        "position": {
+          "x": 11,
+          "y": 7
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_13_7",
+      "components": {
+        "position": {
+          "x": 13,
+          "y": 7
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_15_8",
+      "components": {
+        "position": {
+          "x": 15,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_18_8",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_19_8",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_21_8",
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_5_10",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_8_9",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 9
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_10_10",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_10",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_13_10",
+      "components": {
+        "position": {
+          "x": 13,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_19_10",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_21_9",
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 9
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_11",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_3_11",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_10_11",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_20",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 20
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_4_19",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_10_19",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_19",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_21_20",
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 20
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_24_19",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_25_19",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_27_19",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_2_22",
+      "components": {
+        "position": {
+          "x": 2,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_4_22",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_15_21",
+      "components": {
+        "position": {
+          "x": 15,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_18_22",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_20_22",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_21_22",
+      "components": {
+        "position": {
+          "x": 21,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_23_21",
+      "components": {
+        "position": {
+          "x": 23,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_25_22",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_27_21",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_30_21",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_3_23",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_20_23",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_22_24",
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 24
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_25_24",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 24
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_27_23",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_29_24",
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 24
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_25",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_4_26",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_25",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_15_25",
+      "components": {
+        "position": {
+          "x": 15,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_19_25",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_22_26",
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_24_25",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_27_25",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_2_27",
+      "components": {
+        "position": {
+          "x": 2,
+          "y": 27
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_3_28",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_8_28",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_10_28",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_27",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 27
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_15_27",
+      "components": {
+        "position": {
+          "x": 15,
+          "y": 27
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_20_28",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_22_28",
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_26_28",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_1_29",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_3_30",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_5_30",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_8_29",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_12_29",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_14_30",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_16_29",
+      "components": {
+        "position": {
+          "x": 16,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_17_30",
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_19_30",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_26_30",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "willow_wood_tree_28_29",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Willow Wood oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "wood_rat_spawn",
+      "components": {
+        "position": {
+          "x": 9,
+          "y": 18
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Wood Rat",
+                "entityType": "rat"
+              },
+              "renderable": {
+                "type": "rat"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 35,
+                "currentHealth": 35
+              },
+              "basestats": {
+                "strength": 3,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {}
+              },
+              "combatstats": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "lodge_table",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Fen\u2019s supper table",
+          "type": "tavernTable",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tavernTable"
+        }
+      }
+    },
+    {
+      "id": "lodge_books",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 7
+        },
+        "metadata": {
+          "name": "Forester\u2019s journals",
+          "type": "bookcase",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bookcase"
+        }
+      }
+    },
+    {
+      "id": "lodge_bench",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Forester\u2019s bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "wood_lantern_24_13",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 13
+        },
+        "metadata": {
+          "name": "Old trail lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "wood_lantern_29_13",
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 13
+        },
+        "metadata": {
+          "name": "Old trail lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "wood_lantern_16_19",
+      "components": {
+        "position": {
+          "x": 16,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Old trail lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "wood_lantern_11_23",
+      "components": {
+        "position": {
+          "x": 11,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Old trail lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    }
+  ]
+}

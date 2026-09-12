@@ -285,3 +285,24 @@ func findAppearance(components []component.Component) *component.CAppearance {
 	}
 	return nil
 }
+
+func TestCreateAuthoredTutorReplicatesEquippedTool(t *testing.T) {
+	values := CreateAuthoredEntity(world.WorldEntity{
+		Id: "woodcutting_tutor",
+		Components: map[string]any{
+			"position": map[string]any{"x": 1, "y": 2},
+			"equipped": map[string]any{"slots": map[string]any{"weapon": "woodcuttingAxe"}},
+		},
+	})
+	for _, value := range values {
+		if equipped, ok := value.(*component.CEquipped); ok {
+			slots := equipped.Serialize().(util.JObject)["slots"].(util.JObject)
+			weapon := slots["weapon"].(util.JObject)
+			if weapon["renderModel"] != util.JString("woodcuttingAxe") {
+				t.Fatalf("tool visual missing: %#v", weapon)
+			}
+			return
+		}
+	}
+	t.Fatal("authored tutor equipment missing")
+}

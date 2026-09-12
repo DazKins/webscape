@@ -169,6 +169,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     validateWoodcuttable(entity.id, entity.components, errors);
     validateFishable(entity.id, entity.components, errors);
     validateAppearance(entity.id, entity.components, errors);
+    validateEquipped(entity.id, entity.components, errors);
     validateShop(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
@@ -177,6 +178,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
       validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
       validateFishable(`${entity.id} child template`, templateComponents, errors);
       validateAppearance(`${entity.id} child template`, templateComponents, errors);
+      validateEquipped(`${entity.id} child template`, templateComponents, errors);
       validateShop(`${entity.id} child template`, templateComponents, errors);
     }
   }
@@ -343,6 +345,23 @@ function isInBounds(size: WorldSize, x: number, y: number): boolean {
 }
 
 const SHOP_ITEM_IDS = new Set(['ironSword', 'woodcuttingAxe', 'fishingRod', 'magicStaff', 'woodenBow', 'arrow', 'leatherHelmet', 'chainmailChestplate', 'ironLeggings', 'leatherBoots', 'woodenShield', 'healthPotion', 'bread', 'apple', 'ironOre', 'wood', 'logs', 'stone', 'rawFish']);
+
+function validateEquipped(entityId: string, components: Record<string, unknown>, errors: string[]) {
+  if ("equipped" in components) {
+    const equipment = components.equipped;
+    const compatible: Record<string, string[]> = {
+      weapon: ["ironSword", "woodcuttingAxe", "fishingRod", "woodenBow", "magicStaff"],
+      head: ["leatherHelmet"], chest: ["chainmailChestplate"],
+      legs: ["ironLeggings"], feet: ["leatherBoots"], offhand: ["woodenShield"],
+    };
+    if (!isObject(equipment) || Object.keys(equipment).some(key => key !== "slots") ||
+        ("slots" in equipment && (!isObject(equipment.slots) ||
+          Object.entries(equipment.slots).some(([slot, id]) =>
+            typeof id !== "string" || !Object.prototype.hasOwnProperty.call(compatible, slot) || !compatible[slot].includes(id))))) {
+      errors.push(`entity "${entityId}" equipped.slots must map equipment slots to compatible catalog ids`);
+    }
+  }
+}
 
 function validateShop(entityId: string, components: Record<string, unknown>, errors: string[]) {
   if (!("shop" in components)) return;

@@ -11,10 +11,10 @@
           "id": "start",
           "messages": [
             {
-              "text": "You there. I could use a steady pair of hands. A rat has been tearing through this field, and I think it has been nosing around an old chest to the west."
+              "text": "You there! Willowbrook could use a steady pair of hands. The rats at Eastwatch have been nosing around goods from the old western lodge."
             },
             {
-              "text": "Search the chest for anything unusual, then head east and deal with the rat. Find the key before you pick the fight; I want to know what drew the creature here."
+              "text": "Search the wayfarer chest inside Rowan\u2019s Lodge in Willow Wood for a mysterious key, then deal with a rat in the eastern training yard. Find the key before picking the fight."
             }
           ],
           "options": [
@@ -44,10 +44,10 @@
           "id": "key",
           "messages": [
             {
-              "text": "The chest is west of here, near the far edge of the field. It has been sitting there longer than I have."
+              "text": "Follow the broad road west out of the village. Rowan\u2019s Lodge is just north of the road, near the woodcutting tutor. Open the door and search the old wayfarer chest inside."
             },
             {
-              "text": "If there is a key inside, it will not belong to any lock around here. Take it with you. We can worry about what it opens after the field is safe."
+              "text": "Speak to me and accept the errand before collecting the key. I want to know what drew the rats to it."
             }
           ],
           "options": [
@@ -72,10 +72,10 @@
           "id": "rat",
           "messages": [
             {
-              "text": "It prowls southeast of here, beyond the road. Follow the trampled grass and you should find it before it finds your ankles."
+              "text": "Follow the road east to Eastwatch. The weakest field rats are in the stone training yard north of the road, beside Iris and Captain Ash."
             },
             {
-              "text": "Do not let its size fool you. Find the key first, then put the rat down."
+              "text": "Find the key first, then defeat a rat. The tutors can help you prepare."
             }
           ],
           "options": [
@@ -125,7 +125,7 @@
           "id": "accepted",
           "messages": [
             {
-              "text": "Good. Search the old chest to the west for the mysterious key, then head southeast and kill the rat. Come back in one piece; the scroll is no use to a corpse."
+              "text": "Search the old wayfarer chest inside Rowan\u2019s Lodge to the west for the mysterious key, then defeat a field rat in the eastern training yard. Your ancient scroll will be awarded when the errand is complete."
             }
           ],
           "endConversation": true

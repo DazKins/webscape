@@ -1,3 +1,8 @@
+import {
+  createLanternModel, createBenchModel, createTavernTableModel,
+  createBookcaseModel, createShopCounterModel, createArcheryTargetModel,
+  createFountainModel,
+} from "./definitions/villageScenery";
 import { createBuildingModel } from "./definitions/building";
 import { createChestModel } from "./definitions/chest";
 import { createDoorModel } from "./definitions/door";
@@ -23,6 +28,13 @@ import {
 } from "./definitions/items";
 
 export const modelRegistry = {
+  lantern: createLanternModel,
+  bench: createBenchModel,
+  tavernTable: createTavernTableModel,
+  bookcase: createBookcaseModel,
+  shopCounter: createShopCounterModel,
+  archeryTarget: createArcheryTargetModel,
+  fountain: createFountainModel,
   human: createHumanModel,
   ironSword: createIronSwordModel,
   woodcuttingAxe: createWoodcuttingAxeModel,

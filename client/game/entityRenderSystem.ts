@@ -1,3 +1,4 @@
+import ModelEntityRenderer from "./renderer/modelEntityRenderer";
 import * as THREE from "three";
 import RendererHuman from "./renderer/rendererHuman";
 import RendererChatMessage from "./renderer/rendererChatMessage";
@@ -131,6 +132,14 @@ export default class EntityRenderSystem {
         return new RendererChest(this.scene, entity, this.sampleVisualHeight);
       case "rock":
         return new RendererRock(this.scene, entity, this.sampleVisualHeight);
+      case "lantern":
+      case "bench":
+      case "tavernTable":
+      case "bookcase":
+      case "shopCounter":
+      case "archeryTarget":
+      case "fountain":
+        return new ModelEntityRenderer(this.scene, entity, this.sampleVisualHeight, renderableType);
       case "building":
         return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":

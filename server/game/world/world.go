@@ -426,6 +426,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateFishableComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
+			if err := validateEquippedComponent(entity.Id+" child template", template); err != nil {
+				return err
+			}
 			if err := validateShopComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
@@ -437,6 +440,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			return err
 		}
 		if err := validateFishableComponent(entity.Id, entity.Components); err != nil {
+			return err
+		}
+		if err := validateEquippedComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
 		if err := validateShopComponent(entity.Id, entity.Components); err != nil {
@@ -590,6 +596,15 @@ func numberToInt(value any) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func validateEquippedComponent(id string, components map[string]any) error {
+	if raw, exists := components["equipped"]; exists {
+		if _, err := component.ParseAuthoredEquipment(raw); err != nil {
+			return fmt.Errorf("entity %q: %w", id, err)
+		}
+	}
+	return nil
 }
 
 func validateShopComponent(id string, components map[string]any) error {

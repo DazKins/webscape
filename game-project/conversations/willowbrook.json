@@ -1,0 +1,1222 @@
+{
+  "formatVersion": 1,
+  "id": "willowbrook",
+  "displayName": "People of Willowbrook",
+  "conversations": [
+    {
+      "id": "willowbrook_guide",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Welcome to Willowbrook! I\u2019m June. We get lost adventurers, ambitious adventurers, and adventurers who insist they aren\u2019t lost. Which landmarks can I help you find?"
+            }
+          ],
+          "options": [
+            {
+              "id": "tutors",
+              "text": "Where can I learn the skills?",
+              "nextNodeId": "tutors"
+            },
+            {
+              "id": "shops",
+              "text": "Where are the shops?",
+              "nextNodeId": "shops"
+            },
+            {
+              "id": "adventure",
+              "text": "What should I explore first?",
+              "nextNodeId": "adventure"
+            },
+            {
+              "id": "basics",
+              "text": "How do I get started?",
+              "nextNodeId": "basics"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "tutors",
+          "messages": [
+            {
+              "text": "Nessa teaches fishing at the pond north of the fountain. Rowan teaches woodcutting just down the west road in Willow Wood. Iris and Captain Ash teach ranged and melee combat in the eastern training yard. Sage Lumen teaches magic beside the Lantern Archive in the southeast."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "shops",
+          "messages": [
+            {
+              "text": "Mara\u2019s Trail Supplies is northwest of the square; Ember & Iron is northeast. The Copper Kettle is southwest, and Lantern Curios is southeast. Follow the east road to the Bent Bow for bows and arrows. Open the doors and step inside, then choose Trade on the shopkeeper."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "adventure",
+          "messages": [
+            {
+              "text": "DazKins beside the square has a job involving an old key. Try the weak field rats at the eastern training yard, then the tougher quarry rats south of the east road. The abandoned watchhouse farther southeast shelters armed outlaws. The western wood has a hidden ruined shrine."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "basics",
+          "messages": [
+            {
+              "text": "Your inventory already contains a sword, axe, fishing rod, bow, staff, a few arrows, and some gold. Equip the tool or weapon you want to use. Click to walk, and use an object\u2019s interaction menu to talk, trade, open doors, chop, fish, or attack."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "woodcutting_tutor",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Rowan Moss. Trees don\u2019t care for speeches, so I keep mine short. This axe and a little patience built half of Willowbrook."
+            }
+          ],
+          "options": [
+            {
+              "id": "tool",
+              "text": "How do I chop a tree?",
+              "nextNodeId": "tool"
+            },
+            {
+              "id": "logs",
+              "text": "What happens to the tree and the logs?",
+              "nextNodeId": "logs"
+            },
+            {
+              "id": "wood",
+              "text": "Where should I explore?",
+              "nextNodeId": "wood"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "tool",
+          "messages": [
+            {
+              "text": "Equip your Woodcutting Axe from your inventory, then choose Chop on a living tree. Walk up beside it and you\u2019ll keep swinging automatically. Moving away or changing activities stops the work."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "logs",
+          "messages": [
+            {
+              "text": "Successful chops put logs in your inventory. A tree eventually becomes a stump, then regrows after a short wait. Leave inventory space for your logs. Mara in the northwest village shop buys them for gold."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "wood",
+          "messages": [
+            {
+              "text": "These oaks are a good place to start. Follow the west road, then the winding trail south to the old stone shrine. My lodge just north of us holds the wayfarer chest DazKins keeps asking about."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "fishing_tutor",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Nessa Reed, at your service. I\u2019ve caught fish, boots, and one very offended duck. Today we\u2019ll stick to fish."
+            }
+          ],
+          "options": [
+            {
+              "id": "rod",
+              "text": "How do I start fishing?",
+              "nextNodeId": "rod"
+            },
+            {
+              "id": "catch",
+              "text": "Why am I waiting?",
+              "nextNodeId": "catch"
+            },
+            {
+              "id": "sell",
+              "text": "What can I do with my catch?",
+              "nextNodeId": "sell"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "rod",
+          "messages": [
+            {
+              "text": "Equip your Fishing Rod from your inventory. Choose Fish on the rippling fishing spot, and stand on the bank beside it. You\u2019ll cast, wait for a bite, and reel in your catch automatically."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "catch",
+          "messages": [
+            {
+              "text": "A catch is a chance, not a guarantee. Keep your rod equipped and leave room in your inventory. Walking away stops fishing; choose Fish again when you\u2019re ready."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "sell",
+          "messages": [
+            {
+              "text": "Mara\u2019s Trail Supplies buys raw fish. Trade with her and sell your catches for gold. There\u2019s another fishing pool deep in Willow Wood if you fancy a quieter bank."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "ranged_tutor",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Iris Fletcher. Keep your bow steady and your target far enough away that it can\u2019t bite your boots."
+            }
+          ],
+          "options": [
+            {
+              "id": "bow",
+              "text": "How do ranged attacks work?",
+              "nextNodeId": "bow"
+            },
+            {
+              "id": "range",
+              "text": "How far can I shoot?",
+              "nextNodeId": "range"
+            },
+            {
+              "id": "supplies",
+              "text": "Where do I get arrows?",
+              "nextNodeId": "supplies"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bow",
+          "messages": [
+            {
+              "text": "Equip a Wooden Bow and keep arrows in your inventory. Choose Attack on a field rat. You\u2019ll move within bow range, draw, and release automatically. Every shot needs an arrow; if you run out, shooting stops."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "range",
+          "messages": [
+            {
+              "text": "The wooden bow has a range of three tiles. Your character approaches when needed. There\u2019s a short draw before the arrow flies; watch the shot resolve before deciding what to do next."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "supplies",
+          "messages": [
+            {
+              "text": "Tamsin sells bows and arrows inside the Bent Bow, just west of this yard. There\u2019s a practice-arrow chest inside too. These field rats are the gentlest opponents around."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "magic_tutor",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Sage Lumen. The archive calls me a scholar. The inn calls me the reason its curtains are singed."
+            }
+          ],
+          "options": [
+            {
+              "id": "staff",
+              "text": "How do I cast a spell?",
+              "nextNodeId": "staff"
+            },
+            {
+              "id": "timing",
+              "text": "What should I know about casting?",
+              "nextNodeId": "timing"
+            },
+            {
+              "id": "archive",
+              "text": "What is inside the archive?",
+              "nextNodeId": "archive"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "staff",
+          "messages": [
+            {
+              "text": "Equip your Magic Staff and choose Attack on a monster. The staff changes your attack to a magic bolt. Your character approaches into range and casts automatically; you don\u2019t need a separate spell button."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "timing",
+          "messages": [
+            {
+              "text": "The staff reaches four tiles. Casting has a short wind-up, then the bolt travels to the target. Moving or switching activities interrupts your current action. This staff doesn\u2019t need arrows or runes."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "archive",
+          "messages": [
+            {
+              "text": "Orla sells magic staves and collects odd stones. The chest holds old expedition notes, and the ruined shrine in Willow Wood has more traces of the same travelers. Ask Old Fen in the western lodge about them."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "melee_tutor",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Captain Ash. First rule: put the sword in your hand before making threats. Second rule: start with something smaller than you."
+            }
+          ],
+          "options": [
+            {
+              "id": "sword",
+              "text": "How does melee combat work?",
+              "nextNodeId": "sword"
+            },
+            {
+              "id": "armor",
+              "text": "Why all the armor?",
+              "nextNodeId": "armor"
+            },
+            {
+              "id": "enemies",
+              "text": "What should I fight?",
+              "nextNodeId": "enemies"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "sword",
+          "messages": [
+            {
+              "text": "Equip your Iron Sword and choose Attack on a field rat. You\u2019ll move adjacent and keep attacking. Walking away or choosing another activity stops your attack. Keep an eye on your health."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "armor",
+          "messages": [
+            {
+              "text": "A sword supplies your melee attack stats. Armor and shields add protection. You can equip a Wooden Shield alongside your sword. Bram at Ember & Iron sells swords, shields, helmets, and heavier armor."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "enemies",
+          "messages": [
+            {
+              "text": "Start with the field rats inside this yard. Quarry rats south of the road have more health. Armed outlaws occupy the old watchhouse to the southeast; save them until you\u2019re comfortable with combat."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "mara_shop",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Mara\u2019s Trail Supplies: everything for a day outside, including a reason to come back with muddy boots."
+            }
+          ],
+          "options": [
+            {
+              "id": "trade",
+              "text": "What do you trade?",
+              "nextNodeId": "trade"
+            },
+            {
+              "id": "town",
+              "text": "Who built this place?",
+              "nextNodeId": "town"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "trade",
+          "messages": [
+            {
+              "text": "Choose Trade to buy axes, rods, and boots. I also buy logs and raw fish. Gather in the western forest or the village pond, then bring your haul here."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "town",
+          "messages": [
+            {
+              "text": "Rowan brought the timber, Bram brought the iron, and Pip brought lunch. I kept the accounts. Ask June by the fountain where to go next."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "bram_shop",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Welcome to Ember & Iron. If it rattles, I can probably fix it. If it bites, talk to Captain Ash."
+            }
+          ],
+          "options": [
+            {
+              "id": "stock",
+              "text": "What do you sell?",
+              "nextNodeId": "stock"
+            },
+            {
+              "id": "quarry",
+              "text": "Where does your ore come from?",
+              "nextNodeId": "quarry"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "stock",
+          "messages": [
+            {
+              "text": "Choose Trade for swords, shields, helmets, chainmail, and leggings. Equipment must be equipped from your inventory before it helps you."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "quarry",
+          "messages": [
+            {
+              "text": "The old quarry south of the eastern road. Rats own it now, by sheer persistence. There are a few ore samples in my chest if you want to see what I work with."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "pip_inn",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Welcome to the Copper Kettle! No muddy axes on the counter. Muddy adventurers are negotiable."
+            }
+          ],
+          "options": [
+            {
+              "id": "stock",
+              "text": "What is for sale?",
+              "nextNodeId": "stock"
+            },
+            {
+              "id": "rumor",
+              "text": "Heard any good rumors?",
+              "nextNodeId": "rumor"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "stock",
+          "messages": [
+            {
+              "text": "Choose Trade to browse bread, apples, and health potions. My picnic hamper has a little something for the road."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "rumor",
+          "messages": [
+            {
+              "text": "Old Fen says the stones in Willow Wood were a shrine before there was a village. Orla has expedition notes in the archive. Between them, they might even tell you the same story."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "orla_shop",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Orla. Collector of curious stones, questionable scrolls, and perfectly reliable magic staves."
+            }
+          ],
+          "options": [
+            {
+              "id": "stock",
+              "text": "Can I buy a staff?",
+              "nextNodeId": "stock"
+            },
+            {
+              "id": "ruins",
+              "text": "What do the notes say?",
+              "nextNodeId": "ruins"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "stock",
+          "messages": [
+            {
+              "text": "Choose Trade to browse my stock. Sage Lumen outside teaches how to use a staff. There are weathered expedition notes in the chest at the back."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "ruins",
+          "messages": [
+            {
+              "text": "Travelers built a stone shrine southwest along the forest trail. They left in a hurry. Old Fen remembers more than he admits, and DazKins thinks the key in the western lodge is connected."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "tamsin_shop",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "The Bent Bow. The name is traditional; the merchandise is in excellent condition."
+            }
+          ],
+          "options": [
+            {
+              "id": "stock",
+              "text": "I need ranged supplies.",
+              "nextNodeId": "stock"
+            },
+            {
+              "id": "iris",
+              "text": "Who teaches archery?",
+              "nextNodeId": "iris"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "stock",
+          "messages": [
+            {
+              "text": "Choose Trade for a wooden bow, arrows, and light armor. Keep arrows in your inventory while the bow is equipped. Take practice arrows from the chest if you\u2019re just starting."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "iris",
+          "messages": [
+            {
+              "text": "Iris is in the stone training yard immediately east of my shop. Captain Ash stands at its southern edge if you prefer a sword."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "forest_keeper",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Old Fen, they call me. Mostly because Young Fen left town sixty years ago."
+            }
+          ],
+          "options": [
+            {
+              "id": "key",
+              "text": "What is that old chest?",
+              "nextNodeId": "key"
+            },
+            {
+              "id": "shrine",
+              "text": "Tell me about the ruins.",
+              "nextNodeId": "shrine"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "key",
+          "messages": [
+            {
+              "text": "A wayfarer left it in this lodge. DazKins is asking after the mysterious key inside. Speak to him in the village square before taking it for his errand."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "shrine",
+          "messages": [
+            {
+              "text": "Follow the west road to the winding path, then turn south. Broken stone walls mark the shrine. There is still a reliquary inside. Leave the trees standing around it, if you can bear to."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    },
+    {
+      "id": "bains_warning",
+      "startNodeId": "start",
+      "nodes": [
+        {
+          "id": "start",
+          "messages": [
+            {
+              "text": "Bains, Eastwatch lookout. Beyond this point the rats get bigger and the people get less polite."
+            }
+          ],
+          "options": [
+            {
+              "id": "danger",
+              "text": "What is out there?",
+              "nextNodeId": "danger"
+            },
+            {
+              "id": "home",
+              "text": "How do I get back?",
+              "nextNodeId": "home"
+            },
+            {
+              "id": "bye",
+              "text": "Thanks. See you around.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "danger",
+          "messages": [
+            {
+              "text": "Quarry rats gather southwest of me. The stone watchhouse southeast is occupied by armed outlaws, with another prowling outside. Train on the little field rats north of the road first."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "home",
+          "messages": [
+            {
+              "text": "Follow the broad road west to Willowbrook\u2019s fountain. The shops surround the square, and June can point you to every tutor."
+            }
+          ],
+          "options": [
+            {
+              "id": "back",
+              "text": "Something else...",
+              "nextNodeId": "start"
+            },
+            {
+              "id": "bye",
+              "text": "I\u2019ll give that a try.",
+              "nextNodeId": "bye"
+            }
+          ]
+        },
+        {
+          "id": "bye",
+          "messages": [
+            {
+              "text": "Safe travels. Willowbrook will be here when you get back."
+            }
+          ],
+          "endConversation": true
+        }
+      ]
+    }
+  ]
+}

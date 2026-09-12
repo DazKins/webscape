@@ -6,7 +6,7 @@
     {
       "id": "first_errand",
       "displayName": "First Errand",
-      "description": "Help the guide test the basics of quest progress.",
+      "description": "Recover the wayfarer\u2019s key from Rowan\u2019s Lodge and help DazKins clear the rats at Eastwatch.",
       "startEventId": "conversation:node:new_conversation:accepted",
       "steps": [
         {

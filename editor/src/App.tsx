@@ -70,7 +70,7 @@ type Selection =
   | null;
 
 const WALL_TYPES = ["stone", "wood"];
-const ENTITY_TYPES = ["tree", "fishingSpot", "door", "building", "chest", "rock", "human", "rat"];
+const ENTITY_TYPES = ["tree", "fishingSpot", "door", "building", "chest", "rock", "human", "rat", "lantern", "bench", "tavernTable", "bookcase", "shopCounter", "archeryTarget", "fountain"];
 
 function App() {
   const defaultWorld = createBlankWorld();
@@ -2172,10 +2172,11 @@ function createEntity(
   blocksMovement: boolean
 ): WorldEntity {
   const sanitizedType = sanitizeToken(rawType || "entity");
-  const type = sanitizedType === "fishingspot" || sanitizedType === "fishing_spot"
-    ? "fishingSpot"
-    : sanitizedType;
-  const idType = type === "fishingSpot" ? "fishing_spot" : type;
+  const type = ENTITY_TYPES.find((candidate) =>
+    candidate.toLowerCase() === sanitizedType ||
+    candidate.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`) === sanitizedType
+  ) ?? sanitizedType;
+  const idType = type.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
   let nextNumber = 1;
   let id = `${idType}_${String(nextNumber).padStart(3, "0")}`;
 
@@ -2189,9 +2190,9 @@ function createEntity(
     metadata: {
       name: id,
       type,
-      width: 1,
-      height: 1,
-      blocksMovement: type === "fishingSpot" ? true : blocksMovement,
+      width: type === "fountain" ? 2 : 1,
+      height: type === "fountain" ? 2 : 1,
+      blocksMovement: type === "fishingSpot" || type === "fountain" ? true : blocksMovement,
     },
     renderable: type === "door" ? { type, orientation: "north" } : { type },
   };

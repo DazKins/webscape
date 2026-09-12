@@ -328,7 +328,8 @@ func createEquippedComponent(components map[string]any) *component.CEquipped {
 	if _, ok := components["equipped"]; !ok {
 		return nil
 	}
-	return component.NewCEquipped()
+	equipped, _ := component.ParseAuthoredEquipment(components["equipped"])
+	return equipped
 }
 
 func createCombatStatsComponent(

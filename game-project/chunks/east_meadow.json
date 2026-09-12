@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "id": "east_meadow",
-  "displayName": "East Meadow",
+  "displayName": "Eastwatch Training Grounds",
   "coordinate": {
     "x": 1,
     "y": 0
@@ -73,6 +73,14 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -97,7 +105,25 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -111,7 +137,25 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -125,7 +169,25 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -139,13 +201,28 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
@@ -156,7 +233,25 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -170,16 +265,27 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
@@ -191,7 +297,25 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -204,268 +328,26 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -482,6 +364,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -511,6 +396,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -540,6 +428,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -564,6 +455,102 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -589,6 +576,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -618,6 +608,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -647,71 +640,9 @@
     "grass",
     "grass",
     "grass",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
     "road",
     "road",
     "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "grass",
     "grass",
     "grass",
     "grass",
@@ -735,27 +666,15 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -764,13 +683,18 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
@@ -778,12 +702,29 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -793,19 +734,29 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -815,12 +766,29 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -828,23 +796,31 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -854,21 +830,29 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -878,12 +862,29 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -892,16 +893,14 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -925,15 +924,15 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -958,14 +957,12 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -991,13 +988,13 @@
     "grass",
     "grass",
     "grass",
-    "dirt",
-    "dirt",
-    "dirt",
     "grass",
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -1027,6 +1024,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -3086,34 +3086,1086 @@
   ],
   "walls": [
     {
-      "id": "east_meadow_wall_001",
+      "id": "east_meadow_wall_2_2",
+      "type": "wood",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_2_9",
+      "type": "wood",
+      "x": 2,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_3_2",
+      "type": "wood",
+      "x": 3,
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_3_9",
+      "type": "wood",
+      "x": 3,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_4_2",
+      "type": "wood",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_4_9",
+      "type": "wood",
+      "x": 4,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_5_2",
+      "type": "wood",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_5_9",
+      "type": "wood",
+      "x": 5,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_6_2",
+      "type": "wood",
+      "x": 6,
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_7_2",
       "type": "wood",
       "x": 7,
-      "y": 12
+      "y": 2
     },
     {
-      "id": "east_meadow_wall_002",
+      "id": "east_meadow_wall_7_9",
+      "type": "wood",
+      "x": 7,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_8_2",
       "type": "wood",
       "x": 8,
-      "y": 12
+      "y": 2
     },
     {
-      "id": "east_meadow_wall_003",
+      "id": "east_meadow_wall_8_9",
+      "type": "wood",
+      "x": 8,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_9_2",
       "type": "wood",
       "x": 9,
-      "y": 12
+      "y": 2
+    },
+    {
+      "id": "east_meadow_wall_9_9",
+      "type": "wood",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_2_3",
+      "type": "wood",
+      "x": 2,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_9_3",
+      "type": "wood",
+      "x": 9,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_2_4",
+      "type": "wood",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "id": "east_meadow_wall_9_4",
+      "type": "wood",
+      "x": 9,
+      "y": 4
+    },
+    {
+      "id": "east_meadow_wall_2_5",
+      "type": "wood",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "id": "east_meadow_wall_9_5",
+      "type": "wood",
+      "x": 9,
+      "y": 5
+    },
+    {
+      "id": "east_meadow_wall_2_6",
+      "type": "wood",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "id": "east_meadow_wall_9_6",
+      "type": "wood",
+      "x": 9,
+      "y": 6
+    },
+    {
+      "id": "east_meadow_wall_2_7",
+      "type": "wood",
+      "x": 2,
+      "y": 7
+    },
+    {
+      "id": "east_meadow_wall_9_7",
+      "type": "wood",
+      "x": 9,
+      "y": 7
+    },
+    {
+      "id": "east_meadow_wall_2_8",
+      "type": "wood",
+      "x": 2,
+      "y": 8
+    },
+    {
+      "id": "east_meadow_wall_9_8",
+      "type": "wood",
+      "x": 9,
+      "y": 8
+    },
+    {
+      "id": "east_meadow_wall_12_3",
+      "type": "wood",
+      "x": 12,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_13_3",
+      "type": "wood",
+      "x": 13,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_14_3",
+      "type": "wood",
+      "x": 14,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_15_3",
+      "type": "wood",
+      "x": 15,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_16_3",
+      "type": "wood",
+      "x": 16,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_17_3",
+      "type": "wood",
+      "x": 17,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_18_3",
+      "type": "wood",
+      "x": 18,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_19_3",
+      "type": "wood",
+      "x": 19,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_20_3",
+      "type": "wood",
+      "x": 20,
+      "y": 3
+    },
+    {
+      "id": "east_meadow_wall_20_4",
+      "type": "wood",
+      "x": 20,
+      "y": 4
+    },
+    {
+      "id": "east_meadow_wall_20_5",
+      "type": "wood",
+      "x": 20,
+      "y": 5
+    },
+    {
+      "id": "east_meadow_wall_20_6",
+      "type": "wood",
+      "x": 20,
+      "y": 6
+    },
+    {
+      "id": "east_meadow_wall_20_7",
+      "type": "wood",
+      "x": 20,
+      "y": 7
+    },
+    {
+      "id": "east_meadow_wall_20_8",
+      "type": "wood",
+      "x": 20,
+      "y": 8
+    },
+    {
+      "id": "east_meadow_wall_20_9",
+      "type": "wood",
+      "x": 20,
+      "y": 9
+    },
+    {
+      "id": "east_meadow_wall_23_21",
+      "type": "stone",
+      "x": 23,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_23_28",
+      "type": "stone",
+      "x": 23,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_24_21",
+      "type": "stone",
+      "x": 24,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_24_28",
+      "type": "stone",
+      "x": 24,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_25_21",
+      "type": "stone",
+      "x": 25,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_25_28",
+      "type": "stone",
+      "x": 25,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_26_21",
+      "type": "stone",
+      "x": 26,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_27_21",
+      "type": "stone",
+      "x": 27,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_27_28",
+      "type": "stone",
+      "x": 27,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_28_21",
+      "type": "stone",
+      "x": 28,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_28_28",
+      "type": "stone",
+      "x": 28,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_29_21",
+      "type": "stone",
+      "x": 29,
+      "y": 21
+    },
+    {
+      "id": "east_meadow_wall_29_28",
+      "type": "stone",
+      "x": 29,
+      "y": 28
+    },
+    {
+      "id": "east_meadow_wall_23_22",
+      "type": "stone",
+      "x": 23,
+      "y": 22
+    },
+    {
+      "id": "east_meadow_wall_29_22",
+      "type": "stone",
+      "x": 29,
+      "y": 22
+    },
+    {
+      "id": "east_meadow_wall_23_23",
+      "type": "stone",
+      "x": 23,
+      "y": 23
+    },
+    {
+      "id": "east_meadow_wall_29_23",
+      "type": "stone",
+      "x": 29,
+      "y": 23
+    },
+    {
+      "id": "east_meadow_wall_23_24",
+      "type": "stone",
+      "x": 23,
+      "y": 24
+    },
+    {
+      "id": "east_meadow_wall_29_24",
+      "type": "stone",
+      "x": 29,
+      "y": 24
+    },
+    {
+      "id": "east_meadow_wall_23_25",
+      "type": "stone",
+      "x": 23,
+      "y": 25
+    },
+    {
+      "id": "east_meadow_wall_29_25",
+      "type": "stone",
+      "x": 29,
+      "y": 25
+    },
+    {
+      "id": "east_meadow_wall_23_26",
+      "type": "stone",
+      "x": 23,
+      "y": 26
+    },
+    {
+      "id": "east_meadow_wall_29_26",
+      "type": "stone",
+      "x": 29,
+      "y": 26
+    },
+    {
+      "id": "east_meadow_wall_23_27",
+      "type": "stone",
+      "x": 23,
+      "y": 27
+    },
+    {
+      "id": "east_meadow_wall_29_27",
+      "type": "stone",
+      "x": 29,
+      "y": 27
     }
   ],
   "entities": [
     {
-      "id": "east_meadow_tree_001",
+      "id": "fletcher_door",
       "components": {
         "position": {
-          "x": 8,
+          "x": 6,
+          "y": 9
+        },
+        "metadata": {
+          "name": "The Bent Bow door",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "fletcher",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Tamsin \u2014 The Bent Bow",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "fair",
+          "hairStyle": "bob",
+          "hairColor": "auburn",
+          "tunicColor": "rust",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "tamsin_shop"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "woodenBow"
+          }
+        },
+        "shop": {
+          "offers": [
+            {
+              "itemId": "woodenBow",
+              "buyPrice": 40,
+              "sellPrice": 16
+            },
+            {
+              "itemId": "arrow",
+              "buyPrice": 3,
+              "sellPrice": 1
+            },
+            {
+              "itemId": "leatherHelmet",
+              "buyPrice": 20,
+              "sellPrice": 8
+            },
+            {
+              "itemId": "leatherBoots",
+              "buyPrice": 15,
+              "sellPrice": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fletcher_stock",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Arrow practice chest",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Arrow",
+              "type": "arrow",
+              "count": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ranged_tutor",
+      "components": {
+        "position": {
+          "x": 13,
           "y": 8
         },
         "metadata": {
-          "name": "East Meadow Oak",
+          "name": "Iris Fletcher \u2014 Ranged Tutor",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "fair",
+          "hairStyle": "bob",
+          "hairColor": "auburn",
+          "tunicColor": "rust",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "ranged_tutor"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "woodenBow"
+          }
+        }
+      }
+    },
+    {
+      "id": "melee_tutor",
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Captain Ash \u2014 Melee Tutor",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "brown",
+          "hairStyle": "cropped",
+          "hairColor": "black",
+          "tunicColor": "slateBlue",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "melee_tutor"
+        },
+        "equipped": {
+          "slots": {
+            "offhand": "woodenShield",
+            "head": "leatherHelmet",
+            "chest": "chainmailChestplate",
+            "weapon": "ironSword"
+          }
+        }
+      }
+    },
+    {
+      "id": "practice_rat_1",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 5
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Field Rat",
+                "entityType": "rat"
+              },
+              "renderable": {
+                "type": "rat"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 25,
+                "currentHealth": 25
+              },
+              "basestats": {
+                "strength": 2,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {}
+              },
+              "combatstats": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "practice_rat_2",
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 5
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Field Rat",
+                "entityType": "rat"
+              },
+              "renderable": {
+                "type": "rat"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 25,
+                "currentHealth": 25
+              },
+              "basestats": {
+                "strength": 2,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {}
+              },
+              "combatstats": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_3_22",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_3_26",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_6_28",
+      "components": {
+        "position": {
+          "x": 6,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_10_28",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_14_25",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_13_21",
+      "components": {
+        "position": {
+          "x": 13,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rock_4_20",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 20
+        },
+        "metadata": {
+          "name": "Old quarry stone",
+          "type": "rock",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "rock"
+        }
+      }
+    },
+    {
+      "id": "quarry_rat_1",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 24
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Quarry Rat",
+                "entityType": "rat"
+              },
+              "renderable": {
+                "type": "rat"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 50,
+                "currentHealth": 50
+              },
+              "basestats": {
+                "strength": 4,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {}
+              },
+              "combatstats": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "quarry_rat_2",
+      "components": {
+        "position": {
+          "x": 11,
+          "y": 25
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Quarry Rat",
+                "entityType": "rat"
+              },
+              "renderable": {
+                "type": "rat"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 50,
+                "currentHealth": 50
+              },
+              "basestats": {
+                "strength": 4,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {}
+              },
+              "combatstats": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "outlaw_hideout_door",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Abandoned Watchhouse door",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "outlaw_spawn_1",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 24
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Watchhouse Outlaw",
+                "entityType": "outlaw"
+              },
+              "renderable": {
+                "type": "human"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 70,
+                "currentHealth": 70
+              },
+              "basestats": {
+                "strength": 5,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {
+                  "weapon": "woodcuttingAxe"
+                }
+              },
+              "combatstats": {},
+              "appearance": {
+                "skinTone": "fair",
+                "hairStyle": "bob",
+                "hairColor": "auburn",
+                "tunicColor": "rust",
+                "trousersColor": "umber",
+                "shoeColor": "oxblood"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "outlaw_spawn_2",
+      "components": {
+        "position": {
+          "x": 22,
+          "y": 26
+        },
+        "spawn": {
+          "respawnTicks": 40,
+          "entity": {
+            "components": {
+              "metadata": {
+                "name": "Roadside Outlaw",
+                "entityType": "outlaw"
+              },
+              "renderable": {
+                "type": "human"
+              },
+              "randomwalk": {
+                "walkTimer": 8,
+                "maxDistance": 3
+              },
+              "health": {
+                "maxHealth": 60,
+                "currentHealth": 60
+              },
+              "basestats": {
+                "strength": 4,
+                "dexterity": 3,
+                "vitality": 3
+              },
+              "equipped": {
+                "slots": {
+                  "weapon": "ironSword"
+                }
+              },
+              "combatstats": {},
+              "appearance": {
+                "skinTone": "fair",
+                "hairStyle": "bob",
+                "hairColor": "auburn",
+                "tunicColor": "rust",
+                "trousersColor": "umber",
+                "shoeColor": "oxblood"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "outlaw_cache",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Smuggler\u2019s cache",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Iron Ore",
+              "type": "material",
+              "count": 3
+            },
+            {
+              "name": "Ancient Scroll",
+              "type": "quest",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lookout",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 18
+        },
+        "metadata": {
+          "name": "Bains \u2014 Eastwatch Lookout",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "brown",
+          "hairStyle": "cropped",
+          "hairColor": "black",
+          "tunicColor": "slateBlue",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "bains_warning"
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_1_19",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -3134,21 +4186,444 @@
       }
     },
     {
-      "id": "east_meadow_rock_001",
+      "id": "east_meadow_tree_2_28",
       "components": {
         "position": {
-          "x": 24,
-          "y": 25
+          "x": 2,
+          "y": 28
         },
         "metadata": {
-          "name": "East Meadow Marker",
-          "type": "rock",
+          "name": "Eastwatch oak",
+          "type": "tree",
           "width": 1,
           "height": 1,
           "blocksMovement": true
         },
         "renderable": {
-          "type": "rock"
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_17_23",
+      "components": {
+        "position": {
+          "x": 17,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_19_29",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_29_2",
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 2
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_27_5",
+      "components": {
+        "position": {
+          "x": 27,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_28_10",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_24_12",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_30_18",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 18
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "east_meadow_tree_18_1",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Eastwatch oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "tamsin_counter",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Tamsin\u2019s counter",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "target_12_4",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Painted archery target",
+          "type": "archeryTarget",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "archeryTarget"
+        }
+      }
+    },
+    {
+      "id": "target_15_4",
+      "components": {
+        "position": {
+          "x": 15,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Painted archery target",
+          "type": "archeryTarget",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "archeryTarget"
+        }
+      }
+    },
+    {
+      "id": "target_18_4",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 4
+        },
+        "metadata": {
+          "name": "Painted archery target",
+          "type": "archeryTarget",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "archeryTarget"
+        }
+      }
+    },
+    {
+      "id": "east_lantern_3_10",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Eastwatch lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "east_lantern_10_12",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Eastwatch lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "east_lantern_19_12",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Eastwatch lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "east_lantern_23_29",
+      "components": {
+        "position": {
+          "x": 23,
+          "y": 29
+        },
+        "metadata": {
+          "name": "Eastwatch lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "watchhouse_table",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Outlaw\u2019s supper table",
+          "type": "tavernTable",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tavernTable"
+        }
+      }
+    },
+    {
+      "id": "watchhouse_books",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 22
+        },
+        "metadata": {
+          "name": "Weathered watch ledger",
+          "type": "bookcase",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bookcase"
         }
       }
     }

@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "id": "starter",
-  "displayName": "Starter Field",
+  "displayName": "Willowbrook Village",
   "coordinate": {
     "x": 0,
     "y": 0
@@ -21,21 +21,15 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
-    "stone",
-    "stone",
     "grass",
     "grass",
     "grass",
-    "stone",
     "grass",
-    "stone",
-    "stone",
-    "stone",
-    "stone",
-    "water",
     "grass",
-    "stone",
     "grass",
     "grass",
     "grass",
@@ -51,277 +45,6 @@
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "stone",
-    "grass",
-    "grass",
-    "stone",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "stone",
-    "grass",
-    "water",
-    "grass",
-    "grass",
-    "stone",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "stone",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "grass",
-    "grass",
-    "stone",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "water",
     "grass",
     "grass",
     "grass",
@@ -350,18 +73,18 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "water",
     "water",
     "water",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
     "road",
     "road",
     "road",
@@ -370,151 +93,238 @@
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "water",
-    "water",
-    "water",
-    "water",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "road",
-    "road",
-    "road",
-    "road",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "water",
     "water",
     "water",
-    "water",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "water",
-    "water",
-    "water",
-    "water",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
     "water",
     "water",
     "water",
-    "water",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "road",
-    "water",
-    "water",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
     "water",
     "water",
+    "water",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "water",
+    "water",
+    "water",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
@@ -522,12 +332,29 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -542,24 +369,24 @@
     "road",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "stone",
+    "stone",
+    "stone",
     "stone",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -573,25 +400,25 @@
     "road",
     "road",
     "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "road",
     "stone",
     "stone",
     "stone",
     "stone",
-    "stone",
-    "stone",
-    "stone",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -605,6 +432,71 @@
     "road",
     "road",
     "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
     "stone",
     "stone",
     "stone",
@@ -612,18 +504,81 @@
     "stone",
     "stone",
     "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -637,38 +592,12 @@
     "road",
     "road",
     "grass",
+    "grass",
     "stone",
     "stone",
     "stone",
     "stone",
     "stone",
-    "stone",
-    "stone",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
     "stone",
     "stone",
     "stone",
@@ -679,6 +608,9 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -688,6 +620,29 @@
     "grass",
     "grass",
     "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -695,6 +650,63 @@
     "grass",
     "grass",
     "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -708,26 +720,14 @@
     "stone",
     "stone",
     "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -740,26 +740,26 @@
     "stone",
     "stone",
     "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -771,38 +771,199 @@
     "stone",
     "stone",
     "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
+    "stone",
     "stone",
     "grass",
     "grass",
@@ -811,222 +972,61 @@
     "grass",
     "grass",
     "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
-    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "grass",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
+    "road",
     "grass",
     "grass",
     "grass",
@@ -1044,25 +1044,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    6,
-    6,
-    9,
-    9,
-    9,
-    9,
-    9,
-    9,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
     0,
     0,
     0,
@@ -1075,26 +1056,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    9,
-    9,
-    9,
-    9,
-    9,
-    9,
-    9,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
     0,
     0,
     0,
@@ -1107,26 +1068,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    9,
-    9,
-    9,
-    9,
-    9,
-    9,
-    9,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
     0,
     0,
     0,
@@ -1139,26 +1080,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    6,
-    9,
-    9,
-    9,
-    9,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1171,26 +1092,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    6,
-    6,
-    9,
-    9,
-    6,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1203,26 +1104,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1235,26 +1116,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1267,26 +1128,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1299,26 +1140,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    6,
-    6,
-    6,
-    6,
-    6,
-    3,
-    3,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1331,26 +1152,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    6,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1363,26 +1164,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1393,28 +1174,11 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
     0,
     0,
-    3,
     0,
     0,
     0,
@@ -1449,7 +1213,6 @@
     0,
     0,
     0,
-    3,
     0,
     0,
     0,
@@ -1481,8 +1244,6 @@
     0,
     0,
     0,
-    3,
-    3,
     0,
     0,
     0,
@@ -1513,9 +1274,6 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1545,16 +1303,10 @@
     0,
     0,
     0,
-    1,
-    1,
-    2,
     0,
-    1,
-    1,
     0,
     0,
     0,
-    1,
     0,
     0,
     0,
@@ -1577,23 +1329,6 @@
     0,
     0,
     0,
-    2,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
@@ -1609,68 +1344,22 @@
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
     0,
     0,
     0,
-    3,
-    7,
-    4,
-    2,
-    1,
     0,
     0,
     0,
     0,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
     0,
     0,
     0,
     0,
     0,
     0,
-    6,
-    5,
-    4,
-    10,
-    8,
-    1,
-    1,
     0,
     0,
     0,
@@ -1695,13 +1384,6 @@
     0,
     0,
     0,
-    2,
-    5,
-    7,
-    7,
-    4,
-    3,
-    3,
     0,
     0,
     0,
@@ -1726,15 +1408,7 @@
     0,
     0,
     0,
-    1,
-    4,
-    10,
-    7,
-    7,
-    7,
-    8,
     0,
-    1,
     0,
     0,
     0,
@@ -1758,14 +1432,6 @@
     0,
     0,
     0,
-    4,
-    3,
-    2,
-    9,
-    3,
-    4,
-    4,
-    5,
     0,
     0,
     0,
@@ -1790,15 +1456,7 @@
     0,
     0,
     0,
-    3,
-    3,
-    2,
     0,
-    5,
-    2,
-    1,
-    4,
-    1,
     0,
     0,
     0,
@@ -1823,14 +1481,6 @@
     0,
     0,
     0,
-    2,
-    3,
-    2,
-    1,
-    1,
-    2,
-    1,
-    1,
     0,
     0,
     0,
@@ -1857,12 +1507,6 @@
     0,
     0,
     0,
-    1,
-    1,
-    2,
-    4,
-    1,
-    1,
     0,
     0,
     0,
@@ -1889,7 +1533,6 @@
     0,
     0,
     0,
-    1,
     0,
     0,
     0,
@@ -1921,7 +1564,364 @@
     0,
     0,
     0,
-    2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
@@ -2085,7 +2085,6 @@
     false,
     false,
     false,
-    true,
     false,
     false,
     false,
@@ -2104,20 +2103,6 @@
     false,
     false,
     false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
     false,
     false,
     false,
@@ -2150,228 +2135,6 @@
     false,
     false,
     true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    true,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
     true,
     true,
     false,
@@ -2406,39 +2169,7 @@
     true,
     true,
     true,
-    true,
     false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    true,
-    true,
-    true,
     false,
     false,
     false,
@@ -2470,39 +2201,7 @@
     true,
     true,
     true,
-    true,
     false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    true,
-    true,
-    true,
-    true,
     false,
     false,
     false,
@@ -2534,6 +2233,37 @@
     true,
     true,
     true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
     true,
     false,
     false,
@@ -2563,10 +2293,280 @@
     false,
     false,
     false,
-    true,
-    true,
-    true,
-    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
     false,
     false,
     false,
@@ -3086,741 +3086,674 @@
   ],
   "walls": [
     {
-      "id": "wall_001",
+      "id": "starter_wall_2_2",
       "type": "wood",
-      "x": 1,
-      "y": 4
-    },
-    {
-      "id": "wall_002",
-      "type": "wood",
-      "x": 1,
-      "y": 3
-    },
-    {
-      "id": "wall_003",
-      "type": "wood",
-      "x": 1,
+      "x": 2,
       "y": 2
     },
     {
-      "id": "wall_004",
-      "type": "wood",
-      "x": 1,
-      "y": 1
-    },
-    {
-      "id": "wall_005",
+      "id": "starter_wall_2_9",
       "type": "wood",
       "x": 2,
-      "y": 1
+      "y": 9
     },
     {
-      "id": "wall_006",
+      "id": "starter_wall_3_2",
       "type": "wood",
       "x": 3,
-      "y": 1
+      "y": 2
     },
     {
-      "id": "wall_007",
+      "id": "starter_wall_3_9",
+      "type": "wood",
+      "x": 3,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_4_2",
       "type": "wood",
       "x": 4,
-      "y": 1
+      "y": 2
     },
     {
-      "id": "wall_008",
+      "id": "starter_wall_4_9",
+      "type": "wood",
+      "x": 4,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_5_2",
       "type": "wood",
       "x": 5,
-      "y": 1
+      "y": 2
     },
     {
-      "id": "wall_009",
+      "id": "starter_wall_5_9",
+      "type": "wood",
+      "x": 5,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_6_2",
       "type": "wood",
       "x": 6,
-      "y": 1
+      "y": 2
     },
     {
-      "id": "wall_011",
+      "id": "starter_wall_7_2",
       "type": "wood",
       "x": 7,
       "y": 2
     },
     {
-      "id": "wall_012",
+      "id": "starter_wall_7_9",
       "type": "wood",
       "x": 7,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_8_2",
+      "type": "wood",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_8_9",
+      "type": "wood",
+      "x": 8,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_9_2",
+      "type": "wood",
+      "x": 9,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_9_9",
+      "type": "wood",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_2_3",
+      "type": "wood",
+      "x": 2,
       "y": 3
     },
     {
-      "id": "wall_013",
+      "id": "starter_wall_9_3",
       "type": "wood",
-      "x": 7,
+      "x": 9,
+      "y": 3
+    },
+    {
+      "id": "starter_wall_2_4",
+      "type": "wood",
+      "x": 2,
       "y": 4
     },
     {
-      "id": "wall_014",
+      "id": "starter_wall_9_4",
       "type": "wood",
-      "x": 7,
-      "y": 5
-    },
-    {
-      "id": "wall_015",
-      "type": "wood",
-      "x": 7,
-      "y": 6
-    },
-    {
-      "id": "wall_016",
-      "type": "wood",
-      "x": 7,
-      "y": 7
-    },
-    {
-      "id": "wall_017",
-      "type": "wood",
-      "x": 7,
-      "y": 8
-    },
-    {
-      "id": "wall_018",
-      "type": "wood",
-      "x": 6,
-      "y": 8
-    },
-    {
-      "id": "wall_019",
-      "type": "wood",
-      "x": 6,
-      "y": 9
-    },
-    {
-      "id": "wall_020",
-      "type": "wood",
-      "x": 1,
+      "x": 9,
       "y": 4
     },
     {
-      "id": "wall_021",
+      "id": "starter_wall_2_5",
       "type": "wood",
-      "x": 1,
+      "x": 2,
       "y": 5
     },
     {
-      "id": "wall_022",
+      "id": "starter_wall_9_5",
       "type": "wood",
-      "x": 1,
+      "x": 9,
+      "y": 5
+    },
+    {
+      "id": "starter_wall_2_6",
+      "type": "wood",
+      "x": 2,
       "y": 6
     },
     {
-      "id": "wall_023",
+      "id": "starter_wall_9_6",
       "type": "wood",
-      "x": 1,
+      "x": 9,
+      "y": 6
+    },
+    {
+      "id": "starter_wall_2_7",
+      "type": "wood",
+      "x": 2,
       "y": 7
     },
     {
-      "id": "wall_024",
+      "id": "starter_wall_9_7",
       "type": "wood",
-      "x": 1,
+      "x": 9,
       "y": 7
     },
     {
-      "id": "wall_025",
-      "type": "wood",
-      "x": 1,
-      "y": 8
-    },
-    {
-      "id": "wall_026",
+      "id": "starter_wall_2_8",
       "type": "wood",
       "x": 2,
       "y": 8
     },
     {
-      "id": "wall_027",
+      "id": "starter_wall_9_8",
       "type": "wood",
-      "x": 2,
+      "x": 9,
+      "y": 8
+    },
+    {
+      "id": "starter_wall_22_2",
+      "type": "stone",
+      "x": 22,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_22_9",
+      "type": "stone",
+      "x": 22,
       "y": 9
     },
     {
-      "id": "wall_028",
+      "id": "starter_wall_23_2",
+      "type": "stone",
+      "x": 23,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_23_9",
+      "type": "stone",
+      "x": 23,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_24_2",
+      "type": "stone",
+      "x": 24,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_24_9",
+      "type": "stone",
+      "x": 24,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_25_2",
+      "type": "stone",
+      "x": 25,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_25_9",
+      "type": "stone",
+      "x": 25,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_26_2",
+      "type": "stone",
+      "x": 26,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_27_2",
+      "type": "stone",
+      "x": 27,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_27_9",
+      "type": "stone",
+      "x": 27,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_28_2",
+      "type": "stone",
+      "x": 28,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_28_9",
+      "type": "stone",
+      "x": 28,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_29_2",
+      "type": "stone",
+      "x": 29,
+      "y": 2
+    },
+    {
+      "id": "starter_wall_29_9",
+      "type": "stone",
+      "x": 29,
+      "y": 9
+    },
+    {
+      "id": "starter_wall_22_3",
+      "type": "stone",
+      "x": 22,
+      "y": 3
+    },
+    {
+      "id": "starter_wall_29_3",
+      "type": "stone",
+      "x": 29,
+      "y": 3
+    },
+    {
+      "id": "starter_wall_22_4",
+      "type": "stone",
+      "x": 22,
+      "y": 4
+    },
+    {
+      "id": "starter_wall_29_4",
+      "type": "stone",
+      "x": 29,
+      "y": 4
+    },
+    {
+      "id": "starter_wall_22_5",
+      "type": "stone",
+      "x": 22,
+      "y": 5
+    },
+    {
+      "id": "starter_wall_29_5",
+      "type": "stone",
+      "x": 29,
+      "y": 5
+    },
+    {
+      "id": "starter_wall_22_6",
+      "type": "stone",
+      "x": 22,
+      "y": 6
+    },
+    {
+      "id": "starter_wall_29_6",
+      "type": "stone",
+      "x": 29,
+      "y": 6
+    },
+    {
+      "id": "starter_wall_22_7",
+      "type": "stone",
+      "x": 22,
+      "y": 7
+    },
+    {
+      "id": "starter_wall_29_7",
+      "type": "stone",
+      "x": 29,
+      "y": 7
+    },
+    {
+      "id": "starter_wall_22_8",
+      "type": "stone",
+      "x": 22,
+      "y": 8
+    },
+    {
+      "id": "starter_wall_29_8",
+      "type": "stone",
+      "x": 29,
+      "y": 8
+    },
+    {
+      "id": "starter_wall_2_22",
+      "type": "wood",
+      "x": 2,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_2_29",
+      "type": "wood",
+      "x": 2,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_3_22",
       "type": "wood",
       "x": 3,
-      "y": 9
+      "y": 22
     },
     {
-      "id": "wall_029",
+      "id": "starter_wall_3_29",
+      "type": "wood",
+      "x": 3,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_4_22",
+      "type": "wood",
+      "x": 4,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_4_29",
+      "type": "wood",
+      "x": 4,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_5_22",
       "type": "wood",
       "x": 5,
-      "y": 9
+      "y": 22
     },
     {
-      "id": "wall_030",
+      "id": "starter_wall_5_29",
+      "type": "wood",
+      "x": 5,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_6_22",
+      "type": "wood",
+      "x": 6,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_7_22",
       "type": "wood",
       "x": 7,
-      "y": 1
+      "y": 22
     },
     {
-      "id": "wall_010",
-      "type": "stone",
-      "x": 1,
-      "y": 16
+      "id": "starter_wall_7_29",
+      "type": "wood",
+      "x": 7,
+      "y": 29
     },
     {
-      "id": "wall_031",
-      "type": "stone",
-      "x": 2,
-      "y": 16
-    },
-    {
-      "id": "wall_032",
-      "type": "stone",
-      "x": 3,
-      "y": 16
-    },
-    {
-      "id": "wall_033",
-      "type": "stone",
-      "x": 3,
-      "y": 17
-    },
-    {
-      "id": "wall_034",
-      "type": "stone",
-      "x": 3,
-      "y": 18
-    },
-    {
-      "id": "wall_035",
-      "type": "stone",
-      "x": 2,
-      "y": 18
-    },
-    {
-      "id": "wall_036",
-      "type": "stone",
-      "x": 1,
-      "y": 18
-    },
-    {
-      "id": "wall_037",
-      "type": "stone",
-      "x": 1,
-      "y": 17
-    },
-    {
-      "id": "wall_038",
-      "type": "stone",
+      "id": "starter_wall_8_22",
+      "type": "wood",
       "x": 8,
-      "y": 16
+      "y": 22
     },
     {
-      "id": "wall_039",
-      "type": "stone",
-      "x": 7,
-      "y": 16
-    },
-    {
-      "id": "wall_040",
-      "type": "stone",
-      "x": 7,
-      "y": 17
-    },
-    {
-      "id": "wall_041",
-      "type": "stone",
-      "x": 7,
-      "y": 18
-    },
-    {
-      "id": "wall_042",
-      "type": "stone",
+      "id": "starter_wall_8_29",
+      "type": "wood",
       "x": 8,
-      "y": 18
+      "y": 29
     },
     {
-      "id": "wall_043",
-      "type": "stone",
+      "id": "starter_wall_9_22",
+      "type": "wood",
       "x": 9,
-      "y": 18
+      "y": 22
     },
     {
-      "id": "wall_044",
-      "type": "stone",
+      "id": "starter_wall_9_29",
+      "type": "wood",
       "x": 9,
-      "y": 17
+      "y": 29
     },
     {
-      "id": "wall_045",
-      "type": "stone",
+      "id": "starter_wall_2_23",
+      "type": "wood",
+      "x": 2,
+      "y": 23
+    },
+    {
+      "id": "starter_wall_9_23",
+      "type": "wood",
       "x": 9,
-      "y": 16
+      "y": 23
     },
     {
-      "id": "wall_046",
-      "type": "stone",
-      "x": 13,
-      "y": 16
+      "id": "starter_wall_2_24",
+      "type": "wood",
+      "x": 2,
+      "y": 24
     },
     {
-      "id": "wall_047",
-      "type": "stone",
-      "x": 14,
-      "y": 16
+      "id": "starter_wall_9_24",
+      "type": "wood",
+      "x": 9,
+      "y": 24
     },
     {
-      "id": "wall_048",
-      "type": "stone",
-      "x": 15,
-      "y": 16
+      "id": "starter_wall_2_25",
+      "type": "wood",
+      "x": 2,
+      "y": 25
     },
     {
-      "id": "wall_049",
-      "type": "stone",
-      "x": 15,
-      "y": 17
+      "id": "starter_wall_9_25",
+      "type": "wood",
+      "x": 9,
+      "y": 25
     },
     {
-      "id": "wall_050",
-      "type": "stone",
-      "x": 15,
-      "y": 18
+      "id": "starter_wall_2_26",
+      "type": "wood",
+      "x": 2,
+      "y": 26
     },
     {
-      "id": "wall_051",
-      "type": "stone",
-      "x": 14,
-      "y": 18
+      "id": "starter_wall_9_26",
+      "type": "wood",
+      "x": 9,
+      "y": 26
     },
     {
-      "id": "wall_052",
-      "type": "stone",
-      "x": 13,
-      "y": 18
+      "id": "starter_wall_2_27",
+      "type": "wood",
+      "x": 2,
+      "y": 27
     },
     {
-      "id": "wall_053",
+      "id": "starter_wall_9_27",
+      "type": "wood",
+      "x": 9,
+      "y": 27
+    },
+    {
+      "id": "starter_wall_2_28",
+      "type": "wood",
+      "x": 2,
+      "y": 28
+    },
+    {
+      "id": "starter_wall_9_28",
+      "type": "wood",
+      "x": 9,
+      "y": 28
+    },
+    {
+      "id": "starter_wall_22_22",
       "type": "stone",
-      "x": 13,
-      "y": 17
+      "x": 22,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_22_29",
+      "type": "stone",
+      "x": 22,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_23_22",
+      "type": "stone",
+      "x": 23,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_23_29",
+      "type": "stone",
+      "x": 23,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_24_22",
+      "type": "stone",
+      "x": 24,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_24_29",
+      "type": "stone",
+      "x": 24,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_25_22",
+      "type": "stone",
+      "x": 25,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_25_29",
+      "type": "stone",
+      "x": 25,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_26_22",
+      "type": "stone",
+      "x": 26,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_27_22",
+      "type": "stone",
+      "x": 27,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_27_29",
+      "type": "stone",
+      "x": 27,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_28_22",
+      "type": "stone",
+      "x": 28,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_28_29",
+      "type": "stone",
+      "x": 28,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_29_22",
+      "type": "stone",
+      "x": 29,
+      "y": 22
+    },
+    {
+      "id": "starter_wall_29_29",
+      "type": "stone",
+      "x": 29,
+      "y": 29
+    },
+    {
+      "id": "starter_wall_22_23",
+      "type": "stone",
+      "x": 22,
+      "y": 23
+    },
+    {
+      "id": "starter_wall_29_23",
+      "type": "stone",
+      "x": 29,
+      "y": 23
+    },
+    {
+      "id": "starter_wall_22_24",
+      "type": "stone",
+      "x": 22,
+      "y": 24
+    },
+    {
+      "id": "starter_wall_29_24",
+      "type": "stone",
+      "x": 29,
+      "y": 24
+    },
+    {
+      "id": "starter_wall_22_25",
+      "type": "stone",
+      "x": 22,
+      "y": 25
+    },
+    {
+      "id": "starter_wall_29_25",
+      "type": "stone",
+      "x": 29,
+      "y": 25
+    },
+    {
+      "id": "starter_wall_22_26",
+      "type": "stone",
+      "x": 22,
+      "y": 26
+    },
+    {
+      "id": "starter_wall_29_26",
+      "type": "stone",
+      "x": 29,
+      "y": 26
+    },
+    {
+      "id": "starter_wall_22_27",
+      "type": "stone",
+      "x": 22,
+      "y": 27
+    },
+    {
+      "id": "starter_wall_29_27",
+      "type": "stone",
+      "x": 29,
+      "y": 27
+    },
+    {
+      "id": "starter_wall_22_28",
+      "type": "stone",
+      "x": 22,
+      "y": 28
+    },
+    {
+      "id": "starter_wall_29_28",
+      "type": "stone",
+      "x": 29,
+      "y": 28
     }
   ],
   "entities": [
     {
-      "id": "tree_001",
+      "id": "player_spawn",
       "components": {
         "position": {
-          "x": 20,
-          "y": 2
+          "x": 15,
+          "y": 18
         },
-        "metadata": {
-          "objectId": "tree_001",
-          "name": "tree_001",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
+        "playerSpawn": {}
       }
     },
     {
-      "id": "tree_002",
+      "id": "outfitters_door",
       "components": {
         "position": {
-          "x": 23,
-          "y": 2
-        },
-        "metadata": {
-          "objectId": "tree_002",
-          "name": "tree_002",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_003",
-      "components": {
-        "position": {
-          "x": 21,
-          "y": 1
-        },
-        "metadata": {
-          "objectId": "tree_003",
-          "name": "tree_003",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_004",
-      "components": {
-        "position": {
-          "x": 25,
-          "y": 2
-        },
-        "metadata": {
-          "objectId": "tree_004",
-          "name": "tree_004",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_005",
-      "components": {
-        "position": {
-          "x": 23,
-          "y": 4
-        },
-        "metadata": {
-          "objectId": "tree_005",
-          "name": "tree_005",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_006",
-      "components": {
-        "position": {
-          "x": 22,
-          "y": 4
-        },
-        "metadata": {
-          "objectId": "tree_006",
-          "name": "tree_006",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_007",
-      "components": {
-        "position": {
-          "x": 28,
-          "y": 1
-        },
-        "metadata": {
-          "objectId": "tree_007",
-          "name": "tree_007",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_010",
-      "components": {
-        "position": {
-          "x": 23,
-          "y": 7
-        },
-        "metadata": {
-          "objectId": "tree_010",
-          "name": "tree_010",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_011",
-      "components": {
-        "position": {
-          "x": 20,
-          "y": 5
-        },
-        "metadata": {
-          "objectId": "tree_011",
-          "name": "tree_011",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_012",
-      "components": {
-        "position": {
-          "x": 20,
-          "y": 4
-        },
-        "metadata": {
-          "objectId": "tree_012",
-          "name": "tree_012",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_013",
-      "components": {
-        "position": {
-          "x": 17,
-          "y": 2
-        },
-        "metadata": {
-          "objectId": "tree_013",
-          "name": "tree_013",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_014",
-      "components": {
-        "position": {
-          "x": 18,
-          "y": 0
-        },
-        "metadata": {
-          "objectId": "tree_014",
-          "name": "tree_014",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_015",
-      "components": {
-        "position": {
-          "x": 18,
-          "y": 5
-        },
-        "metadata": {
-          "objectId": "tree_015",
-          "name": "tree_015",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "tree_016",
-      "components": {
-        "position": {
-          "x": 21,
-          "y": 7
-        },
-        "metadata": {
-          "objectId": "tree_016",
-          "name": "tree_016",
-          "type": "tree",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "tree"
-        },
-        "woodcuttable": {
-          "maxDurability": 5,
-          "respawnTicks": 60,
-          "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
-          }
-        }
-      }
-    },
-    {
-      "id": "door_001",
-      "components": {
-        "position": {
-          "x": 4,
+          "x": 6,
           "y": 9
         },
         "metadata": {
-          "objectId": "door_001",
-          "name": "door_001",
+          "name": "Mara\u2019s Trail Supplies door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3836,261 +3769,318 @@
       }
     },
     {
-      "id": "chest_001",
+      "id": "forge_door",
       "components": {
         "position": {
-          "x": 2,
-          "y": 2
+          "x": 26,
+          "y": 9
         },
         "metadata": {
-          "objectId": "chest_001",
-          "name": "chest_001",
-          "type": "chest",
+          "name": "Ember & Iron door",
+          "type": "door",
           "width": 1,
           "height": 1,
           "blocksMovement": true
         },
         "renderable": {
-          "type": "chest"
+          "type": "door",
+          "orientation": "west"
         },
-        "lootable": {
-          "once": false,
-          "items": [
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "inn_door",
+      "components": {
+        "position": {
+          "x": 6,
+          "y": 29
+        },
+        "metadata": {
+          "name": "The Copper Kettle door",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "archive_door",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 29
+        },
+        "metadata": {
+          "name": "The Lantern Archive door",
+          "type": "door",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "door",
+          "orientation": "west"
+        },
+        "openable": {
+          "isOpen": false
+        }
+      }
+    },
+    {
+      "id": "starter_shopkeeper",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 5
+        },
+        "metadata": {
+          "name": "Mara \u2014 Trail Supplies",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "tan",
+          "hairStyle": "bob",
+          "hairColor": "golden",
+          "tunicColor": "mustard",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "mara_shop"
+        },
+        "shop": {
+          "offers": [
             {
-              "name": "Mysterious Key",
-              "type": "quest"
+              "itemId": "woodcuttingAxe",
+              "buyPrice": 25,
+              "sellPrice": 10
+            },
+            {
+              "itemId": "fishingRod",
+              "buyPrice": 25,
+              "sellPrice": 10
+            },
+            {
+              "itemId": "logs",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "rawFish",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "leatherBoots",
+              "buyPrice": 15,
+              "sellPrice": 6
             }
           ]
         }
       }
     },
     {
-      "id": "chest_002",
+      "id": "smith",
       "components": {
         "position": {
-          "x": 3,
-          "y": 2
+          "x": 25,
+          "y": 5
         },
         "metadata": {
-          "objectId": "chest_002",
-          "name": "chest_002",
-          "type": "chest",
+          "name": "Bram \u2014 Ember & Iron",
+          "type": "human",
           "width": 1,
           "height": 1,
-          "blocksMovement": true
+          "blocksMovement": true,
+          "entityType": "npc"
         },
         "renderable": {
-          "type": "chest"
-        }
-      }
-    },
-    {
-      "id": "rock_001",
-      "components": {
-        "position": {
-          "x": 16,
-          "y": 0
+          "type": "human"
         },
-        "metadata": {
-          "objectId": "rock_001",
-          "name": "rock_001",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
+        "appearance": {
+          "skinTone": "fair",
+          "hairStyle": "bob",
+          "hairColor": "auburn",
+          "tunicColor": "rust",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
         },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_002",
-      "components": {
-        "position": {
-          "x": 17,
-          "y": 0
+        "conversation": {
+          "conversationId": "bram_shop"
         },
-        "metadata": {
-          "objectId": "rock_002",
-          "name": "rock_002",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_003",
-      "components": {
-        "position": {
-          "x": 24,
-          "y": 0
-        },
-        "metadata": {
-          "objectId": "rock_003",
-          "name": "rock_003",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_005",
-      "components": {
-        "position": {
-          "x": 29,
-          "y": 2
-        },
-        "metadata": {
-          "objectId": "rock_005",
-          "name": "rock_005",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_006",
-      "components": {
-        "position": {
-          "x": 29,
-          "y": 0
-        },
-        "metadata": {
-          "objectId": "rock_006",
-          "name": "rock_006",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_007",
-      "components": {
-        "position": {
-          "x": 27,
-          "y": 0
-        },
-        "metadata": {
-          "objectId": "rock_007",
-          "name": "rock_007",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_008",
-      "components": {
-        "position": {
-          "x": 27,
-          "y": 3
-        },
-        "metadata": {
-          "objectId": "rock_008",
-          "name": "rock_008",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "rock_009",
-      "components": {
-        "position": {
-          "x": 28,
-          "y": 4
-        },
-        "metadata": {
-          "objectId": "rock_009",
-          "name": "rock_009",
-          "type": "rock",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "rock"
-        }
-      }
-    },
-    {
-      "id": "fishing_spot_001",
-      "components": {
-        "position": {
-          "x": 24,
-          "y": 14
-        },
-        "metadata": {
-          "objectId": "fishing_spot_001",
-          "name": "Fishing Spot",
-          "type": "fishingSpot",
-          "width": 1,
-          "height": 1,
-          "blocksMovement": true
-        },
-        "renderable": {
-          "type": "fishingSpot"
-        },
-        "fishable": {
-          "catchChancePercent": 5,
-          "yield": {
-            "name": "Raw Fish",
-            "type": "fish",
-            "count": 1
+        "equipped": {
+          "slots": {
+            "chest": "chainmailChestplate",
+            "weapon": "ironSword"
           }
+        },
+        "shop": {
+          "offers": [
+            {
+              "itemId": "ironSword",
+              "buyPrice": 40,
+              "sellPrice": 16
+            },
+            {
+              "itemId": "woodenShield",
+              "buyPrice": 25,
+              "sellPrice": 10
+            },
+            {
+              "itemId": "chainmailChestplate",
+              "buyPrice": 65,
+              "sellPrice": 26
+            },
+            {
+              "itemId": "ironLeggings",
+              "buyPrice": 45,
+              "sellPrice": 18
+            },
+            {
+              "itemId": "leatherHelmet",
+              "buyPrice": 20,
+              "sellPrice": 8
+            },
+            {
+              "itemId": "ironOre",
+              "buyPrice": 10,
+              "sellPrice": 4
+            }
+          ]
         }
       }
     },
     {
-      "id": "player_spawn",
+      "id": "innkeeper",
       "components": {
         "position": {
-          "x": 12,
-          "y": 14
+          "x": 5,
+          "y": 25
         },
-        "playerSpawn": {}
+        "metadata": {
+          "name": "Pip \u2014 The Copper Kettle",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "deep",
+          "hairStyle": "swept",
+          "hairColor": "gray",
+          "tunicColor": "burgundy",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "pip_inn"
+        },
+        "shop": {
+          "offers": [
+            {
+              "itemId": "bread",
+              "buyPrice": 5,
+              "sellPrice": 2
+            },
+            {
+              "itemId": "apple",
+              "buyPrice": 4,
+              "sellPrice": 1
+            },
+            {
+              "itemId": "healthPotion",
+              "buyPrice": 15,
+              "sellPrice": 6
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "arcanist",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Orla \u2014 Lantern Curios",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "porcelain",
+          "hairStyle": "swept",
+          "hairColor": "gray",
+          "tunicColor": "plum",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "orla_shop"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "magicStaff"
+          }
+        },
+        "shop": {
+          "offers": [
+            {
+              "itemId": "magicStaff",
+              "buyPrice": 50,
+              "sellPrice": 20
+            },
+            {
+              "itemId": "stone",
+              "buyPrice": 5,
+              "sellPrice": 2
+            }
+          ]
+        }
       }
     },
     {
       "id": "npc_001",
       "components": {
         "position": {
-          "x": 14,
-          "y": 2
+          "x": 11,
+          "y": 18
         },
         "metadata": {
-          "name": "DazKins",
+          "name": "DazKins \u2014 Village Warden",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
           "entityType": "npc"
         },
         "renderable": {
@@ -4104,35 +4094,24 @@
           "trousersColor": "charcoal",
           "shoeColor": "darkBrown"
         },
-        "randomwalk": {
-          "walkTimer": 10,
-          "maxDistance": 5
-        },
-        "health": {
-          "maxHealth": 100,
-          "currentHealth": 50
-        },
-        "basestats": {
-          "strength": 6,
-          "dexterity": 5,
-          "vitality": 6
-        },
-        "equipped": {},
-        "combatstats": {},
         "conversation": {
           "conversationId": "new_conversation"
         }
       }
     },
     {
-      "id": "npc_002",
+      "id": "village_guide",
       "components": {
         "position": {
-          "x": 28,
-          "y": 9
+          "x": 18,
+          "y": 19
         },
         "metadata": {
-          "name": "Bains",
+          "name": "June \u2014 Willowbrook Guide",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
           "entityType": "npc"
         },
         "renderable": {
@@ -4142,153 +4121,1057 @@
           "skinTone": "deep",
           "hairStyle": "curls",
           "hairColor": "black",
-          "tunicColor": "rust",
-          "trousersColor": "olive",
-          "shoeColor": "oxblood"
+          "tunicColor": "teal",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
         },
-        "randomwalk": {
-          "walkTimer": 10,
-          "maxDistance": 5
-        },
-        "health": {
-          "maxHealth": 100,
-          "currentHealth": 100
-        },
-        "basestats": {
-          "strength": 6,
-          "dexterity": 5,
-          "vitality": 6
-        },
-        "equipped": {},
-        "combatstats": {}
-      }
-    },
-    {
-      "id": "rat_spawn_001",
-      "components": {
-        "position": {
-          "x": 20,
-          "y": 8
-        },
-        "spawn": {
-          "respawnTicks": 20,
-          "entity": {
-            "components": {
-              "metadata": {
-                "name": "Rat",
-                "entityType": "rat"
-              },
-              "renderable": {
-                "type": "rat"
-              },
-              "randomwalk": {
-                "walkTimer": 10,
-                "maxDistance": 5
-              },
-              "health": {
-                "maxHealth": 100,
-                "currentHealth": 100
-              },
-              "basestats": {
-                "strength": 6,
-                "dexterity": 5,
-                "vitality": 6
-              },
-              "equipped": {},
-              "combatstats": {}
-            }
-          }
+        "conversation": {
+          "conversationId": "willowbrook_guide"
         }
       }
     },
     {
-      "id": "starter_shopkeeper",
+      "id": "magic_tutor",
       "components": {
         "position": {
-          "x": 14,
-          "y": 14
+          "x": 23,
+          "y": 19
         },
         "metadata": {
-          "name": "Mara the Merchant",
-          "entityType": "npc",
+          "name": "Sage Lumen \u2014 Magic Tutor",
+          "type": "human",
           "width": 1,
           "height": 1,
-          "blocksMovement": true
+          "blocksMovement": true,
+          "entityType": "npc"
         },
         "renderable": {
           "type": "human"
         },
         "appearance": {
-          "skinTone": "brown",
-          "hairStyle": "bob",
-          "hairColor": "black",
-          "tunicColor": "mustard",
-          "trousersColor": "umber",
+          "skinTone": "porcelain",
+          "hairStyle": "swept",
+          "hairColor": "gray",
+          "tunicColor": "plum",
+          "trousersColor": "charcoal",
           "shoeColor": "darkBrown"
         },
-        "shop": {
-          "offers": [
+        "conversation": {
+          "conversationId": "magic_tutor"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "magicStaff"
+          }
+        }
+      }
+    },
+    {
+      "id": "outfitters_stock",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Trail supplies chest",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
             {
-              "itemId": "ironSword",
-              "buyPrice": 40,
-              "sellPrice": 16
-            },
-            {
-              "itemId": "woodcuttingAxe",
-              "buyPrice": 25,
-              "sellPrice": 10
-            },
-            {
-              "itemId": "fishingRod",
-              "buyPrice": 25,
-              "sellPrice": 10
-            },
-            {
-              "itemId": "woodenBow",
-              "buyPrice": 40,
-              "sellPrice": 16
-            },
-            {
-              "itemId": "magicStaff",
-              "buyPrice": 50,
-              "sellPrice": 20
-            },
-            {
-              "itemId": "arrow",
-              "buyPrice": 3,
-              "sellPrice": 1
-            },
-            {
-              "itemId": "leatherHelmet",
-              "buyPrice": 20,
-              "sellPrice": 8
-            },
-            {
-              "itemId": "bread",
-              "buyPrice": 5,
-              "sellPrice": 2
-            },
-            {
-              "itemId": "healthPotion",
-              "buyPrice": 15,
-              "sellPrice": 6
-            },
-            {
-              "itemId": "logs",
-              "buyPrice": 5,
-              "sellPrice": 2
-            },
-            {
-              "itemId": "rawFish",
-              "buyPrice": 5,
-              "sellPrice": 2
-            },
-            {
-              "itemId": "ironOre",
-              "buyPrice": 10,
-              "sellPrice": 4
+              "name": "Logs",
+              "type": "material",
+              "count": 2
             }
           ]
+        }
+      }
+    },
+    {
+      "id": "forge_stock",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Bram\u2019s ore samples",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Iron Ore",
+              "type": "material",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "inn_pantry",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Pip\u2019s picnic hamper",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Bread",
+              "type": "consumable",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "archive_scroll",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Weathered expedition notes",
+          "type": "chest",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "chest"
+        },
+        "lootable": {
+          "once": true,
+          "items": [
+            {
+              "name": "Ancient Scroll",
+              "type": "quest",
+              "count": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "starter_tree_2_12",
+      "components": {
+        "position": {
+          "x": 2,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_8_12",
+      "components": {
+        "position": {
+          "x": 8,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_3_18",
+      "components": {
+        "position": {
+          "x": 3,
+          "y": 18
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_9_19",
+      "components": {
+        "position": {
+          "x": 9,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_20_3",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 3
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_19_8",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_29_12",
+      "components": {
+        "position": {
+          "x": 29,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_30_19",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 19
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_12_26",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_19_27",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 27
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_1_1",
+      "components": {
+        "position": {
+          "x": 1,
+          "y": 1
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_tree_30_30",
+      "components": {
+        "position": {
+          "x": 30,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Village oak",
+          "type": "tree",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tree"
+        },
+        "woodcuttable": {
+          "maxDurability": 5,
+          "respawnTicks": 60,
+          "yield": {
+            "name": "Logs",
+            "type": "material",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "starter_fish_12_6",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Village pond \u2014 fish here",
+          "type": "fishingSpot",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "fishingSpot"
+        },
+        "fishable": {
+          "catchChancePercent": 25,
+          "yield": {
+            "name": "Raw Fish",
+            "type": "fish",
+            "count": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "fishing_tutor",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 9
+        },
+        "metadata": {
+          "name": "Nessa Reed \u2014 Fishing Tutor",
+          "type": "human",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true,
+          "entityType": "npc"
+        },
+        "renderable": {
+          "type": "human"
+        },
+        "appearance": {
+          "skinTone": "deep",
+          "hairStyle": "curls",
+          "hairColor": "black",
+          "tunicColor": "teal",
+          "trousersColor": "charcoal",
+          "shoeColor": "darkBrown"
+        },
+        "conversation": {
+          "conversationId": "fishing_tutor"
+        },
+        "equipped": {
+          "slots": {
+            "weapon": "fishingRod"
+          }
+        }
+      }
+    },
+    {
+      "id": "founders_fountain",
+      "components": {
+        "position": {
+          "x": 14,
+          "y": 12
+        },
+        "metadata": {
+          "name": "Founders fountain",
+          "type": "fountain",
+          "width": 2,
+          "height": 2,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "fountain"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_11_11",
+      "components": {
+        "position": {
+          "x": 11,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_19_11",
+      "components": {
+        "position": {
+          "x": 19,
+          "y": 11
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_11_21",
+      "components": {
+        "position": {
+          "x": 11,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_20_21",
+      "components": {
+        "position": {
+          "x": 20,
+          "y": 21
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_4_10",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_28_10",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 10
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_4_30",
+      "components": {
+        "position": {
+          "x": 4,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "village_lantern_28_30",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 30
+        },
+        "metadata": {
+          "name": "Willowbrook lantern",
+          "type": "lantern",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "lantern"
+        }
+      }
+    },
+    {
+      "id": "square_bench_12_13",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 13
+        },
+        "metadata": {
+          "name": "Square bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "square_bench_18_13",
+      "components": {
+        "position": {
+          "x": 18,
+          "y": 13
+        },
+        "metadata": {
+          "name": "Square bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "square_bench_12_20",
+      "components": {
+        "position": {
+          "x": 12,
+          "y": 20
+        },
+        "metadata": {
+          "name": "Square bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "square_bench_16_20",
+      "components": {
+        "position": {
+          "x": 16,
+          "y": 20
+        },
+        "metadata": {
+          "name": "Square bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "mara_counter",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Shop counter",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "bram_counter",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Shop counter",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "pip_counter",
+      "components": {
+        "position": {
+          "x": 5,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Shop counter",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "orla_counter",
+      "components": {
+        "position": {
+          "x": 25,
+          "y": 26
+        },
+        "metadata": {
+          "name": "Shop counter",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "archive_books_24_23",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Lantern Archive bookcase",
+          "type": "bookcase",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bookcase"
+        }
+      }
+    },
+    {
+      "id": "archive_books_26_23",
+      "components": {
+        "position": {
+          "x": 26,
+          "y": 23
+        },
+        "metadata": {
+          "name": "Lantern Archive bookcase",
+          "type": "bookcase",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bookcase"
+        }
+      }
+    },
+    {
+      "id": "archive_books_24_28",
+      "components": {
+        "position": {
+          "x": 24,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Lantern Archive bookcase",
+          "type": "bookcase",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bookcase"
+        }
+      }
+    },
+    {
+      "id": "inn_table_7_24",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 24
+        },
+        "metadata": {
+          "name": "Copper Kettle supper table",
+          "type": "tavernTable",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tavernTable"
+        }
+      }
+    },
+    {
+      "id": "inn_table_7_27",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 27
+        },
+        "metadata": {
+          "name": "Copper Kettle supper table",
+          "type": "tavernTable",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "tavernTable"
+        }
+      }
+    },
+    {
+      "id": "inn_bench_7_25",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 25
+        },
+        "metadata": {
+          "name": "Copper Kettle bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "inn_bench_7_28",
+      "components": {
+        "position": {
+          "x": 7,
+          "y": 28
+        },
+        "metadata": {
+          "name": "Copper Kettle bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
+        }
+      }
+    },
+    {
+      "id": "forge_workbench",
+      "components": {
+        "position": {
+          "x": 28,
+          "y": 6
+        },
+        "metadata": {
+          "name": "Bram\u2019s workbench",
+          "type": "shopCounter",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "shopCounter"
+        }
+      }
+    },
+    {
+      "id": "pond_bench",
+      "components": {
+        "position": {
+          "x": 10,
+          "y": 8
+        },
+        "metadata": {
+          "name": "Nessa\u2019s fishing bench",
+          "type": "bench",
+          "width": 1,
+          "height": 1,
+          "blocksMovement": true
+        },
+        "renderable": {
+          "type": "bench"
         }
       }
     }

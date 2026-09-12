@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "id": "new_game",
-  "displayName": "New Game",
+  "displayName": "Willowbrook",
   "world": {
     "chunkSize": {
       "x": 32,
@@ -10,13 +10,15 @@
   },
   "files": {
     "chunks": [
+      "chunks/willow_wood.json",
       "chunks/starter.json",
       "chunks/east_meadow.json",
       "chunks/streaming_checkpoint.json",
       "chunks/far_plaza.json"
     ],
     "conversations": [
-      "conversations/new_conversation.json"
+      "conversations/new_conversation.json",
+      "conversations/willowbrook.json"
     ],
     "quests": [
       "quests/first_errand.json"

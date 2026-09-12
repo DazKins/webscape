@@ -128,8 +128,38 @@ components:
           $ref: "#/components/schemas/WoodcuttableComponent"
         fishable:
           $ref: "#/components/schemas/FishableComponent"
+        equipped:
+          $ref: "#/components/schemas/EquippedComponent"
         shop:
           $ref: "#/components/schemas/ShopComponent"
+
+    EquippedComponent:
+      type: object
+      additionalProperties: false
+      description: Authored equipment uses catalog ids; runtime replication expands them to item DTOs. Empty objects are allowed.
+      properties:
+        slots:
+          type: object
+          additionalProperties: false
+          properties:
+            weapon:
+              type: string
+              enum: [ironSword, woodcuttingAxe, fishingRod, woodenBow, magicStaff]
+            head:
+              type: string
+              enum: [leatherHelmet]
+            chest:
+              type: string
+              enum: [chainmailChestplate]
+            legs:
+              type: string
+              enum: [ironLeggings]
+            feet:
+              type: string
+              enum: [leatherBoots]
+            offhand:
+              type: string
+              enum: [woodenShield]
 
     RenderableComponent:
       type: object
@@ -139,7 +169,7 @@ components:
       properties:
         type:
           type: string
-          description: Renderer type, such as `door`, `chest`, or `human`.
+          description: Renderer type, such as `door`, `chest`, or `human`. Village scenery supports `lantern`, `bench`, `tavernTable`, `bookcase`, `shopCounter`, `archeryTarget`, and `fountain`; author a 2 by 2 metadata footprint for the fountain.
         orientation:
           type: string
           enum:
