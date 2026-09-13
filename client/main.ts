@@ -130,16 +130,32 @@ game.registerWsClient(wsClient);
 
 wsClient.connect();
 
+// Avoid rendering at 120/144+ FPS on high-refresh displays.
+const FRAME_INTERVAL_MS = 1000 / 60;
 let previousFrameTime: number | null = null;
+let nextFrameTime = 0;
+let animationFrameId = 0;
 
 function animate(frameTime: number) {
-  requestAnimationFrame(animate);
+  if (document.hidden) return;
+  animationFrameId = requestAnimationFrame(animate);
+  if (frameTime < nextFrameTime - 0.5) return;
 
   const deltaSeconds =
     previousFrameTime === null ? 0 : Math.min((frameTime - previousFrameTime) / 1000, 0.1);
   previousFrameTime = frameTime;
+  // Keep the cadence across skipped refreshes, without catching up after a stall.
+  nextFrameTime = Math.max(nextFrameTime + FRAME_INTERVAL_MS, frameTime);
 
   game.update(deltaSeconds);
 }
 
-requestAnimationFrame(animate);
+function resetAnimationLoop() {
+  cancelAnimationFrame(animationFrameId);
+  previousFrameTime = null;
+  nextFrameTime = 0;
+  if (!document.hidden) animationFrameId = requestAnimationFrame(animate);
+}
+
+document.addEventListener("visibilitychange", resetAnimationLoop);
+resetAnimationLoop();

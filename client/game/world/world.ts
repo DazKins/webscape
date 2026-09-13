@@ -40,6 +40,13 @@ class World {
   highlightedTile: { x: number; y: number } | undefined;
   selectedTileSeconds = 0;
   waterAnimationTime = 0;
+  private readonly pointerRaycaster = new THREE.Raycaster();
+  private readonly pointerNdc = new THREE.Vector2();
+  private readonly pointerViewProjection = new THREE.Matrix4();
+  private readonly previousPointerViewProjection = new THREE.Matrix4();
+  private readonly previousPointerNdc = new THREE.Vector2(Infinity, Infinity);
+  private pointerTile: { x: number; y: number } | undefined;
+  private pointerTileValid = false;
 
   constructor(scene: THREE.Scene, chunkSize: ChunkCoordinate, input: Input) {
     this.scene = scene;
@@ -55,6 +62,7 @@ class World {
   }
 
   applyChunkUpdate(update: ChunkUpdate) {
+    this.pointerTileValid = false;
     const affected = new Map<string, ChunkCoordinate>();
     for (const coordinate of update.unload ?? []) {
       this.disposeChunk(coordinate);
@@ -93,17 +101,30 @@ class World {
   getPointerTile(camera: Camera, viewport: ViewportSize) {
     if (this.input.isPointerBlocked()) return undefined;
     const pointer = this.input.getPointerPosition();
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(
-      new THREE.Vector2((pointer.x / viewport.width) * 2 - 1, -(pointer.y / viewport.height) * 2 + 1),
-      camera.getInnerCamera()
-    );
-    const hits = raycaster.intersectObjects([...this.chunks.values()].map((chunk) => chunk.terrainMesh), false);
-    if (hits.length === 0) return undefined;
-    const x = Math.floor(hits[0].point.x);
-    const y = Math.floor(hits[0].point.z);
-    const converted = this.globalToChunk(x, y);
-    return this.chunks.has(chunkKey(converted.coordinate)) ? { x, y } : undefined;
+    const innerCamera = camera.getInnerCamera();
+    // Picking happens before rendering, so refresh the camera's world matrix here.
+    innerCamera.updateMatrixWorld();
+    this.pointerNdc.set((pointer.x / viewport.width) * 2 - 1, -(pointer.y / viewport.height) * 2 + 1);
+    this.pointerViewProjection.multiplyMatrices(innerCamera.projectionMatrix, innerCamera.matrixWorldInverse);
+    if (
+      this.pointerTileValid &&
+      this.pointerNdc.equals(this.previousPointerNdc) &&
+      this.pointerViewProjection.equals(this.previousPointerViewProjection)
+    ) return this.pointerTile;
+
+    this.previousPointerNdc.copy(this.pointerNdc);
+    this.previousPointerViewProjection.copy(this.pointerViewProjection);
+    this.pointerTileValid = true;
+    this.pointerRaycaster.setFromCamera(this.pointerNdc, innerCamera);
+    const hits = this.pointerRaycaster.intersectObjects([...this.chunks.values()].map((chunk) => chunk.terrainMesh), false);
+    this.pointerTile = undefined;
+    if (hits.length > 0) {
+      const x = Math.floor(hits[0].point.x);
+      const y = Math.floor(hits[0].point.z);
+      const converted = this.globalToChunk(x, y);
+      if (this.chunks.has(chunkKey(converted.coordinate))) this.pointerTile = { x, y };
+    }
+    return this.pointerTile;
   }
 
   showTileIndicator(tile: { x: number; y: number }) {

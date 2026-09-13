@@ -181,7 +181,7 @@ export default class EntityRenderSystem {
         continue;
       }
 
-      if (!entities.find((e) => e.getId() === entityId)) {
+      if (!this.entitiesById.has(entityId)) {
         this.rememberCombatAnchor(entityId, renderer);
         this.clearTransientEffectsFor(entityId);
         renderer.onRemove();

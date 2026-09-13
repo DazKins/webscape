@@ -60,34 +60,36 @@ export default class Camera {
     );
   }
 
-  update(target: THREE.Vector3, options: { distance?: number; height?: number } = {}) {
+  update(target: THREE.Vector3, options: { distance?: number; height?: number } = {}, deltaSeconds = 1 / 60) {
+    const frameScale = deltaSeconds * 60;
+    const smoothing = 1 - Math.pow(0.9, frameScale);
     let heightChangedByInput = false;
 
     if (this.input.getKey("arrowleft")) {
-      this.angle += this.orbitSpeed;
+      this.angle += this.orbitSpeed * frameScale;
     }
     if (this.input.getKey("arrowright")) {
-      this.angle -= this.orbitSpeed;
+      this.angle -= this.orbitSpeed * frameScale;
     }
 
     if (this.input.getKey("arrowup")) {
-      this.height = Math.min(this.height + this.heightSpeed, this.maxHeight);
+      this.height = Math.min(this.height + this.heightSpeed * frameScale, this.maxHeight);
       heightChangedByInput = true;
     }
     if (this.input.getKey("arrowdown")) {
-      this.height = Math.max(this.height - this.heightSpeed, this.minHeight);
+      this.height = Math.max(this.height - this.heightSpeed * frameScale, this.minHeight);
       heightChangedByInput = true;
     }
 
     const desiredDistance = options.distance ?? this.distance;
     const desiredHeight = options.height ?? this.height;
 
-    this.cameraTarget.lerp(target, 0.1);
-    this.renderedDistance += (desiredDistance - this.renderedDistance) * 0.1;
+    this.cameraTarget.lerp(target, smoothing);
+    this.renderedDistance += (desiredDistance - this.renderedDistance) * smoothing;
     if (heightChangedByInput && options.height === undefined) {
       this.renderedHeight = desiredHeight;
     } else {
-      this.renderedHeight += (desiredHeight - this.renderedHeight) * 0.1;
+      this.renderedHeight += (desiredHeight - this.renderedHeight) * smoothing;
     }
 
     this.camera.position.x =

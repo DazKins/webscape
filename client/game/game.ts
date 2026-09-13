@@ -110,8 +110,8 @@ class Game extends EventTarget implements InputReceiver {
     this.activeConversation = null;
     this.observerFocus = { x: 0, y: 0 };
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.setSize(this.viewport.width, this.viewport.height);
     this.renderer.setClearColor(0x87ceeb);
     sceneLayerRoot.appendChild(this.renderer.domElement);
@@ -305,7 +305,7 @@ class Game extends EventTarget implements InputReceiver {
     return this.entities.find((entity) => entity.getId() === hitMesh.userData.entityId) ?? null;
   }
 
-  updateCamera() {
+  updateCamera(deltaSeconds: number) {
     const myEntity = this.getMyEntity();
     if (!myEntity) {
       const visualHeight = this.world
@@ -322,7 +322,8 @@ class Game extends EventTarget implements InputReceiver {
               distance: this.deviceProfile.isPortrait ? 7.1 : 6.4,
               height: this.deviceProfile.isPortrait ? 6.6 : 4.9,
             }
-          : {}
+          : {},
+        deltaSeconds,
       );
       return;
     }
@@ -339,7 +340,7 @@ class Game extends EventTarget implements InputReceiver {
       this.camera.update(myFocusPoint.clone().add(conversationTarget).multiplyScalar(0.5), {
         distance: conversationDistance,
         height: conversationHeight,
-      });
+      }, deltaSeconds);
       return;
     }
 
@@ -347,11 +348,11 @@ class Game extends EventTarget implements InputReceiver {
       this.camera.update(myFocusPoint, {
         distance: this.deviceProfile.isPortrait ? 7.1 : 6.4,
         height: this.deviceProfile.isPortrait ? 6.6 : 4.9,
-      });
+      }, deltaSeconds);
       return;
     }
 
-    this.camera.update(myFocusPoint);
+    this.camera.update(myFocusPoint, {}, deltaSeconds);
   }
 
   handleGameUpdate(gameUpdate: any) {
@@ -414,7 +415,7 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   update(deltaSeconds: number) {
-    this.updateCamera();
+    this.updateCamera(deltaSeconds);
     if (this.world) {
       this.world.update(this.camera, deltaSeconds, this.deviceProfile);
     }
@@ -450,7 +451,7 @@ class Game extends EventTarget implements InputReceiver {
 
     this.viewport = nextViewport;
     this.deviceProfile = getDeviceProfile(nextViewport);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.camera.onResize(nextViewport);
     this.renderer.setSize(nextViewport.width, nextViewport.height);
     this.cssRenderer2d.setSize(nextViewport.width, nextViewport.height);
