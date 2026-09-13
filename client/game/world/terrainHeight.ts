@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
-export const TERRAIN_HEIGHT_SCALE = 0.2;
+// Keep the editor's MapViewport3D HEIGHT_SCALE in sync.
+export const TERRAIN_HEIGHT_SCALE = 0.6;
 
 const HIGHLIGHT_SURFACE_OFFSET = 0.025;
 const WATER_SURFACE_OFFSET = 0.012;

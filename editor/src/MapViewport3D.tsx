@@ -37,7 +37,8 @@ type ViewportState = {
   resizeObserver: ResizeObserver;
 };
 
-const HEIGHT_SCALE = 0.2;
+// Match the playable client's TERRAIN_HEIGHT_SCALE.
+const HEIGHT_SCALE = 0.6;
 const TILE_BASE_DEPTH = 0.04;
 const MARKER_OFFSET = 0.035;
 
