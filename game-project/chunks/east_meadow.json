@@ -3497,7 +3497,7 @@
           "y": 9
         },
         "metadata": {
-          "name": "The Bent Bow door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3520,7 +3520,7 @@
           "y": 5
         },
         "metadata": {
-          "name": "Tamsin \u2014 The Bent Bow",
+          "name": "Tamsin",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3569,6 +3569,10 @@
               "sellPrice": 6
             }
           ]
+        },
+        "randomwalk": {
+          "walkTimer": 8,
+          "maxDistance": 1
         }
       }
     },
@@ -3580,7 +3584,7 @@
           "y": 3
         },
         "metadata": {
-          "name": "Arrow practice chest",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -3609,7 +3613,7 @@
           "y": 8
         },
         "metadata": {
-          "name": "Iris Fletcher \u2014 Ranged Tutor",
+          "name": "Iris Fletcher",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3634,6 +3638,10 @@
           "slots": {
             "weapon": "woodenBow"
           }
+        },
+        "randomwalk": {
+          "walkTimer": 11,
+          "maxDistance": 2
         }
       }
     },
@@ -3645,7 +3653,7 @@
           "y": 11
         },
         "metadata": {
-          "name": "Captain Ash \u2014 Melee Tutor",
+          "name": "Ash",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3673,6 +3681,10 @@
             "chest": "chainmailChestplate",
             "weapon": "ironSword"
           }
+        },
+        "randomwalk": {
+          "walkTimer": 14,
+          "maxDistance": 2
         }
       }
     },
@@ -3764,7 +3776,7 @@
           "y": 22
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3783,7 +3795,7 @@
           "y": 26
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3802,7 +3814,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3821,7 +3833,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3840,7 +3852,7 @@
           "y": 25
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3859,7 +3871,7 @@
           "y": 21
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3878,7 +3890,7 @@
           "y": 20
         },
         "metadata": {
-          "name": "Old quarry stone",
+          "name": "Rock",
           "type": "rock",
           "width": 1,
           "height": 1,
@@ -3977,7 +3989,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Abandoned Watchhouse door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -4100,7 +4112,7 @@
           "y": 22
         },
         "metadata": {
-          "name": "Smuggler\u2019s cache",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -4134,7 +4146,7 @@
           "y": 18
         },
         "metadata": {
-          "name": "Bains \u2014 Eastwatch Lookout",
+          "name": "Bains",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4154,6 +4166,10 @@
         },
         "conversation": {
           "conversationId": "bains_warning"
+        },
+        "randomwalk": {
+          "walkTimer": 4,
+          "maxDistance": 2
         }
       }
     },
@@ -4165,7 +4181,7 @@
           "y": 19
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4193,7 +4209,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4221,7 +4237,7 @@
           "y": 23
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4249,7 +4265,7 @@
           "y": 29
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4277,7 +4293,7 @@
           "y": 2
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4305,7 +4321,7 @@
           "y": 5
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4333,7 +4349,7 @@
           "y": 10
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4361,7 +4377,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4389,7 +4405,7 @@
           "y": 18
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4417,7 +4433,7 @@
           "y": 1
         },
         "metadata": {
-          "name": "Eastwatch oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4445,7 +4461,7 @@
           "y": 6
         },
         "metadata": {
-          "name": "Tamsin\u2019s counter",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -4464,7 +4480,7 @@
           "y": 4
         },
         "metadata": {
-          "name": "Painted archery target",
+          "name": "Target",
           "type": "archeryTarget",
           "width": 1,
           "height": 1,
@@ -4483,7 +4499,7 @@
           "y": 4
         },
         "metadata": {
-          "name": "Painted archery target",
+          "name": "Target",
           "type": "archeryTarget",
           "width": 1,
           "height": 1,
@@ -4502,7 +4518,7 @@
           "y": 4
         },
         "metadata": {
-          "name": "Painted archery target",
+          "name": "Target",
           "type": "archeryTarget",
           "width": 1,
           "height": 1,
@@ -4521,7 +4537,7 @@
           "y": 10
         },
         "metadata": {
-          "name": "Eastwatch lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4540,7 +4556,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Eastwatch lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4559,7 +4575,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Eastwatch lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4578,7 +4594,7 @@
           "y": 29
         },
         "metadata": {
-          "name": "Eastwatch lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4597,7 +4613,7 @@
           "y": 26
         },
         "metadata": {
-          "name": "Outlaw\u2019s supper table",
+          "name": "Table",
           "type": "tavernTable",
           "width": 1,
           "height": 1,
@@ -4616,7 +4632,7 @@
           "y": 22
         },
         "metadata": {
-          "name": "Weathered watch ledger",
+          "name": "Bookcase",
           "type": "bookcase",
           "width": 1,
           "height": 1,

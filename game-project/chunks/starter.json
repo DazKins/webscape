@@ -3753,7 +3753,7 @@
           "y": 9
         },
         "metadata": {
-          "name": "Mara\u2019s Trail Supplies door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3776,7 +3776,7 @@
           "y": 9
         },
         "metadata": {
-          "name": "Ember & Iron door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3799,7 +3799,7 @@
           "y": 29
         },
         "metadata": {
-          "name": "The Copper Kettle door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3822,7 +3822,7 @@
           "y": 29
         },
         "metadata": {
-          "name": "The Lantern Archive door",
+          "name": "Door",
           "type": "door",
           "width": 1,
           "height": 1,
@@ -3845,7 +3845,7 @@
           "y": 5
         },
         "metadata": {
-          "name": "Mara \u2014 Trail Supplies",
+          "name": "Mara",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3894,6 +3894,10 @@
               "sellPrice": 6
             }
           ]
+        },
+        "randomwalk": {
+          "walkTimer": 4,
+          "maxDistance": 1
         }
       }
     },
@@ -3905,7 +3909,7 @@
           "y": 5
         },
         "metadata": {
-          "name": "Bram \u2014 Ember & Iron",
+          "name": "Bram",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3965,6 +3969,10 @@
               "sellPrice": 4
             }
           ]
+        },
+        "randomwalk": {
+          "walkTimer": 7,
+          "maxDistance": 1
         }
       }
     },
@@ -3976,7 +3984,7 @@
           "y": 25
         },
         "metadata": {
-          "name": "Pip \u2014 The Copper Kettle",
+          "name": "Pip",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4015,6 +4023,10 @@
               "sellPrice": 6
             }
           ]
+        },
+        "randomwalk": {
+          "walkTimer": 10,
+          "maxDistance": 1
         }
       }
     },
@@ -4026,7 +4038,7 @@
           "y": 25
         },
         "metadata": {
-          "name": "Orla \u2014 Lantern Curios",
+          "name": "Orla",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4065,6 +4077,10 @@
               "sellPrice": 2
             }
           ]
+        },
+        "randomwalk": {
+          "walkTimer": 13,
+          "maxDistance": 1
         }
       }
     },
@@ -4076,7 +4092,7 @@
           "y": 18
         },
         "metadata": {
-          "name": "DazKins \u2014 Village Warden",
+          "name": "DazKins",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4096,6 +4112,10 @@
         },
         "conversation": {
           "conversationId": "new_conversation"
+        },
+        "randomwalk": {
+          "walkTimer": 16,
+          "maxDistance": 3
         }
       }
     },
@@ -4107,7 +4127,7 @@
           "y": 19
         },
         "metadata": {
-          "name": "June \u2014 Willowbrook Guide",
+          "name": "June",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4127,6 +4147,10 @@
         },
         "conversation": {
           "conversationId": "willowbrook_guide"
+        },
+        "randomwalk": {
+          "walkTimer": 6,
+          "maxDistance": 2
         }
       }
     },
@@ -4138,7 +4162,7 @@
           "y": 19
         },
         "metadata": {
-          "name": "Sage Lumen \u2014 Magic Tutor",
+          "name": "Lumen",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4163,6 +4187,10 @@
           "slots": {
             "weapon": "magicStaff"
           }
+        },
+        "randomwalk": {
+          "walkTimer": 9,
+          "maxDistance": 2
         }
       }
     },
@@ -4174,7 +4202,7 @@
           "y": 3
         },
         "metadata": {
-          "name": "Trail supplies chest",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -4203,7 +4231,7 @@
           "y": 3
         },
         "metadata": {
-          "name": "Bram\u2019s ore samples",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -4232,7 +4260,7 @@
           "y": 23
         },
         "metadata": {
-          "name": "Pip\u2019s picnic hamper",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -4261,7 +4289,7 @@
           "y": 23
         },
         "metadata": {
-          "name": "Weathered expedition notes",
+          "name": "Chest",
           "type": "chest",
           "width": 1,
           "height": 1,
@@ -4290,7 +4318,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4318,7 +4346,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4346,7 +4374,7 @@
           "y": 18
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4374,7 +4402,7 @@
           "y": 19
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4402,7 +4430,7 @@
           "y": 3
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4430,7 +4458,7 @@
           "y": 8
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4458,7 +4486,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4486,7 +4514,7 @@
           "y": 19
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4514,7 +4542,7 @@
           "y": 26
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4542,7 +4570,7 @@
           "y": 27
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4570,7 +4598,7 @@
           "y": 1
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4598,7 +4626,7 @@
           "y": 30
         },
         "metadata": {
-          "name": "Village oak",
+          "name": "Tree",
           "type": "tree",
           "width": 1,
           "height": 1,
@@ -4626,7 +4654,7 @@
           "y": 6
         },
         "metadata": {
-          "name": "Village pond \u2014 fish here",
+          "name": "Fishing spot",
           "type": "fishingSpot",
           "width": 1,
           "height": 1,
@@ -4653,7 +4681,7 @@
           "y": 9
         },
         "metadata": {
-          "name": "Nessa Reed \u2014 Fishing Tutor",
+          "name": "Nessa Reed",
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4678,6 +4706,10 @@
           "slots": {
             "weapon": "fishingRod"
           }
+        },
+        "randomwalk": {
+          "walkTimer": 12,
+          "maxDistance": 1
         }
       }
     },
@@ -4689,7 +4721,7 @@
           "y": 12
         },
         "metadata": {
-          "name": "Founders fountain",
+          "name": "Fountain",
           "type": "fountain",
           "width": 2,
           "height": 2,
@@ -4708,7 +4740,7 @@
           "y": 11
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4727,7 +4759,7 @@
           "y": 11
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4746,7 +4778,7 @@
           "y": 21
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4765,7 +4797,7 @@
           "y": 21
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4784,7 +4816,7 @@
           "y": 10
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4803,7 +4835,7 @@
           "y": 10
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4822,7 +4854,7 @@
           "y": 30
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4841,7 +4873,7 @@
           "y": 30
         },
         "metadata": {
-          "name": "Willowbrook lantern",
+          "name": "Lantern",
           "type": "lantern",
           "width": 1,
           "height": 1,
@@ -4860,7 +4892,7 @@
           "y": 13
         },
         "metadata": {
-          "name": "Square bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -4879,7 +4911,7 @@
           "y": 13
         },
         "metadata": {
-          "name": "Square bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -4898,7 +4930,7 @@
           "y": 20
         },
         "metadata": {
-          "name": "Square bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -4917,7 +4949,7 @@
           "y": 20
         },
         "metadata": {
-          "name": "Square bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -4936,7 +4968,7 @@
           "y": 6
         },
         "metadata": {
-          "name": "Shop counter",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -4955,7 +4987,7 @@
           "y": 6
         },
         "metadata": {
-          "name": "Shop counter",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -4974,7 +5006,7 @@
           "y": 26
         },
         "metadata": {
-          "name": "Shop counter",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -4993,7 +5025,7 @@
           "y": 26
         },
         "metadata": {
-          "name": "Shop counter",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -5012,7 +5044,7 @@
           "y": 23
         },
         "metadata": {
-          "name": "Lantern Archive bookcase",
+          "name": "Bookcase",
           "type": "bookcase",
           "width": 1,
           "height": 1,
@@ -5031,7 +5063,7 @@
           "y": 23
         },
         "metadata": {
-          "name": "Lantern Archive bookcase",
+          "name": "Bookcase",
           "type": "bookcase",
           "width": 1,
           "height": 1,
@@ -5050,7 +5082,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Lantern Archive bookcase",
+          "name": "Bookcase",
           "type": "bookcase",
           "width": 1,
           "height": 1,
@@ -5069,7 +5101,7 @@
           "y": 24
         },
         "metadata": {
-          "name": "Copper Kettle supper table",
+          "name": "Table",
           "type": "tavernTable",
           "width": 1,
           "height": 1,
@@ -5088,7 +5120,7 @@
           "y": 27
         },
         "metadata": {
-          "name": "Copper Kettle supper table",
+          "name": "Table",
           "type": "tavernTable",
           "width": 1,
           "height": 1,
@@ -5107,7 +5139,7 @@
           "y": 25
         },
         "metadata": {
-          "name": "Copper Kettle bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -5126,7 +5158,7 @@
           "y": 28
         },
         "metadata": {
-          "name": "Copper Kettle bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
@@ -5145,7 +5177,7 @@
           "y": 6
         },
         "metadata": {
-          "name": "Bram\u2019s workbench",
+          "name": "Counter",
           "type": "shopCounter",
           "width": 1,
           "height": 1,
@@ -5164,7 +5196,7 @@
           "y": 8
         },
         "metadata": {
-          "name": "Nessa\u2019s fishing bench",
+          "name": "Bench",
           "type": "bench",
           "width": 1,
           "height": 1,
