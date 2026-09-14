@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "server": {
+    "devMode": true,
+    "address": ":8080",
+    "tickIntervalMs": 500
+  },
+  "client": {
+    "folder": "client/dist"
+  },
+  "game": {
+    "folder": "game-project"
+  },
+  "streaming": {
+    "chunkRadius": 1
+  },
+  "persistence": {
+    "driver": "none"
+  }
+}

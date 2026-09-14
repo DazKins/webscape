@@ -12,9 +12,11 @@ import (
 	"webscape/server/game/world"
 )
 
-const configPath = "config.json"
-
 func main() {
+	configPath := os.Getenv("WEBSCAPE_CONFIG")
+	if configPath == "" {
+		configPath = "config.json"
+	}
 	runtimeConfig, err := config.LoadFromFile(configPath)
 	if err != nil {
 		log.Fatal(err)

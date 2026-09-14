@@ -35,8 +35,12 @@ cd client
 pnpm install --frozen-lockfile
 pnpm run build
 cd ..
-go run .
+WEBSCAPE_CONFIG=config.dev.json go run .
 ```
+
+This runs a temporary dev server at `http://localhost:8080` with frontend caching
+and persistence disabled. Stop it with Ctrl+C. Without `WEBSCAPE_CONFIG`, the
+server loads `config.json`.
 
 The editor runs separately from `editor/` with `pnpm run dev`.
 
