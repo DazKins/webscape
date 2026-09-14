@@ -474,6 +474,10 @@ export default class RendererHuman extends EntityRenderer {
     this.faceDirection(targetPosition.x - currentX, targetPosition.y - currentZ);
   }
 
+  getFacingRotationY(): number {
+    return this.visualRoot.rotation.y - HUMAN_MODEL_FORWARD_ROTATION_OFFSET;
+  }
+
   private faceDirection(deltaX: number, deltaZ: number) {
     if (deltaX === 0 && deltaZ === 0) {
       return;

@@ -1,0 +1,25 @@
+.minimap {
+  position: absolute;
+  top: var(--build-info-clearance);
+  left: max(16px, var(--safe-area-left));
+  width: clamp(120px, 23vh, 192px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(180, 202, 215, 0.45);
+  border-radius: 50%;
+  background: rgba(16, 24, 32, 0.9);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 720px), (max-height: 560px) {
+  .minimap {
+    left: max(8px, var(--safe-area-left));
+    width: 120px;
+  }
+}

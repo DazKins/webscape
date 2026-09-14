@@ -52,6 +52,11 @@ export default class Camera {
     return this.camera;
   }
 
+  getMapRotation(): number {
+    // World +X is east and +Z is south; rotate north-up terrain into camera space.
+    return Math.PI / 2 - this.angle;
+  }
+
   orbitByDrag(delta: { x: number; y: number }) {
     this.angle += delta.x * this.dragOrbitSpeed;
     this.height = Math.max(

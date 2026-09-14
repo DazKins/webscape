@@ -424,6 +424,7 @@ class Game extends EventTarget implements InputReceiver {
 
     this.renderer.render(this.scene, this.camera.getInnerCamera());
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
+    this.dispatchEvent(new Event("frameRendered"));
   }
 
   private estimatedServerTick(): number {
@@ -612,7 +613,7 @@ class Game extends EventTarget implements InputReceiver {
     return targetEntityId ? this.getEntityFocusPoint(targetEntityId) : null;
   }
 
-  private getEntityFocusPoint(entityId: string): THREE.Vector3 | null {
+  getEntityFocusPoint(entityId: string): THREE.Vector3 | null {
     const renderer = this.entityRenderSystem.getRenderers()[entityId];
     const object3D = renderer?.getObject3D();
     if (object3D) {

@@ -28,6 +28,10 @@ export default class EntityRenderer {
     return null;
   }
 
+  getFacingRotationY(): number | null {
+    return null;
+  }
+
   playAttackAnimation() {}
 
   getProjectileOrigin(_projectileType: string): THREE.Vector3 | null {

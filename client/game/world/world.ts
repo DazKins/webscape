@@ -255,7 +255,7 @@ function disposeObject(object: THREE.Object3D) {
   });
 }
 
-function terrainColor(type: string) {
+export function terrainColor(type: string) {
   switch (type) {
     case "grass": return 0x73964f;
     case "dirt": return 0x9a6b42;
