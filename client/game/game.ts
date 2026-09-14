@@ -420,7 +420,7 @@ class Game extends EventTarget implements InputReceiver {
       this.world.update(this.camera, deltaSeconds, this.deviceProfile);
     }
 
-    this.entityRenderSystem.update(this.entities, deltaSeconds);
+    this.entityRenderSystem.update(this.entities, deltaSeconds, this.getMyEntity()?.getId());
 
     this.renderer.render(this.scene, this.camera.getInnerCamera());
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());

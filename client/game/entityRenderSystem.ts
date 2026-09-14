@@ -1,3 +1,4 @@
+import { modelVariantReady } from "./assets/constructionClient";
 import ModelEntityRenderer from "./renderer/modelEntityRenderer";
 import * as THREE from "three";
 import RendererHuman from "./renderer/rendererHuman";
@@ -153,17 +154,29 @@ export default class EntityRenderSystem {
     return new RendererError(this.scene, entity, this.sampleVisualHeight);
   }
 
-  update(entities: Entity[], deltaSeconds: number) {
+  update(entities: Entity[], deltaSeconds: number, priorityEntityId?: string) {
     this.entitiesById = new Map(entities.map((entity) => [entity.getId(), entity]));
 
-    for (const entity of entities) {
+    // Update existing renderers every frame, but spread newly visible models
+    // across frames. The local player is always created first.
+    let constructionMilliseconds = 0;
+    const priority = priorityEntityId ? this.entitiesById.get(priorityEntityId) : undefined;
+    const ordered = priority ? [priority, ...entities.filter(entity => entity !== priority)] : entities;
+    for (const entity of ordered) {
       const renderableComponent = entity.getComponent("renderable");
       if (!renderableComponent) {
         continue;
       }
 
       let renderer = this.renderers[entity.getId()];
+      let constructionStarted: number | undefined;
       if (!renderer) {
+        if (constructionMilliseconds >= 3) continue;
+        if (renderableComponent.type === "building") {
+          const metadata = entity.getComponent("metadata") ?? {};
+          if (!modelVariantReady("building", { width: metadata.width ?? 1, height: metadata.height ?? 1 })) continue;
+        }
+        constructionStarted = performance.now();
         renderer = this.createRenderer(renderableComponent.type, entity);
         if (renderer) {
           this.renderers[entity.getId()] = renderer;
@@ -173,6 +186,7 @@ export default class EntityRenderSystem {
       }
 
       renderer!.update(deltaSeconds);
+      if (constructionStarted !== undefined) constructionMilliseconds += performance.now() - constructionStarted;
     }
 
     for (const entityId of Object.keys(this.renderers)) {

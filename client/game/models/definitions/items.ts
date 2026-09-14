@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sharedGeometry } from "../assetCache";
 import { box, cone, cylinder, dodecahedron, sphere, taperedBox, torus } from "../primitives";
 import { createModelInstance } from "../rig";
 import type { ModelFactory } from "../types";
@@ -48,12 +49,16 @@ export const createBreadModel = itemModel("bread", (root) => {
 
 export const createAppleModel = itemModel("apple", (root) => {
   const fruit = sphere(0.13, 10, 8, 0xb33429, { roughness: 0.5 });
-  const positions = fruit.geometry.getAttribute("position");
-  for (let index = 0; index < positions.count; index++) {
-    const y = positions.getY(index);
-    if (y > 0.09) positions.setY(index, y - (y - 0.09) * 0.5);
-  }
-  fruit.geometry.computeVertexNormals();
+  fruit.geometry = sharedGeometry("appleFruit", () => {
+    const geometry = fruit.geometry.clone();
+    const positions = geometry.getAttribute("position");
+    for (let index = 0; index < positions.count; index++) {
+      const y = positions.getY(index);
+      if (y > 0.09) positions.setY(index, y - (y - 0.09) * 0.5);
+    }
+    geometry.computeVertexNormals();
+    return geometry;
+  });
   place(root, fruit, 0, 0.13, 0);
   place(root, cylinder(0.012, 0.017, 0.075, 5, 0x65452c), 0, 0.266, 0);
   const leaf = sphere(0.06, 5, 3, 0x58853b);

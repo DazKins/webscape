@@ -1,0 +1,126 @@
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import net from "node:net";
+import { chromium } from "playwright";
+
+const port = await new Promise((resolve, reject) => {
+  const server = net.createServer();
+  server.on("error", reject);
+  server.listen(0, "127.0.0.1", () => {
+    const port = server.address().port;
+    server.close(() => resolve(port));
+  });
+});
+const origin = `http://127.0.0.1:${port}`;
+const server = spawn("node_modules/.bin/vite", ["--host", "127.0.0.1", "--port", String(port), "--strictPort"], { stdio: "ignore" });
+let browser;
+try {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      if ((await fetch(origin)).ok) break;
+    } catch { /* Vite is starting. */ }
+    assert(attempt < 100, "Vite failed to start");
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.goto(`${origin}/model-lab.html?capture=1`);
+  const result = await page.evaluate(async () => {
+    const THREE = await import("/node_modules/three/build/three.module.js");
+    const { createModel, modelAssets } = await import("/game/models/registry.ts");
+    const { clearSharedAssets } = await import("/game/models/assetCache.ts");
+    const { constructionClient, prepareModelAssets } = await import("/game/assets/constructionClient.ts");
+    const { createTerrainSurfaceGeometry } = await import("/game/world/terrainHeight.ts");
+    const { terrainColor } = await import("/game/assets/construction.ts");
+    const { construct } = await import("/game/assets/construction.ts");
+    const { default: World } = await import("/game/world/world.ts");
+    const errors = [];
+    const check = (ok, message) => { if (!ok) errors.push(message); };
+    await prepareModelAssets();
+    check(constructionClient.worker instanceof Worker, "construction did not run in a worker");
+    const a = createModel("tree"), b = createModel("tree");
+    const trunkA = a.root.getObjectByName("treeTrunk"), trunkB = b.root.getObjectByName("treeTrunk");
+    check(trunkA !== trunkB && trunkA.geometry === trunkB.geometry && trunkA.material === trunkB.material, "trees must share resources, not objects");
+    a.seek("hit", 0.2);
+    check(!a.root.getObjectByName("treeShake").quaternion.equals(b.root.getObjectByName("treeShake").quaternion), "tree animation leaked");
+    const damaged = createModel("tree", { damageStage: 3 });
+    check(damaged.root.getObjectByName("canopyDamage3").visible && !a.root.getObjectByName("canopyDamage3").visible, "tree damage leaked");
+    let disposed = 0; trunkA.geometry.addEventListener("dispose", () => disposed++);
+    a.dispose(); a.dispose(); modelAssets.clear(); clearSharedAssets();
+    check(disposed === 0, "cache clear disposed live tree geometry");
+    b.update(0.1); b.dispose();
+    check(disposed === 0, "damaged tree lost its geometry");
+    damaged.dispose(); check(disposed === 1, "last owner must dispose geometry once");
+
+    const humanA = createModel("human", { color: "red" }), humanB = createModel("human", { color: "blue" });
+    const torsoA = humanA.root.getObjectByName("torso").children.find(o => o.isMesh);
+    const torsoB = humanB.root.getObjectByName("torso").children.find(o => o.isMesh);
+    check(torsoA.geometry === torsoB.geometry && torsoA.material !== torsoB.material, "human geometry/appearance sharing incorrect");
+    const clone = humanA.clone();
+    check(clone.getSocket("rightHand") !== humanA.getSocket("rightHand"), "clone socket points at original");
+    clone.seek("run", 0.25);
+    check(!clone.getSocket("rightHand").parent.quaternion.equals(humanA.getSocket("rightHand").parent.quaternion), "cloned rig animation leaked");
+    humanA.dispose(); humanB.dispose(); clone.dispose();
+
+    const size = 4;
+    const chunk = { sizeX: size, sizeY: size, heights: Array.from({length: 36}, (_, i) => i % 4), terrain: Array(16).fill("grass"), walls: [{id:"a",type:"stone",x:0,y:0},{id:"b",type:"stone",x:1,y:0}] };
+    chunk.terrain[0] = "water";
+    const local = construct({kind:"chunk", chunk});
+    const remote = await constructionClient.run({kind:"chunk", chunk});
+    for (const name of ["position", "normal", "color"]) {
+      check(JSON.stringify([...local.surfaces.terrain.attributes[name].array]) === JSON.stringify([...remote.surfaces.terrain.attributes[name].array]), `worker ${name} mismatch`);
+    }
+    for (const name of ["position", "normal", "uv"]) {
+      check(JSON.stringify([...local.surfaces.water.attributes[name].array]) === JSON.stringify([...remote.surfaces.water.attributes[name].array]), `worker water ${name} mismatch`);
+    }
+    check(JSON.stringify(local.surfaces.walls) === JSON.stringify(remote.surfaces.walls), "worker wall placement mismatch");
+    const again = await constructionClient.run({kind:"chunk", chunk});
+    check(again.surfaces.wallGeometries[0][1].attributes.position.array.length > 0, "worker transferred cached source buffers");
+
+    const input = { isPointerBlocked: () => true };
+    const world = new World(new THREE.Scene(), {x:4,y:4}, input);
+    const data = {coordinate:{x:0,y:0},terrain:Array(16).fill("grass"),heights:Array(16).fill(1),walls:chunk.walls};
+    world.applyChunkUpdate({load:[data]});
+    world.applyChunkUpdate({unload:[data.coordinate]});
+    world.applyChunkUpdate({load:[{...data,heights:Array(16).fill(3)}]});
+    const visual = world.chunks.get("0,0");
+    for(let i=0;i<500;i++) {
+      world.update(null,0.016,{canHover:false,isCoarsePointer:true});
+      if (visual.terrainMesh.geometry.attributes.position) break;
+      await new Promise(resolve=>setTimeout(resolve,10));
+    }
+    const values = visual.terrainMesh.geometry.attributes.position?.array;
+    check(Boolean(values), "async chunk never attached");
+    if(values) check(Math.abs(values[13]-1.8)<1e-5, "stale chunk result overwrote replacement");
+    // A neighbor arriving during a rebuild must invalidate the previous border snapshot.
+    world.applyChunkUpdate({load:[{...data,coordinate:{x:1,y:0},heights:Array(16).fill(6)}]});
+    world.applyChunkUpdate({load:[{...data,coordinate:{x:1,y:1},heights:Array(16).fill(9)}]});
+    for(let i=0;i<500;i++) {
+      world.update(null,0.016,{canHover:false,isCoarsePointer:true});
+      if (!world.building && !world.dirty.size && !world.completed.size) break;
+      await new Promise(resolve=>setTimeout(resolve,10));
+    }
+    const expected = createTerrainSurfaceGeometry(visual.grid, visual.data.terrain, terrainColor);
+    check(JSON.stringify([...expected.attributes.position.array]) === JSON.stringify([...visual.terrainMesh.geometry.attributes.position.array]), "neighbor border snapshot became stale");
+    expected.dispose();
+    const liveWall = visual.root.getObjectByName("chunkWalls").children[0];
+    let wallDisposed = 0;
+    liveWall.geometry.addEventListener("dispose", () => wallDisposed++);
+    clearSharedAssets();
+    check(wallDisposed === 0, "cache clear disposed live wall");
+    world.applyChunkUpdate({load:[data]}); world.dispose();
+    await new Promise(resolve=>setTimeout(resolve,50));
+    check(world.chunks.size === 0, "disposed world resurrected chunks");
+    // Worker failures must keep the client usable through the local fallback.
+    constructionClient.worker.dispatchEvent(new Event("error"));
+    const fallback = await constructionClient.run({kind:"chunk", chunk});
+    check(fallback.surfaces.terrain.attributes.position.array.length > 0, "worker fallback failed");
+    modelAssets.clear(); clearSharedAssets();
+    return { errors };
+  });
+  assert.deepEqual(result.errors, []);
+  console.log("Checked shared resource lifetime, independent poses/appearances, worker parity, transferable reuse, and stale chunk results.");
+} finally {
+  await browser?.close();
+  server.kill("SIGTERM");
+}

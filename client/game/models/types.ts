@@ -32,6 +32,7 @@ export type ModelInstance = {
   playAt(animationName: string, normalizedTime: number, fadeSeconds?: number): void;
   update(deltaSeconds: number): void;
   seek(animationName: string, normalizedTime: number): void;
+  clone(): ModelInstance;
   dispose(): void;
 };
 

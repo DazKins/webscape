@@ -1,3 +1,5 @@
+import { AssetCache } from "./assetCache";
+import { setTreeDamageStage } from "./definitions/tree";
 import {
   createLanternModel, createBenchModel, createTavernTableModel,
   createBookcaseModel, createShopCounterModel, createArcheryTargetModel,
@@ -78,5 +80,20 @@ export function isModelName(value: string): value is ModelName {
 }
 
 export function createModel(name: ModelName, options: ModelOptions = {}): ModelInstance {
-  return modelRegistry[name](options);
+  // Share human parts without caching every combination of appearance options.
+  if (name === "human") return modelRegistry[name](options);
+  const { damageStage: _damageStage, ...visualOptions } = options;
+  const key = JSON.stringify([name, Object.entries(visualOptions).sort(([a], [b]) => a.localeCompare(b))]);
+  let template = templates.get(key);
+  if (!template) {
+    template = modelRegistry[name](visualOptions);
+    templates.set(key, template);
+  }
+  const instance = template.clone();
+  if (name === "tree") setTreeDamageStage(instance.root, options.damageStage ?? 0);
+  return instance;
 }
+
+const templates = new AssetCache<ModelInstance>(64, model => model.dispose());
+
+export const modelAssets = { instantiate: createModel, clear: () => templates.clear() };

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sharedGeometry } from "../assetCache";
 import { box, mesh, sphere } from "../primitives";
 import { animation, createModelInstance, joint } from "../rig";
 import type { ModelFactory } from "../types";
@@ -27,16 +28,19 @@ export const createChestModel: ModelFactory = () => {
   }
   const lidHinge = joint("lidHinge", root, [0, 0.41, -0.27]);
   // Extrude a semicircle along x: a barrel lid with closed end faces.
-  const profile = new THREE.Shape();
-  profile.moveTo(-0.285, 0);
-  for (let i = 0; i <= 6; i++) {
-    const angle = Math.PI - i * Math.PI / 6;
-    profile.lineTo(Math.cos(angle) * 0.285, Math.sin(angle) * 0.285);
-  }
-  profile.closePath();
-  const geometry = new THREE.ExtrudeGeometry(profile, { depth: 0.75, bevelEnabled: false, steps: 1 });
-  geometry.translate(0, 0, -0.375);
-  geometry.rotateY(Math.PI / 2);
+  const geometry = sharedGeometry("chestLid", () => {
+    const profile = new THREE.Shape();
+    profile.moveTo(-0.285, 0);
+    for (let i = 0; i <= 6; i++) {
+      const angle = Math.PI - i * Math.PI / 6;
+      profile.lineTo(Math.cos(angle) * 0.285, Math.sin(angle) * 0.285);
+    }
+    profile.closePath();
+    const geometry = new THREE.ExtrudeGeometry(profile, { depth: 0.75, bevelEnabled: false, steps: 1 });
+    geometry.translate(0, 0, -0.375);
+    geometry.rotateY(Math.PI / 2);
+    return geometry;
+  });
   const lid = mesh(geometry, 0xb58046);
   lid.position.z = 0.27;
   lidHinge.add(lid);

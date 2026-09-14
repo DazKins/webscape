@@ -27,7 +27,8 @@ try {
   await page.goto(`${origin}/model-lab.html?capture=1`);
   const result = await page.evaluate(async () => {
     const THREE = await import("/node_modules/three/build/three.module.js");
-    const { createModel, modelNames } = await import("/game/models/registry.ts");
+    const { createModel, modelNames, modelAssets } = await import("/game/models/registry.ts");
+    const { clearSharedAssets } = await import("/game/models/assetCache.ts");
     const { applyModelTransform, getEquipmentPresentation } = await import("/game/models/equipment.ts");
     const { default: RendererArrow } = await import("/game/renderer/rendererArrow.ts");
     const { default: RendererMagicBolt } = await import("/game/renderer/rendererMagicBolt.ts");
@@ -89,6 +90,8 @@ try {
       }
       model.dispose();
       model.dispose();
+      modelAssets.clear();
+      clearSharedAssets();
       for (const resource of owned) check(resource.userData.disposeCount() === 1, `${name}: resource not disposed exactly once`);
       resources += owned.size;
     }

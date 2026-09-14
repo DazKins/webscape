@@ -1,16 +1,20 @@
+import { constructionClient } from "../assets/constructionClient";
+import type { ChunkBuild, ChunkSurfaces } from "../assets/construction";
+import { unpackGeometry } from "../assets/geometryData";
+import { retainResource, releaseResource, sharedGeometry } from "../models/assetCache";
 import * as THREE from "three";
 import Input from "../../input";
 import Camera from "../camera";
 import type { DeviceProfile, ViewportSize } from "../../responsive";
-import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
+import { wallMaterial, type WorldWall } from "../renderer/rendererWall";
 import {
-  createTerrainSurfaceGeometry,
   createTileHighlightGeometry,
-  createWaterSurfaceGeometry,
   getTileHeight,
   sampleTerrainHeight,
   type TerrainHeightGrid,
 } from "./terrainHeight";
+
+export { terrainColor } from "../assets/construction";
 
 const WATER_GLINT_SPEED = 1.15;
 
@@ -29,6 +33,7 @@ type ChunkVisual = {
   terrainMesh: THREE.Mesh;
   waterMaterial?: THREE.ShaderMaterial;
   grid: TerrainHeightGrid;
+  revision: number;
 };
 
 class World {
@@ -47,6 +52,10 @@ class World {
   private readonly previousPointerNdc = new THREE.Vector2(Infinity, Infinity);
   private pointerTile: { x: number; y: number } | undefined;
   private pointerTileValid = false;
+  private disposed = false;
+  private building = false;
+  private dirty = new Set<string>();
+  private completed = new Map<string, { visual: ChunkVisual; revision: number; surfaces: ChunkSurfaces }>();
 
   constructor(scene: THREE.Scene, chunkSize: ChunkCoordinate, input: Input) {
     this.scene = scene;
@@ -78,11 +87,12 @@ class World {
       this.chunks.set(chunkKey(data.coordinate), this.createChunk(data));
       this.addAffected(affected, data.coordinate);
     }
-    // Build surfaces once after all incoming chunks are registered, so terrain can sample neighbors.
+    // Queue builds after registering the full update, so each snapshot includes neighbors.
     for (const coordinate of affected.values()) {
       const visual = this.chunks.get(chunkKey(coordinate));
-      if (visual) this.rebuildSurfaces(visual);
+      if (visual) { visual.revision++; this.dirty.add(chunkKey(coordinate)); }
     }
+    this.startNextBuild();
   }
 
   getVisualHeightAtWorldPosition(worldX: number, worldZ: number) {
@@ -140,6 +150,13 @@ class World {
   }
 
   update(camera: Camera, deltaSeconds: number, profile: DeviceProfile) {
+    // Attach at most one completed chunk per frame to limit scene/GPU upload bursts.
+    for (const [key, result] of this.completed) {
+      this.completed.delete(key);
+      if (this.chunks.get(key) !== result.visual || result.visual.revision !== result.revision) continue;
+      this.installSurfaces(result.visual, result.surfaces);
+      break;
+    }
     this.waterAnimationTime += deltaSeconds;
     for (const chunk of this.chunks.values()) {
       if (chunk.waterMaterial) chunk.waterMaterial.uniforms.time.value = this.waterAnimationTime * WATER_GLINT_SPEED;
@@ -160,6 +177,9 @@ class World {
   }
 
   dispose() {
+    this.disposed = true;
+    this.dirty.clear();
+    this.completed.clear();
     for (const chunk of [...this.chunks.values()]) {
       this.disposeChunk(chunk.data.coordinate);
     }
@@ -180,8 +200,7 @@ class World {
     const grid = this.createGrid(data);
     const terrainMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide }));
     root.add(terrainMesh);
-    addWallGeometry(root, data.walls ?? [], (x, z) => sampleTerrainHeight(grid, x, z));
-    return { data, root, terrainMesh, grid };
+    return { data, root, terrainMesh, grid, revision: 0 };
   }
 
   private createGrid(data: ChunkLoad): TerrainHeightGrid {
@@ -200,19 +219,67 @@ class World {
     };
   }
 
-  private rebuildSurfaces(chunk: ChunkVisual) {
+  private startNextBuild() {
+    if (this.disposed || this.building) return;
+    for (const key of this.dirty) {
+      this.dirty.delete(key);
+      const visual = this.chunks.get(key);
+      if (!visual) continue;
+      const revision = visual.revision;
+      const heights: number[] = [];
+      for (let y = -1; y <= this.chunkSize.y; y++) {
+        for (let x = -1; x <= this.chunkSize.x; x++) {
+          // Worker input uses authored height units, including diagonal neighbors.
+          const global = this.globalToChunk(visual.data.coordinate.x * this.chunkSize.x + x, visual.data.coordinate.y * this.chunkSize.y + y);
+          const neighbor = this.chunks.get(chunkKey(global.coordinate));
+          heights.push(neighbor?.data.heights[global.local.y * this.chunkSize.x + global.local.x] ?? 0);
+        }
+      }
+      const chunk: ChunkBuild = { sizeX: this.chunkSize.x, sizeY: this.chunkSize.y,
+        heights, terrain: visual.data.terrain, walls: visual.data.walls ?? [] };
+      this.building = true;
+      constructionClient.run({ kind: "chunk", chunk }).then(result => {
+        if (!this.disposed && this.chunks.get(key) === visual && visual.revision === revision && result.kind === "chunk") {
+          this.completed.set(key, { visual, revision, surfaces: result.surfaces });
+        }
+      }).catch(error => console.error("Chunk construction failed", error)).finally(() => {
+        this.building = false;
+        this.startNextBuild();
+      });
+      break;
+    }
+  }
+
+  private installSurfaces(chunk: ChunkVisual, surfaces: ChunkSurfaces) {
     chunk.terrainMesh.geometry.dispose();
-    chunk.terrainMesh.geometry = createTerrainSurfaceGeometry(chunk.grid, chunk.data.terrain, terrainColor);
-    const oldWater = chunk.root.getObjectByName("chunkWater") as THREE.Mesh | undefined;
-    if (oldWater) { disposeObject(oldWater); chunk.root.remove(oldWater); }
+    chunk.terrainMesh.geometry = unpackGeometry(surfaces.terrain);
+    for (const name of ["chunkWater", "chunkWalls"]) {
+      const old = chunk.root.getObjectByName(name);
+      if (old) { disposeObject(old); chunk.root.remove(old); }
+    }
     chunk.waterMaterial = undefined;
-    const waterGeometry = createWaterSurfaceGeometry(chunk.grid, chunk.data.terrain);
-    if ((waterGeometry.getAttribute("position")?.count ?? 0) === 0) { waterGeometry.dispose(); return; }
-    chunk.waterMaterial = createWaterGlintMaterial();
-    const water = new THREE.Mesh(waterGeometry, chunk.waterMaterial);
-    water.name = "chunkWater";
-    water.renderOrder = 1;
-    chunk.root.add(water);
+    if (surfaces.water.attributes.position.array.length > 0) {
+      chunk.waterMaterial = createWaterGlintMaterial();
+      const water = new THREE.Mesh(unpackGeometry(surfaces.water), chunk.waterMaterial);
+      water.name = "chunkWater";
+      water.renderOrder = 1;
+      chunk.root.add(water);
+    }
+    const walls = new THREE.Group();
+    walls.name = "chunkWalls";
+    const geometries = surfaces.wallGeometries.map(([key, data]) => sharedGeometry(key, () => unpackGeometry(data)));
+    for (const part of surfaces.walls) {
+      const geometry = geometries[part.geometry];
+      const material = wallMaterial(part.type);
+      retainResource(geometry); retainResource(material);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.fromArray(part.position);
+      mesh.quaternion.fromArray(part.quaternion);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      walls.add(mesh);
+    }
+    chunk.root.add(walls);
+    this.pointerTileValid = false;
   }
 
   private disposeChunk(coordinate: ChunkCoordinate) {
@@ -222,6 +289,8 @@ class World {
     this.scene.remove(chunk.root);
     disposeObject(chunk.root);
     this.chunks.delete(key);
+    this.dirty.delete(key);
+    this.completed.delete(key);
   }
 
   private addAffected(result: Map<string, ChunkCoordinate>, coordinate: ChunkCoordinate) {
@@ -244,24 +313,12 @@ function chunkKey(coordinate: ChunkCoordinate) { return `${coordinate.x},${coord
 function disposeObject(object: THREE.Object3D) {
   object.traverse((child) => {
     const mesh = child as THREE.Mesh;
-    mesh.geometry?.dispose();
+    if (mesh.geometry) releaseResource(mesh.geometry);
     const materials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
     for (const material of materials) {
-      for (const value of Object.values(material)) if (value instanceof THREE.Texture) value.dispose();
-      material.dispose();
+      releaseResource(material);
     }
   });
-}
-
-export function terrainColor(type: string) {
-  switch (type) {
-    case "grass": return 0x73964f;
-    case "dirt": return 0x9a6b42;
-    case "road": return 0xb8ab88;
-    case "water": return 0x4f8fb8;
-    case "stone": return 0x8b9296;
-    default: return 0xe77d11;
-  }
 }
 
 function createWaterGlintMaterial() {

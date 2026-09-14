@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { retainResource, releaseResource } from "./assetCache";
 import type {
   JointPose,
   ModelInstance,
@@ -72,6 +73,7 @@ class RiggedModelInstance implements ModelInstance {
     const resources = captureResources(root);
     this.geometries = resources.geometries;
     this.materials = resources.materials;
+    for (const resource of [...this.geometries, ...this.materials]) retainResource(resource);
   }
 
   getSocket(name: string): THREE.Object3D | undefined {
@@ -115,6 +117,8 @@ class RiggedModelInstance implements ModelInstance {
 
   update(deltaSeconds: number): void {
     this.assertAvailable();
+    if (!this.active) return;
+    if (!this.previous && !this.active.animation.loop && this.active.time >= this.active.animation.duration) return;
     const elapsed = Math.max(0, deltaSeconds);
     if (this.active) {
       this.active.time += elapsed;
@@ -140,16 +144,40 @@ class RiggedModelInstance implements ModelInstance {
     this.applyPose(animationDefinition.sample(phase));
   }
 
+  clone(): ModelInstance {
+    this.assertAvailable();
+    const root = this.root.clone(true);
+    const objects = new Map<THREE.Object3D, THREE.Object3D>();
+    function pair(source: THREE.Object3D, target: THREE.Object3D) {
+      objects.set(source, target);
+      source.children.forEach((child, index) => pair(child, target.children[index]));
+    }
+    pair(this.root, root);
+    const joints = Object.fromEntries(Object.entries(this.joints).map(([name, object]) => {
+      const cloned = objects.get(object)! as THREE.Group;
+      applyTransform(cloned, this.bindPose[name]);
+      return [name, cloned];
+    }));
+    const sockets = Object.fromEntries(Object.entries(this.sockets).map(([name, object]) => [name, objects.get(object)!]));
+    const instance = new RiggedModelInstance(root, joints, this.animations, sockets);
+    instance.active = this.active ? { ...this.active } : null;
+    instance.previous = this.previous ? { ...this.previous } : null;
+    instance.fadeSeconds = this.fadeSeconds;
+    instance.fadeElapsed = this.fadeElapsed;
+    instance.applyCurrentPose();
+    return instance;
+  }
+
   dispose(): void {
     if (this.isDisposed) {
       return;
     }
 
     for (const geometry of this.geometries) {
-      geometry.dispose();
+      releaseResource(geometry);
     }
     for (const material of this.materials) {
-      material.dispose();
+      releaseResource(material);
     }
 
     this.root.removeFromParent();
@@ -186,7 +214,14 @@ class RiggedModelInstance implements ModelInstance {
 
   private applyPose(pose: ModelPose): void {
     for (const [name, object] of Object.entries(this.joints)) {
-      applyTransform(object, poseTransform(this.bindPose[name], pose[name]));
+      const bind = this.bindPose[name];
+      const offset = pose[name];
+      object.position.copy(bind.position);
+      if (offset?.position) object.position.add(scratchPosition.set(...offset.position));
+      object.quaternion.copy(bind.quaternion);
+      if (offset?.rotation) object.quaternion.multiply(scratchQuaternion.setFromEuler(scratchEuler.set(...offset.rotation)));
+      object.scale.copy(bind.scale);
+      if (offset?.scale) object.scale.multiply(scratchPosition.set(...offset.scale));
     }
   }
 
@@ -273,3 +308,7 @@ function playbackPhase(playback: Playback): number {
   }
   return (time % definition.duration) / definition.duration;
 }
+
+const scratchPosition = new THREE.Vector3();
+const scratchQuaternion = new THREE.Quaternion();
+const scratchEuler = new THREE.Euler();

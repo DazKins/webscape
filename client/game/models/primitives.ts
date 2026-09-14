@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sharedGeometry, sharedMaterial } from "./assetCache";
 
 type MeshOptions = {
   roughness?: number;
@@ -20,7 +21,11 @@ export function mesh(
   if (options.emissive !== undefined) {
     materialParameters.emissive = options.emissive;
   }
-  const material = new THREE.MeshStandardMaterial(materialParameters);
+  const material = sharedMaterial(JSON.stringify({
+    ...materialParameters,
+    color: new THREE.Color(color).toArray(),
+    emissive: options.emissive === undefined ? 0 : new THREE.Color(options.emissive).toArray(),
+  }), () => new THREE.MeshStandardMaterial(materialParameters));
   const result = new THREE.Mesh(geometry, material);
   result.castShadow = true;
   result.receiveShadow = true;
@@ -34,7 +39,7 @@ export function box(
   color: THREE.ColorRepresentation,
   options?: MeshOptions,
 ) {
-  return mesh(new THREE.BoxGeometry(width, height, depth), color, options);
+  return mesh(sharedGeometry(`box:${width}:${height}:${depth}`, () => new THREE.BoxGeometry(width, height, depth)), color, options);
 }
 
 export function taperedBox(
@@ -46,37 +51,40 @@ export function taperedBox(
   color: THREE.ColorRepresentation,
   options?: MeshOptions,
 ) {
-  const topX = topWidth / 2;
-  const topZ = topDepth / 2;
-  const bottomX = bottomWidth / 2;
-  const bottomZ = bottomDepth / 2;
-  const halfHeight = height / 2;
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(
-      [
-        -bottomX, -halfHeight, -bottomZ,
-        bottomX, -halfHeight, -bottomZ,
-        bottomX, -halfHeight, bottomZ,
-        -bottomX, -halfHeight, bottomZ,
-        -topX, halfHeight, -topZ,
-        topX, halfHeight, -topZ,
-        topX, halfHeight, topZ,
-        -topX, halfHeight, topZ,
-      ],
-      3,
-    ),
-  );
-  geometry.setIndex([
-    0, 1, 2, 0, 2, 3,
-    4, 7, 6, 4, 6, 5,
-    0, 3, 7, 0, 7, 4,
-    1, 5, 6, 1, 6, 2,
-    0, 4, 5, 0, 5, 1,
-    3, 2, 6, 3, 6, 7,
-  ]);
-  geometry.computeVertexNormals();
+  const geometry = sharedGeometry(`taperedBox:${topWidth}:${topDepth}:${bottomWidth}:${bottomDepth}:${height}`, () => {
+    const topX = topWidth / 2;
+    const topZ = topDepth / 2;
+    const bottomX = bottomWidth / 2;
+    const bottomZ = bottomDepth / 2;
+    const halfHeight = height / 2;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(
+        [
+          -bottomX, -halfHeight, -bottomZ,
+          bottomX, -halfHeight, -bottomZ,
+          bottomX, -halfHeight, bottomZ,
+          -bottomX, -halfHeight, bottomZ,
+          -topX, halfHeight, -topZ,
+          topX, halfHeight, -topZ,
+          topX, halfHeight, topZ,
+          -topX, halfHeight, topZ,
+        ],
+        3,
+      ),
+    );
+    geometry.setIndex([
+      0, 1, 2, 0, 2, 3,
+      4, 7, 6, 4, 6, 5,
+      0, 3, 7, 0, 7, 4,
+      1, 5, 6, 1, 6, 2,
+      0, 4, 5, 0, 5, 1,
+      3, 2, 6, 3, 6, 7,
+    ]);
+    geometry.computeVertexNormals();
+    return geometry;
+  });
   return mesh(geometry, color, options);
 }
 
@@ -89,7 +97,7 @@ export function cylinder(
   options?: MeshOptions,
 ) {
   return mesh(
-    new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments),
+    sharedGeometry(`cylinder:${radiusTop}:${radiusBottom}:${height}:${segments}`, () => new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments)),
     color,
     options,
   );
@@ -102,7 +110,7 @@ export function cone(
   color: THREE.ColorRepresentation,
   options?: MeshOptions,
 ) {
-  return mesh(new THREE.ConeGeometry(radius, height, segments), color, options);
+  return mesh(sharedGeometry(`cone:${radius}:${height}:${segments}`, () => new THREE.ConeGeometry(radius, height, segments)), color, options);
 }
 
 export function sphere(
@@ -113,7 +121,7 @@ export function sphere(
   options?: MeshOptions,
 ) {
   return mesh(
-    new THREE.SphereGeometry(radius, widthSegments, heightSegments),
+    sharedGeometry(`sphere:${radius}:${widthSegments}:${heightSegments}`, () => new THREE.SphereGeometry(radius, widthSegments, heightSegments)),
     color,
     options,
   );
@@ -128,7 +136,7 @@ export function sphereCap(
   options?: MeshOptions,
 ) {
   return mesh(
-    new THREE.SphereGeometry(
+    sharedGeometry(`sphereCap:${radius}:${widthSegments}:${heightSegments}:${thetaLength}`, () => new THREE.SphereGeometry(
       radius,
       widthSegments,
       heightSegments,
@@ -136,7 +144,7 @@ export function sphereCap(
       Math.PI * 2,
       0,
       thetaLength,
-    ),
+    )),
     color,
     options,
   );
@@ -147,7 +155,7 @@ export function dodecahedron(
   color: THREE.ColorRepresentation,
   options?: MeshOptions,
 ) {
-  return mesh(new THREE.DodecahedronGeometry(radius, 0), color, options);
+  return mesh(sharedGeometry(`dodecahedron:${radius}`, () => new THREE.DodecahedronGeometry(radius, 0)), color, options);
 }
 
 export function torus(
@@ -159,7 +167,7 @@ export function torus(
   options?: MeshOptions,
 ) {
   return mesh(
-    new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments),
+    sharedGeometry(`torus:${radius}:${tube}:${radialSegments}:${tubularSegments}`, () => new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments)),
     color,
     options,
   );

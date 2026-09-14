@@ -12,6 +12,7 @@ const TREE_DAMAGE_STAGE_COUNT = 4;
 export default class RendererTree extends ModelEntityRenderer {
   private readonly standingTree: THREE.Object3D | undefined;
   private readonly stump: THREE.Object3D | undefined;
+  private previousDamageStage = -1;
   private previousDurability: number | undefined;
   private shakeElapsedSeconds = TREE_HIT_ANIMATION_SECONDS;
 
@@ -54,7 +55,10 @@ export default class RendererTree extends ModelEntityRenderer {
       TREE_DAMAGE_STAGE_COUNT,
       Math.ceil(damageRatio * TREE_DAMAGE_STAGE_COUNT),
     );
-    setTreeDamageStage(this.modelInstance.root, damageStage);
+    if (damageStage !== this.previousDamageStage) {
+      setTreeDamageStage(this.modelInstance.root, damageStage);
+      this.previousDamageStage = damageStage;
+    }
 
     this.shakeElapsedSeconds = Math.min(
       TREE_HIT_ANIMATION_SECONDS,

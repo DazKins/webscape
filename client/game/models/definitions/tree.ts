@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sharedGeometry } from "../assetCache";
 import { box, cone, cylinder, torus } from "../primitives";
 import { animation, createModelInstance } from "../rig";
 import type { ModelFactory } from "../types";
@@ -116,16 +117,20 @@ function createDamagedCanopy(
   for (let tier = 0; tier < 3; tier++) {
     const leaves = cone((0.48 - tier * 0.115) * fullness, (0.75 - tier * 0.1) * fullness, 8, colors[tier === 2 ? 1 : 0]);
     // Alternating, slightly irregular skirts break up the stacked-cone silhouette.
-    const positions = leaves.geometry.getAttribute("position");
-    for (let index = 0; index < positions.count; index++) {
-      const x = positions.getX(index);
-      const z = positions.getZ(index);
-      if (positions.getY(index) < 0) {
-        const variation = Math.sin(Math.atan2(z, x) * 3 + tier) * 0.035;
-        positions.setY(index, positions.getY(index) + variation);
+    leaves.geometry = sharedGeometry(`treeCanopy:${stage}:${tier}`, () => {
+      const geometry = leaves.geometry.clone();
+      const positions = geometry.getAttribute("position");
+      for (let index = 0; index < positions.count; index++) {
+        const x = positions.getX(index);
+        const z = positions.getZ(index);
+        if (positions.getY(index) < 0) {
+          const variation = Math.sin(Math.atan2(z, x) * 3 + tier) * 0.035;
+          positions.setY(index, positions.getY(index) + variation);
+        }
       }
-    }
-    leaves.geometry.computeVertexNormals();
+      geometry.computeVertexNormals();
+      return geometry;
+    });
     leaves.position.set(tier * 0.012, 0.92 + tier * 0.29 - stage * 0.008, 0);
     leaves.rotation.y = tier * 0.4;
     canopy.add(leaves);

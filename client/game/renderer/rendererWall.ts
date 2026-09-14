@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sharedGeometry, sharedMaterial } from "../models/assetCache";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 export type WorldWall = {
@@ -19,13 +20,14 @@ const BEVEL_RADIUS = 0.055;
 export function addWallGeometry(
   scene: THREE.Object3D,
   walls: WorldWall[],
-  terrainHeightSampler: (x: number, z: number) => number
+  terrainHeightSampler: (x: number, z: number) => number,
+  textured = true,
 ) {
   const wallTiles = createWallTileIndex(walls);
   const materials = new Map<string, THREE.MeshStandardMaterial>();
 
   for (const wall of walls) {
-    const material = getWallMaterial(materials, wall.type);
+    const material = getWallMaterial(materials, wall.type, textured);
     const neighbours = {
       north: hasWallTile(wallTiles, wall.x, wall.y - 1, wall.type),
       east: hasWallTile(wallTiles, wall.x + 1, wall.y, wall.type),
@@ -130,20 +132,24 @@ function addSlopedBox(
   const horizontal = startZ === endZ;
   const width = horizontal ? endX - startX : WALL_THICKNESS;
   const depth = horizontal ? WALL_THICKNESS : endZ - startZ;
-  const geometry = new RoundedBoxGeometry(width, WALL_HEIGHT, depth, 2, BEVEL_RADIUS);
-  const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
-  const terrainHeightDelta = endTerrainHeight - startTerrainHeight;
-  const connectionLength = horizontal ? width : depth;
+  const delta = endTerrainHeight - startTerrainHeight;
+  const geometry = sharedGeometry(`wallPanel:${width}:${depth}:${delta}`, () => {
+    const geometry = new RoundedBoxGeometry(width, WALL_HEIGHT, depth, 2, BEVEL_RADIUS);
+    const positions = geometry.getAttribute("position") as THREE.BufferAttribute;
+    const terrainHeightDelta = endTerrainHeight - startTerrainHeight;
+    const connectionLength = horizontal ? width : depth;
 
-  for (let index = 0; index < positions.count; index += 1) {
-    const distanceFromCenter = horizontal ? positions.getX(index) : positions.getZ(index);
-    positions.setY(
-      index,
-      positions.getY(index) + (distanceFromCenter / connectionLength) * terrainHeightDelta
-    );
-  }
-  positions.needsUpdate = true;
-  geometry.computeVertexNormals();
+    for (let index = 0; index < positions.count; index += 1) {
+      const distanceFromCenter = horizontal ? positions.getX(index) : positions.getZ(index);
+      positions.setY(
+        index,
+        positions.getY(index) + (distanceFromCenter / connectionLength) * terrainHeightDelta
+      );
+    }
+    positions.needsUpdate = true;
+    geometry.computeVertexNormals();
+    return geometry;
+  });
 
   const wall = new THREE.Mesh(geometry, material);
   wall.castShadow = true;
@@ -167,7 +173,7 @@ function addBox(
   terrainHeight: number
 ) {
   const wall = new THREE.Mesh(
-    new RoundedBoxGeometry(width, height, depth, 2, BEVEL_RADIUS),
+    sharedGeometry(`wallBox:${width}:${height}:${depth}`, () => new RoundedBoxGeometry(width, height, depth, 2, BEVEL_RADIUS)),
     material
   );
   wall.castShadow = true;
@@ -178,19 +184,15 @@ function addBox(
 
 function getWallMaterial(
   materials: Map<string, THREE.MeshStandardMaterial>,
-  type: string
+  type: string,
+  textured: boolean,
 ): THREE.MeshStandardMaterial {
   const existing = materials.get(type);
   if (existing) {
     return existing;
   }
 
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    map: createWallTexture(type),
-    roughness: 0.78,
-    metalness: 0.0,
-  });
+  const material = wallMaterial(type, textured);
   materials.set(type, material);
   return material;
 }
@@ -289,4 +291,15 @@ function wallColor(type: string): number {
     default:
       return 0xd3d3d3;
   }
+}
+
+export function wallMaterial(type: string, textured = true) {
+  return sharedMaterial(`wall:${type}:${textured}`, () => {
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xffffff, map: textured ? createWallTexture(type) : null,
+      roughness: 0.78, metalness: 0,
+    });
+    material.userData.wallType = type;
+    return material;
+  });
 }

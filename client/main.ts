@@ -1,3 +1,4 @@
+import { prepareModelAssets } from "./game/assets/constructionClient";
 import UiRoot from "./ui/uiRoot.tsx";
 import { WebSocketClient } from "./ws.js";
 import { createCommand } from "./command/command.ts";
@@ -186,7 +187,7 @@ const wsClient = new WebSocketClient({
 
 game.registerWsClient(wsClient);
 
-wsClient.connect();
+void prepareModelAssets().catch(error => console.error("Model preparation failed", error)).finally(() => wsClient.connect());
 
 // Avoid rendering at 120/144+ FPS on high-refresh displays.
 const FRAME_INTERVAL_MS = 1000 / 60;

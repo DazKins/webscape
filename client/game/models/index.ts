@@ -1,4 +1,4 @@
-export { createModel, isModelName, modelNames, modelRegistry } from "./registry";
+export { createModel, modelAssets, isModelName, modelNames, modelRegistry } from "./registry";
 export type { ModelName } from "./registry";
 export type {
   JointPose,
