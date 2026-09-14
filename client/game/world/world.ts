@@ -78,7 +78,7 @@ class World {
       this.chunks.set(chunkKey(data.coordinate), this.createChunk(data));
       this.addAffected(affected, data.coordinate);
     }
-    // Terrain vertices sample adjacent chunks, so rebuild changed chunks and their neighbors.
+    // Build surfaces once after all incoming chunks are registered, so terrain can sample neighbors.
     for (const coordinate of affected.values()) {
       const visual = this.chunks.get(chunkKey(coordinate));
       if (visual) this.rebuildSurfaces(visual);
@@ -181,9 +181,7 @@ class World {
     const terrainMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide }));
     root.add(terrainMesh);
     addWallGeometry(root, data.walls ?? [], (x, z) => sampleTerrainHeight(grid, x, z));
-    const visual = { data, root, terrainMesh, grid } as ChunkVisual;
-    this.rebuildSurfaces(visual);
-    return visual;
+    return { data, root, terrainMesh, grid };
   }
 
   private createGrid(data: ChunkLoad): TerrainHeightGrid {
