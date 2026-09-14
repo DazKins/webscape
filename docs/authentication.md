@@ -9,8 +9,15 @@ confidential web client in the default OIDC mode; it does not implement those ac
 Register a web application with your provider. It must support OIDC discovery,
 authorization code flow, PKCE S256, signed ID tokens through a JWKS endpoint, and
 `client_secret_basic` or `client_secret_post` token endpoint authentication.
-Webscape requests only `openid`; email, names and vendor-specific claims are not
-required. OAuth-only providers need an OIDC broker or a separate adapter.
+Webscape requests `openid profile`; enable both scopes on the provider application.
+OAuth-only providers need an OIDC broker or a separate adapter.
+
+A verified `preferred_username` claim is used as
+the in-game name, skips name entry, and refreshes the saved character's name at
+login without changing its account identity or progress. Provider usernames can
+contain up to 64 characters. Guests and providers without that claim use the
+existing display-name entry. Sign out and back in to pick up a changed username.
+
 
 Set these fields in the deployment's root `config.json`:
 
@@ -111,8 +118,10 @@ session; provider-wide logout is deliberately not a vendor-specific dependency.
 
 Characters are keyed by a fixed SHA-256-derived UUID from the verified issuer and
 subject. Neither a display name nor browser local storage proves ownership.
-Registration sends only `{ "name": "Adventurer" }`; supplying `id` is rejected.
-The browser may remember the display name separately for each account.
+Registration sends `{}` when the session has a provider username; the server
+uses that verified name regardless of any name supplied by the browser. Otherwise
+registration sends `{ "name": "Adventurer" }` and may remember the display name
+separately for each account. Supplying `id` is always rejected.
 
 With PostgreSQL persistence enabled, the same issuer/subject recovers character
 progress across browsers and server restarts. `persistence.driver: "none"` still

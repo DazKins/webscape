@@ -16,10 +16,10 @@ type MessageSender func(clientId string, message message.Message)
 
 type ClientCommandHandler struct {
 	game     *game.Game
-	playerID func(string) (model.EntityId, bool)
+	playerID func(string) (model.EntityId, string, bool)
 }
 
-func NewClientCommandHandler(game *game.Game, playerID func(string) (model.EntityId, bool)) *ClientCommandHandler {
+func NewClientCommandHandler(game *game.Game, playerID func(string) (model.EntityId, string, bool)) *ClientCommandHandler {
 	return &ClientCommandHandler{
 		game: game, playerID: playerID,
 	}
@@ -57,13 +57,17 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 }
 
 func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd command.Command) {
-	id, ok := h.playerID(clientID)
+	id, username, ok := h.playerID(clientID)
 	if !ok {
 		h.game.RejectRegistration(clientID, "sign in required")
 		return
 	}
 	if _, supplied := cmd.Data["id"]; supplied {
 		h.game.RejectRegistration(clientID, "player id must not be supplied")
+		return
+	}
+	if username != "" {
+		h.game.HandleRegisterWithUsername(clientID, id, username)
 		return
 	}
 	name, ok := cmd.Data["name"].(string)

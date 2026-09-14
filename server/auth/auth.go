@@ -27,6 +27,7 @@ import (
 // Session is a revocable authorization lease shared by a browser's sockets.
 // WithActive serializes accepted operations against logout and expiry.
 type Session struct {
+	Username string // From the verified OIDC preferred_username claim; empty for guests.
 	PlayerID model.EntityId
 	Expires  time.Time
 	Done     chan struct{}
@@ -153,7 +154,7 @@ func New(ctx context.Context, cfg config.AuthConfig, devMode bool) (*Manager, er
 	endpoint.AuthStyle = style
 	m := newSessionManager(cfg)
 	m.client = client
-	m.oauth = oauth2.Config{ClientID: cfg.ClientID, ClientSecret: secret, Endpoint: endpoint, RedirectURL: m.origin + "/auth/callback", Scopes: []string{oidc.ScopeOpenID}}
+	m.oauth = oauth2.Config{ClientID: cfg.ClientID, ClientSecret: secret, Endpoint: endpoint, RedirectURL: m.origin + "/auth/callback", Scopes: []string{oidc.ScopeOpenID, "profile"}}
 	m.verifier = provider.Verifier(&oidc.Config{ClientID: cfg.ClientID})
 	return m, nil
 }
@@ -234,7 +235,7 @@ func (m *Manager) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if m.guest {
-		m.startSession(r.Context(), model.EntityId(uuid.New()), time.Now().Add(m.lifetime))
+		m.startSession(r.Context(), model.EntityId(uuid.New()), "", time.Now().Add(m.lifetime))
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -282,6 +283,13 @@ func (m *Manager) callback(w http.ResponseWriter, r *http.Request) {
 		m.loginFailed(w, r)
 		return
 	}
+	var profile struct {
+		Username string `json:"preferred_username"`
+	}
+	if err := id.Claims(&profile); err != nil {
+		m.loginFailed(w, r)
+		return
+	}
 	m.sessionHandler(func(w http.ResponseWriter, r *http.Request) {
 		if m.sessions.PopString(r.Context(), "completing") != r.URL.Query().Get("state") {
 			m.loginFailed(w, r)
@@ -296,17 +304,17 @@ func (m *Manager) callback(w http.ResponseWriter, r *http.Request) {
 		if id.Expiry.Before(expires) {
 			expires = id.Expiry
 		}
-		m.startSession(r.Context(), PlayerID(m.issuer, id.Subject), expires)
+		m.startSession(r.Context(), PlayerID(m.issuer, id.Subject), strings.TrimSpace(profile.Username), expires)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}).ServeHTTP(w, r)
 }
 
 // Called with the session transaction lock held in both OIDC and guest modes.
-func (m *Manager) startSession(ctx context.Context, playerID model.EntityId, expires time.Time) {
+func (m *Manager) startSession(ctx context.Context, playerID model.EntityId, username string, expires time.Time) {
 	m.sessions.SetDeadline(ctx, expires)
 	m.sessions.Put(ctx, "csrf", oauth2.GenerateVerifier())
 	key := m.sessions.Token(ctx)
-	m.leases[key] = &Session{PlayerID: playerID, Expires: expires, Done: make(chan struct{})}
+	m.leases[key] = &Session{PlayerID: playerID, Username: username, Expires: expires, Done: make(chan struct{})}
 	m.timers[key] = time.AfterFunc(time.Until(expires), func() { m.mu.Lock(); defer m.mu.Unlock(); m.revoke(key) })
 }
 func (m *Manager) loginFailed(w http.ResponseWriter, r *http.Request) {
@@ -320,7 +328,7 @@ func (m *Manager) status(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]any{"authenticated": false, "guest": m.guest})
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]any{"authenticated": true, "guest": m.guest, "accountId": s.PlayerID.String(), "csrfToken": m.sessions.GetString(r.Context(), "csrf"), "expiresAt": s.Expires})
+	json.NewEncoder(w).Encode(map[string]any{"authenticated": true, "guest": m.guest, "accountId": s.PlayerID.String(), "username": s.Username, "csrfToken": m.sessions.GetString(r.Context(), "csrf"), "expiresAt": s.Expires})
 }
 func (m *Manager) logout(w http.ResponseWriter, r *http.Request) {
 	csrf := m.sessions.GetString(r.Context(), "csrf")

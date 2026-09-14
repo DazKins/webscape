@@ -10,6 +10,7 @@ let accountId = "";
 let csrfToken = "";
 let authenticated = false;
 let guest = false;
+let username = "";
 let authGeneration = 0;
 const loginFailed = new URLSearchParams(location.search).get("login") === "failed";
 if (loginFailed) history.replaceState(null, "", location.pathname);
@@ -56,7 +57,7 @@ function register(name: string) {
   const normalizedName = name.trim();
   setRegistration({ phase: "registering", name: normalizedName, error: "" });
   wsClient.sendMessage(
-    createCommand("register", { name: normalizedName })
+    createCommand("register", username ? {} : { name: normalizedName })
   );
 }
 
@@ -69,6 +70,7 @@ async function checkSession(): Promise<boolean> {
   const session = await response.json();
   if (generation !== authGeneration) return false;
   guest = session.guest === true;
+  username = typeof session.username === "string" ? session.username : "";
   if (!session.authenticated) {
     authenticated = false;
     csrfToken = "";
@@ -86,7 +88,8 @@ async function checkSession(): Promise<boolean> {
   authenticated = true;
   csrfToken = session.csrfToken;
   accountId = session.accountId;
-  if (!registration.name) registration.name = localStorage.getItem(`playerName:${accountId}`) ?? "";
+  if (username) registration.name = username;
+  else if (!registration.name) registration.name = localStorage.getItem(`playerName:${accountId}`) ?? "";
   return true;
 }
 
@@ -145,12 +148,12 @@ const wsClient = new WebSocketClient({
         break;
       case "registered":
         game.registerMyPlayerId(data.entityId);
-        window.localStorage.setItem(`playerName:${accountId}`, data.name);
+        if (!username) window.localStorage.setItem(`playerName:${accountId}`, data.name);
         setRegistration({ phase: "registered", name: data.name, error: "" });
         break;
       case "registrationFailed":
         setRegistration({
-          phase: "nameEntry",
+          phase: username ? "connectionError" : "nameEntry",
           error: data.reason || "Registration failed. Please try again.",
         });
         break;

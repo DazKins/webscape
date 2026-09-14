@@ -124,6 +124,7 @@ func TestCallbackRejectsInvalidClaims(t *testing.T) {
 		{"expiry", func(c map[string]any) { c["exp"] = time.Now().Add(-time.Hour).Unix() }},
 		{"nonce", func(c map[string]any) { c["nonce"] = "wrong" }},
 		{"subject", func(c map[string]any) { c["sub"] = "" }},
+		{"username type", func(c map[string]any) { c["preferred_username"] = 42 }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			f := setup(t)
@@ -299,5 +300,19 @@ func TestPlayerIdentityContract(t *testing.T) {
 	// Saved characters must retain this ID across application upgrades.
 	if got := PlayerID("https://issuer.example.com", "person-1").String(); got != "83adc583-b9fc-874b-b79a-08d40f1af95e" {
 		t.Fatalf("persistent identity changed: %s", got)
+	}
+}
+
+func TestVerifiedUsernameInSession(t *testing.T) {
+	for _, username := range []string{"clerk_alice", "", "renamed_alice"} {
+		t.Run(username, func(t *testing.T) {
+			f := setup(t)
+			f.provider.MutateClaims = func(claims map[string]any) { claims["preferred_username"] = username }
+			oidctest.Login(t, f.browser, f.server.URL, "same-subject")
+			status := sessionStatus(t, f.browser, f.server.URL)
+			if status["username"] != username || status["accountId"] != PlayerID(f.provider.URL, "same-subject").String() {
+				t.Fatalf("unexpected profile: %v", status)
+			}
+		})
 	}
 }

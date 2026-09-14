@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -586,6 +587,15 @@ func (g *Game) deliverQuestRewards(
 }
 
 func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
+	g.handleRegister(clientID, id, name, false)
+}
+
+// HandleRegisterWithUsername refreshes the character name from a verified identity.
+func (g *Game) HandleRegisterWithUsername(clientID string, id model.EntityId, username string) {
+	g.handleRegister(clientID, id, username, true)
+}
+
+func (g *Game) handleRegister(clientID string, id model.EntityId, name string, providerName bool) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
@@ -608,8 +618,12 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 		g.sendMessage(clientID, message.NewRegistrationFailedMessage("name cannot be blank"))
 		return
 	}
-	if nameLength > 24 {
-		g.sendMessage(clientID, message.NewRegistrationFailedMessage("name must be 24 characters or fewer"))
+	maxNameLength := 24
+	if providerName {
+		maxNameLength = component.MaxPlayerNameLength
+	}
+	if nameLength > maxNameLength {
+		g.sendMessage(clientID, message.NewRegistrationFailedMessage(fmt.Sprintf("name must be %d characters or fewer", maxNameLength)))
 		return
 	}
 
@@ -621,9 +635,20 @@ func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
 	if !returning {
 		components = entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick)
 	} else {
-		for _, c := range components {
+		for i, c := range components {
 			if player, ok := c.(*component.CPlayer); ok {
-				normalizedName = player.GetName()
+				if providerName {
+					components[i] = component.NewCPlayer(normalizedName)
+				} else {
+					normalizedName = player.GetName()
+				}
+			}
+		}
+		if providerName {
+			for _, c := range components {
+				if metadata, ok := c.(*component.CMetadata); ok {
+					metadata.GetMetadata().(util.JObject)["name"] = util.JString(normalizedName)
+				}
 			}
 		}
 		delete(g.offlinePlayers, id)

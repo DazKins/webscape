@@ -19,6 +19,7 @@ import (
 
 func TestAuthenticatedWebSocketOwnershipAndRevocation(t *testing.T) {
 	provider := oidctest.New(t)
+	provider.MutateClaims = func(claims map[string]any) { claims["preferred_username"] = "clerk_alice" }
 	app := httptest.NewUnstartedServer(nil)
 	manager, err := auth.New(context.Background(), provider.Config("http://"+app.Listener.Addr().String()), true)
 	if err != nil {
@@ -87,7 +88,7 @@ func TestAuthenticatedWebSocketOwnershipAndRevocation(t *testing.T) {
 	sendTestCommand(t, conn, "register", map[string]any{"id": auth.PlayerID(provider.URL, "bob").String(), "name": "Alice"})
 	readType(conn, "registrationFailed")
 	sendTestCommand(t, conn, "register", map[string]any{"name": "Alice"})
-	if data := readType(conn, "registered"); data["entityId"] != aliceID {
+	if data := readType(conn, "registered"); data["entityId"] != aliceID || data["name"] != "clerk_alice" {
 		t.Fatalf("wrong authenticated identity: %v", data)
 	}
 	// A second socket cannot register the same character while it is active.
@@ -173,7 +174,7 @@ func TestRegisterRequiresServerIdentity(t *testing.T) {
 	game := newCommandHandlerTestGame(t)
 	var last message.Message
 	game.RegisterSender(func(_ string, m message.Message) { last = m })
-	handler := NewClientCommandHandler(game, func(string) (model.EntityId, bool) { return model.EntityId{}, false })
+	handler := NewClientCommandHandler(game, func(string) (model.EntityId, string, bool) { return model.EntityId{}, "", false })
 	handler.HandleCommand("peer", command.Command{Type: "register", Data: map[string]any{"id": model.NewEntityId().String(), "name": "Intruder"}})
 	if game.IsRegistered("peer") || last.Metadata.Type != "registrationFailed" {
 		t.Fatal("registration did not fail closed")

@@ -220,3 +220,33 @@ func registrationPayload(t *testing.T, msg message.Message) registrationMessageP
 		Name: payload.Data.Name, Reason: payload.Data.Reason,
 	}
 }
+
+func TestProviderUsernameUpdatesSavedCharacter(t *testing.T) {
+	g := snapshotGame(t)
+	id := model.NewEntityId()
+	g.HandleRegister("original", id, "Old Display Name")
+	before := savedBytes(t, g)
+	restored := snapshotGame(t)
+	if err := restored.RestoreSnapshot(before); err != nil {
+		t.Fatal(err)
+	}
+	username := strings.Repeat("u", component.MaxPlayerNameLength)
+	restored.HandleRegisterWithUsername("returning", id, username)
+	if !restored.IsRegistered("returning") {
+		t.Fatal("provider username rejected")
+	}
+	player := restored.componentManager.GetEntityComponent(component.ComponentIdPlayer, id).(*component.CPlayer)
+	metadata := restored.componentManager.GetEntityComponent(component.ComponentIdMetadata, id).(*component.CMetadata)
+	if player.GetName() != username || metadata.GetMetadata().(util.JObject)["name"] != util.JString(username) {
+		t.Fatal("saved player and visible metadata did not adopt username")
+	}
+	// The renamed character must remain valid across another save and restart.
+	reloaded := snapshotGame(t)
+	if err := reloaded.RestoreSnapshot(savedBytes(t, restored)); err != nil {
+		t.Fatal(err)
+	}
+	reloaded.HandleRegisterWithUsername("again", id, "new_username")
+	if !reloaded.IsRegistered("again") {
+		t.Fatal("renamed character did not survive restart")
+	}
+}

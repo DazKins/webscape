@@ -2,6 +2,9 @@ package component
 
 import "webscape/server/util"
 
+// MaxPlayerNameLength accommodates provider usernames without truncation.
+const MaxPlayerNameLength = 64
+
 const ComponentIdPlayer = ComponentId("player")
 
 type CPlayer struct {

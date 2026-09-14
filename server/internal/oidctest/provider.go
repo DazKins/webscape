@@ -68,7 +68,7 @@ func (p *Provider) serve(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{Key: &p.key.PublicKey, KeyID: "test-key", Algorithm: "RS256", Use: "sig"}}})
 	case "/oauth/start":
 		q := r.URL.Query()
-		if q.Get("client_id") != ClientID || q.Get("scope") != "openid" || q.Get("response_type") != "code" || q.Get("code_challenge_method") != "S256" || q.Get("nonce") == "" {
+		if q.Get("client_id") != ClientID || q.Get("scope") != "openid profile" || q.Get("response_type") != "code" || q.Get("code_challenge_method") != "S256" || q.Get("nonce") == "" {
 			http.Error(w, "invalid authorization", 400)
 			return
 		}

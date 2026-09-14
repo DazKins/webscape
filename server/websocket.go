@@ -222,12 +222,12 @@ func (w *wsServer) Close() {
 }
 
 // PlayerID resolves an account only from the authenticated connection.
-func (w *wsServer) PlayerID(clientID string) (model.EntityId, bool) {
+func (w *wsServer) PlayerID(clientID string) (model.EntityId, string, bool) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 	c := w.clients[clientID]
 	if c == nil || !c.session.Active() {
-		return model.EntityId{}, false
+		return model.EntityId{}, "", false
 	}
-	return c.session.PlayerID, true
+	return c.session.PlayerID, c.session.Username, true
 }
