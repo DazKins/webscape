@@ -18,5 +18,12 @@
     "driver": "none",
     "worldKey": "default",
     "timeoutSeconds": 10
+  },
+  "auth": {
+    "issuer": "https://identity.example.com",
+    "clientId": "webscape",
+    "clientSecretEnv": "WEBSCAPE_OIDC_CLIENT_SECRET",
+    "publicUrl": "https://game.example.com",
+    "sessionLifetimeSeconds": 28800
   }
 }

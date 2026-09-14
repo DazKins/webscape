@@ -1,109 +1,85 @@
 type WebSocketClientOptions = {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
+  beforeConnect?: () => Promise<boolean>;
   onConnect?: () => void;
   onDisconnect?: () => void;
+  onUnavailable?: () => void;
   onError?: (event: Event) => void;
   onMessage?: (data: any) => void;
 };
 
 export class WebSocketClient {
-  ws: WebSocket | undefined;
-  isConnected: boolean;
-  reconnectAttempts: number;
-  maxReconnectAttempts: number;
-  reconnectDelay: number;
-  onConnect: () => void;
-  onDisconnect: () => void;
-  onError: (event: Event) => void;
-  onMessage: (data: any) => void;
+  private ws?: WebSocket;
+  private timer?: number;
+  private generation = 0;
+  private stopped = true;
+  private connecting = false;
+  private attempts = 0;
+  isConnected = false;
 
-  constructor(options: WebSocketClientOptions = {}) {
-    this.ws = undefined;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = options.maxReconnectAttempts || 5;
-    this.reconnectDelay = options.reconnectDelay || 1000; // 1 second
-    this.isConnected = false;
+  constructor(private options: WebSocketClientOptions = {}) {}
 
-    // Event handlers
-    this.onConnect = options.onConnect || (() => {});
-    this.onDisconnect = options.onDisconnect || (() => {});
-    this.onError =
-      options.onError || ((error) => console.error("WebSocket error:", error));
-    this.onMessage = options.onMessage || (() => {});
-  }
-
-  connect() {
+  async connect() {
+    if (this.connecting || this.isConnected) return;
+    this.stopped = false;
+    this.connecting = true;
+    const generation = this.generation;
     try {
-      const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-      this.ws = new WebSocket(`${wsProtocol}://${window.location.host}/ws`);
-      this.setupEventListeners();
-    } catch (error) {
-      console.error("WebSocket connection error:", error);
-      this.handleReconnect();
+      const allowed = await (this.options.beforeConnect?.() ?? Promise.resolve(true));
+      if (this.stopped || generation !== this.generation) return;
+      if (!allowed) { this.stopped = true; return; }
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(`${protocol}://${location.host}/ws`);
+      this.ws = ws;
+      const current = () => !this.stopped && generation === this.generation && this.ws === ws;
+      ws.onopen = () => {
+        if (!current()) { ws.close(); return; }
+        this.isConnected = true;
+        this.attempts = 0;
+        this.options.onConnect?.();
+      };
+      ws.onmessage = (event) => {
+        if (!current()) return;
+        try { this.options.onMessage?.(JSON.parse(event.data)); }
+        catch (error) { console.error("Invalid game message", error); }
+      };
+      ws.onclose = () => {
+        if (!current()) return;
+        this.ws = undefined;
+        this.isConnected = false;
+        this.options.onDisconnect?.();
+        this.reconnect();
+      };
+      ws.onerror = (event) => { if (current()) this.options.onError?.(event); };
+    } catch {
+      if (!this.stopped && generation === this.generation) this.reconnect();
+    } finally {
+      if (generation === this.generation) this.connecting = false;
     }
   }
 
-  setupEventListeners() {
-    if (!this.ws) {
-      throw new Error("WebSocket is not initialized");
+  private reconnect() {
+    if (this.stopped) return;
+    if (this.attempts++ >= (this.options.maxReconnectAttempts ?? 5)) {
+      this.options.onUnavailable?.();
+      return;
     }
-
-    this.ws.onopen = () => {
-      this.isConnected = true;
-      this.reconnectAttempts = 0;
-      this.onConnect();
-    };
-
-    this.ws.onmessage = (event) => {
-      try {
-        const jsonMsg = JSON.parse(event.data);
-        this.handleMessage(jsonMsg);
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-
-    this.ws.onclose = () => {
-      this.isConnected = false;
-      this.onDisconnect();
-      this.handleReconnect();
-    };
-
-    this.ws.onerror = (event: Event) => {
-      this.onError(event);
-    };
-  }
-
-  handleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => this.connect(), this.reconnectDelay);
-    } else {
-      console.error("Max reconnection attempts reached");
-    }
-  }
-
-  handleMessage(message: any) {
-    this.onMessage(message);
+    this.timer = window.setTimeout(() => { void this.connect(); }, this.options.reconnectDelay ?? 1000);
   }
 
   sendMessage(message: any) {
-    if (!this.ws) {
-      throw new Error("WebSocket is not initialized");
-    }
-
-    try {
-      const messageString = JSON.stringify(message);
-      this.ws.send(messageString);
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
+    if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(message));
   }
 
   disconnect() {
-    if (this.ws) {
-      this.ws.close();
-    }
+    this.stopped = true;
+    this.generation++;
+    this.connecting = false;
+    this.isConnected = false;
+    this.attempts = 0;
+    window.clearTimeout(this.timer);
+    this.ws?.close();
+    this.ws = undefined;
   }
 }

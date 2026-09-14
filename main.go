@@ -48,6 +48,7 @@ func main() {
 		time.Duration(runtimeConfig.Server.TickIntervalMs)*time.Millisecond,
 		runtimeConfig.Server.DevMode,
 		runtimeConfig.Persistence,
+		runtimeConfig.Auth,
 	); err != nil {
 		log.Fatal(err)
 	}
