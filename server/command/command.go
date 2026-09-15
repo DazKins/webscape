@@ -8,6 +8,7 @@ type CommandType string
 
 const (
 	CommandTypeRegister           = "register"
+	CommandTypeActivity           = "activity"
 	CommandTypeMove               = "move"
 	CommandTypeChat               = "chat"
 	CommandTypeInteract           = "interact"

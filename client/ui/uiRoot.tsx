@@ -21,6 +21,7 @@ type Props = {
   onRegister: (name: string) => void;
   onLogin: () => void;
   onRetry: () => void;
+  onStayConnected: () => void;
   onLogout: () => void;
   authenticated: boolean;
   guest: boolean;
@@ -216,7 +217,7 @@ export default function UiRoot(props: Props) {
   const activeMobileLabel =
     mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
   const onboarding = (
-    <OnboardingOverlay guest={props.guest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} />
+    <OnboardingOverlay guest={props.guest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} onStayConnected={props.onStayConnected} />
   );
 
   const buildInfo = (

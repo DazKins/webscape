@@ -21,9 +21,10 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	DevMode        bool   `json:"devMode"`
-	Address        string `json:"address"`
-	TickIntervalMs int    `json:"tickIntervalMs"`
+	Connections    ConnectionConfig `json:"connections"`
+	DevMode        bool             `json:"devMode"`
+	Address        string           `json:"address"`
+	TickIntervalMs int              `json:"tickIntervalMs"`
 }
 
 type ClientConfig struct {
@@ -55,7 +56,7 @@ func LoadFromFS(configFS fs.FS, path string) (Config, error) {
 }
 
 func load(data []byte) (Config, error) {
-	result := Config{Server: ServerConfig{TickIntervalMs: 500}, Persistence: defaultPersistence()}
+	result := Config{Server: ServerConfig{TickIntervalMs: 500, Connections: DefaultConnections()}, Persistence: defaultPersistence()}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&result); err != nil {
@@ -90,6 +91,9 @@ func (c Config) Validate() error {
 	}
 	if c.Server.TickIntervalMs < 1 || c.Server.TickIntervalMs > 60000 {
 		return errors.New("config server.tickIntervalMs must be between 1 and 60000")
+	}
+	if err := c.Server.Connections.Validate(); err != nil {
+		return err
 	}
 	if c.Server.Address == "" {
 		return errors.New("config server.address is required")

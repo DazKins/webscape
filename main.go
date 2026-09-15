@@ -49,6 +49,7 @@ func main() {
 		runtimeConfig.Server.DevMode,
 		runtimeConfig.Persistence,
 		runtimeConfig.Auth,
+		runtimeConfig.Server.Connections,
 	); err != nil {
 		log.Fatal(err)
 	}

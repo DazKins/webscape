@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"math"
+	"strings"
 	"webscape/server/command"
 	"webscape/server/game"
 	"webscape/server/game/component"
@@ -15,8 +16,10 @@ import (
 type MessageSender func(clientId string, message message.Message)
 
 type ClientCommandHandler struct {
-	game     *game.Game
-	playerID func(string) (model.EntityId, string, bool)
+	onActivity func(string)
+	onTakeover func(string)
+	game       *game.Game
+	playerID   func(string) (model.EntityId, string, bool)
 }
 
 func NewClientCommandHandler(game *game.Game, playerID func(string) (model.EntityId, string, bool)) *ClientCommandHandler {
@@ -26,7 +29,9 @@ func NewClientCommandHandler(game *game.Game, playerID func(string) (model.Entit
 }
 
 func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Command) {
-	log.Printf("Received %s command", cmd.Type)
+	if cmd.Type != command.CommandTypeActivity {
+		log.Printf("Received %s command", cmd.Type)
+	}
 
 	if cmd.Type == command.CommandTypeRegister {
 		h.handleRegisterCommand(clientID, cmd)
@@ -37,6 +42,10 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 	}
 
 	switch cmd.Type {
+	case command.CommandTypeActivity:
+		if len(cmd.Data) != 0 {
+			return
+		}
 	case command.CommandTypeMove:
 		h.handleMoveCommand(clientID, cmd)
 	case command.CommandTypeChat:
@@ -53,6 +62,11 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleDropCommand(clientID, cmd)
 	case command.CommandTypeConversationOption:
 		h.handleConversationOptionCommand(clientID, cmd)
+	default:
+		return
+	}
+	if h.onActivity != nil {
+		h.onActivity(clientID)
 	}
 }
 
@@ -66,13 +80,39 @@ func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd comman
 		h.game.RejectRegistration(clientID, "player id must not be supplied")
 		return
 	}
-	if username != "" {
-		h.game.HandleRegisterWithUsername(clientID, id, username)
+	if takeover, supplied := cmd.Data["takeover"]; supplied {
+		if _, ok := takeover.(bool); !ok {
+			h.game.RejectRegistration(clientID, "invalid takeover request")
+			return
+		}
+	}
+	if h.game.IsRegistered(clientID) {
+		h.game.RejectRegistration(clientID, "this connection is already registered")
 		return
 	}
-	name, ok := cmd.Data["name"].(string)
-	if !ok {
-		h.game.RejectRegistration(clientID, "name is required")
+	name := username
+	if name == "" {
+		var ok bool
+		name, ok = cmd.Data["name"].(string)
+		if !ok || len([]rune(strings.TrimSpace(name))) < 1 || len([]rune(strings.TrimSpace(name))) > 24 {
+			h.game.RejectRegistration(clientID, "name must be 1–24 characters")
+			return
+		}
+	}
+	if username != "" && len([]rune(strings.TrimSpace(username))) > component.MaxPlayerNameLength {
+		h.game.RejectRegistration(clientID, "username is too long")
+		return
+	}
+	if cmd.Data["takeover"] == true && h.onTakeover != nil {
+		h.onTakeover(clientID)
+	}
+	defer func() {
+		if h.game.IsRegistered(clientID) && h.onActivity != nil {
+			h.onActivity(clientID)
+		}
+	}()
+	if username != "" {
+		h.game.HandleRegisterWithUsername(clientID, id, username)
 		return
 	}
 

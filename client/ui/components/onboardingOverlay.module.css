@@ -140,3 +140,33 @@
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation-duration: 1.8s; }
 }
+
+.warning {
+  position: absolute;
+  top: var(--build-info-clearance);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  width: min(420px, calc(100% - 32px));
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #b9dec4;
+  border-radius: 12px;
+  background: #192e30;
+  color: #f4f0e5;
+  box-shadow: 0 8px 24px #0008;
+  pointer-events: auto;
+  text-align: center;
+}
+
+.warning p { margin: 0 0 12px; }
+.warning button {
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid #b9dec4;
+  border-radius: 8px;
+  background: #a9cfb4;
+  color: #10221b;
+  font: inherit;
+  cursor: pointer;
+}

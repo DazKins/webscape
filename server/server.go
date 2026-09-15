@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 	"webscape/server/auth"
 	"webscape/server/command"
@@ -18,7 +17,12 @@ import (
 )
 
 // Start owns runtime coordination; core game code never opens a database.
-func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig, authConfig config.AuthConfig) error {
+func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig, authConfig config.AuthConfig, connections ...config.ConnectionConfig) error {
+	if len(connections) > 0 {
+		if err := connections[0].Validate(); err != nil {
+			return err
+		}
+	}
 	authManager, err := auth.New(ctx, authConfig, devMode)
 	if err != nil {
 		return err
@@ -34,6 +38,8 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 		log.Print("Development mode: frontend caching disabled")
 	}
 	g := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
+	// Rejoining retains character progress for this process even without disk persistence.
+	g.RetainOfflinePlayers()
 	timeout := time.Duration(storageConfig.TimeoutSeconds) * time.Second
 	var coordinator *persistence.Coordinator
 	if storageConfig.Driver == "postgres" {
@@ -58,7 +64,6 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 		if err != nil {
 			return err
 		}
-		g.RetainOfflinePlayers()
 		if data != nil {
 			if err := g.RestoreSnapshot(data); err != nil {
 				return err
@@ -98,22 +103,20 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 	if coordinator != nil {
 		g.SetAfterTick(checkpoint)
 	}
-	ws := NewWsServer()
+	ws := NewWsServer(connections...)
 	handler := NewClientCommandHandler(g, ws.PlayerID)
+	handler.onActivity = ws.RecordActivity
+	handler.onTakeover = ws.ReplacePlayer
 	// Drain in-flight commands before the final save. WebSockets are hijacked
 	// connections and must be closed explicitly during HTTP shutdown.
-	var lifecycle sync.RWMutex
+	// WebSocket actions serialize these callbacks, including takeover cleanup.
 	stopping := false
 	ws.SetConnectHandler(func(id string) {
-		lifecycle.RLock()
-		defer lifecycle.RUnlock()
 		if !stopping {
 			g.HandleConnect(id)
 		}
 	})
 	ws.SetIncomingMessageHandler(func(clientID string, raw string) {
-		lifecycle.RLock()
-		defer lifecycle.RUnlock()
 		if stopping {
 			return
 		}
@@ -127,8 +130,6 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 		// unknown and transient commands cannot trigger snapshot work or DB I/O.
 	})
 	ws.SetDisconnectHandler(func(clientID string) {
-		lifecycle.RLock()
-		defer lifecycle.RUnlock()
 		if stopping {
 			return
 		}
@@ -153,9 +154,9 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 			result = nil
 		}
 	}
-	lifecycle.Lock()
+	ws.actions.Lock()
 	stopping = true
-	lifecycle.Unlock()
+	ws.actions.Unlock()
 	g.Stop()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

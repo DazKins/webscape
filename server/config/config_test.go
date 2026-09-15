@@ -20,6 +20,9 @@ func TestLoadFromFS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadFromFS returned error: %v", err)
 	}
+	if loaded.Server.Connections != DefaultConnections() {
+		t.Fatalf("connection defaults = %+v", loaded.Server.Connections)
+	}
 	if loaded.Server.Address != ":9090" || loaded.Client.Folder != "web" ||
 		loaded.Game.Folder != "content" || loaded.Streaming.ChunkRadius != 2 {
 		t.Fatalf("loaded config = %#v", loaded)

@@ -2,6 +2,9 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import styles from "./onboardingOverlay.module.css";
 
 export type RegistrationPhase =
+  | "inactive"
+  | "replaced"
+  | "activeElsewhere"
   | "signedOut"
   | "signingOut"
   | "connectionError"
@@ -12,6 +15,7 @@ export type RegistrationPhase =
   | "registered";
 
 export type RegistrationViewState = {
+  idleWarningUntil?: number;
   phase: RegistrationPhase;
   name: string;
   error: string;
@@ -23,6 +27,7 @@ type Props = {
   onRegister: (name: string) => void;
   onLogin: () => void;
   onRetry: () => void;
+  onStayConnected: () => void;
 };
 
 function validateName(name: string): string {
@@ -36,10 +41,11 @@ function validateName(name: string): string {
   return "";
 }
 
-export default function OnboardingOverlay({ state, guest, onRegister, onLogin, onRetry }: Props) {
+export default function OnboardingOverlay({ state, guest, onRegister, onLogin, onRetry, onStayConnected }: Props) {
   const [name, setName] = useState(state.name);
   const [validationError, setValidationError] = useState("");
   const [serverError, setServerError] = useState(state.error);
+  const [now, setNow] = useState(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,8 +63,23 @@ export default function OnboardingOverlay({ state, guest, onRegister, onLogin, o
     }
   }, [state.phase]);
 
+  useEffect(() => {
+    if (!state.idleWarningUntil) return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [state.idleWarningUntil]);
+
   if (state.phase === "registered") {
-    return null;
+    if (!state.idleWarningUntil) return null;
+    const seconds = Math.max(0, Math.ceil((state.idleWarningUntil - now) / 1000));
+    return (
+      <div className={styles.warning} data-inactivity-warning role="region" aria-label="Inactivity warning"
+        onPointerDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
+        <p role="status">You’ll be disconnected for inactivity in {seconds} seconds.</p>
+        <button type="button" onClick={onStayConnected}>Stay connected</button>
+      </div>
+    );
   }
 
   const handleSubmit = (event: FormEvent) => {
@@ -82,7 +103,15 @@ export default function OnboardingOverlay({ state, guest, onRegister, onLogin, o
         aria-labelledby="onboarding-title"
         aria-describedby="onboarding-description"
       >
-        {state.phase === "signedOut" || state.phase === "connectionError" ? (
+        {state.phase === "inactive" || state.phase === "replaced" || state.phase === "activeElsewhere" ? (
+          <div>
+            <h1 id="onboarding-title">{state.phase === "inactive" ? "Disconnected for inactivity" : state.phase === "replaced" ? "Your game was opened elsewhere" : "Already playing elsewhere"}</h1>
+            <p id="onboarding-description" className={styles.description}>
+              {state.phase === "inactive" ? "You’re still signed in. Rejoin whenever you’re ready." : state.phase === "replaced" ? "This game connection has ended. You’re still signed in." : "Continue here to end your other game connection and bring your character to this device."}
+            </p>
+            <button type="button" onClick={onRetry}>{state.phase === "activeElsewhere" ? "Continue here" : "Rejoin game"}</button>
+          </div>
+        ) : state.phase === "signedOut" || state.phase === "connectionError" ? (
           <div>
             <h1 id="onboarding-title">{state.phase === "signedOut" ? "Your adventure awaits" : "The path is interrupted"}</h1>
             <p id="onboarding-description" className={styles.description}>
@@ -90,7 +119,7 @@ export default function OnboardingOverlay({ state, guest, onRegister, onLogin, o
             </p>
             {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
             <button type="button" onClick={state.phase === "signedOut" ? onLogin : onRetry}>
-              {state.phase === "signedOut" ? (guest ? "Play as guest" : "Sign in") : "Try again"}
+              {state.phase === "signedOut" ? (guest ? "Play as guest" : "Sign in") : "Reconnect"}
             </button>
           </div>
         ) : isNameEntry ? (

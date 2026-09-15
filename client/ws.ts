@@ -3,7 +3,7 @@ type WebSocketClientOptions = {
   reconnectDelay?: number;
   beforeConnect?: () => Promise<boolean>;
   onConnect?: () => void;
-  onDisconnect?: () => void;
+  onDisconnect?: (event: CloseEvent) => void;
   onUnavailable?: () => void;
   onError?: (event: Event) => void;
   onMessage?: (data: any) => void;
@@ -44,11 +44,13 @@ export class WebSocketClient {
         try { this.options.onMessage?.(JSON.parse(event.data)); }
         catch (error) { console.error("Invalid game message", error); }
       };
-      ws.onclose = () => {
+      ws.onclose = (event) => {
         if (!current()) return;
         this.ws = undefined;
         this.isConnected = false;
-        this.options.onDisconnect?.();
+        // Intentional game-session endings require a user action to reconnect.
+        if (event.code === 4001 || event.code === 4002 || event.code === 4003) this.stopped = true;
+        this.options.onDisconnect?.(event);
         this.reconnect();
       };
       ws.onerror = (event) => { if (current()) this.options.onError?.(event); };

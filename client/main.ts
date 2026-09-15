@@ -13,6 +13,10 @@ let authenticated = false;
 let guest = false;
 let username = "";
 let authGeneration = 0;
+let takeoverNextConnection = false;
+let idleTimeoutMs = 15 * 60 * 1000;
+let idleDeadline = 0;
+let lastActivitySent = 0;
 const loginFailed = new URLSearchParams(location.search).get("login") === "failed";
 if (loginFailed) history.replaceState(null, "", location.pathname);
 
@@ -41,7 +45,13 @@ function renderUi() {
       registration,
       onRegister: register,
       onLogin: () => { location.assign("/auth/login"); },
-      onRetry: () => { wsClient.disconnect(); setRegistration({ phase: "connecting", error: "" }); void wsClient.connect(); },
+      onRetry: () => {
+        takeoverNextConnection = registration.phase === "activeElsewhere";
+        wsClient.disconnect();
+        setRegistration({ phase: "connecting", error: "", idleWarningUntil: undefined });
+        void wsClient.connect();
+      },
+      onStayConnected: () => reportActivity(true),
       onLogout: () => { void logout(); },
       authenticated,
       guest,
@@ -54,11 +64,11 @@ function setRegistration(update: Partial<RegistrationViewState>) {
   renderUi();
 }
 
-function register(name: string) {
+function register(name: string, takeover = false) {
   const normalizedName = name.trim();
   setRegistration({ phase: "registering", name: normalizedName, error: "" });
   wsClient.sendMessage(
-    createCommand("register", username ? {} : { name: normalizedName })
+    createCommand("register", { ...(username ? {} : { name: normalizedName }), ...(takeover ? { takeover: true } : {}) })
   );
 }
 
@@ -115,17 +125,26 @@ const wsClient = new WebSocketClient({
   onUnavailable: () => setRegistration({ phase: "connectionError", error: "Could not connect. Please try again." }),
   onConnect: () => {
     if (registration.name) {
-      register(registration.name);
+      const takeover = takeoverNextConnection;
+      takeoverNextConnection = false;
+      register(registration.name, takeover);
     } else {
       setRegistration({ phase: "nameEntry", error: "" });
     }
   },
-  onDisconnect: () => {
+  onDisconnect: (event) => {
     game.clearSession();
-    setRegistration({
-      phase: registration.name ? "reconnecting" : "connecting",
-      error: "",
-    });
+    if (event.code === 4001) {
+      authenticated = false;
+      csrfToken = "";
+      setRegistration({ phase: "signedOut", error: "Your sign-in session has ended. Please sign in again.", idleWarningUntil: undefined });
+    } else if (event.code === 4003) {
+      setRegistration({ phase: "replaced", error: "", idleWarningUntil: undefined });
+    } else if (event.code === 4002 || (registration.phase === "registered" && idleDeadline > 0 && Date.now() >= idleDeadline)) {
+      endForInactivity();
+    } else {
+      setRegistration({ phase: registration.name ? "reconnecting" : "connecting", error: "", idleWarningUntil: undefined });
+    }
   },
   onError: (error) => {
     console.error("WebSocket error:", error);
@@ -148,11 +167,24 @@ const wsClient = new WebSocketClient({
         game.handleChunkUpdate(data);
         break;
       case "registered":
+        idleDeadline = Date.now() + idleTimeoutMs;
+        lastActivitySent = 0;
         game.registerMyPlayerId(data.entityId);
         if (!username) window.localStorage.setItem(`playerName:${accountId}`, data.name);
-        setRegistration({ phase: "registered", name: data.name, error: "" });
+        setRegistration({ phase: "registered", name: data.name, error: "", idleWarningUntil: undefined });
+        break;
+      case "inactivity":
+        idleTimeoutMs = data.timeoutMs;
+        idleDeadline = Date.now() + data.remainingMs;
+        setRegistration({ idleWarningUntil: data.warning ? idleDeadline : undefined });
         break;
       case "registrationFailed":
+        if (data.code === "playerAlreadyActive") {
+          wsClient.disconnect();
+          game.clearSession();
+          setRegistration({ phase: "activeElsewhere", error: "", idleWarningUntil: undefined });
+          break;
+        }
         setRegistration({
           phase: username ? "connectionError" : "nameEntry",
           error: data.reason || "Registration failed. Please try again.",
@@ -183,6 +215,35 @@ const wsClient = new WebSocketClient({
         console.warn("Unknown message type:", type);
     }
   },
+});
+
+function endForInactivity() {
+  wsClient.disconnect();
+  game.clearSession();
+  setRegistration({ phase: "inactive", error: "", idleWarningUntil: undefined });
+}
+
+function reportActivity(force = false) {
+  if (registration.phase !== "registered" || !wsClient.isConnected) return;
+  const now = Date.now();
+  if (idleDeadline > 0 && now >= idleDeadline) { endForInactivity(); return; }
+  // Send only in response to input, never from an interval or visibility event.
+  if (!force && !registration.idleWarningUntil && now - lastActivitySent < Math.min(10000, idleTimeoutMs / 4)) return;
+  lastActivitySent = now;
+  idleDeadline = now + idleTimeoutMs;
+  wsClient.sendMessage(createCommand("activity", {}));
+}
+
+for (const type of ["pointerdown", "keydown", "wheel"] as const) {
+  document.addEventListener(type, (event) => {
+    // Let the warning button complete its click before dismissing the warning.
+    if (event.target instanceof Element && event.target.closest("[data-inactivity-warning]")) return;
+    if (event.isTrusted && !(event instanceof KeyboardEvent && event.repeat)) reportActivity();
+  }, { capture: true, passive: true });
+}
+// A suspended tab may resume before its close event is delivered.
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && registration.phase === "registered" && idleDeadline > 0 && Date.now() >= idleDeadline) endForInactivity();
 });
 
 game.registerWsClient(wsClient);

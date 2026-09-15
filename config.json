@@ -3,7 +3,13 @@
   "server": {
     "devMode": false,
     "address": ":8080",
-    "tickIntervalMs": 500
+    "tickIntervalMs": 500,
+    "connections": {
+      "pingIntervalSeconds": 20,
+      "pongTimeoutSeconds": 60,
+      "idleTimeoutSeconds": 900,
+      "idleWarningSeconds": 60
+    }
   },
   "client": {
     "folder": "client/dist"
