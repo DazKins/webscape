@@ -16,12 +16,8 @@ Each tutor visibly carries the appropriate tool or weapon. Tutor conversations e
 
 Buildings use open-top wall outlines so interiors stay visible, with working doors, furniture, and loot. Most supply chests deplete once per world lifetime. The wayfarer key chest stays repeatable so subsequent players can complete DazKins’ errand. The existing quest and conversation event ids are preserved: accept the errand in the square, collect the key inside Rowan’s Lodge, then defeat a rat.
 
-Authored `equipped.slots` maps equipment slots to catalog ids, for example:
+## Related documentation
 
-```json
-{"equipped":{"slots":{"weapon":"ironSword","offhand":"woodenShield"}}}
-```
-
-The loader creates fresh items with catalog stats; the client receives normal equipment state. Server, schema, and editor reject invalid slot/item combinations.
-
-Validation: `go test ./...`, client and editor `pnpm run build`, and a local runtime/browser check. `TestWillowbrookLandmarksAreReachable` loads the checked-in project and checks overlap, spawn clearance, and access to interactions, treating usable doors as open.
+- [Character bible](characters/index.md)
+- [World content implementation](../technical/world-content.md): authored equipment and validation.
+- [Game project manifest](../../game-project/game.json): the content files loaded by the game.
