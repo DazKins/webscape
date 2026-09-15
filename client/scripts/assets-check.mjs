@@ -74,6 +74,34 @@ try {
       check(JSON.stringify([...local.surfaces.water.attributes[name].array]) === JSON.stringify([...remote.surfaces.water.attributes[name].array]), `worker water ${name} mismatch`);
     }
     check(JSON.stringify(local.surfaces.walls) === JSON.stringify(remote.surfaces.walls), "worker wall placement mismatch");
+    // Duplicate vertices must agree across tile colors, water, and chunk seams.
+    const normalsByPosition = new Map();
+    for (let chunkY = 0; chunkY < 2; chunkY++) {
+      for (let chunkX = 0; chunkX < 2; chunkX++) {
+        const heights = [];
+        for (let y = -1; y <= size; y++) {
+          for (let x = -1; x <= size; x++) {
+            heights.push((x + chunkX * size + 2 * (y + chunkY * size) + 30) % 7);
+          }
+        }
+        const surfaces = construct({ kind: "chunk", chunk: {
+          sizeX: size, sizeY: size, heights,
+          terrain: Array.from({ length: size * size }, (_, i) => i % 2 ? "water" : "grass"), walls: [],
+        } }).surfaces;
+        for (const surface of [surfaces.terrain, surfaces.water]) {
+          const positions = surface.attributes.position.array;
+          const normals = surface.attributes.normal.array;
+          for (let i = 0; i < positions.length; i += 3) {
+            const key = `${positions[i] + chunkX * size},${positions[i + 2] + chunkY * size}`;
+            const normal = [...normals.slice(i, i + 3)];
+            const previous = normalsByPosition.get(key);
+            check(!previous || normal.every((value, axis) => Math.abs(value - previous[axis]) < 1e-6), `terrain normal seam at ${key}`);
+            check(Math.abs(Math.hypot(...normal) - 1) < 1e-6 && normal[1] > 0, `invalid terrain normal at ${key}`);
+            normalsByPosition.set(key, normal);
+          }
+        }
+      }
+    }
     const again = await constructionClient.run({kind:"chunk", chunk});
     check(again.surfaces.wallGeometries[0][1].attributes.position.array.length > 0, "worker transferred cached source buffers");
 
@@ -102,6 +130,7 @@ try {
     }
     const expected = createTerrainSurfaceGeometry(visual.grid, visual.data.terrain, terrainColor);
     check(JSON.stringify([...expected.attributes.position.array]) === JSON.stringify([...visual.terrainMesh.geometry.attributes.position.array]), "neighbor border snapshot became stale");
+    check(JSON.stringify([...expected.attributes.normal.array]) === JSON.stringify([...visual.terrainMesh.geometry.attributes.normal.array]), "neighbor normal snapshot became stale");
     expected.dispose();
     const liveWall = visual.root.getObjectByName("chunkWalls").children[0];
     let wallDisposed = 0;

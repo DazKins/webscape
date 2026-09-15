@@ -102,7 +102,7 @@ export function createTerrainSurfaceGeometry(
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices);
-  geometry.computeVertexNormals();
+  setTerrainNormals(geometry, grid);
   return geometry;
 }
 
@@ -153,7 +153,7 @@ export function createWaterSurfaceGeometry(
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
-  geometry.computeVertexNormals();
+  setTerrainNormals(geometry, grid);
   return geometry;
 }
 
@@ -197,4 +197,23 @@ export function createTileHighlightGeometry(
 
 function lerp(from: number, to: number, amount: number) {
   return from + (to - from) * amount;
+}
+
+function setTerrainNormals(geometry: THREE.BufferGeometry, grid: TerrainHeightGrid) {
+  const positions = geometry.getAttribute("position");
+  const normals = new Float32Array(positions.count * 3);
+  const normal = new THREE.Vector3();
+
+  // Tiles duplicate edge vertices to keep their colors distinct. Sample the
+  // height field on both sides so those vertices still share smooth normals.
+  // Half-tile steps also fit within the worker's one-tile chunk border.
+  for (let i = 0; i < positions.count; i += 1) {
+    const x = positions.getX(i);
+    const z = positions.getZ(i);
+    const dx = sampleTerrainHeight(grid, x + 0.5, z) - sampleTerrainHeight(grid, x - 0.5, z);
+    const dz = sampleTerrainHeight(grid, x, z + 0.5) - sampleTerrainHeight(grid, x, z - 0.5);
+    normal.set(-dx, 1, -dz).normalize().toArray(normals, i * 3);
+  }
+
+  geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
 }
