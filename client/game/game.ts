@@ -1,5 +1,7 @@
 import { ShopUpdateEventName, TradeResultEvent, type TradeResultPayload } from "../events/shop";
 import Entity from "./entity/entity.ts";
+import DayCycleClock from "./dayCycle";
+import EnvironmentLighting from "./environmentLighting";
 import World, { type ChunkUpdate } from "./world/world.ts";
 import Input, { InputReceiver } from "../input.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
@@ -82,6 +84,9 @@ class Game extends EventTarget implements InputReceiver {
   quests: QuestDefinition[];
   activeConversation: ConversationPayload | null;
   observerFocus: { x: number; y: number };
+  readonly dayCycle = new DayCycleClock();
+  private readonly lighting: EnvironmentLighting;
+  private readonly lightingFocus = new THREE.Vector3();
   private latestServerTick = 0;
   private serverTickMilliseconds = SERVER_TICK_MILLISECONDS;
   private serverTickReceivedAtMilliseconds = performance.now();
@@ -98,6 +103,7 @@ class Game extends EventTarget implements InputReceiver {
     this.viewport = getElementSize(sceneLayerRoot);
     this.deviceProfile = getDeviceProfile(this.viewport);
     this.scene = new THREE.Scene();
+    this.lighting = new EnvironmentLighting(this.scene);
     this.input = new Input();
     this.camera = new Camera(this.input, this.viewport);
     this.entityRenderSystem = new EntityRenderSystem(
@@ -105,6 +111,7 @@ class Game extends EventTarget implements InputReceiver {
       () => this.world,
       () => this.estimatedServerTick(),
       () => this.serverTickMilliseconds / 1000,
+      this.lighting,
     );
     this.quests = [];
     this.activeConversation = null;
@@ -122,11 +129,6 @@ class Game extends EventTarget implements InputReceiver {
     this.cssRenderer2d.domElement.style.top = "0";
     this.cssRenderer2d.domElement.style.pointerEvents = "none";
     hudLayerRoot.appendChild(this.cssRenderer2d.domElement);
-
-    this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-    const light = new THREE.DirectionalLight(0xffffff, 0.8);
-    light.position.set(10, 10, 10);
-    this.scene.add(light);
 
     addReferenceGeometry(this.scene);
 
@@ -363,6 +365,7 @@ class Game extends EventTarget implements InputReceiver {
     ) {
       this.latestServerTick = gameUpdate.serverTick;
       this.serverTickReceivedAtMilliseconds = performance.now();
+      this.dayCycle.receive(gameUpdate.serverTick, this.serverTickReceivedAtMilliseconds);
     }
     const entityComponentsUpdates = gameUpdate.entities;
     let inventoryChanged = false;
@@ -422,6 +425,10 @@ class Game extends EventTarget implements InputReceiver {
 
     this.entityRenderSystem.update(this.entities, deltaSeconds, this.getMyEntity()?.getId());
 
+    this.lightingFocus.copy(this.getEntityFocusPoint(this.myPlayerId) ??
+      this.lightingFocus.set(this.observerFocus.x, 0, this.observerFocus.y));
+    this.lighting.update(this.dayCycle.read()?.cycleProgress ?? 0, this.lightingFocus);
+
     this.renderer.render(this.scene, this.camera.getInnerCamera());
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
     this.dispatchEvent(new Event("frameRendered"));
@@ -436,6 +443,7 @@ class Game extends EventTarget implements InputReceiver {
   }
 
   private resetServerClock() {
+    this.dayCycle.reset();
     this.latestServerTick = 0;
     this.serverTickReceivedAtMilliseconds = performance.now();
   }
@@ -494,6 +502,7 @@ class Game extends EventTarget implements InputReceiver {
     const chunkSize = worldUpdate.chunkSize ?? { x: 32, y: 32 };
     this.observerFocus = worldUpdate.playerSpawn ?? { x: 0, y: 0 };
     this.world = new World(this.scene, chunkSize, this.input);
+    this.dayCycle.configure(worldUpdate.dayCycle, this.serverTickMilliseconds);
   }
 
   handleChunkUpdate(update: ChunkUpdate) {

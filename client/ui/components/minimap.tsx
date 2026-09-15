@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type Game from "../../game/game";
 import { terrainColor, type ChunkLoad } from "../../game/world/world";
 import styles from "./minimap.module.css";
+import DayCycleIndicator from "./dayCycleIndicator";
 
 const SIZE = 192;
 const CENTER = SIZE / 2;
@@ -123,6 +124,7 @@ export default function Minimap({ game }: { game: Game }) {
         role="img"
         aria-label="Local terrain minimap and compass, rotating with the camera. The white dot is you; the chevron points in the direction your character is facing."
       />
+      <DayCycleIndicator game={game} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+	"webscape/server/game/gametime"
 	"webscape/server/game/world"
 )
 
@@ -64,7 +65,8 @@ func TestWorldMessageAdvertisesTickInterval(t *testing.T) {
 	message := NewWorldMessage(world.NewWorld(4, 4), 250*time.Millisecond)
 	var payload struct {
 		Data struct {
-			TickIntervalMs int `json:"tickIntervalMs"`
+			TickIntervalMs int          `json:"tickIntervalMs"`
+			DayCycle       dayCycleData `json:"dayCycle"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal([]byte(message.Marshal()), &payload); err != nil {
@@ -72,5 +74,8 @@ func TestWorldMessageAdvertisesTickInterval(t *testing.T) {
 	}
 	if payload.Data.TickIntervalMs != 250 {
 		t.Fatalf("interval=%d", payload.Data.TickIntervalMs)
+	}
+	if payload.Data.DayCycle.DayTicks != gametime.DayTicks || payload.Data.DayCycle.CycleTicks != gametime.CycleTicks {
+		t.Fatalf("day cycle settings = %+v", payload.Data.DayCycle)
 	}
 }

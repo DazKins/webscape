@@ -55,9 +55,7 @@ func TestFishingPhaseTimelineMissesAndCatches(t *testing.T) {
 	if got := countGameEvents(*events, gameevent.EventIdFishingCatch); got != 0 {
 		t.Fatalf("miss emitted %d fishing catch events", got)
 	}
-	if indexOfMessageType(messageTypes(missMessages), message.MessageTypeGameUpdate) >= 0 {
-		t.Fatalf("miss emitted a game update: %v", messageTypes(missMessages))
-	}
+	assertEmptyTickUpdate(t, missMessages, game.CurrentTick())
 	assertActivityLogDoesNotContain(t, game, playerId, "catch nothing")
 
 	game.update()

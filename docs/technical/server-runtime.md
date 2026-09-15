@@ -15,6 +15,28 @@ Logs use these searchable event names:
 
 Pathfinding uses one A* search to reach any valid tile within interaction range, then validates and follows cached steps. Tile blocker counts track doors and entity footprints. Each search is limited to 16,384 expanded nodes; routes exceeding this work limit are rejected rather than allowing an unbounded search to stall a tick.
 
+## Day/night cycle
+
+The stored simulation tick is also global game time. `Game.CurrentGameTime()` and
+the shared `SystemBase.GameTimeSource` expose the current tick, cycle tick, night
+flag, cycle progress, and ticks until transition. Tick advancement happens before
+systems run, including when no players are connected. There is no separate
+wall-clock accumulator for day/night.
+
+Each cycle has 1,200 day ticks and 1,200 night ticks: 20 minutes at the standard
+500 ms interval. Changing the tick interval changes the cycle's real-time duration
+along with other gameplay. Fresh worlds start at daybreak; when persistence is
+enabled, restoring the existing simulation tick also restores the cycle, without
+advancing it for time spent offline.
+
+The client blends the sky and ambient/directional lighting across dawn and dusk.
+Models opt into warm night illumination with a `lightSource` socket on their
+luminous mesh (currently lanterns). Per-instance emissive materials and halos
+fade with the cycle; a fixed pool of eight nearby point lights illuminates the
+surroundings. Lights are released when the corresponding models unload.
+
+Validate the client clock with `cd client && pnpm run clock:check`.
+
 ## Connection health and inactivity
 `server.connections` in `config.json` controls these timeouts (also their defaults when omitted):
 

@@ -239,9 +239,8 @@ func TestShopBaselineReconstructsStateWithoutReplayingTrades(t *testing.T) {
 		}
 	})
 	g.syncClient("player")
-	if len(sent) != 0 {
-		t.Fatal("unchanged shop state produced a delta")
-	}
+	assertEmptyTickUpdate(t, sent, g.CurrentTick())
+	sent = nil
 	g.clients["player"].baseline = make(map[component.ComponentId]map[model.EntityId]util.Json)
 	g.syncClient("player")
 	if indexOfMessageType(messageTypes(sent), message.MessageTypeGameUpdate) < 0 || indexOfMessageType(messageTypes(sent), message.MessageTypeTradeResult) >= 0 {

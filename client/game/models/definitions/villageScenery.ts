@@ -17,12 +17,12 @@ export const createLanternModel: ModelFactory = () => {
   place(root, box(0.34, 0.16, 0.34, 0x737b7b), 0, 0.08, 0);
   place(root, cylinder(0.055, 0.08, 1.6, 6, timber), 0, 0.88, 0);
   place(root, box(0.34, 0.08, 0.34, brass), 0, 1.68, 0);
-  place(root, box(0.23, 0.3, 0.23, 0xffd68a, { emissive: 0xb47624 }), 0, 1.87, 0);
+  const lightSource = place(root, box(0.23, 0.3, 0.23, 0xffd68a, { emissive: 0xb47624 }), 0, 1.87, 0);
   for (const x of [-0.14, 0.14]) for (const z of [-0.14, 0.14]) {
     place(root, box(0.035, 0.34, 0.035, brass), x, 1.88, z);
   }
   place(root, cone(0.28, 0.22, 4, 0x365d61), 0, 2.14, 0);
-  return createModelInstance(root);
+  return createModelInstance(root, {}, [], { lightSource });
 };
 
 export const createBenchModel: ModelFactory = () => {

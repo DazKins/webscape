@@ -19,6 +19,7 @@ import RendererFishingSpot from "./renderer/rendererFishingSpot";
 import type { TerrainHeightSampler } from "./renderer/renderer";
 import RendererMagicBolt from "./renderer/rendererMagicBolt";
 import RendererArrow from "./renderer/rendererArrow";
+import type EnvironmentLighting from "./environmentLighting";
 
 type VisualHeightWorld = {
   getVisualHeightAtWorldPosition(worldX: number, worldZ: number): number;
@@ -101,6 +102,7 @@ export default class EntityRenderSystem {
     getWorld?: () => VisualHeightWorld | undefined,
     getEstimatedServerTick: () => number = () => 0,
     getTickSeconds: () => number = () => 0.5,
+    private readonly lighting?: EnvironmentLighting,
   ) {
     this.scene = scene;
     this.renderers = {};
@@ -140,7 +142,7 @@ export default class EntityRenderSystem {
       case "shopCounter":
       case "archeryTarget":
       case "fountain":
-        return new ModelEntityRenderer(this.scene, entity, this.sampleVisualHeight, renderableType);
+        return new ModelEntityRenderer(this.scene, entity, this.sampleVisualHeight, renderableType, {}, this.lighting);
       case "building":
         return new RendererBuilding(this.scene, entity, this.sampleVisualHeight);
       case "rewarddrop":

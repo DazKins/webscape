@@ -1,0 +1,57 @@
+.indicator {
+  --cycle-accent: #f4ce88;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--day-cycle-gap));
+  transform: translateX(-50%);
+  width: var(--day-cycle-size);
+  color: var(--cycle-accent);
+  pointer-events: auto;
+}
+
+.indicator[data-night="true"] {
+  --cycle-accent: #bdcefa;
+}
+
+.dial {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: help;
+  touch-action: manipulation;
+}
+
+.dial:focus-visible {
+  outline: 2px solid var(--cycle-accent);
+  outline-offset: 4px;
+}
+
+.face { display: block; width: 100%; height: 100%; }
+.rim { fill: rgba(16, 24, 32, 0.94); stroke: currentColor; stroke-opacity: 0.25; }
+.track { fill: none; stroke: currentColor; stroke-opacity: 0.13; stroke-width: 3; }
+.progress { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.symbol { stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  width: max-content;
+  padding: 9px 12px;
+  border: 1px solid #697784;
+  border-radius: 8px;
+  background: #111b28;
+  color: #eef1f7;
+  box-shadow: 0 3px 14px #0005;
+  font-size: 12px;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.indicator:hover .tooltip, .indicator:focus-within .tooltip { visibility: visible; }

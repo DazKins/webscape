@@ -3,6 +3,7 @@ package system
 import (
 	"webscape/server/game/component"
 	"webscape/server/game/gameevent"
+	"webscape/server/game/gametime"
 	"webscape/server/game/model"
 )
 
@@ -12,6 +13,10 @@ type GameEventEmitter interface {
 
 type TickSource interface {
 	CurrentTick() uint64
+}
+
+type GameTimeSource interface {
+	CurrentGameTime() gametime.State
 }
 
 type SpatialCandidates interface {
@@ -25,6 +30,7 @@ type System interface {
 type SystemBase struct {
 	ComponentManager *component.ComponentManager
 	StateTransitions *EntityStateTransitions
+	GameTimeSource   GameTimeSource
 }
 
 func (s SystemBase) entityStateTransitions(tickSource TickSource) *EntityStateTransitions {

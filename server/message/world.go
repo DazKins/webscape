@@ -2,14 +2,21 @@ package message
 
 import (
 	"time"
+	"webscape/server/game/gametime"
 	"webscape/server/game/world"
 )
 
 type worldData struct {
 	TickIntervalMs int64            `json:"tickIntervalMs"`
+	DayCycle       dayCycleData     `json:"dayCycle"`
 	ChunkSize      world.ChunkCoord `json:"chunkSize"`
 	PlayerSpawn    positionData     `json:"playerSpawn"`
 	Quests         []questData      `json:"quests"`
+}
+
+type dayCycleData struct {
+	DayTicks   uint64 `json:"dayTicks"`
+	CycleTicks uint64 `json:"cycleTicks"`
 }
 
 type positionData struct {
@@ -57,6 +64,7 @@ func NewWorldMessage(world *world.World, intervals ...time.Duration) Message {
 		MessageTypeWorld,
 		worldData{
 			TickIntervalMs: interval.Milliseconds(),
+			DayCycle:       dayCycleData{DayTicks: gametime.DayTicks, CycleTicks: gametime.CycleTicks},
 			ChunkSize:      world.GetChunkSize(),
 			PlayerSpawn:    positionData{X: playerSpawn.X, Y: playerSpawn.Y},
 			Quests:         serializeQuests(world.GetQuestRegistry().All()),

@@ -12,6 +12,7 @@ import (
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
 	"webscape/server/game/gameevent"
+	"webscape/server/game/gametime"
 	"webscape/server/game/model"
 	"webscape/server/game/spatial"
 	"webscape/server/game/system"
@@ -98,6 +99,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	systemBase := system.SystemBase{
 		ComponentManager: game.componentManager,
 		StateTransitions: game.stateTransitions,
+		GameTimeSource:   game,
 	}
 
 	game.RegisterSystem(&system.PathingSystem{
@@ -246,6 +248,12 @@ func (g *Game) update() tickTimings {
 
 func (g *Game) CurrentTick() uint64 {
 	return g.currentTick
+}
+
+// CurrentGameTime is read by systems and command handlers under stateMutex,
+// just like CurrentTick. The stored tick is the sole source of game time.
+func (g *Game) CurrentGameTime() gametime.State {
+	return gametime.AtTick(g.currentTick)
 }
 
 func (g *Game) Stop() {
@@ -715,6 +723,7 @@ func (g *Game) syncClient(clientID string) {
 	if registered {
 		positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerID)
 		if positionComponent == nil {
+			g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, nil, nil, nil))
 			return
 		}
 		position = positionComponent.(*component.CPosition).GetPosition()
@@ -794,13 +803,12 @@ func (g *Game) syncClient(clientID string) {
 			delete(entities, entityID)
 		}
 	}
-	if len(updated) > 0 || len(removed) > 0 {
-		interactions := map[model.EntityId][]component.InteractionOption{}
-		if registered {
-			interactions = g.availableInteractionsForGameUpdate(updated, removed)
-		}
-		g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions))
+	interactions := map[model.EntityId][]component.InteractionOption{}
+	if registered && (len(updated) > 0 || len(removed) > 0) {
+		interactions = g.availableInteractionsForGameUpdate(updated, removed)
 	}
+	// Every tick is a clock heartbeat, even when the entity delta is empty.
+	g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions))
 }
 
 func isPublicObserverComponent(componentID component.ComponentId) bool {
