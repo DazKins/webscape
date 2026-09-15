@@ -64,9 +64,17 @@ func (c *CInventory) RemoveItem(itemId model.ItemId) bool {
 	return false
 }
 
+// RemoveFirstItemByType removes one unit, preserving any remaining stack.
 func (c *CInventory) RemoveFirstItemByType(itemType string) *model.Item {
 	for i, item := range c.items {
 		if item.Type == itemType {
+			if item.Quantity > 1 {
+				item.Quantity--
+				removed := *item
+				removed.Id = model.NewItemId()
+				removed.Quantity = 1
+				return &removed
+			}
 			c.items = append(c.items[:i], c.items[i+1:]...)
 			return item
 		}

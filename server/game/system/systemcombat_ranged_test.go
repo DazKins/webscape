@@ -155,7 +155,7 @@ func assertArrowCount(
 	got := 0
 	for _, item := range inventory.GetAllItems() {
 		if item.Type == model.ItemTypeArrow {
-			got++
+			got += item.Quantity
 		}
 	}
 	if got != want {

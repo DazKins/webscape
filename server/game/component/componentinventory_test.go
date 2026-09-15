@@ -41,12 +41,15 @@ func TestInventoryRemovesFirstItemByType(t *testing.T) {
 	inventory.AddItem(firstArrow)
 	inventory.AddItem(secondArrow)
 
+	if inventory.GetItemCount() != 2 || firstArrow.Quantity != 2 {
+		t.Fatal("arrows did not merge into one stack")
+	}
 	removed := inventory.RemoveFirstItemByType(model.ItemTypeArrow)
-	if removed != firstArrow || inventory.HasItem(firstArrow.Id) || !inventory.HasItem(secondArrow.Id) {
+	if removed == nil || removed.Quantity != 1 || removed.Type != model.ItemTypeArrow || removed.Id == firstArrow.Id || !inventory.HasItem(firstArrow.Id) || firstArrow.Quantity != 1 || inventory.HasItem(secondArrow.Id) {
 		t.Fatalf("removed = %#v, remaining = %#v", removed, inventory.GetAllItems())
 	}
 	if !inventory.HasItemType(model.ItemTypeArrow) {
-		t.Fatal("second arrow was not found")
+		t.Fatal("remaining arrow was not found")
 	}
 	inventory.RemoveFirstItemByType(model.ItemTypeArrow)
 	if inventory.HasItemType(model.ItemTypeArrow) || inventory.RemoveFirstItemByType(model.ItemTypeArrow) != nil {

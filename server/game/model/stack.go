@@ -11,7 +11,7 @@ func CreateGold(quantity int) *Item {
 	return item
 }
 
-func (i *Item) IsStackable() bool { return i.Type == ItemTypeGold }
+func (i *Item) IsStackable() bool { return i.Type == ItemTypeGold || i.Type == ItemTypeArrow }
 
 func (i *Item) ValidQuantity() bool {
 	return i.Quantity > 0 && i.Quantity <= MaxStackQuantity && (i.IsStackable() || i.Quantity == 1)

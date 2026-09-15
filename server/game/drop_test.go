@@ -217,7 +217,7 @@ func TestDropPickupFullInventoryAndCompetingPlayers(t *testing.T) {
 	g.HandleDrop("player", item.Id)
 	dropID, _ := firstEntityWithComponent(g, component.ComponentIdDroppedItem)
 	for !inventory.IsFull() {
-		inventory.AddItem(model.CreateArrow())
+		inventory.AddItem(model.CreateBread())
 	}
 	g.HandleInteract("player", dropID, component.InteractionOptionLoot)
 	g.update()

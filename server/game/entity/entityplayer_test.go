@@ -25,6 +25,7 @@ func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
 	hasMagicStaff := false
 	hasWoodenBow := false
 	arrowCount := 0
+	arrowStacks := 0
 	for _, item := range inventory.GetAllItems() {
 		hasSword = hasSword || item.Name == "Iron Sword"
 		hasAxe = hasAxe || item.Name == "Woodcutting Axe" && item.Type == "axe"
@@ -32,10 +33,11 @@ func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
 		hasMagicStaff = hasMagicStaff || item.Name == "Magic Staff" && item.RenderModel == "magicStaff"
 		hasWoodenBow = hasWoodenBow || item.Name == "Wooden Bow" && item.RenderModel == "woodenBow"
 		if item.Type == model.ItemTypeArrow {
-			arrowCount++
+			arrowCount += item.Quantity
+			arrowStacks++
 		}
 	}
-	if !hasSword || !hasAxe || !hasFishingRod || !hasMagicStaff || !hasWoodenBow || arrowCount != 5 {
+	if !hasSword || !hasAxe || !hasFishingRod || !hasMagicStaff || !hasWoodenBow || arrowCount != 100 || arrowStacks != 1 {
 		t.Fatalf("starter inventory has sword=%v axe=%v fishingRod=%v magicStaff=%v woodenBow=%v arrows=%d",
 			hasSword, hasAxe, hasFishingRod, hasMagicStaff, hasWoodenBow, arrowCount)
 	}
