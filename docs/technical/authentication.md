@@ -105,7 +105,9 @@ without logging codes, tokens or secrets.
 
 SCS keeps sessions in memory. Browsers receive an HttpOnly, SameSite=Lax cookie,
 with Secure and the `__Host-` prefix for HTTPS; loopback HTTP uses a separate local
-cookie name. Session lifetime is 60–86400 seconds and is capped by ID-token expiry.
+cookie name. OIDC cookies persist across browser restarts until session expiry;
+guest cookies last only for the browser session. Session lifetime is 60–86400
+seconds and is capped by ID-token expiry.
 No refresh tokens are requested. Sessions end on restart. Reauthentication can be
 silent at a provider that retains an SSO session.
 

@@ -176,7 +176,7 @@ func newSessionManager(cfg config.AuthConfig) *Manager {
 	}
 	sessions.Cookie.HttpOnly = true
 	sessions.Cookie.SameSite = http.SameSiteLaxMode
-	sessions.Cookie.Persist = false
+	sessions.Cookie.Persist = cfg.Mode != "none"
 	return &Manager{sessions: sessions, store: store, origin: origin, issuer: cfg.Issuer,
 		guest: cfg.Mode == "none", lifetime: sessions.Lifetime, leases: make(map[string]*Session), timers: make(map[string]*time.Timer)}
 }

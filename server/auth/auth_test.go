@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -114,6 +115,47 @@ func TestLoginIdentityCookiesAndLogout(t *testing.T) {
 		t.Fatal("old cookie replay authenticated")
 	}
 }
+func TestSessionSurvivesBrowserRestartUntilExpiry(t *testing.T) {
+	for _, tokenLimited := range []bool{false, true} {
+		t.Run(fmt.Sprintf("tokenLimited=%t", tokenLimited), func(t *testing.T) {
+			f := setup(t)
+			f.manager.lifetime = 10 * time.Minute
+			tokenExpiry := time.Now().Add(time.Hour).Truncate(time.Second)
+			if tokenLimited {
+				tokenExpiry = time.Now().Add(time.Minute).Truncate(time.Second)
+			}
+			f.provider.MutateClaims = func(claims map[string]any) { claims["exp"] = tokenExpiry.Unix() }
+			response := oidctest.Get(t, f.browser, oidctest.Callback(t, f.browser, f.server.URL, "one"))
+			// Model reopening a browser that restores only persistent cookies.
+			reopened := oidctest.Browser()
+			appURL, _ := url.Parse(f.server.URL)
+			var saved *http.Cookie
+			for _, cookie := range response.Cookies() {
+				if cookie.Name == f.manager.sessions.Cookie.Name && cookie.MaxAge > 0 && cookie.Expires.After(time.Now()) {
+					reopened.Jar.SetCookies(appURL, []*http.Cookie{cookie})
+					saved = cookie
+				}
+			}
+			status := sessionStatus(t, reopened, f.server.URL)
+			if status["authenticated"] != true || status["accountId"] != PlayerID(f.provider.URL, "one").String() {
+				t.Fatal("reopening browser lost authenticated identity")
+			}
+			expires, err := time.Parse(time.RFC3339Nano, status["expiresAt"].(string))
+			if err != nil {
+				t.Fatal(err)
+			}
+			// SCS rounds cookie expiry up to the next second; authorization still
+			// expires at the exact server deadline.
+			if saved == nil || saved.Expires.Before(expires) || saved.Expires.Sub(expires) > time.Second || saved.MaxAge > 601 {
+				t.Fatal("persistent cookie does not respect session deadline")
+			}
+			if tokenLimited && !expires.Equal(tokenExpiry) {
+				t.Fatal("session exceeded provider token expiry")
+			}
+		})
+	}
+}
+
 func TestCallbackRejectsInvalidClaims(t *testing.T) {
 	for _, test := range []struct {
 		name   string
