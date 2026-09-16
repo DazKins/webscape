@@ -14,7 +14,7 @@ The fourteen village NPCs wander within small areas around their authored positi
 
 Each tutor visibly carries the appropriate tool or weapon. Tutor conversations explain existing mechanics, supplies, and nearby practice locations; they do not award skill levels or claim an unimplemented XP system. Shops have distinct inventories and buyback prices. Decorative archery targets are scenery; field rats are the live practice targets.
 
-Buildings use open-top wall outlines so interiors stay visible, with working doors, furniture, and loot. Most supply chests deplete once per world lifetime. The wayfarer key chest stays repeatable so subsequent players can complete DazKins’ errand. The existing quest and conversation event ids are preserved: accept the errand in the square, collect the key inside Rowan’s Lodge, then defeat a rat.
+Buildings use open-top wall outlines so interiors stay visible, with working doors, furniture, and loot. Most supply chests deplete once per world lifetime. The wayfarer key chest stays repeatable so subsequent players can complete DazKins’ errand. The existing quest and conversation event ids are preserved: accept the errand in the square, collect the key inside Rowan’s Lodge, then defeat a rat and return to DazKins for the Ancient Scroll. Killing the rat advances to the return objective; speaking to DazKins afterward completes the quest.
 
 ## Related documentation
 

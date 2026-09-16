@@ -269,10 +269,78 @@ func TestGameProjectFirstErrandCompletionSendsMessageAndQuestLogUpdate(t *testin
 
 	playerEntityId := model.NewEntityId()
 	game.HandleRegister("client-1", playerEntityId, "player")
-	game.EmitGameEvent(gameevent.New("conversation:node:new_conversation:accepted", playerEntityId))
+	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
+	var dazkins model.EntityId
+	for entityId, c := range game.componentManager.GetComponent(component.ComponentIdConversation) {
+		if c.(*component.CConversation).GetConversationId() == "new_conversation" {
+			dazkins = entityId
+			break
+		}
+	}
+	if dazkins == (model.EntityId{}) {
+		t.Fatal("DazKins not found")
+	}
+	talk := func(nodeId string, ended bool) {
+		t.Helper()
+		game.StartConversationFor(playerEntityId, dazkins)
+		assertConversationMessage(t, sent, "new_conversation", dazkins.String(), nodeId, ended)
+	}
+	assertNoReward := func() {
+		t.Helper()
+		if countInventoryItems(inventory, "Ancient Scroll", "quest") != 0 {
+			t.Fatal("reward delivered before returning to DazKins")
+		}
+		for _, msg := range sent {
+			if msg.Metadata.Type == message.MessageTypeQuestCompleted {
+				t.Fatal("completion notification sent before returning to DazKins")
+			}
+		}
+	}
+
+	talk("start", false)
+	// A client cannot jump directly to the completion node or invent an option.
+	game.HandleConversationOption("client-1", "new_conversation", "returned", "accept")
+	game.HandleConversationOption("client-1", "new_conversation", "start", "returned")
+	assertNoReward()
+	game.HandleConversationOption("client-1", "new_conversation", "start", "accept")
+	assertQuestProgress(t, game, playerEntityId, "first_errand", "find_key", 1, 0, false)
+	talk("in_progress", true)
+	game.EmitGameEvent(gameevent.New("kill:entity:rat", playerEntityId))
+	assertQuestProgress(t, game, playerEntityId, "first_errand", "find_key", 1, 0, false)
 	game.EmitGameEvent(gameevent.New("collect:name:mysterious_key", playerEntityId))
+	talk("key_found", true)
+	assertQuestProgress(t, game, playerEntityId, "first_errand", "defeat_rat", 2, 0, false)
+	assertNoReward()
 	game.EmitGameEvent(gameevent.New("kill:entity:rat", playerEntityId))
 	game.update()
+	assertQuestProgress(t, game, playerEntityId, "first_errand", "return_to_dazkins", 3, 0, false)
+	assertNoReward()
+
+	// A second player still gets the offer, not this player's return dialogue.
+	otherPlayer := model.NewEntityId()
+	game.HandleRegister("client-2", otherPlayer, "other")
+	conversation, _ := testWorld.GetConversation("new_conversation")
+	if nodeId := game.conversationStartNode(otherPlayer, conversation); nodeId != "start" {
+		t.Fatalf("other player's greeting = %q, want start", nodeId)
+	}
+
+	talk("returned", true)
+	game.update()
+	assertQuestProgress(t, game, playerEntityId, "first_errand", "", 0, 0, true)
+	talk("completed", true)
+	talk("completed", true)
+	if countInventoryItems(inventory, "Ancient Scroll", "quest") != 1 {
+		t.Fatal("return visits must grant exactly one Ancient Scroll")
+	}
+	completionCount := 0
+	for _, msg := range sent {
+		if msg.Metadata.Type == message.MessageTypeQuestCompleted {
+			completionCount++
+		}
+	}
+	if completionCount != 1 {
+		t.Fatalf("completion notifications = %d, want 1", completionCount)
+	}
 
 	completion := firstQuestCompletedPayload(t, sent)
 	if completion.QuestId != "first_errand" {

@@ -1116,13 +1116,39 @@ func (g *Game) StartConversationFor(playerEntityId model.EntityId, targetEntityI
 		return
 	}
 
+	startNodeId := g.conversationStartNode(playerEntityId, conversation)
 	activeConversation := component.NewCActiveConversation(
 		conversationId,
 		targetEntityId,
-		conversation.StartNodeId,
+		startNodeId,
 	)
 	g.stateTransitions.BeginSocialInteraction(playerEntityId, activeConversation)
-	g.sendConversationNode(playerEntityId, targetEntityId, conversationId, conversation.StartNodeId)
+	g.sendConversationNode(playerEntityId, targetEntityId, conversationId, startNodeId)
+}
+
+func (g *Game) conversationStartNode(playerEntityId model.EntityId, conversation *world.Conversation) string {
+	questLogComponent := g.componentManager.GetEntityComponent(component.ComponentIdQuestLog, playerEntityId)
+	if questLogComponent == nil {
+		return conversation.StartNodeId
+	}
+	questLog := questLogComponent.(*component.CQuestLog)
+	for _, branch := range conversation.StartBranches {
+		if branch.Status == "completed" && questLog.IsCompleted(branch.QuestId) {
+			return branch.NodeId
+		}
+		if branch.Status != "active" || !questLog.IsActive(branch.QuestId) {
+			continue
+		}
+		if branch.StepId == "" {
+			return branch.NodeId
+		}
+		for _, progress := range questLog.GetActiveProgress() {
+			if progress.QuestId == branch.QuestId && progress.StepId == branch.StepId {
+				return branch.NodeId
+			}
+		}
+	}
+	return conversation.StartNodeId
 }
 
 func (g *Game) HandleConversationOption(

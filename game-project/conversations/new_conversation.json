@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "id": "new_conversation",
-  "displayName": "DazKins' Rat Problem",
+  "displayName": "DazKins' First Errand",
   "conversations": [
     {
       "id": "new_conversation",
@@ -11,10 +11,10 @@
           "id": "start",
           "messages": [
             {
-              "text": "You there! Willowbrook could use a steady pair of hands. The rats at Eastwatch have been nosing around goods from the old western lodge."
+              "text": "You there! I need a steady pair of hands. Orla found an expedition journal from before Willowbrook was built. Its last entry describes a sealed chamber beneath the ruined shrine in Willow Wood. Then the writing stops."
             },
             {
-              "text": "Search the wayfarer chest inside Rowan\u2019s Lodge in Willow Wood for a mysterious key, then deal with a rat in the eastern training yard. Find the key before picking the fight."
+              "text": "I think the key is in the wayfarer chest inside Rowan's Lodge. Supplies brought back from the shrine ended up at Eastwatch, and now rats keep tearing into those crates. Find the key first, then defeat a rat in the eastern training yard. Come back to me when both jobs are done."
             }
           ],
           "options": [
@@ -44,10 +44,10 @@
           "id": "key",
           "messages": [
             {
-              "text": "Follow the broad road west out of the village. Rowan\u2019s Lodge is just north of the road, near the woodcutting tutor. Open the door and search the old wayfarer chest inside."
+              "text": "The journal sketches a key with a split sun on its bow. Old Fen remembers a wayfarer carrying one just like it. They left it in his chest and promised to return before winter. They never did."
             },
             {
-              "text": "Speak to me and accept the errand before collecting the key. I want to know what drew the rats to it."
+              "text": "I want to know what they sealed beneath that shrine, and why they never came back. Follow the road west to Rowan's Lodge, just north of the road near the woodcutting tutor. Accept the errand before searching the wayfarer chest inside."
             }
           ],
           "options": [
@@ -72,10 +72,10 @@
           "id": "rat",
           "messages": [
             {
-              "text": "Follow the road east to Eastwatch. The weakest field rats are in the stone training yard north of the road, beside Iris and Captain Ash."
+              "text": "Those rats ignored the grain sacks and went straight for the crates from the shrine. That is what bothers me. I need the training yard safe before anyone sorts through the supplies."
             },
             {
-              "text": "Find the key first, then defeat a rat. The tutors can help you prepare."
+              "text": "Recover the key first, then follow the road east to Eastwatch. Defeat one of the weak field rats in the stone training yard north of the road, beside Iris and Captain Ash. The tutors can help you prepare. Then return to me in the village square."
             }
           ],
           "options": [
@@ -100,7 +100,7 @@
           "id": "reward",
           "messages": [
             {
-              "text": "I have an ancient scroll tucked away for someone willing to earn it. Clear up this business with the key and the rat, and it is yours."
+              "text": "An ancient scroll was tucked inside the expedition journal. Help me recover the key and deal with a rat, then come back here. The scroll is yours when you report back."
             }
           ],
           "options": [
@@ -125,10 +125,79 @@
           "id": "accepted",
           "messages": [
             {
-              "text": "Search the old wayfarer chest inside Rowan\u2019s Lodge to the west for the mysterious key, then defeat a field rat in the eastern training yard. Your ancient scroll will be awarded when the errand is complete."
+              "text": "Good. Search the wayfarer chest inside Rowan's Lodge to the west for the mysterious key, then defeat a rat at Eastwatch's training yard to the east. Return to me in the village square afterward; I will have your ancient scroll ready."
             }
           ],
           "endConversation": true
+        },
+        {
+          "id": "in_progress",
+          "messages": [
+            {
+              "text": "How are you getting on with your errand?"
+            },
+            {
+              "text": "The key should be in the wayfarer chest inside Rowan's Lodge, west of the village. Find it first, then deal with a rat at the eastern training yard. Come back here when you've done both."
+            }
+          ],
+          "endConversation": true
+        },
+        {
+          "id": "key_found",
+          "messages": [
+            {
+              "text": "How are you getting on with your errand?"
+            },
+            {
+              "text": "You've got the key, so there's just the rat left. Head to Eastwatch's training yard, north of the east road. Iris and Captain Ash can help you prepare. Come back to me once you've dealt with it."
+            }
+          ],
+          "endConversation": true
+        },
+        {
+          "id": "returned",
+          "messages": [
+            {
+              "text": "The key recovered and one less rat at Eastwatch. Well done. That split sun on the bow matches the journal exactly. Whatever the wayfarer locked away, they meant to come back for it."
+            },
+            {
+              "text": "Keep the key safe for now. I need to compare the journal with Orla's notes before we go opening old doors. Here is the ancient scroll I promised. You have earned it."
+            }
+          ],
+          "endConversation": true
+        },
+        {
+          "id": "completed",
+          "messages": [
+            {
+              "text": "Keep that key safe. I am still comparing the wayfarer's journal with Orla's notes. A sealed chamber, a missing traveler, and rats drawn to shrine supplies... there is a connection here, and I intend to find it."
+            }
+          ],
+          "endConversation": true
+        }
+      ],
+      "startBranches": [
+        {
+          "questId": "first_errand",
+          "status": "completed",
+          "nodeId": "completed"
+        },
+        {
+          "questId": "first_errand",
+          "status": "active",
+          "stepId": "return_to_dazkins",
+          "nodeId": "returned"
+        },
+        {
+          "questId": "first_errand",
+          "status": "active",
+          "stepId": "defeat_rat",
+          "nodeId": "key_found"
+        },
+        {
+          "questId": "first_errand",
+          "status": "active",
+          "nodeId": "in_progress"
         }
       ]
     }

@@ -101,6 +101,9 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := conversations.validateQuestReferences(quests); err != nil {
+		return nil, err
+	}
 
 	w := &World{
 		chunkSize:     format.World.ChunkSize,

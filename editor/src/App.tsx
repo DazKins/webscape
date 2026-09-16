@@ -112,7 +112,7 @@ function App() {
 
   const projectValidation = useMemo(() => validateGameProject(project), [project]);
   const worldValidations = useMemo(() => validateWorldDocuments(worldDocuments), [worldDocuments]);
-  const conversationValidations = useMemo(() => validateConversationDocuments(conversationDocuments), [conversationDocuments]);
+  const conversationValidations = useMemo(() => validateConversationDocuments(conversationDocuments, questDocuments), [conversationDocuments, questDocuments]);
   const questValidations = useMemo(() => validateQuestDocuments(questDocuments), [questDocuments]);
   const worldPathValid = isValidProjectPath(worldPath);
   const worldsValid = worldValidations.every((validation) => validation.result.valid);
@@ -526,6 +526,7 @@ function App() {
       return {
         ...conversation,
         startNodeId: nextStartNodeId,
+        startBranches: conversation.startBranches?.filter((branch) => branch.nodeId !== nodeId),
         nodes,
       };
     });
@@ -552,6 +553,10 @@ function App() {
     updateSelectedConversation((conversation) => ({
       ...conversation,
       startNodeId: conversation.startNodeId === previousId ? nextId : conversation.startNodeId,
+      startBranches: conversation.startBranches?.map((branch) => ({
+        ...branch,
+        nodeId: branch.nodeId === previousId ? nextId : branch.nodeId,
+      })),
       nodes: conversation.nodes.map((node) => ({
         ...node,
         id: node.id === previousId ? nextId : node.id,
@@ -1590,6 +1595,59 @@ function ConversationsWorkspace({
 
             <section className="editorSection">
               <div className="sectionHeader">
+                <h3>Quest greetings</h3>
+                <button type="button" onClick={() => onUpdateConversation((conversation) => ({
+                  ...conversation,
+                  startBranches: [...(conversation.startBranches ?? []), {
+                    questId: "", status: "active", nodeId: conversation.startNodeId,
+                  }],
+                }))}>Add greeting</button>
+              </div>
+              <p className="muted">The first matching greeting is used. Otherwise, the default start node is used.</p>
+              {(selectedConversation.startBranches ?? []).map((branch, index) => (
+                <div className="editorSection" key={index}>
+                  <div className="fieldRow">
+                    <label>Quest id<input value={branch.questId} onChange={(event) => onUpdateConversation((conversation) => ({
+                      ...conversation,
+                      startBranches: conversation.startBranches?.map((entry, i) => i === index ? { ...entry, questId: event.target.value } : entry),
+                    }))} /></label>
+                    <label>Status<select value={branch.status} onChange={(event) => onUpdateConversation((conversation) => ({
+                      ...conversation,
+                      startBranches: conversation.startBranches?.map((entry, i) => i === index ? {
+                        ...entry, status: event.target.value as "active" | "completed",
+                        stepId: event.target.value === "completed" ? undefined : entry.stepId,
+                      } : entry),
+                    }))}>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                    </select></label>
+                  </div>
+                  <div className="fieldRow">
+                    <label>Step id (optional)<input value={branch.stepId ?? ""} disabled={branch.status !== "active"} onChange={(event) => onUpdateConversation((conversation) => ({
+                      ...conversation,
+                      startBranches: conversation.startBranches?.map((entry, i) => i === index ? { ...entry, stepId: event.target.value || undefined } : entry),
+                    }))} /></label>
+                    <label>Start node<select value={branch.nodeId} onChange={(event) => onUpdateConversation((conversation) => ({
+                      ...conversation,
+                      startBranches: conversation.startBranches?.map((entry, i) => i === index ? { ...entry, nodeId: event.target.value } : entry),
+                    }))}>
+                      {selectedConversation.nodes.map((node) => <option key={node.id} value={node.id}>{node.id}</option>)}
+                    </select></label>
+                  </div>
+                  <button type="button" disabled={index === 0} onClick={() => onUpdateConversation((conversation) => {
+                    const startBranches = [...(conversation.startBranches ?? [])];
+                    [startBranches[index - 1], startBranches[index]] = [startBranches[index], startBranches[index - 1]];
+                    return { ...conversation, startBranches };
+                  })}>Move up</button>
+                  <button type="button" className="danger" onClick={() => onUpdateConversation((conversation) => ({
+                    ...conversation, startBranches: conversation.startBranches?.filter((_, i) => i !== index),
+                  }))}>Remove greeting</button>
+                </div>
+              ))}
+            </section>
+
+            <section className="editorSection">
+              <div className="sectionHeader">
                 <h3>Nodes</h3>
                 <button type="button" onClick={onAddNode}>Add Node</button>
               </div>
@@ -2095,10 +2153,10 @@ function summarizeConversations(
   });
 }
 
-function validateConversationDocuments(conversations: ConversationDocuments): ConversationValidationEntry[] {
+function validateConversationDocuments(conversations: ConversationDocuments, quests: QuestDocuments): ConversationValidationEntry[] {
   return Object.entries(conversations).map(([path, document]) => ({
     path,
-    result: validateConversationDocument(document),
+    result: validateConversationDocument(document, Object.values(quests).flatMap((document) => document.quests)),
   }));
 }
 

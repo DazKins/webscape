@@ -19,9 +19,19 @@ type conversationDocument struct {
 }
 
 type Conversation struct {
-	Id          string             `json:"id"`
-	StartNodeId string             `json:"startNodeId"`
-	Nodes       []ConversationNode `json:"nodes"`
+	Id            string                    `json:"id"`
+	StartNodeId   string                    `json:"startNodeId"`
+	StartBranches []ConversationStartBranch `json:"startBranches,omitempty"`
+	Nodes         []ConversationNode        `json:"nodes"`
+}
+
+// Start branches are evaluated in authored order against the speaking player's
+// quest log. The first match wins; StartNodeId is the fallback.
+type ConversationStartBranch struct {
+	QuestId string `json:"questId"`
+	Status  string `json:"status"`
+	StepId  string `json:"stepId,omitempty"`
+	NodeId  string `json:"nodeId"`
 }
 
 type ConversationNode struct {
@@ -158,6 +168,17 @@ func validateConversationDocument(document conversationDocument) error {
 		if !nodeIds[conversation.StartNodeId] {
 			return fmt.Errorf("conversation %q start node %q does not exist", conversation.Id, conversation.StartNodeId)
 		}
+		for _, branch := range conversation.StartBranches {
+			if branch.QuestId == "" || (branch.Status != "active" && branch.Status != "completed") {
+				return fmt.Errorf("conversation %q start branch requires a questId and active or completed status", conversation.Id)
+			}
+			if branch.StepId != "" && branch.Status != "active" {
+				return fmt.Errorf("conversation %q start branch stepId requires active status", conversation.Id)
+			}
+			if !nodeIds[branch.NodeId] {
+				return fmt.Errorf("conversation %q start branch targets missing node %q", conversation.Id, branch.NodeId)
+			}
+		}
 		for _, node := range conversation.Nodes {
 			for _, option := range node.Options {
 				if option.Id == "" {
@@ -173,5 +194,30 @@ func validateConversationDocument(document conversationDocument) error {
 		}
 	}
 
+	return nil
+}
+
+func (r *ConversationRegistry) validateQuestReferences(quests *QuestRegistry) error {
+	for _, conversation := range r.conversations {
+		for _, branch := range conversation.StartBranches {
+			quest, ok := quests.Get(branch.QuestId)
+			if !ok {
+				return fmt.Errorf("conversation %q start branch references unknown quest %q", conversation.Id, branch.QuestId)
+			}
+			if branch.StepId == "" {
+				continue
+			}
+			found := false
+			for _, step := range quest.Steps {
+				if step.Id == branch.StepId {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("conversation %q start branch references unknown step %q in quest %q", conversation.Id, branch.StepId, branch.QuestId)
+			}
+		}
+	}
 	return nil
 }

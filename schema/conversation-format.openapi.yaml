@@ -6,7 +6,8 @@ info:
     Schema for authoring Webscape NPC conversations.
 
     A conversation contains a flat list of nodes. Runtime starts at
-    `startNodeId`, plays each message in the node in order, then either ends
+    the first matching `startBranches` node (or `startNodeId` as a fallback),
+    plays each message in the node in order, then either ends
     the conversation or presents player options. Each option points to another
     node by `nextNodeId`.
 paths: {}
@@ -58,12 +59,44 @@ components:
           pattern: "^[a-z0-9][a-z0-9_-]*$"
           examples:
             - start
+        startBranches:
+          type: array
+          description: Ordered quest greetings, checked against the speaking player's authoritative quest log each time they talk. First match wins; otherwise use startNodeId.
+          items:
+            $ref: "#/components/schemas/ConversationStartBranch"
         nodes:
           type: array
           description: Flat node list. Node ids must be unique within this conversation.
           minItems: 1
           items:
             $ref: "#/components/schemas/ConversationNode"
+
+    ConversationStartBranch:
+      type: object
+      additionalProperties: false
+      required: [questId, status, nodeId]
+      properties:
+        questId:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          description: Must reference a quest loaded by the project.
+        status:
+          type: string
+          enum: [active, completed]
+        stepId:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          description: Optional current step in the referenced quest; only allowed with active status. Omit to match any active step.
+        nodeId:
+          type: string
+          pattern: "^[a-z0-9][a-z0-9_-]*$"
+          description: Must reference a node in this conversation.
+      if:
+        required: [stepId]
+      then:
+        properties:
+          status:
+            const: active
 
     ConversationNode:
       type: object

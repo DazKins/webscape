@@ -64,6 +64,34 @@ func TestMoveCancelsActiveConversation(t *testing.T) {
 	}
 }
 
+func TestConversationStartBranchesUseFirstMatchAndFallback(t *testing.T) {
+	game, _, _, player := setupConversationTestGame(t)
+	conversation := &world.Conversation{
+		StartNodeId: "default",
+		StartBranches: []world.ConversationStartBranch{
+			{QuestId: "errand", Status: "active", StepId: "return", NodeId: "ready"},
+			{QuestId: "errand", Status: "active", NodeId: "working"},
+			{QuestId: "errand", Status: "completed", NodeId: "done"},
+		},
+	}
+	assertStart := func(want string) {
+		t.Helper()
+		if got := game.conversationStartNode(player, conversation); got != want {
+			t.Fatalf("start node = %q, want %q", got, want)
+		}
+	}
+	assertStart("default")
+	log := game.componentManager.GetEntityComponent(component.ComponentIdQuestLog, player).(*component.CQuestLog)
+	log.StartQuest("errand", "collect")
+	assertStart("working")
+	log.SetProgress("errand", 1, "return", 0)
+	assertStart("ready")
+	log.CompleteQuest("errand")
+	assertStart("done")
+	game.componentManager.RemoveComponent(component.ComponentIdQuestLog, player)
+	assertStart("default")
+}
+
 func setupConversationTestGame(t *testing.T) (*Game, *[]message.Message, model.EntityId, model.EntityId) {
 	t.Helper()
 

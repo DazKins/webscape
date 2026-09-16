@@ -6,7 +6,7 @@
     {
       "id": "first_errand",
       "displayName": "First Errand",
-      "description": "Recover the wayfarer\u2019s key from Rowan\u2019s Lodge and help DazKins clear the rats at Eastwatch.",
+      "description": "Help DazKins investigate a missing wayfarer's key and its connection to the ruined shrine. Recover the key from Rowan's Lodge, defeat a rat at Eastwatch, then return to DazKins.",
       "startEventId": "conversation:node:new_conversation:accepted",
       "steps": [
         {
@@ -30,6 +30,14 @@
           "description": "Defeat a rat.",
           "requirement": {
             "eventId": "kill:entity:rat",
+            "count": 1
+          }
+        },
+        {
+          "id": "return_to_dazkins",
+          "description": "Return to DazKins in the village square.",
+          "requirement": {
+            "eventId": "conversation:node:new_conversation:returned",
             "count": 1
           }
         }

@@ -1,4 +1,5 @@
 import { ID_PATTERN, isObject, serializeJson, titleFromId, type ValidationResult } from "./formatUtils";
+import type { Quest } from "./questFormat";
 
 export type { ValidationResult } from "./formatUtils";
 
@@ -12,7 +13,15 @@ export type ConversationDocument = {
 export type Conversation = {
   id: string;
   startNodeId: string;
+  startBranches?: ConversationStartBranch[];
   nodes: ConversationNode[];
+};
+
+export type ConversationStartBranch = {
+  questId: string;
+  status: "active" | "completed";
+  stepId?: string;
+  nodeId: string;
 };
 
 export type ConversationNode = {
@@ -107,7 +116,7 @@ export function normalizeConversationDocument(value: unknown): ConversationDocum
   return document;
 }
 
-export function validateConversationDocument(document: ConversationDocument): ValidationResult {
+export function validateConversationDocument(document: ConversationDocument, quests?: Quest[]): ValidationResult {
   const errors: string[] = [];
 
   if (document.formatVersion !== 1) {
@@ -131,6 +140,22 @@ export function validateConversationDocument(document: ConversationDocument): Va
     conversationIds.add(conversation.id);
 
     const nodeIds = new Set(conversation.nodes.map((node) => node.id));
+    for (const branch of conversation.startBranches ?? []) {
+      const label = `conversation "${conversation.id}" start branch`;
+      if (!ID_PATTERN.test(branch.questId)) errors.push(`${label} requires a valid questId`);
+      if (branch.status !== "active" && branch.status !== "completed") errors.push(`${label} status must be active or completed`);
+      if (branch.stepId !== undefined && (!ID_PATTERN.test(branch.stepId) || branch.status !== "active")) {
+        errors.push(`${label} stepId must be a valid id with active status`);
+      }
+      if (!nodeIds.has(branch.nodeId)) errors.push(`${label} targets missing node "${branch.nodeId}"`);
+      if (quests) {
+        const quest = quests.find((quest) => quest.id === branch.questId);
+        if (!quest) errors.push(`${label} references unknown quest "${branch.questId}"`);
+        else if (branch.stepId && !quest.steps.some((step) => step.id === branch.stepId)) {
+          errors.push(`${label} references unknown step "${branch.stepId}" in quest "${branch.questId}"`);
+        }
+      }
+    }
     if (!nodeIds.has(conversation.startNodeId)) {
       errors.push(`conversation "${conversation.id}" start node "${conversation.startNodeId}" does not exist`);
     }
@@ -194,9 +219,20 @@ function normalizeConversation(value: unknown): Conversation {
 
   const id = typeof value.id === "string" ? value.id : "invalid_conversation";
   const nodes = Array.isArray(value.nodes) ? value.nodes.map(normalizeConversationNode) : [];
+  if (value.startBranches !== undefined && !Array.isArray(value.startBranches)) {
+    throw new Error(`conversation "${id}" startBranches must be an array`);
+  }
   return {
     id,
     startNodeId: typeof value.startNodeId === "string" ? value.startNodeId : nodes[0]?.id ?? "start",
+    startBranches: (value.startBranches as unknown[] | undefined)?.map((branch) => {
+      if (!isObject(branch) || typeof branch.questId !== "string" || typeof branch.nodeId !== "string"
+        || (branch.status !== "active" && branch.status !== "completed")
+        || (branch.stepId !== undefined && typeof branch.stepId !== "string")) {
+        throw new Error(`conversation "${id}" has an invalid start branch`);
+      }
+      return { questId: branch.questId, status: branch.status, stepId: branch.stepId as string | undefined, nodeId: branch.nodeId };
+    }),
     nodes,
   };
 }
