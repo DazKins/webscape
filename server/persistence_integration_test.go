@@ -70,7 +70,7 @@ func (f *persistenceServerTest) start(interval time.Duration) (string, func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
 	go func() {
-		done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, interval, true, f.config.Persistence, authConfig)
+		done <- Start(ctx, fstest.MapFS{"index.html": {Data: []byte("test")}}, w, addr, 1, interval, true, f.config.Persistence, authConfig, config.AdminCommandsConfig{})
 	}()
 	var once sync.Once
 	stop := func() {

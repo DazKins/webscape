@@ -11,13 +11,14 @@ import (
 )
 
 type Config struct {
-	Auth          AuthConfig        `json:"auth"`
-	Persistence   PersistenceConfig `json:"persistence"`
-	FormatVersion int               `json:"formatVersion"`
-	Server        ServerConfig      `json:"server"`
-	Client        ClientConfig      `json:"client"`
-	Game          GameConfig        `json:"game"`
-	Streaming     StreamingConfig   `json:"streaming"`
+	AdminCommands AdminCommandsConfig `json:"adminCommands"`
+	Auth          AuthConfig          `json:"auth"`
+	Persistence   PersistenceConfig   `json:"persistence"`
+	FormatVersion int                 `json:"formatVersion"`
+	Server        ServerConfig        `json:"server"`
+	Client        ClientConfig        `json:"client"`
+	Game          GameConfig          `json:"game"`
+	Streaming     StreamingConfig     `json:"streaming"`
 }
 
 type ServerConfig struct {
@@ -83,6 +84,9 @@ func ensureEndOfJSON(decoder *json.Decoder) error {
 }
 
 func (c Config) Validate() error {
+	if err := c.AdminCommands.Validate(); err != nil {
+		return err
+	}
 	if err := c.Persistence.Validate(); err != nil {
 		return err
 	}

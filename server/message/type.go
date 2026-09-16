@@ -3,6 +3,7 @@ package message
 type MessageType string
 
 const (
+	MessageTypeAdminCommandResult       = "adminCommandResult"
 	MessageTypeInactivity               = "inactivity"
 	MessageTypeGameUpdate               = "gameUpdate"
 	MessageTypeRegistered               = "registered"

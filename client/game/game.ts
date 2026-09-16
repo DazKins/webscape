@@ -509,6 +509,11 @@ class Game extends EventTarget implements InputReceiver {
     this.world?.applyChunkUpdate(update);
   }
 
+  handleAdminCommandResult(payload: { command: string; success: boolean; message: string }) {
+    if (payload.success && payload.command === "/reset") this.closeActiveConversation();
+    this.dispatchEvent(new ChatMessageEvent(payload.message, "Admin"));
+  }
+
   handleChatMessage(payload: ChatMessagePayload) {
     this.entityRenderSystem.showChatMessage(payload.fromEntityId, payload.message);
     this.dispatchEvent(

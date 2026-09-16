@@ -17,7 +17,7 @@ import (
 )
 
 // Start owns runtime coordination; core game code never opens a database.
-func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig, authConfig config.AuthConfig, connections ...config.ConnectionConfig) error {
+func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address string, chunkRadius int, tickInterval time.Duration, devMode bool, storageConfig config.PersistenceConfig, authConfig config.AuthConfig, adminConfig config.AdminCommandsConfig, connections ...config.ConnectionConfig) error {
 	if len(connections) > 0 {
 		if err := connections[0].Validate(); err != nil {
 			return err
@@ -40,6 +40,7 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 	g := game.NewGameWithWorldAndChunkRadius(gameWorld, chunkRadius)
 	// Rejoining retains character progress for this process even without disk persistence.
 	g.RetainOfflinePlayers()
+	g.ConfigureAdminCommands(adminConfig, devMode)
 	timeout := time.Duration(storageConfig.TimeoutSeconds) * time.Second
 	var coordinator *persistence.Coordinator
 	if storageConfig.Driver == "postgres" {

@@ -516,3 +516,25 @@ func toEquipped(componentValue component.Component) *component.CEquipped {
 	}
 	return componentValue.(*component.CEquipped)
 }
+
+// ResetEntity cancels attacks involving a character before its identity is reused.
+func (s *CombatSystem) ResetEntity(entityId model.EntityId) {
+	remaining := s.pendingImpacts[:0]
+	for _, impact := range s.pendingImpacts {
+		if impact.attackerId != entityId && impact.targetId != entityId {
+			remaining = append(remaining, impact)
+		}
+	}
+	s.pendingImpacts = remaining
+	for id, value := range s.ComponentManager.GetComponent(component.ComponentIdCombatState) {
+		if id == entityId || value.(*component.CCombatState).GetTargetId() == entityId {
+			s.entityStateTransitions(s.TickSource).EndCombat(id)
+		}
+	}
+	// An attack interaction can still be approaching before combatstate exists.
+	for id, value := range s.ComponentManager.GetComponent(component.ComponentIdInteracting) {
+		if value.(*component.CInteracting).GetTargetEntityId() == entityId {
+			s.entityStateTransitions(s.TickSource).EndCombat(id)
+		}
+	}
+}

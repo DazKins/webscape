@@ -11,6 +11,10 @@
       "idleWarningSeconds": 60
     }
   },
+  "adminCommands": {
+    "enabled": false,
+    "playerIds": []
+  },
   "client": {
     "folder": "client/dist"
   },

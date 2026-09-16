@@ -62,3 +62,30 @@ docker build --build-arg WEBSCAPE_BUILD_REVISION="$(git rev-parse HEAD)" -t webs
 Build deployments from a clean checkout so that this SHA identifies their source.
 The label identifies the client build; it does not version a separately deployed
 server or game content.
+
+## Admin chat commands
+
+Enter `/reset` in the game chat to rebuild your character at the authored player
+spawn with the same defaults as a new player, including starter items and a new
+random appearance. This wipes inventory, equipment, quests, combat history,
+stats, and active actions. Your player ID and name stay the same; other characters
+and the world retain their progress. The reset survives reconnects and follows
+the normal persistence checkpoint cadence when storage is enabled.
+
+Runtime configuration has two admin settings:
+
+```json
+"adminCommands": {
+  "enabled": true,
+  "playerIds": ["YOUR-PLAYER-UUID"]
+}
+```
+
+When `enabled` is omitted, it defaults to `server.devMode`. Explicit `false`
+disables commands even in dev mode. A nonempty `playerIds` list restricts access
+in either mode. An empty list permits everyone in dev mode and nobody in
+production. Production use therefore requires both `enabled: true` and your
+player UUID in the list. Use the `accountId` from `/auth/session` while signed in
+(the same entity ID returned on game registration), not a display name or OIDC
+subject. Slash commands and their replies are private and never broadcast as chat.
+Unknown commands or arguments, such as `/reset someone`, do not change state.

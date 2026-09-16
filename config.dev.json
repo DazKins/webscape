@@ -5,6 +5,10 @@
     "address": ":8080",
     "tickIntervalMs": 500
   },
+  "adminCommands": {
+    "enabled": true,
+    "playerIds": []
+  },
   "client": {
     "folder": "client/dist"
   },

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+	"webscape/server/config"
 	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/entity"
@@ -26,6 +27,8 @@ type MessageBroadcaster func(message message.Message)
 type MessageSender func(clientID string, message message.Message)
 
 type Game struct {
+	adminCommands config.AdminCommandsConfig
+	devMode       bool
 	// stateMutex serializes update ticks with commands arriving from WebSocket goroutines.
 	stateMutex          sync.Mutex
 	world               *world.World
@@ -977,6 +980,10 @@ func (g *Game) HandleChat(clientID string, chatMessage string) {
 		return
 	}
 
+	if strings.HasPrefix(strings.TrimSpace(chatMessage), "/") {
+		g.handleAdminCommand(clientID, entityId, strings.TrimSpace(chatMessage))
+		return
+	}
 	g.EmitGameEvent(gameevent.NewChatSpoken(entityId, chatMessage))
 }
 

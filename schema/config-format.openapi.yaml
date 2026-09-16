@@ -57,6 +57,8 @@ components:
               type: string
               minLength: 1
               examples: [":8080"]
+        adminCommands:
+          $ref: '#/components/schemas/AdminCommandsConfig'
         client:
           type: object
           additionalProperties: false
@@ -88,6 +90,22 @@ components:
           $ref: '#/components/schemas/AuthConfig'
         persistence:
           $ref: '#/components/schemas/PersistenceConfig'
+    AdminCommandsConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+          description: Defaults to server.devMode when omitted. Explicit false disables commands even in development.
+        playerIds:
+          type: array
+          default: []
+          items:
+            type: string
+            format: uuid
+            not:
+              const: '00000000-0000-0000-0000-000000000000'
+          description: Registered player UUIDs allowed to use admin commands. A nonempty list restricts both modes. Empty allows everyone in development and nobody in production.
     PersistenceConfig:
       type: object
       additionalProperties: false

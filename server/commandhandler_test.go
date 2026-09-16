@@ -1,9 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"testing"
 	"testing/fstest"
 	"webscape/server/command"
+	"webscape/server/config"
 	"webscape/server/game"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
@@ -69,5 +71,38 @@ func TestMalformedTradeCommandsDoNotPanic(t *testing.T) {
 		} {
 			handler.HandleCommand("client", command.Command{Type: typ, Data: data})
 		}
+	}
+}
+
+func TestAdminChatUsesRegisteredIdentityNotPayload(t *testing.T) {
+	g := newCommandHandlerTestGame(t)
+	owner, other := model.NewEntityId(), model.NewEntityId()
+	g.HandleRegister("owner", owner, "Owner")
+	g.HandleRegister("other", other, "Other")
+	enabled := true
+	g.ConfigureAdminCommands(config.AdminCommandsConfig{Enabled: &enabled, PlayerIDs: []string{owner.String()}}, false)
+	handler := NewClientCommandHandler(g, func(string) (model.EntityId, string, bool) { return owner, "Owner", true })
+	before, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Neither an allowlisted ID in the payload nor the identity resolver overrides
+	// the player already registered to this connection.
+	handler.HandleCommand("other", command.Command{Type: command.CommandTypeChat, Data: map[string]any{"message": "/reset", "id": owner.String(), "playerId": owner.String()}})
+	handler.HandleCommand("unregistered", command.Command{Type: command.CommandTypeChat, Data: map[string]any{"message": "/reset"}})
+	after, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("unauthorized reset changed character state")
+	}
+	handler.HandleCommand("owner", command.Command{Type: command.CommandTypeChat, Data: map[string]any{"message": "/reset"}})
+	after, err = g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Equal(before, after) {
+		t.Fatal("authorized chat reset did not replace character items")
 	}
 }

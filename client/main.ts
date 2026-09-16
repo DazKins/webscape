@@ -202,6 +202,9 @@ const wsClient = new WebSocketClient({
       case "questStarted":
         game.handleQuestStarted(data);
         break;
+      case "adminCommandResult":
+        game.handleAdminCommandResult(data);
+        break;
       case "chatMessage":
         game.handleChatMessage(data);
         break;
