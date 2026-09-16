@@ -101,6 +101,9 @@ async function checkSession(): Promise<boolean> {
   accountId = session.accountId;
   if (username) registration.name = username;
   else if (!registration.name) registration.name = localStorage.getItem(`playerName:${accountId}`) ?? "";
+  if (guest && !registration.name) {
+    registration.name = `guest-${Math.floor(Math.random() * 36 ** 5).toString(36).padStart(5, "0")}`;
+  }
   return true;
 }
 
@@ -186,7 +189,7 @@ const wsClient = new WebSocketClient({
           break;
         }
         setRegistration({
-          phase: username ? "connectionError" : "nameEntry",
+          phase: username || guest ? "connectionError" : "nameEntry",
           error: data.reason || "Registration failed. Please try again.",
         });
         break;
