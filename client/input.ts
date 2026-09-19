@@ -1,7 +1,3 @@
-export interface InputReceiver {
-  onKeyDown(key: string): void;
-}
-
 type PointerCallbacks = {
   onTap?: (event: PointerEvent) => void;
   onLongPress?: (event: PointerEvent) => void;
@@ -32,8 +28,6 @@ class Input {
       }
     | undefined;
 
-  activeReceiver?: InputReceiver;
-
   constructor() {
     this.keys = {};
     this.pointerPosition = { x: 0, y: 0 };
@@ -57,24 +51,17 @@ class Input {
     window.addEventListener("pointercancel", this.onPointerCancel);
   }
 
-  setActiveReceiver(receiver: InputReceiver) {
-    this.activeReceiver = receiver;
-  }
-
   onKeyDown(event: KeyboardEvent) {
     if (
       event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
+      event.target instanceof HTMLTextAreaElement ||
+      (event.target instanceof HTMLElement && event.target.isContentEditable)
     )
       return;
 
     if (this.worldBlocked) return;
 
     const key = event.key;
-
-    if (this.activeReceiver) {
-      this.activeReceiver.onKeyDown(key);
-    }
 
     this.keys[key.toLowerCase()] = true;
   }

@@ -3,7 +3,7 @@ import Entity from "./entity/entity.ts";
 import DayCycleClock from "./dayCycle";
 import EnvironmentLighting from "./environmentLighting";
 import World, { type ChunkUpdate } from "./world/world.ts";
-import Input, { InputReceiver } from "../input.ts";
+import Input from "../input.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
 import { createCommand } from "../command/command.ts";
 import * as THREE from "three";
@@ -68,7 +68,7 @@ export type CombatResolvedPayload = {
 
 const SERVER_TICK_MILLISECONDS = 500;
 
-class Game extends EventTarget implements InputReceiver {
+class Game extends EventTarget {
   wsClient!: WebSocketClient;
   myPlayerId!: string;
   scene: THREE.Scene;
@@ -159,28 +159,7 @@ class Game extends EventTarget implements InputReceiver {
       this.openInteractionMenuAt(event.clientX, event.clientY);
     });
 
-    this.input.setActiveReceiver(this);
-
     this.typedChatText = "";
-  }
-
-  onKeyDown(key: string): void {
-    const beforeTypedChatText = this.typedChatText;
-
-    if (key === "Enter") {
-      this.sendTypedChatText();
-      return;
-    } else if (key === "Escape") {
-      this.typedChatText = "";
-    } else if (key === "Backspace") {
-      this.typedChatText = this.typedChatText.slice(0, -1);
-    } else if (key.length === 1) {
-      this.typedChatText += key;
-    }
-
-    if (beforeTypedChatText !== this.typedChatText) {
-      this.dispatchTypedChatTextChanged();
-    }
   }
 
   registerWsClient(wsClient: WebSocketClient) {
