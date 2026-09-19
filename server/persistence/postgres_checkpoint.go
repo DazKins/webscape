@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"webscape/server/snapshot"
 
 	"github.com/jackc/pgx/v5"
@@ -17,49 +16,46 @@ func (p *Postgres) loadCheckpoint(ctx context.Context) (*snapshot.State, error) 
 		return nil, dbError("begin load", err)
 	}
 	defer tx.Rollback(ctx)
-	state := snapshot.State{Entities: map[string]map[string]snapshot.Component{}}
-	var schema int
-	var tick string
-	err = tx.QueryRow(ctx, "SELECT schema_version,snapshot_version,content_hash,tick::text FROM webscape_worlds WHERE world_key=$1", p.worldKey).Scan(&schema, &state.Version, &state.ContentHash, &tick)
+	var version int
+	err = tx.QueryRow(ctx, "SELECT version FROM webscape_player_saves WHERE world_key=$1", p.worldKey).Scan(&version)
 	if err == pgx.ErrNoRows {
-		legacy, err := p.migrateLegacyWorld(ctx, tx)
+		state, err := p.migrateLegacyWorld(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
 		if err := tx.Commit(ctx); err != nil {
-			return nil, dbError("commit legacy load", err)
+			return nil, dbError("commit migration", err)
 		}
-		return legacy, nil
+		return state, nil
 	}
 	if err != nil {
-		return nil, dbError("load world metadata", err)
+		return nil, dbError("load save version", err)
 	}
-	if schema != 2 {
-		return nil, fmt.Errorf("unsupported PostgreSQL snapshot schema version %d", schema)
+	if version != 2 {
+		return nil, fmt.Errorf("unsupported player save version %d", version)
 	}
-	state.Tick, err = strconv.ParseUint(tick, 10, 64)
+	state := snapshot.State{Version: version, Players: map[string]map[string]snapshot.Component{}}
+	rows, err := tx.Query(ctx, "SELECT player_id::text,components FROM webscape_players WHERE world_key=$1", p.worldKey)
 	if err != nil {
-		return nil, fmt.Errorf("invalid saved tick")
-	}
-	rows, err := tx.Query(ctx, "SELECT entity_id::text,component_id,version,data FROM webscape_components WHERE world_key=$1", p.worldKey)
-	if err != nil {
-		return nil, dbError("load components", err)
+		return nil, dbError("load players", err)
 	}
 	for rows.Next() {
-		var entity, id string
-		var c snapshot.Component
-		if err := rows.Scan(&entity, &id, &c.Version, &c.Data); err != nil {
+		var id string
+		var data []byte
+		if err := rows.Scan(&id, &data); err != nil {
 			rows.Close()
-			return nil, dbError("decode component row", err)
+			return nil, dbError("read player", err)
 		}
-		if state.Entities[entity] == nil {
-			state.Entities[entity] = map[string]snapshot.Component{}
+		var components map[string]snapshot.Component
+		if err := json.Unmarshal(data, &components); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("invalid player components")
 		}
-		state.Entities[entity][id] = c
+		state.Players[id] = components
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
-		return nil, dbError("read components", err)
+		return nil, dbError("read players", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, dbError("commit load", err)
@@ -67,43 +63,41 @@ func (p *Postgres) loadCheckpoint(ctx context.Context) (*snapshot.State, error) 
 	return &state, nil
 }
 
-// writeCheckpoint only touches changed component rows. Metadata, additions,
-// changes and deletions share one transaction, preserving atomic item transfers.
+// Each changed player is an atomic row; the whole checkpoint is transactional.
+// Absence is not deletion: a disconnected player must never lose their save.
 func (p *Postgres) writeCheckpoint(ctx context.Context, tx pgx.Tx, current snapshot.State, previous *snapshot.State) error {
 	batch := &pgx.Batch{}
-	batch.Queue(`INSERT INTO webscape_worlds(world_key,schema_version,snapshot_version,content_hash,tick)
- VALUES($1,2,$2,$3,$4::numeric) ON CONFLICT(world_key) DO UPDATE
- SET snapshot_version=EXCLUDED.snapshot_version,content_hash=EXCLUDED.content_hash,tick=EXCLUDED.tick,saved_at=now()`, p.worldKey, current.Version, current.ContentHash, strconv.FormatUint(current.Tick, 10))
-	for entity, components := range current.Entities {
-		for id, c := range components {
-			if previous != nil {
-				if old, ok := previous.Entities[entity][id]; ok && sameComponent(c, old) {
-					continue
-				}
-			}
-			batch.Queue(`INSERT INTO webscape_components(world_key,entity_id,component_id,version,data)
- VALUES($1,$2::uuid,$3,$4,$5::jsonb) ON CONFLICT(world_key,entity_id,component_id) DO UPDATE
- SET version=EXCLUDED.version,data=EXCLUDED.data`, p.worldKey, entity, id, c.Version, string(c.Data))
+	batch.Queue(`INSERT INTO webscape_player_saves(world_key,version) VALUES($1,2)
+ ON CONFLICT(world_key) DO UPDATE SET saved_at=now()`, p.worldKey)
+	for id, components := range current.Players {
+		if previous != nil && samePlayer(components, previous.Players[id]) {
+			continue
 		}
-	}
-	if previous != nil {
-		for entity, components := range previous.Entities {
-			for id := range components {
-				if _, present := current.Entities[entity][id]; !present {
-					batch.Queue("DELETE FROM webscape_components WHERE world_key=$1 AND entity_id=$2::uuid AND component_id=$3", p.worldKey, entity, id)
-				}
-			}
+		data, err := json.Marshal(components)
+		if err != nil {
+			return err
 		}
+		batch.Queue(`INSERT INTO webscape_players(world_key,player_id,components) VALUES($1,$2::uuid,$3::jsonb)
+ ON CONFLICT(world_key,player_id) DO UPDATE SET components=EXCLUDED.components,updated_at=now()`, p.worldKey, id, string(data))
 	}
-	results := tx.SendBatch(ctx, batch)
-	if err := results.Close(); err != nil {
-		return dbError("write checkpoint", err)
+	if err := tx.SendBatch(ctx, batch).Close(); err != nil {
+		return dbError("write players", err)
 	}
 	return nil
 }
+func samePlayer(a, b map[string]snapshot.Component) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for id, c := range a {
+		if !sameComponent(c, b[id]) {
+			return false
+		}
+	}
+	return true
+}
 
-// PostgreSQL jsonb can reorder keys. Compare decoded JSON with exact number text
-// so the first save after a load does not rewrite every unchanged component.
+// jsonb reorders keys; compare canonical JSON without rounding numbers.
 func sameComponent(a, b snapshot.Component) bool {
 	if a.Version != b.Version {
 		return false

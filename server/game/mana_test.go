@@ -67,7 +67,7 @@ func TestLegacyPlayerSaveReceivesMana(t *testing.T) {
 	if err := json.Unmarshal(savedBytes(t, g), &save); err != nil {
 		t.Fatal(err)
 	}
-	delete(save.Entities[id.String()], "mana")
+	delete(save.Players[id.String()], "mana")
 	data, err := json.Marshal(save)
 	if err != nil {
 		t.Fatal(err)

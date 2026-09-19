@@ -32,7 +32,7 @@ func postgresFixture(t *testing.T) (context.Context, *Postgres, *pgx.Conn, strin
 	}
 	t.Cleanup(func() {
 		p.Close(ctx)
-		admin.Exec(ctx, "DELETE FROM webscape_worlds WHERE world_key=$1", key)
+		admin.Exec(ctx, "DELETE FROM webscape_player_saves WHERE world_key=$1", key)
 		admin.Close(ctx)
 	})
 	return ctx, p, admin, dsn
@@ -45,16 +45,20 @@ func encodeState(t *testing.T, s snapshot.State) []byte {
 	}
 	return data
 }
+
+const firstPlayer = "11111111-1111-4111-8111-111111111111"
+const secondPlayer = "22222222-2222-4222-8222-222222222222"
+
 func testState() snapshot.State {
-	return snapshot.State{Version: 1, ContentHash: "test", Tick: 1, Entities: map[string]map[string]snapshot.Component{
-		"11111111-1111-4111-8111-111111111111": {"inventory": {Version: 1, Data: json.RawMessage(`{"gold":7}`)}, "position": {Version: 1, Data: json.RawMessage(`{"x":1,"y":2}`)}},
-		"22222222-2222-4222-8222-222222222222": {"droppeditem": {Version: 1, Data: json.RawMessage(`{"gold":3}`)}},
+	return snapshot.State{Version: 2, Players: map[string]map[string]snapshot.Component{
+		firstPlayer:  {"player": {Version: 1, Data: json.RawMessage(`{}`)}, "inventory": {Version: 1, Data: json.RawMessage(`{"gold":7}`)}},
+		secondPlayer: {"player": {Version: 1, Data: json.RawMessage(`{}`)}, "inventory": {Version: 1, Data: json.RawMessage(`{"gold":3}`)}},
 	}}
 }
 func TestPostgresAtomicSaveRestartAndExclusiveOwner(t *testing.T) {
 	ctx, p, admin, dsn := postgresFixture(t)
 	if data, err := p.Load(ctx); err != nil || data != nil {
-		t.Fatalf("fresh world: %s %v", data, err)
+		t.Fatalf("fresh save: %s %v", data, err)
 	}
 	if other, err := OpenPostgres(ctx, dsn, p.worldKey); err == nil {
 		other.Close(ctx)
@@ -64,38 +68,32 @@ func TestPostgresAtomicSaveRestartAndExclusiveOwner(t *testing.T) {
 	if err := p.Save(ctx, encodeState(t, first)); err != nil {
 		t.Fatal(err)
 	}
-	// Force a server-side failure after metadata/upserts are queued. Both the item
-	// transfer and removal must roll back; the cached baseline must also stay old.
-	_, err := admin.Exec(ctx, `CREATE OR REPLACE FUNCTION webscape_test_reject_delete() RETURNS trigger LANGUAGE plpgsql AS $$
- BEGIN IF OLD.world_key LIKE 'test-%' THEN RAISE EXCEPTION 'test deletion failure'; END IF; RETURN OLD; END $$;
- CREATE TRIGGER webscape_test_reject_delete BEFORE DELETE ON webscape_components FOR EACH ROW EXECUTE FUNCTION webscape_test_reject_delete()`)
+	// A constraint failing on the second player must roll back all player updates.
+	_, err := admin.Exec(ctx, `ALTER TABLE webscape_players ADD CONSTRAINT test_reject_gold CHECK ((components->'inventory'->'data'->>'gold')::int < 20) NOT VALID`)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		admin.Exec(ctx, "DROP TRIGGER IF EXISTS webscape_test_reject_delete ON webscape_components; DROP FUNCTION IF EXISTS webscape_test_reject_delete()")
-	})
+	t.Cleanup(func() { admin.Exec(ctx, "ALTER TABLE webscape_players DROP CONSTRAINT IF EXISTS test_reject_gold") })
 	changed := testState()
-	changed.Tick = 2
-	changed.Entities["11111111-1111-4111-8111-111111111111"]["inventory"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"gold":10}`)}
-	delete(changed.Entities, "22222222-2222-4222-8222-222222222222")
+	changed.Players[firstPlayer]["inventory"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"gold":10}`)}
+	changed.Players[secondPlayer]["inventory"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"gold":20}`)}
 	if err := p.Save(ctx, encodeState(t, changed)); err == nil {
-		t.Fatal("expected mid-transaction failure")
+		t.Fatal("expected transaction failure")
 	}
-	var gold, tick int
-	if err := admin.QueryRow(ctx, "SELECT (data->>'gold')::int FROM webscape_components WHERE world_key=$1 AND component_id='inventory'", p.worldKey).Scan(&gold); err != nil {
+	var gold int
+	if err := admin.QueryRow(ctx, "SELECT (components->'inventory'->'data'->>'gold')::int FROM webscape_players WHERE world_key=$1 AND player_id=$2::uuid", p.worldKey, firstPlayer).Scan(&gold); err != nil {
 		t.Fatal(err)
 	}
-	if err := admin.QueryRow(ctx, "SELECT tick::integer FROM webscape_worlds WHERE world_key=$1", p.worldKey).Scan(&tick); err != nil {
-		t.Fatal(err)
-	}
-	if gold != 7 || tick != 1 {
+	if gold != 7 {
 		t.Fatal("partial checkpoint committed")
 	}
-	if _, err := admin.Exec(ctx, "DROP TRIGGER webscape_test_reject_delete ON webscape_components; DROP FUNCTION webscape_test_reject_delete()"); err != nil {
+	if _, err := admin.Exec(ctx, "ALTER TABLE webscape_players DROP CONSTRAINT test_reject_gold"); err != nil {
 		t.Fatal(err)
 	}
-	// Retrying the same checkpoint must still write the failed delta.
+	if err := p.Save(ctx, encodeState(t, changed)); err != nil {
+		t.Fatal(err)
+	}
+	delete(changed.Players, secondPlayer)
 	if err := p.Save(ctx, encodeState(t, changed)); err != nil {
 		t.Fatal(err)
 	}
@@ -113,13 +111,10 @@ func TestPostgresAtomicSaveRestartAndExclusiveOwner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got.Entities) != 1 || got.Tick != 2 {
-		t.Fatal("deleted entity or tick not restored")
+	if len(got.Players) != 2 || !sameComponent(got.Players[firstPlayer]["inventory"], changed.Players[firstPlayer]["inventory"]) {
+		t.Fatal("lost saved or absent player")
 	}
-	if !sameComponent(got.Entities["11111111-1111-4111-8111-111111111111"]["inventory"], changed.Entities["11111111-1111-4111-8111-111111111111"]["inventory"]) {
-		t.Fatal("inventory transfer not restored")
-	}
-	if _, err := admin.Exec(ctx, "UPDATE webscape_worlds SET schema_version=99 WHERE world_key=$1", p.worldKey); err != nil {
+	if _, err := admin.Exec(ctx, "UPDATE webscape_player_saves SET version=99 WHERE world_key=$1", p.worldKey); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := reopened.Load(ctx); err == nil {
@@ -129,20 +124,20 @@ func TestPostgresAtomicSaveRestartAndExclusiveOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := reopened.Save(ctx, encodeState(t, changed)); err == nil {
-		t.Fatal("lost connection resumed without ownership lock")
+		t.Fatal("lost ownership accepted")
 	}
 }
-
-func TestPostgresDoesNotRewriteUnchangedComponents(t *testing.T) {
+func TestPostgresDoesNotRewriteUnchangedPlayers(t *testing.T) {
 	ctx, p, admin, dsn := postgresFixture(t)
-	first := testState()
-	if err := p.Save(ctx, encodeState(t, first)); err != nil {
+	state := testState()
+	state.Players[firstPlayer]["position"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"x":1,"y":2}`)}
+	if err := p.Save(ctx, encodeState(t, state)); err != nil {
 		t.Fatal(err)
 	}
 	rowVersion := func() string {
 		t.Helper()
 		var v string
-		if err := admin.QueryRow(ctx, "SELECT xmin::text FROM webscape_components WHERE world_key=$1 AND component_id='position'", p.worldKey).Scan(&v); err != nil {
+		if err := admin.QueryRow(ctx, "SELECT xmin::text FROM webscape_players WHERE world_key=$1 AND player_id=$2::uuid", p.worldKey, firstPlayer).Scan(&v); err != nil {
 			t.Fatal(err)
 		}
 		return v
@@ -157,67 +152,84 @@ func TestPostgresDoesNotRewriteUnchangedComponents(t *testing.T) {
 	if _, err := p.Load(ctx); err != nil {
 		t.Fatal(err)
 	}
-	first.Tick++
-	// Reordered JSON from jsonb must compare equal to the original codec payload.
-	first.Entities["11111111-1111-4111-8111-111111111111"]["position"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"y":2,"x":1}`)}
-	if err := p.Save(ctx, encodeState(t, first)); err != nil {
+	state.Players[firstPlayer]["position"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"y":2,"x":1}`)}
+	if err := p.Save(ctx, encodeState(t, state)); err != nil {
 		t.Fatal(err)
 	}
 	if rowVersion() != before {
-		t.Fatal("unchanged component was rewritten")
+		t.Fatal("unchanged player rewritten")
 	}
-	first.Entities["11111111-1111-4111-8111-111111111111"]["position"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"y":2,"x":3}`)}
-	if err := p.Save(ctx, encodeState(t, first)); err != nil {
+	state.Players[firstPlayer]["position"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"y":2,"x":3}`)}
+	if err := p.Save(ctx, encodeState(t, state)); err != nil {
 		t.Fatal(err)
 	}
 	if rowVersion() == before {
-		t.Fatal("changed component was not written")
-	}
-	if err := p.Save(ctx, []byte(`{"version":1,"entities":{"invalid":{"x":null}}}`)); err == nil {
-		t.Fatal("invalid snapshot accepted")
+		t.Fatal("changed player not written")
 	}
 }
-
-func TestPostgresMigratesLegacySnapshot(t *testing.T) {
-	ctx, p, admin, _ := postgresFixture(t)
-	if _, err := admin.Exec(ctx, `CREATE TABLE IF NOT EXISTS webscape_snapshots(world_key text PRIMARY KEY,schema_version integer NOT NULL,snapshot jsonb NOT NULL,saved_at timestamptz NOT NULL DEFAULT now())`); err != nil {
-		t.Fatal(err)
-	}
-	first := testState()
-	if _, err := admin.Exec(ctx, "INSERT INTO webscape_snapshots(world_key,schema_version,snapshot) VALUES($1,1,$2::jsonb)", p.worldKey, string(encodeState(t, first))); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { admin.Exec(ctx, "DELETE FROM webscape_snapshots WHERE world_key=$1", p.worldKey) })
-	data, err := p.Load(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	state, err := snapshot.Decode(data)
-	if err != nil || len(state.Entities) != 2 {
-		t.Fatalf("migration lost entities: %v", err)
-	}
-	var rows, legacyVersion int
-	if err := admin.QueryRow(ctx, "SELECT count(*) FROM webscape_components WHERE world_key=$1", p.worldKey).Scan(&rows); err != nil {
-		t.Fatal(err)
-	}
-	if err := admin.QueryRow(ctx, "SELECT schema_version FROM webscape_snapshots WHERE world_key=$1", p.worldKey).Scan(&legacyVersion); err != nil {
-		t.Fatal(err)
-	}
-	if rows != 3 || legacyVersion != 2 {
-		t.Fatal("migration did not preserve components or fence old binaries")
-	}
-	// The backup cannot replace the current rows on a subsequent load.
-	first.Tick = 9
-	if err := p.Save(ctx, encodeState(t, first)); err != nil {
-		t.Fatal(err)
-	}
-	data, err = p.Load(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	state, err = snapshot.Decode(data)
-	if err != nil || state.Tick != 9 {
-		t.Fatal("legacy backup replaced current state")
+func TestPostgresMigratesLegacySaves(t *testing.T) {
+	for _, format := range []string{"blob", "components"} {
+		t.Run(format, func(t *testing.T) {
+			ctx, p, admin, _ := postgresFixture(t)
+			state := testState()
+			entities := state.Players
+			entities["33333333-3333-4333-8333-333333333333"] = map[string]snapshot.Component{"obsolete": {Version: 99, Data: json.RawMessage(`{}`)}}
+			if format == "blob" {
+				_, err := admin.Exec(ctx, `CREATE TABLE IF NOT EXISTS webscape_snapshots(world_key text PRIMARY KEY,schema_version integer NOT NULL,snapshot jsonb NOT NULL,saved_at timestamptz NOT NULL DEFAULT now())`)
+				if err != nil {
+					t.Fatal(err)
+				}
+				data, _ := json.Marshal(map[string]any{"version": 1, "entities": entities, "tick": 999, "contentHash": "old"})
+				if _, err := admin.Exec(ctx, "INSERT INTO webscape_snapshots(world_key,schema_version,snapshot) VALUES($1,1,$2::jsonb)", p.worldKey, string(data)); err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { admin.Exec(ctx, "DELETE FROM webscape_snapshots WHERE world_key=$1", p.worldKey) })
+			} else {
+				_, err := admin.Exec(ctx, `CREATE TABLE IF NOT EXISTS webscape_worlds(world_key text PRIMARY KEY,schema_version integer NOT NULL,snapshot_version integer NOT NULL,content_hash text NOT NULL,tick numeric(20,0) NOT NULL,saved_at timestamptz NOT NULL DEFAULT now());CREATE TABLE IF NOT EXISTS webscape_components(world_key text NOT NULL REFERENCES webscape_worlds(world_key) ON DELETE CASCADE,entity_id uuid NOT NULL,component_id text NOT NULL,version integer NOT NULL,data jsonb NOT NULL,PRIMARY KEY(world_key,entity_id,component_id))`)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, err := admin.Exec(ctx, "INSERT INTO webscape_worlds(world_key,schema_version,snapshot_version,content_hash,tick) VALUES($1,2,1,'old',999)", p.worldKey); err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { admin.Exec(ctx, "DELETE FROM webscape_worlds WHERE world_key=$1", p.worldKey) })
+				for id, cs := range entities {
+					for key, c := range cs {
+						if _, err := admin.Exec(ctx, "INSERT INTO webscape_components VALUES($1,$2::uuid,$3,$4,$5::jsonb)", p.worldKey, id, key, c.Version, string(c.Data)); err != nil {
+							t.Fatal(err)
+						}
+					}
+				}
+			}
+			data, err := p.Load(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := snapshot.Decode(data)
+			if err != nil || len(got.Players) != 2 {
+				t.Fatalf("migration lost players: %v", err)
+			}
+			var version int
+			table := "webscape_worlds"
+			if format == "blob" {
+				table = "webscape_snapshots"
+			}
+			if err := admin.QueryRow(ctx, "SELECT schema_version FROM "+table+" WHERE world_key=$1", p.worldKey).Scan(&version); err != nil || version != 3 {
+				t.Fatalf("legacy not fenced: %v", err)
+			}
+			got.Players[firstPlayer]["inventory"] = snapshot.Component{Version: 1, Data: json.RawMessage(`{"gold":99}`)}
+			if err := p.Save(ctx, encodeState(t, got)); err != nil {
+				t.Fatal(err)
+			}
+			data, err = p.Load(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			current, err := snapshot.Decode(data)
+			if err != nil || !samePlayer(current.Players[firstPlayer], got.Players[firstPlayer]) {
+				t.Fatal("legacy reapplied")
+			}
+		})
 	}
 }
 func TestConnectionErrorsDoNotExposeCredentials(t *testing.T) {

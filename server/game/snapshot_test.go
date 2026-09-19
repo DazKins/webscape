@@ -32,7 +32,7 @@ func savedBytes(t *testing.T, g *Game) []byte {
 	return data
 }
 
-func TestSnapshotRestoresPlayersWorldAndReferences(t *testing.T) {
+func TestSnapshotRestoresOnlyPlayers(t *testing.T) {
 	g := snapshotGame(t)
 	id := model.NewEntityId()
 	g.HandleRegister("first", id, "Saved Player")
@@ -42,77 +42,78 @@ func TestSnapshotRestoresPlayersWorldAndReferences(t *testing.T) {
 	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory)
 	sword := inventory.GetAllItems()[0]
 	g.HandleEquip("first", sword.Id)
-	// Mutate fields which replication does not fully encode, including item IDs,
-	// loot contents and the spawner's child reference.
-	g.componentManager.SetEntityComponent(id, component.NewCPosition(math.Vec2{X: 4, Y: 5}))
 	g.componentManager.GetEntityComponent(component.ComponentIdHealth, id).(*component.CHealth).SetCurrentHealth(42)
-	quests := g.componentManager.GetEntityComponent(component.ComponentIdQuestLog, id).(*component.CQuestLog)
-	for _, q := range g.world.GetQuestRegistry().All() {
-		quests.SetProgress(q.Id, 0, q.Steps[0].Id, 0)
-		break
-	}
-	for _, c := range g.componentManager.GetComponent(component.ComponentIdLootable) {
-		c.(*component.CLootable).SetLooted(true)
-		break
-	}
-	for _, c := range g.componentManager.GetComponent(component.ComponentIdOpenable) {
-		c.(*component.COpenable).SetOpen(true)
-		break
-	}
-	for _, c := range g.componentManager.GetComponent(component.ComponentIdWoodcuttable) {
-		tree := c.(*component.CWoodcuttable)
-		tree.SetCurrentDurability(0)
-		tree.SetDepleted(true)
-		tree.SetRemainingRespawnTicks(7)
-		break
-	}
-	drop := model.CreateGold(17)
-	droppedID := g.componentManager.CreateNewEntity(component.NewCPosition(math.Vec2{X: 1, Y: 1}), &component.CDroppedItem{Item: drop})
-	var deleted model.EntityId
-	for entityID := range g.componentManager.GetComponent(component.ComponentIdShop) {
-		deleted = entityID
-		g.componentManager.RemoveEntity(entityID)
-		break
+	dropID := g.componentManager.CreateNewEntity(component.NewCPosition(g.world.GetPlayerSpawn()), &component.CDroppedItem{Item: model.CreateGold(17)})
+	for banker := range g.componentManager.GetComponent(component.ComponentIdBanker) {
+		g.componentManager.RemoveEntity(banker)
 	}
 	before := savedBytes(t, g)
+	var saved gameSnapshot
+	json.Unmarshal(before, &saved)
+	if len(saved.Players) != 1 {
+		t.Fatal("saved non-player entities")
+	}
 	restored := snapshotGame(t)
 	if err := restored.RestoreSnapshot(before); err != nil {
 		t.Fatal(err)
 	}
-	if restored.componentManager.HasEntity(id) {
-		t.Fatal("offline player entered active simulation")
+	if restored.componentManager.HasEntity(id) || restored.componentManager.HasEntity(dropID) {
+		t.Fatal("restored active player or ground drop")
 	}
-	if deleted != (model.EntityId{}) && restored.componentManager.HasEntity(deleted) {
-		t.Fatal("deleted entity resurrected")
+	if len(restored.componentManager.GetComponent(component.ComponentIdBanker)) != 1 {
+		t.Fatal("authored banker was not rebuilt")
 	}
-	if got := restored.componentManager.GetEntityComponent(component.ComponentIdDroppedItem, droppedID).(*component.CDroppedItem).Item; got.Id != drop.Id || got.Quantity != 17 {
-		t.Fatal("dropped item lost identity or quantity")
+	if restored.currentTick != 0 {
+		t.Fatal("clock did not reset")
 	}
 	if after := savedBytes(t, restored); !bytes.Equal(before, after) {
-		t.Fatal("snapshot round-trip changed durable state")
+		t.Fatal("player state changed")
 	}
-	restored.HandleRegister("second", id, "Replacement Name")
-	if !restored.IsRegistered("second") {
-		t.Fatal("returning player rejected")
+	restored.HandleRegister("second", id, "Replacement")
+	if got := restored.componentManager.GetEntityComponent(component.ComponentIdEquipped, id).(*component.CEquipped).GetEquippedItem(model.SlotWeapon); got == nil || got.Id != sword.Id {
+		t.Fatal("equipment lost")
 	}
 	if got := restored.componentManager.GetEntityComponent(component.ComponentIdPlayer, id).(*component.CPlayer).GetName(); got != "Saved Player" {
-		t.Fatal("saved identity overwritten")
+		t.Fatal("identity lost")
 	}
-	if got := restored.componentManager.GetEntityComponent(component.ComponentIdEquipped, id).(*component.CEquipped).GetEquippedItem(model.SlotWeapon); got == nil || got.Id != sword.Id {
-		t.Fatal("equipped item not restored")
+}
+
+func TestLegacyWorldSaveImportsPlayersAndKeepsNewMap(t *testing.T) {
+	g := snapshotGame(t)
+	id := model.NewEntityId()
+	g.HandleRegister("one", id, "Saved Player")
+	var saved gameSnapshot
+	json.Unmarshal(savedBytes(t, g), &saved)
+	entities := saved.Players
+	// An obsolete/unsupported world component must not block player migration.
+	entities[model.NewEntityId().String()] = map[string]component.SavedComponent{"obsolete": {Version: 99, Data: json.RawMessage(`{}`)}}
+	data, _ := json.Marshal(map[string]any{"version": 1, "tick": 12345, "contentHash": "old-map", "entities": entities})
+	restored := snapshotGame(t)
+	if err := restored.RestoreSnapshot(data); err != nil {
+		t.Fatal(err)
 	}
-	// A second restart must not create a second child for an existing spawner.
-	children := map[model.EntityId]model.EntityId{}
-	for parent, c := range restored.componentManager.GetComponent(component.ComponentIdSpawn) {
-		spawn := c.(*component.CSpawn)
-		if spawn.HasChildEntityId() {
-			children[parent] = spawn.GetChildEntityId()
+	if len(restored.offlinePlayers) != 1 || restored.currentTick != 0 {
+		t.Fatal("legacy import failed")
+	}
+	if len(restored.componentManager.GetComponent(component.ComponentIdBanker)) != 1 {
+		t.Fatal("new bank missing")
+	}
+}
+
+func TestSavedPlayerBlockedPositionFallsBackToSpawn(t *testing.T) {
+	for _, pos := range []math.Vec2{{X: 99999, Y: 99999}, {X: 8, Y: -23}} {
+		g := snapshotGame(t)
+		id := model.NewEntityId()
+		g.HandleRegister("one", id, "Player")
+		g.componentManager.SetEntityComponent(id, component.NewCPosition(pos))
+		restored := snapshotGame(t)
+		if err := restored.RestoreSnapshot(savedBytes(t, g)); err != nil {
+			t.Fatal(err)
 		}
-	}
-	restored.update()
-	for parent, child := range children {
-		if got := restored.componentManager.GetEntityComponent(component.ComponentIdSpawn, parent).(*component.CSpawn).GetChildEntityId(); got != child {
-			t.Fatal("spawn child duplicated")
+		restored.HandleRegister("two", id, "Player")
+		got := restored.componentManager.GetEntityComponent(component.ComponentIdPosition, id).(*component.CPosition).GetPosition()
+		if got != restored.world.GetPlayerSpawn() {
+			t.Fatalf("blocked position retained: %v", got)
 		}
 	}
 }
@@ -144,29 +145,6 @@ func TestDisconnectRetainsProgressAndResetsActivity(t *testing.T) {
 	}
 }
 
-func TestSnapshotRestoresAcrossContentChanges(t *testing.T) {
-	g := snapshotGame(t)
-	g.HandleRegister("one", model.NewEntityId(), "Saved Player")
-	before := savedBytes(t, g)
-	var saved gameSnapshot
-	if err := json.Unmarshal(before, &saved); err != nil {
-		t.Fatal(err)
-	}
-	saved.ContentHash = "previous-authored-content"
-	data, err := json.Marshal(saved)
-	if err != nil {
-		t.Fatal(err)
-	}
-	restored := snapshotGame(t)
-	if err := restored.RestoreSnapshot(data); err != nil {
-		t.Fatal(err)
-	}
-	// Player and world state survive; the next save records the current content hash.
-	if after := savedBytes(t, restored); !bytes.Equal(before, after) {
-		t.Fatal("content change altered saved state or retained the old hash")
-	}
-}
-
 func TestInvalidSnapshotsDoNotPartiallyReplaceWorld(t *testing.T) {
 	g := snapshotGame(t)
 	id := model.NewEntityId()
@@ -174,13 +152,13 @@ func TestInvalidSnapshotsDoNotPartiallyReplaceWorld(t *testing.T) {
 	valid := savedBytes(t, g)
 	for _, change := range []func(*gameSnapshot){
 		func(s *gameSnapshot) { s.Version = 99 },
-		func(s *gameSnapshot) { s.Entities = nil },
-		func(s *gameSnapshot) { delete(s.Entities[id.String()], string(component.ComponentIdInventory)) },
+		func(s *gameSnapshot) { s.Players = nil },
+		func(s *gameSnapshot) { delete(s.Players[id.String()], string(component.ComponentIdInventory)) },
 		func(s *gameSnapshot) {
-			s.Entities[id.String()]["unknown"] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{}`)}
+			s.Players[id.String()]["unknown"] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{}`)}
 		},
 		func(s *gameSnapshot) {
-			s.Entities[id.String()][string(component.ComponentIdInventory)] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{"items":[null]}`)}
+			s.Players[id.String()][string(component.ComponentIdInventory)] = component.SavedComponent{Version: 1, Data: json.RawMessage(`{"items":[null]}`)}
 		},
 	} {
 		var s gameSnapshot
@@ -208,7 +186,51 @@ func TestNoStorageDoesNotRetainDisconnectedPlayers(t *testing.T) {
 	g.HandleLeave("one")
 	var s gameSnapshot
 	json.Unmarshal(savedBytes(t, g), &s)
-	if _, ok := s.Entities[id.String()]; ok {
+	if _, ok := s.Players[id.String()]; ok {
 		t.Fatal("none mode retained player")
+	}
+}
+
+func TestRestartResetsWorldInteractions(t *testing.T) {
+	g := snapshotGame(t)
+	// Every door is flipped, every loot container looted and every tree depleted.
+	openCount := func(game *Game) int {
+		count := 0
+		for _, c := range game.componentManager.GetComponent(component.ComponentIdOpenable) {
+			if c.(*component.COpenable).IsOpen() {
+				count++
+			}
+		}
+		return count
+	}
+	defaultOpen := openCount(g)
+	for _, c := range g.componentManager.GetComponent(component.ComponentIdOpenable) {
+		door := c.(*component.COpenable)
+		door.SetOpen(!door.IsOpen())
+	}
+	for _, c := range g.componentManager.GetComponent(component.ComponentIdLootable) {
+		c.(*component.CLootable).SetLooted(true)
+	}
+	for _, c := range g.componentManager.GetComponent(component.ComponentIdWoodcuttable) {
+		tree := c.(*component.CWoodcuttable)
+		tree.SetDepleted(true)
+		tree.SetCurrentDurability(0)
+	}
+	restored := snapshotGame(t)
+	if err := restored.RestoreSnapshot(savedBytes(t, g)); err != nil {
+		t.Fatal(err)
+	}
+	if openCount(restored) != defaultOpen {
+		t.Fatal("doors did not reset")
+	}
+	for _, c := range restored.componentManager.GetComponent(component.ComponentIdLootable) {
+		if c.(*component.CLootable).IsLooted() {
+			t.Fatal("loot did not reset")
+		}
+	}
+	for _, c := range restored.componentManager.GetComponent(component.ComponentIdWoodcuttable) {
+		if c.(*component.CWoodcuttable).IsDepleted() {
+			t.Fatal("tree did not reset")
+		}
 	}
 }

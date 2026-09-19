@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"webscape/server/game/collision"
 	"webscape/server/game/component"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
@@ -10,17 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// restoredEntities is built and validated without changing the live manager.
-// Installation is a separate final step, so invalid saves cannot partially load.
-type restoredEntities struct {
-	active  map[model.EntityId][]component.Component
-	offline map[model.EntityId][]component.Component
-}
-
-func decodeSnapshotEntities(s gameSnapshot, w *world.World) (restoredEntities, error) {
-	result := restoredEntities{active: map[model.EntityId][]component.Component{}, offline: map[model.EntityId][]component.Component{}}
+func (g *Game) decodeSnapshotPlayers(s gameSnapshot) (map[model.EntityId][]component.Component, error) {
+	w := g.world
+	checker := collision.Checker{World: w, ComponentManager: g.componentManager}
+	result := map[model.EntityId][]component.Component{}
 	claims := map[model.ItemId]bool{}
-	for key, saved := range s.Entities {
+	for key, saved := range s.Players {
 		parsed, err := uuid.Parse(key)
 		if err != nil || parsed == uuid.Nil || parsed.String() != key {
 			return result, fmt.Errorf("invalid saved entity id %q", key)
@@ -38,15 +34,20 @@ func decodeSnapshotEntities(s gameSnapshot, w *world.World) (restoredEntities, e
 				components = append(components, component.NewCMana(maximum, maximum))
 			}
 		}
+		components = component.IdleComponents(components, 0)
+		for _, c := range components {
+			if position, ok := c.(*component.CPosition); ok {
+				pos := position.GetPosition()
+				if checker.IsBlocked(pos.X, pos.Y) {
+					position.SetPosition(w.GetPlayerSpawn())
+				}
+			}
+		}
 		ctx := newSaveContext(w, components, claims)
 		if err := component.ValidateSavedEntity(components, ctx); err != nil {
 			return result, fmt.Errorf("restore entity %s: %w", key, err)
 		}
-		if ctx.Component(component.ComponentIdPlayer) != nil {
-			result.offline[id] = components
-		} else {
-			result.active[id] = components
-		}
+		result[id] = components
 	}
 	return result, nil
 }
@@ -67,22 +68,6 @@ func decodeEntityComponents(saved map[string]component.SavedComponent) ([]compon
 		}
 	}
 	return result, nil
-}
-
-func (g *Game) installSnapshot(s gameSnapshot, entities restoredEntities) {
-	ids := map[model.EntityId]bool{}
-	for _, components := range g.componentManager.GetAllComponents() {
-		for id := range components {
-			ids[id] = true
-		}
-	}
-	for id := range ids {
-		g.componentManager.RemoveEntity(id)
-	}
-	for id, components := range entities.active {
-		g.componentManager.SetEntityComponents(id, components...)
-	}
-	g.offlinePlayers, g.currentTick = entities.offline, s.Tick
 }
 
 // saveContext bridges component-owned validation to authored registries. Only

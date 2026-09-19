@@ -369,8 +369,8 @@ func TestResetReplacesAllCharacterStateAndPersists(t *testing.T) {
 	if err := json.Unmarshal(before, &worldAfter); err != nil {
 		t.Fatal(err)
 	}
-	delete(worldBefore.Entities, id.String())
-	delete(worldAfter.Entities, id.String())
+	delete(worldBefore.Players, id.String())
+	delete(worldAfter.Players, id.String())
 	if !reflect.DeepEqual(worldBefore, worldAfter) {
 		t.Fatal("reset changed another character or the world")
 	}
