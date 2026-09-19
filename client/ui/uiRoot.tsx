@@ -4,6 +4,7 @@ import { ChatBoxContent } from "./components/chatBox";
 import InteractionMenu from "./components/interactionMenu";
 import { EquipmentContent, InventoryBackpackContent } from "./components/inventory";
 import { CombatLogContent } from "./components/combatLog";
+import BankPanel from "./components/bankPanel";
 import ShopPanel from "./components/shopPanel";
 import PlayerVitals from "./components/playerVitals";
 import PauseMenu from "./components/pauseMenu";
@@ -267,6 +268,7 @@ export default function UiRoot(props: Props) {
         <InteractionMenu game={props.game} />
         <ConversationPanel game={props.game} />
         <ShopPanel game={props.game} />
+        <BankPanel game={props.game} />
         <QuestStartedOverlay game={props.game} />
         <QuestCompletedOverlay game={props.game} />
         {pauseMenu}
@@ -335,6 +337,7 @@ export default function UiRoot(props: Props) {
       <InteractionMenu game={props.game} />
       <ConversationPanel game={props.game} />
         <ShopPanel game={props.game} />
+        <BankPanel game={props.game} />
       <QuestStartedOverlay game={props.game} />
       <QuestCompletedOverlay game={props.game} />
       {pauseMenu}

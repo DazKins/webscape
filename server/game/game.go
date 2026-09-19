@@ -91,6 +91,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	}
 	clientHandler := gameevent.HandlerFunc(game.handleClientEvent)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdTradeResolved, gameevent.HandlerFunc(game.projectTradeResult))
+	game.RegisterGameEventHandlerFor(gameevent.EventIdBankResolved, gameevent.HandlerFunc(game.projectBankResult))
 	game.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdItemPickedUp, clientHandler)
 	game.RegisterGameEventHandlerFor(gameevent.EventIdCombatResolved, clientHandler)
@@ -128,6 +129,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 		TickSource:          game,
 		ConversationStarter: game,
 		TradingStarter:      game,
+		BankingStarter:      game,
 		EventEmitter:        game,
 		LootHandler:         game,
 		WoodcuttingStarter:  woodcuttingSystem,
@@ -161,6 +163,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	}
 	game.RegisterSystem(spawnSystem)
 	game.RegisterSystem(&system.TradingSystem{SystemBase: systemBase, Validator: game})
+	game.RegisterSystem(&system.BankingSystem{SystemBase: systemBase, Validator: game})
 	game.RegisterSystem(&system.FacingSystem{
 		SystemBase: systemBase,
 	})
@@ -793,7 +796,7 @@ func (g *Game) syncClient(clientID string) {
 			state.baseline[componentID] = make(map[model.EntityId]util.Json)
 		}
 		for entityID, value := range entities {
-			if !visible[entityID] || (componentID == component.ComponentIdTrading && entityID != playerID) {
+			if !visible[entityID] || !g.componentVisibleToPlayer(componentID, entityID, playerID) {
 				continue
 			}
 			serializable, ok := value.(component.SerializeableComponent)
@@ -813,7 +816,7 @@ func (g *Game) syncClient(clientID string) {
 	}
 	for componentID, entities := range state.baseline {
 		for entityID := range entities {
-			if visible[entityID] && (componentID != component.ComponentIdTrading || entityID == playerID) && g.componentManager.GetEntityComponent(componentID, entityID) != nil {
+			if visible[entityID] && g.componentVisibleToPlayer(componentID, entityID, playerID) && g.componentManager.GetEntityComponent(componentID, entityID) != nil {
 				continue
 			}
 			removed[componentID] = append(removed[componentID], entityID)
@@ -826,6 +829,17 @@ func (g *Game) syncClient(clientID string) {
 	}
 	// Every tick is a clock heartbeat, even when the entity delta is empty.
 	g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions))
+}
+
+func (g *Game) componentVisibleToPlayer(id component.ComponentId, entity, player model.EntityId) bool {
+	switch id {
+	case component.ComponentIdTrading, component.ComponentIdBanking:
+		return entity == player
+	case component.ComponentIdBank:
+		return entity == player && g.componentManager.GetEntityComponent(component.ComponentIdBanking, player) != nil
+	default:
+		return true
+	}
 }
 
 func isPublicObserverComponent(componentID component.ComponentId) bool {
@@ -1368,6 +1382,9 @@ func (g *Game) restartCombatAfterWeaponChange(
 
 func (g *Game) getInteractionOptionsForEntity(entityId model.EntityId) []component.InteractionOption {
 	options := []component.InteractionOption{}
+	if g.componentManager.GetEntityComponent(component.ComponentIdBanker, entityId) != nil {
+		options = append(options, component.InteractionOptionBank)
+	}
 	if g.componentManager.GetEntityComponent(component.ComponentIdShop, entityId) != nil {
 		options = append(options, component.InteractionOptionTrade)
 	}

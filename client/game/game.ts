@@ -1,3 +1,4 @@
+import { BankUpdateEventName, BankResultEvent, type BankResultPayload } from "../events/bank";
 import { ShopUpdateEventName, TradeResultEvent, type TradeResultPayload } from "../events/shop";
 import Entity from "./entity/entity.ts";
 import DayCycleClock from "./dayCycle";
@@ -93,6 +94,7 @@ class Game extends EventTarget {
   private latestServerTick = 0;
   private serverTickMilliseconds = SERVER_TICK_MILLISECONDS;
   private serverTickReceivedAtMilliseconds = performance.now();
+  private dismissedBankTargetId: string | null = null;
 
   input: Input;
   world?: World;
@@ -408,8 +410,9 @@ class Game extends EventTarget {
     // UI observers read a complete snapshot, including removed components.
     if (inventoryChanged) this.dispatchEvent(new InventoryUpdateEvent());
     if (vitalsChanged) this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
-    if (this.getMyEntity()?.getComponent("trading")) this.closeActiveConversation();
+    if (this.getMyEntity()?.getComponent("trading") || this.getMyEntity()?.getComponent("banking")) this.closeActiveConversation();
     this.dispatchEvent(new Event(ShopUpdateEventName));
+    this.dispatchEvent(new Event(BankUpdateEventName));
   }
 
   update(deltaSeconds: number) {
@@ -484,8 +487,10 @@ class Game extends EventTarget {
   prepareForReconnect() {
     this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
+    this.dismissedBankTargetId = null;
     this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
     this.dispatchEvent(new Event(ShopUpdateEventName));
+    this.dispatchEvent(new Event(BankUpdateEventName));
     this.activeConversation = null;
     this.resetServerClock();
   }
@@ -554,6 +559,26 @@ class Game extends EventTarget {
     return this.entities.find((entity) => entity.getId() === entityId);
   }
 
+  handleBankTransfer(targetEntityId: string, action: "deposit" | "withdraw", itemId: string, quantity: number) {
+    this.wsClient.sendMessage(createCommand(action === "deposit" ? "bankDeposit" : "bankWithdraw", { targetEntityId, itemId, quantity }));
+  }
+
+  handleBankClose(targetEntityId: string) {
+    // Dismiss presentation immediately; replicated banking state stays authoritative.
+    this.dismissedBankTargetId = targetEntityId;
+    this.dispatchEvent(new Event(BankUpdateEventName));
+    this.wsClient.sendMessage(createCommand("bankClose", { targetEntityId }));
+  }
+
+  getBankPanelTargetId(): string | undefined {
+    const targetId = this.getMyEntity()?.getComponent("banking")?.targetEntityId;
+    return targetId === this.dismissedBankTargetId ? undefined : targetId;
+  }
+
+  handleBankResult(payload: BankResultPayload) {
+    this.dispatchEvent(new BankResultEvent(payload));
+  }
+
   handleTrade(targetEntityId: string, action: "buy" | "sell", itemId: string) {
     this.wsClient.sendMessage(createCommand("trade", { targetEntityId, action, itemId }));
   }
@@ -573,6 +598,8 @@ class Game extends EventTarget {
   }
 
   handleInteractionOptionClick(entityId: string, option: string) {
+    // Only an explicit new Bank interaction may reopen a locally dismissed panel.
+    if (option === "bank") this.dismissedBankTargetId = null;
     this.wsClient.sendMessage(
       createCommand("interact", {
         entityId,

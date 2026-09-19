@@ -33,6 +33,10 @@ func (c *CInventory) Serialize() util.Json {
 }
 
 func (c *CInventory) AddItem(item *model.Item) bool {
+	return c.addItem(item, InventoryCapacity)
+}
+
+func (c *CInventory) addItem(item *model.Item, capacity int) bool {
 	if item == nil || item.ValidateSaved() != nil || c.HasItem(item.Id) {
 		return false
 	}
@@ -47,7 +51,7 @@ func (c *CInventory) AddItem(item *model.Item) bool {
 			}
 		}
 	}
-	if c.IsFull() {
+	if capacity > 0 && len(c.items) >= capacity {
 		return false
 	}
 	c.items = append(c.items, item)

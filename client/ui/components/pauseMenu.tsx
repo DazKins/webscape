@@ -27,6 +27,8 @@ export default function PauseMenu({ game, registration, authenticated, guest, on
     const dialog = dialogRef.current!;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !event.isComposing) {
+        // Let the bank handle Escape for its item menu or immediate dismissal.
+        if (!dialog.open && game.getBankPanelTargetId()) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         if (event.repeat) return;
