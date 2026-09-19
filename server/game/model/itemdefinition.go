@@ -1,8 +1,6 @@
 package model
 
 import (
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"sort"
 )
@@ -82,14 +80,4 @@ func legacyDefinitionID(name, category string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("legacy item %q (%s) has no catalogue definition", name, category)
-}
-
-// JSON map encoding sorts keys, so the fingerprint depends on definition values,
-// not Go source formatting or map iteration order.
-func ItemDefinitionsHash() string {
-	data, err := json.Marshal(itemDefinitions)
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%x", sha256.Sum256(data))
 }

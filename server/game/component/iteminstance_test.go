@@ -38,7 +38,7 @@ func TestCustomInstancesDoNotStackOrShareProperties(t *testing.T) {
 	}
 }
 
-func TestIndividualEquipmentPropertiesSurviveEveryOwner(t *testing.T) {
+func TestIndividualEquipmentPropertiesSurvivePlayerSaves(t *testing.T) {
 	item := model.NewItem("ironSword")
 	stats := item.CombatStats()
 	stats.MaxDamage = 18
@@ -47,7 +47,7 @@ func TestIndividualEquipmentPropertiesSurviveEveryOwner(t *testing.T) {
 	inventory.AddItem(item)
 	equipped := NewCEquipped()
 	equipped.EquipItem(model.SlotWeapon, item)
-	for _, owner := range []Component{inventory, equipped, &CDroppedItem{Item: item}} {
+	for _, owner := range []Component{inventory, equipped} {
 		saved, err := SaveComponent(owner)
 		if err != nil || saved.Version != 2 {
 			t.Fatalf("save %s: %v", owner.GetId(), err)
@@ -74,7 +74,7 @@ func TestIndividualEquipmentPropertiesSurviveEveryOwner(t *testing.T) {
 	}
 }
 
-func TestLegacyInventoryAndShopMigrateToDefinitionReferences(t *testing.T) {
+func TestLegacyInventoryMigratesToDefinitionReferences(t *testing.T) {
 	sword := model.NewItem("ironSword")
 	legacy := map[string]any{"Id": [16]byte(sword.Id), "Quantity": 1, "Name": "Iron Sword", "Type": "weapon", "RenderModel": "ironSword", "EquipmentSlot": "weapon", "CombatStats": sword.CombatStats()}
 	for _, test := range []struct {
@@ -82,8 +82,6 @@ func TestLegacyInventoryAndShopMigrateToDefinitionReferences(t *testing.T) {
 		data any
 	}{
 		{ComponentIdInventory, map[string]any{"items": []any{legacy}}},
-		{ComponentIdShop, map[string]any{"offers": []any{map[string]any{"ItemId": "ironSword", "BuyPrice": 40, "SellPrice": 16, "Item": legacy}}}},
-		{ComponentIdLootable, map[string]any{"once": true, "looted": false, "items": []any{map[string]any{"Name": "Logs", "Type": "material", "Count": 2}}}},
 	} {
 		data, _ := json.Marshal(test.data)
 		restored, err := RestoreComponent(test.id, SavedComponent{Version: 1, Data: data})

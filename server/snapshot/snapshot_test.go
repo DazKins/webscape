@@ -9,6 +9,8 @@ func TestDecodePlayerSaveContracts(t *testing.T) {
 	const id = "11111111-1111-4111-8111-111111111111"
 	for _, data := range []string{
 		`{"version":99,"players":{}}`,
+		`{"version":1,"entities":{},"tick":123,"contentHash":"old"}`,
+		`{"version":2,"players":{},"tick":123}`,
 		`{"version":2,"players":null}`,
 		`{"version":2,"players":{},"entities":{}}`,
 		`{"version":2,"players":{"invalid":{"player":{"version":1,"data":{}}}}}`,
@@ -20,7 +22,7 @@ func TestDecodePlayerSaveContracts(t *testing.T) {
 			t.Fatalf("accepted invalid save: %s", data)
 		}
 	}
-	for _, data := range []string{`{"version":2,"players":{}}`, `{"version":1,"entities":{},"tick":123,"contentHash":"old"}`} {
+	for _, data := range []string{`{"version":2,"players":{}}`} {
 		state, err := Decode([]byte(data))
 		if err != nil {
 			t.Fatal(err)

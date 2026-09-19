@@ -78,28 +78,6 @@ func TestSnapshotRestoresOnlyPlayers(t *testing.T) {
 	}
 }
 
-func TestLegacyWorldSaveImportsPlayersAndKeepsNewMap(t *testing.T) {
-	g := snapshotGame(t)
-	id := model.NewEntityId()
-	g.HandleRegister("one", id, "Saved Player")
-	var saved gameSnapshot
-	json.Unmarshal(savedBytes(t, g), &saved)
-	entities := saved.Players
-	// An obsolete/unsupported world component must not block player migration.
-	entities[model.NewEntityId().String()] = map[string]component.SavedComponent{"obsolete": {Version: 99, Data: json.RawMessage(`{}`)}}
-	data, _ := json.Marshal(map[string]any{"version": 1, "tick": 12345, "contentHash": "old-map", "entities": entities})
-	restored := snapshotGame(t)
-	if err := restored.RestoreSnapshot(data); err != nil {
-		t.Fatal(err)
-	}
-	if len(restored.offlinePlayers) != 1 || restored.currentTick != 0 {
-		t.Fatal("legacy import failed")
-	}
-	if len(restored.componentManager.GetComponent(component.ComponentIdBanker)) != 1 {
-		t.Fatal("new bank missing")
-	}
-}
-
 func TestSavedPlayerBlockedPositionFallsBackToSpawn(t *testing.T) {
 	for _, pos := range []math.Vec2{{X: 99999, Y: 99999}, {X: 8, Y: -23}} {
 		g := snapshotGame(t)

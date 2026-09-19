@@ -7,26 +7,6 @@ import (
 	"testing"
 )
 
-func TestItemDefinitionsHashTracksValues(t *testing.T) {
-	original := itemDefinitions
-	t.Cleanup(func() { itemDefinitions = original })
-	hash := ItemDefinitionsHash()
-	// Rebuild in reverse order; neither insertion order nor copied stats change it.
-	ids := ItemDefinitionIDs()
-	reordered := make(map[string]ItemDefinition, len(ids))
-	for i := len(ids) - 1; i >= 0; i-- {
-		reordered[ids[i]], _ = GetItemDefinition(ids[i])
-	}
-	itemDefinitions = reordered
-	if ItemDefinitionsHash() != hash {
-		t.Fatal("equivalent definitions changed the content fingerprint")
-	}
-	itemDefinitions["ironSword"].CombatStats.MaxDamage++
-	if ItemDefinitionsHash() == hash {
-		t.Fatal("changed combat stats did not change the content fingerprint")
-	}
-}
-
 func TestCatalogueCreatesIndependentInstances(t *testing.T) {
 	for _, id := range ItemDefinitionIDs() {
 		a, b := NewItem(id), NewItem(id)

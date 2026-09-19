@@ -5,7 +5,6 @@ import "fmt"
 func (c *CBank) Save() (SavedComponent, error) {
 	return marshalSaved(savedInventory{Items: c.storage.items})
 }
-func (c *CBanker) Save() (SavedComponent, error) { return marshalSaved(struct{}{}) }
 func init() {
 	registerComponentRestore(ComponentIdBank, 1, func(saved SavedComponent) (Component, error) {
 		var s savedInventory
@@ -13,13 +12,6 @@ func init() {
 			return nil, err
 		}
 		return &CBank{storage: CInventory{items: s.Items}}, nil
-	})
-	registerComponentRestore(ComponentIdBanker, 1, func(saved SavedComponent) (Component, error) {
-		var s struct{}
-		if err := decodeSaved(saved.Data, &s); err != nil {
-			return nil, err
-		}
-		return &CBanker{}, nil
 	})
 }
 func (c *CBank) ValidateSaved(ctx SaveContext) error {

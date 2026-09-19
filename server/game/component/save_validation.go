@@ -13,7 +13,6 @@ type SaveContext interface {
 	ClaimItem(*model.Item) error
 	ValidPosition(math.Vec2) bool
 	ChunkSize() math.Vec2
-	HasConversation(string) bool
 	HasQuest(string) bool
 	ValidQuestStep(string, int, string) bool
 }
