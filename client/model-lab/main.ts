@@ -10,7 +10,7 @@ import {
   type ModelInstance,
   type ModelName,
 } from "../game/models";
-import { applyModelTransform, getEquipmentPresentation } from "../game/models/equipment";
+import EquipmentAttachmentController from "../game/renderer/equipmentAttachmentController";
 import "./style.css";
 
 type CameraView = "front" | "back" | "side" | "top" | "three-quarter";
@@ -28,7 +28,7 @@ let phase = clampPhase(Number(params.get("phase") ?? 0));
 let cameraView = parseView(params.get("view"));
 let playing = !captureMode && params.get("play") !== "0";
 let modelInstance: ModelInstance;
-let equipmentInstance: ModelInstance | undefined;
+let equipmentAttachments: EquipmentAttachmentController | undefined;
 let previousFrame: number | null = null;
 let renderRequested = true;
 
@@ -130,8 +130,8 @@ window.__MODEL_LAB_MODELS__ = [...modelNames];
 requestAnimationFrame(animate);
 
 function loadModel() {
-  equipmentInstance?.dispose();
-  equipmentInstance = undefined;
+  equipmentAttachments?.dispose();
+  equipmentAttachments = undefined;
   modelInstance?.dispose();
   modelInstance = createModel(
     modelName,
@@ -175,11 +175,7 @@ function animate(frameTime: number) {
     phase = animation.loop ? phase % 1 : Math.min(1, phase);
     updateControls();
   }
-  if (equipmentInstance?.animations.some(animation => animation.name === "draw")) {
-    equipmentInstance.seek("draw", animationName === "shoot" ? phase : 0);
-  } else if (playing) {
-    equipmentInstance?.update(deltaSeconds);
-  }
+  equipmentAttachments?.seekWeaponAnimation("draw", animationName === "shoot" ? phase : 0);
 
   orbit.update();
   renderer.render(scene, camera);
@@ -296,26 +292,16 @@ function paletteKey<T extends Record<string, string>>(
 }
 
 function attachRequestedEquipment() {
-  if (!requestedEquipment || modelName !== "human" || !isModelName(requestedEquipment)) {
-    return;
-  }
-  const presentation = getEquipmentPresentation(requestedEquipment);
-  if (!presentation) {
-    return;
-  }
-  const socket = modelInstance.getSocket(presentation.equipped.socket);
-  if (!socket) {
-    throw new Error(`model does not define equipment socket: ${presentation.equipped.socket}`);
-  }
-  if (presentation.equipped.socket === "headwear") {
-    const hair = modelInstance.root.getObjectByName("hair");
-    if (hair) {
-      hair.visible = false;
-    }
-  }
-  equipmentInstance = createModel(requestedEquipment);
-  applyModelTransform(equipmentInstance.root, presentation.equipped);
-  socket.add(equipmentInstance.root);
+  if (!requestedEquipment || modelName !== "human") return;
+  const equipmentSlots: Record<string, string> = {
+    leatherHelmet: "head", chainmailChestplate: "chest", ironLeggings: "legs",
+    leatherBoots: "feet", woodenShield: "offhand",
+  };
+  const slots = Object.fromEntries(requestedEquipment.split(",").map(name => [
+    equipmentSlots[name] ?? "weapon", { id: name, renderModel: name },
+  ]));
+  equipmentAttachments = new EquipmentAttachmentController(modelInstance);
+  equipmentAttachments.update({ slots }, 0);
 }
 
 function requireElement<T extends HTMLElement>(id: string): T {

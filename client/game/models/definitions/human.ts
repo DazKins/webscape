@@ -52,29 +52,32 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     : 0x553b2d;
 
   const pelvis = taperedBox(0.3, 0.2, 0.33, 0.22, 0.18, tunicShadow);
+  pelvis.name = "tunicSkirt";
   hips.add(pelvis);
+
+  const tunic = joint("tunic", torso);
 
   const chest = taperedBox(0.38, 0.22, 0.3, 0.18, 0.32, tunicColor);
   chest.position.y = 0.16;
-  torso.add(chest);
+  tunic.add(chest);
 
   const collar = torus(0.082, 0.018, 6, 10, tunicHighlight);
   collar.rotation.x = Math.PI / 2;
   collar.position.set(0, 0.325, 0.006);
-  torso.add(collar);
+  tunic.add(collar);
 
   const belt = box(0.32, 0.05, 0.21, 0x543c2c);
   belt.position.y = 0.035;
-  torso.add(belt);
+  tunic.add(belt);
   const buckle = box(0.065, 0.055, 0.022, 0xc7a05a, { metalness: 0.45 });
   buckle.position.set(0, 0.035, 0.114);
-  torso.add(buckle);
+  tunic.add(buckle);
   const buckleInset = box(0.033, 0.028, 0.006, 0x543c2c);
   buckleInset.position.set(0, 0.035, 0.128);
-  torso.add(buckleInset);
+  tunic.add(buckleInset);
   const placket = box(0.025, 0.16, 0.012, tunicShadow);
   placket.position.set(0, 0.23, 0.108);
-  torso.add(placket);
+  tunic.add(placket);
 
   const neck = cylinder(0.06, 0.07, 0.09, 8, skinColor);
   neck.position.y = -0.035;
@@ -394,9 +397,8 @@ export const createHumanModel: ModelFactory = (options = {}) => {
     fishWait,
     fishAction,
   ], {
+    ...joints,
     headwear,
-    rightHand,
-    leftHand,
   });
   instance.play("idle");
   return instance;
@@ -469,6 +471,7 @@ function addArm(
   tunicColor: THREE.ColorRepresentation,
 ) {
   const sleeve = cylinder(0.07, 0.065, 0.16, 7, tunicColor);
+  sleeve.name = shoulder.name === "leftShoulder" ? "leftSleeve" : "rightSleeve";
   sleeve.position.y = -0.08;
   shoulder.add(sleeve);
   const upperArm = cylinder(0.057, 0.052, 0.14, 7, skinColor);
@@ -508,16 +511,21 @@ function addLeg(
   trousersColor: THREE.ColorRepresentation,
   bootColor: THREE.ColorRepresentation,
 ) {
+  const side = hip.name === "leftHip" ? "left" : "right";
   const thigh = cylinder(0.078, 0.066, 0.25, 7, trousersColor);
+  thigh.name = `${side}Trousers`;
   thigh.position.y = -0.125;
   hip.add(thigh);
   const shin = cylinder(0.063, 0.055, 0.22, 7, bootColor);
+  shin.name = `${side}Shin`;
   shin.position.y = -0.11;
   knee.add(shin);
   const foot = box(0.12, 0.08, 0.2, bootColor);
+  foot.name = `${side}Foot`;
   foot.position.set(0, 0, 0.04);
   ankle.add(foot);
   const cuff = cylinder(0.066, 0.065, 0.045, 7, bootColor);
+  cuff.name = `${side}Cuff`;
   cuff.position.y = -0.025;
   knee.add(cuff);
 }

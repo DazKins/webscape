@@ -2,6 +2,7 @@ import type * as THREE from "three";
 import type { HumanAppearance } from "./humanAppearance";
 
 export type ModelOptions = {
+  equipped?: boolean;
   color?: THREE.ColorRepresentation;
   width?: number;
   height?: number;

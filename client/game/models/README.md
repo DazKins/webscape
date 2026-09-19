@@ -26,6 +26,14 @@ evicted resources alive. `modelAssets.clear()` and `clearSharedAssets()` release
 cached ownership without invalidating live instances. Equipment owns its own
 model and must still be disposed separately from its host.
 
+Armour uses `{ equipped: true }` to select a fitted variant; the default remains
+the inventory/ground model. `equipment.ts` maps its root and named parts to human
+joint sockets. Parts use joint-local coordinates and move with the host's pose.
+The attachment controller owns those detached parts and restores covered clothing
+on removal, including when several items cover the same body part. Hide clothing
+meshes/groups, never the joints carrying the armour. The model lab uses this same
+controller and accepts comma-separated equipment names to preview a complete set.
+
 # Background construction
 
 `../assets/construction.worker.ts` prepares common procedural model geometry at

@@ -53,8 +53,8 @@ try {
     damaged.dispose(); check(disposed === 1, "last owner must dispose geometry once");
 
     const humanA = createModel("human", { color: "red" }), humanB = createModel("human", { color: "blue" });
-    const torsoA = humanA.root.getObjectByName("torso").children.find(o => o.isMesh);
-    const torsoB = humanB.root.getObjectByName("torso").children.find(o => o.isMesh);
+    const torsoA = humanA.root.getObjectByName("tunic").children.find(o => o.isMesh);
+    const torsoB = humanB.root.getObjectByName("tunic").children.find(o => o.isMesh);
     check(torsoA.geometry === torsoB.geometry && torsoA.material !== torsoB.material, "human geometry/appearance sharing incorrect");
     const clone = humanA.clone();
     check(clone.getSocket("rightHand") !== humanA.getSocket("rightHand"), "clone socket points at original");

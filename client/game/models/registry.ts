@@ -20,6 +20,7 @@ import { createFishingRodModel } from "./definitions/fishingRod";
 import { createFishingSpotModel } from "./definitions/fishingSpot";
 import { createMagicStaffModel } from "./definitions/magicStaff";
 import { createWoodenBowModel } from "./definitions/woodenBow";
+import { createWornChainmailModel, createWornIronLeggingsModel, createWornLeatherBootsModel } from "./definitions/wornArmour";
 import type { ModelFactory, ModelInstance, ModelOptions } from "./types";
 import {
   createGoldModel, createHealthPotionModel, createBreadModel, createAppleModel, createIronOreModel,
@@ -64,9 +65,9 @@ export const modelRegistry = {
   fish: createFishModel,
   mysteriousKey: createMysteriousKeyModel,
   ancientScroll: createAncientScrollModel,
-  chainmailChestplate: createChainmailChestplateModel,
-  ironLeggings: createIronLeggingsModel,
-  leatherBoots: createLeatherBootsModel,
+  chainmailChestplate: (options: ModelOptions = {}) => options.equipped ? createWornChainmailModel(options) : createChainmailChestplateModel(options),
+  ironLeggings: (options: ModelOptions = {}) => options.equipped ? createWornIronLeggingsModel(options) : createIronLeggingsModel(options),
+  leatherBoots: (options: ModelOptions = {}) => options.equipped ? createWornLeatherBootsModel(options) : createLeatherBootsModel(options),
   woodenShield: createWoodenShieldModel,
   unknownItem: createUnknownItemModel,
 } satisfies Record<string, ModelFactory>;

@@ -30,7 +30,6 @@ export default class RendererHuman extends EntityRenderer {
   private readonly visualRoot: THREE.Group;
   private readonly modelInstance: ModelInstance;
   private readonly equipmentAttachments: EquipmentAttachmentController;
-  private readonly hair: THREE.Object3D | undefined;
   private segmentStartX: number;
   private segmentStartZ: number;
   private segmentTargetX: number;
@@ -70,7 +69,6 @@ export default class RendererHuman extends EntityRenderer {
     this.mesh.add(this.visualRoot);
 
     this.modelInstance = createModel("human", { appearance });
-    this.hair = this.modelInstance.root.getObjectByName("hair");
     this.visualRoot.add(this.modelInstance.root);
     this.equipmentAttachments = new EquipmentAttachmentController(this.modelInstance);
     const position = entity.getComponent("position");
@@ -143,9 +141,6 @@ export default class RendererHuman extends EntityRenderer {
     }
     this.modelInstance.update(deltaSeconds);
     const equipped = this.entity.getComponent("equipped") as EquippedComponent | undefined;
-    if (this.hair) {
-      this.hair.visible = !equipped?.slots?.head;
-    }
     this.equipmentAttachments.update(equipped, deltaSeconds);
     this.equipmentAttachments.seekWeaponAnimation("draw", this.bowDrawPhase);
     this.updateHealthBar();

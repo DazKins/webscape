@@ -22,10 +22,13 @@ type Attachment = {
   itemId: string;
   renderModel: string;
   modelInstance: ModelInstance;
+  parts: THREE.Object3D[];
+  hiddenParts: THREE.Object3D[];
 };
 
 export default class EquipmentAttachmentController {
   private readonly attachments = new Map<string, Attachment>();
+  private readonly hiddenParts = new Map<THREE.Object3D, { count: number; wasVisible: boolean }>();
 
   constructor(private readonly hostModel: ModelInstance) {}
 
@@ -88,13 +91,38 @@ export default class EquipmentAttachmentController {
       return;
     }
 
-    const modelInstance = createModel(item.renderModel);
+    const modelInstance = createModel(item.renderModel, { equipped: true });
+    const parts: THREE.Object3D[] = [];
+    for (const [partName, socketName] of Object.entries(presentation.equipped.parts ?? {})) {
+      const part = modelInstance.root.getObjectByName(partName);
+      const partSocket = this.hostModel.getSocket(socketName);
+      if (!part || !partSocket) {
+        for (const attached of parts) modelInstance.root.add(attached);
+        modelInstance.dispose();
+        console.error(`cannot attach equipment part: ${partName} to ${socketName}`);
+        return;
+      }
+      partSocket.add(part);
+      parts.push(part);
+    }
     applyModelTransform(modelInstance.root, presentation.equipped);
     socket.add(modelInstance.root);
+    const hiddenParts: THREE.Object3D[] = [];
+    for (const name of presentation.equipped.hideParts ?? []) {
+      const part = this.hostModel.root.getObjectByName(name);
+      if (!part) continue;
+      const hidden = this.hiddenParts.get(part) ?? { count: 0, wasVisible: part.visible };
+      hidden.count++;
+      this.hiddenParts.set(part, hidden);
+      part.visible = false;
+      hiddenParts.push(part);
+    }
     this.attachments.set(slot, {
       itemId: item.id,
       renderModel: item.renderModel,
       modelInstance,
+      parts,
+      hiddenParts,
     });
   }
 
@@ -103,7 +131,16 @@ export default class EquipmentAttachmentController {
     if (!attachment) {
       return;
     }
+    // Reunite detached groups before disposing, leaving no armour on the rig.
+    for (const part of attachment.parts) attachment.modelInstance.root.add(part);
     attachment.modelInstance.dispose();
+    for (const part of attachment.hiddenParts) {
+      const hidden = this.hiddenParts.get(part)!;
+      if (--hidden.count === 0) {
+        part.visible = hidden.wasVisible;
+        this.hiddenParts.delete(part);
+      }
+    }
     this.attachments.delete(slot);
   }
 }

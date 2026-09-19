@@ -10,6 +10,9 @@ export type ModelTransform = {
 export type EquipmentPresentation = {
   equipped: ModelTransform & {
     socket: string;
+    // Named model groups that follow separate host joints, in joint-local space.
+    parts?: Readonly<Record<string, string>>;
+    hideParts?: readonly string[];
   };
   dropped?: ModelTransform;
 };
@@ -69,9 +72,38 @@ const equipmentPresentations = {
   leatherHelmet: {
     equipped: {
       socket: "headwear",
+      hideParts: ["hair"],
     },
     dropped: {
       rotation: [0, 0, 0],
+    },
+  },
+  chainmailChestplate: {
+    equipped: {
+      socket: "torso",
+      parts: { mailSkirt: "hips", leftMailSleeve: "leftShoulder", rightMailSleeve: "rightShoulder" },
+      hideParts: ["tunic", "tunicSkirt", "leftSleeve", "rightSleeve"],
+    },
+  },
+  ironLeggings: {
+    equipped: {
+      socket: "hips",
+      parts: { leftCuisses: "leftHip", rightCuisses: "rightHip", leftGreave: "leftKnee", rightGreave: "rightKnee" },
+      hideParts: ["leftTrousers", "rightTrousers", "leftShin", "rightShin", "leftCuff", "rightCuff"],
+    },
+  },
+  leatherBoots: {
+    equipped: {
+      socket: "hips",
+      parts: { leftBootShaft: "leftKnee", rightBootShaft: "rightKnee", leftBootFoot: "leftAnkle", rightBootFoot: "rightAnkle" },
+      hideParts: ["leftShin", "rightShin", "leftCuff", "rightCuff", "leftFoot", "rightFoot"],
+    },
+  },
+  woodenShield: {
+    equipped: {
+      socket: "leftElbow",
+      position: [0.09, -0.14, 0],
+      rotation: [0, 0, -Math.PI / 2],
     },
   },
 } satisfies Partial<Record<ModelName, EquipmentPresentation>>;

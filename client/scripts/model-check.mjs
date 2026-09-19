@@ -29,7 +29,8 @@ try {
     const THREE = await import("/node_modules/three/build/three.module.js");
     const { createModel, modelNames, modelAssets } = await import("/game/models/registry.ts");
     const { clearSharedAssets } = await import("/game/models/assetCache.ts");
-    const { applyModelTransform, getEquipmentPresentation } = await import("/game/models/equipment.ts");
+    const { getEquipmentPresentation } = await import("/game/models/equipment.ts");
+    const { default: EquipmentAttachmentController } = await import("/game/renderer/equipmentAttachmentController.ts");
     const { default: RendererArrow } = await import("/game/renderer/rendererArrow.ts");
     const { default: RendererMagicBolt } = await import("/game/renderer/rendererMagicBolt.ts");
     const { default: RendererChest } = await import("/game/renderer/rendererChest.ts");
@@ -45,8 +46,12 @@ try {
       return values;
     }
     function same(a, b) { return a.length === b.length && a.every((value, index) => Math.abs(value - b[index]) < 1e-6); }
-    for (const name of modelNames) {
-      const model = createModel(name);
+    const modelCases = modelNames.map(name => ({ name, options: {} }));
+    for (const name of ["chainmailChestplate", "ironLeggings", "leatherBoots"]) {
+      modelCases.push({ name, options: { equipped: true } });
+    }
+    for (const { name, options } of modelCases) {
+      const model = createModel(name, options);
       const owned = new Set();
       model.root.traverse(object => {
         if (!object.isMesh) return;
@@ -96,20 +101,76 @@ try {
       resources += owned.size;
     }
     const human = createModel("human");
+    const attachments = new EquipmentAttachmentController(human);
+    const bareObjects = [];
+    human.root.traverse(object => bareObjects.push(object));
+    const bareVisibility = bareObjects.map(object => object.visible);
     for (const name of modelNames) {
       const presentation = getEquipmentPresentation(name);
       if (!presentation) continue;
-      const equipment = createModel(name);
+      attachments.update({ slots: { equipment: { id: name, renderModel: name } } }, 0);
+      const equipment = attachments.getAttachmentObject("equipment");
       const socket = human.getSocket(presentation.equipped.socket);
-      check(Boolean(socket), `${name}: missing socket`);
-      applyModelTransform(equipment.root, presentation.equipped);
-      socket.add(equipment.root);
-      for (const clip of human.animations) {
-        human.seek(clip.name, 0.5);
-        check(transforms(equipment.root).every(Number.isFinite), `${name}/${clip.name}: invalid attachment`);
+      check(equipment?.parent === socket, `${name}: missing attachment`);
+      for (const part of presentation.equipped.hideParts ?? []) {
+        check(human.root.getObjectByName(part)?.visible === false, `${name}: ${part} not hidden`);
       }
-      equipment.dispose();
+      for (const clip of human.animations) {
+        for (const phase of [0, 0.25, 0.5, 0.75, 1]) {
+          human.seek(clip.name, phase);
+          check(transforms(human.root).every(Number.isFinite), `${name}/${clip.name}: invalid attachment`);
+          for (const [partName, socketName] of Object.entries(presentation.equipped.parts ?? {})) {
+            const part = human.root.getObjectByName(partName);
+            const partSocket = human.getSocket(socketName);
+            check(part?.parent === partSocket && same(part.matrixWorld.elements, partSocket.matrixWorld.elements),
+              `${name}/${clip.name}: ${partName} does not follow ${socketName}`);
+            if (name === "leatherBoots" && partName.endsWith("Foot") && ["run", "bowRun", "staffRun"].includes(clip.name)) {
+              check(new THREE.Box3().setFromObject(part).min.y >= -0.015, `${clip.name}: equipped boot below ground`);
+            }
+          }
+        }
+      }
+      attachments.update(undefined, 0);
+      const remaining = [];
+      human.root.traverse(object => remaining.push(object));
+      check(remaining.length === bareObjects.length, `${name}: detached parts remain after unequip`);
+      check(bareObjects.every((object, index) => object.visible === bareVisibility[index]), `${name}: visibility not restored`);
     }
+    const fullSet = {
+      head: { id: "helmet", renderModel: "leatherHelmet" },
+      chest: { id: "mail", renderModel: "chainmailChestplate" },
+      legs: { id: "leggings", renderModel: "ironLeggings" },
+      feet: { id: "boots", renderModel: "leatherBoots" },
+      offhand: { id: "shield", renderModel: "woodenShield" },
+      weapon: { id: "sword", renderModel: "ironSword" },
+    };
+    attachments.update({ slots: fullSet }, 0);
+    const otherHuman = createModel("human");
+    check(otherHuman.root.getObjectByName("tunic").visible, "equipment hides another player's clothing");
+    const otherAttachments = new EquipmentAttachmentController(otherHuman);
+    otherAttachments.update({ slots: fullSet }, 0);
+    const retainedBoot = otherHuman.root.getObjectByName("leftBootFoot");
+    let disposedLiveBoot = false;
+    retainedBoot.traverse(object => object.geometry?.addEventListener("dispose", () => { disposedLiveBoot = true; }));
+    for (const slot of ["legs", "feet"]) {
+      attachments.update({ slots: { ...fullSet, [slot]: null } }, 0);
+      check(!human.root.getObjectByName("leftShin").visible, `removing ${slot} reveals shin still covered by other armour`);
+      attachments.update({ slots: fullSet }, 0);
+    }
+    attachments.update({ slots: { ...fullSet, chest: { id: "replacement", renderModel: "chainmailChestplate" } } }, 0);
+    const sleeves = [];
+    human.root.traverse(object => { if (object.name === "leftMailSleeve") sleeves.push(object); });
+    check(sleeves.length === 1, "replacing armour leaves duplicate sleeve");
+    attachments.update({ slots: { head: { id: "unknown", renderModel: "notRegistered" } } }, 0);
+    check(human.root.getObjectByName("hair").visible, "unsupported equipment hides hair");
+    attachments.update({ slots: fullSet }, 0);
+    attachments.dispose();
+    modelAssets.clear();
+    clearSharedAssets();
+    check(!disposedLiveBoot && retainedBoot.parent === otherHuman.getSocket("leftAnkle"), "unequipping/disposal breaks another player's armour");
+    check(bareObjects.every((object, index) => object.visible === bareVisibility[index]), "dispose does not restore clothing");
+    otherAttachments.dispose();
+    otherHuman.dispose();
     for (const clip of ["attack", "pickup", "chop"]) {
       human.seek(clip, 0);
       const start = transforms(human.root);
