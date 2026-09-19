@@ -1,0 +1,110 @@
+.trigger {
+  position: absolute;
+  top: max(8px, var(--safe-area-top));
+  right: max(8px, var(--safe-area-right));
+  z-index: 101;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(210, 220, 230, 0.28);
+  border-radius: 6px;
+  background: rgba(20, 24, 30, 0.72);
+  color: #ebf0f5;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: min(360px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  box-sizing: border-box;
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid rgba(191, 221, 207, 0.32);
+  border-radius: 14px;
+  background: linear-gradient(155deg, #1f3131, #121d21);
+  color: #f4f0e5;
+  box-shadow: 0 24px 70px #0008;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px;
+  text-align: center;
+}
+
+.content h1 {
+  margin: 0;
+  font: 500 32px/1.1 Georgia, "Times New Roman", serif;
+}
+
+.action,
+.resume {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 12px;
+  border: 1px solid rgba(191, 221, 207, 0.28);
+  border-radius: 7px;
+  background: rgba(5, 12, 15, 0.35);
+  color: #f4f0e5;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.resume {
+  border-color: #b9dec4;
+  background: #a9cfb4;
+  color: #10221b;
+  font-weight: 700;
+}
+
+.trigger:hover,
+.action:hover:not(:disabled) {
+  background: #2c4141;
+}
+
+.resume:hover {
+  background: #c2e3ca;
+}
+
+.trigger:focus-visible,
+.action:focus-visible,
+.resume:focus-visible {
+  outline: 2px solid #c2e3ca;
+  outline-offset: 3px;
+}
+
+.action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.build {
+  margin-top: 8px;
+  color: #91a49e;
+  font-size: 11px;
+}
+
+@media (pointer: coarse), (hover: none) {
+  .trigger { width: 44px; height: 44px; }
+}

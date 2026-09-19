@@ -13,6 +13,7 @@ class Input {
   pointerButtons: Record<number, boolean>;
   pointerBlocked: boolean;
   worldBlocked: boolean;
+  private menuBlocked = false;
 
   private pointerCallbacks: PointerCallbacks;
   private activePointer:
@@ -59,7 +60,7 @@ class Input {
     )
       return;
 
-    if (this.worldBlocked) return;
+    if (this.worldBlocked || this.menuBlocked) return;
 
     const key = event.key;
 
@@ -165,7 +166,7 @@ class Input {
   }
 
   getKey(key: string) {
-    return !this.worldBlocked && this.keys[key.toLowerCase()];
+    return !this.worldBlocked && !this.menuBlocked && this.keys[key.toLowerCase()];
   }
 
   getPointerPosition() {
@@ -185,7 +186,17 @@ class Input {
   }
 
   isPointerBlocked() {
-    return this.pointerBlocked || this.worldBlocked;
+    return this.pointerBlocked || this.worldBlocked || this.menuBlocked;
+  }
+
+  setMenuBlocked(blocked: boolean) {
+    this.menuBlocked = blocked;
+    if (blocked) {
+      this.keys = {};
+      this.pointerButtons = {};
+      window.clearTimeout(this.activePointer?.longPressTimer);
+      this.activePointer = undefined;
+    }
   }
 
   setWorldBlocked(blocked: boolean) {

@@ -6,6 +6,8 @@ import { EquipmentContent, InventoryBackpackContent } from "./components/invento
 import { CombatLogContent } from "./components/combatLog";
 import ShopPanel from "./components/shopPanel";
 import PlayerVitals from "./components/playerVitals";
+import PauseMenu from "./components/pauseMenu";
+import DevDebugPanel from "./components/devDebugPanel";
 import Minimap from "./components/minimap";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
@@ -88,25 +90,6 @@ const rightTabs: TabDefinition<RightTab>[] = [
 ];
 
 const mobileTabs: TabDefinition<MobileTab>[] = [...leftTabs, ...rightTabs];
-const buildSuffix = __BUILD_DIRTY__ ? "-dirty" : "";
-const buildLabel = `Build ${__BUILD_REVISION__.slice(0, 8)}${buildSuffix}`;
-const buildTitle = `Client build ${__BUILD_REVISION__}${buildSuffix}`;
-const sourceUrl = "https://github.com/dazkins/webscape";
-
-function SourceLink() {
-  return (
-    <a
-      className={styles.sourceLink}
-      href={sourceUrl}
-      target="_blank"
-      rel="noreferrer"
-      title="Webscape source code and AGPL-3.0-only license (provided without warranty)"
-    >
-      Source &amp; license (AGPLv3)
-    </a>
-  );
-}
-
 function getWindowProfile() {
   return getDeviceProfile({
     width: Math.max(1, window.innerWidth),
@@ -172,6 +155,7 @@ export default function UiRoot(props: Props) {
   const [rightTab, setRightTab] = useState<RightTab>("inventory");
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [devMode, setDevMode] = useState(false);
   const profile = useDeviceProfile(props.game);
 
   const stopHudEvent = (event: SyntheticEvent) => {
@@ -221,31 +205,26 @@ export default function UiRoot(props: Props) {
     <OnboardingOverlay guest={props.guest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} onStayConnected={props.onStayConnected} />
   );
 
-  const buildInfo = (
-    <div
-      className={styles.buildInfo}
-      onClick={stopHudEvent}
-      onContextMenu={stopHudEvent}
-      onPointerDown={handleHudPointerDown}
-      onPointerUp={handleHudPointerUp}
-      onPointerEnter={handleHudMouseEnter}
-      onPointerLeave={handleHudMouseLeave}
-    >
-      <span className={styles.buildRevision} title={buildTitle}>
-        {buildLabel}
-      </span>
-      <SourceLink />
-      {props.authenticated && <button className={`${styles.sourceLink} ${styles.signOut}`} type="button" onClick={props.onLogout} disabled={props.registration.phase === "signingOut"}>{props.guest ? "End guest session" : "Sign out"}</button>}
-    </div>
+  const pauseMenu = (
+    <PauseMenu
+      game={props.game}
+      registration={props.registration}
+      authenticated={props.authenticated}
+      guest={props.guest}
+      onLogout={props.onLogout}
+      devMode={devMode}
+      onToggleDevMode={() => setDevMode((enabled) => !enabled)}
+    />
   );
 
   if (props.registration.phase !== "registered") {
-    return <div className={styles.root}>{buildInfo}{onboarding}</div>;
+    return <div className={styles.root}>{pauseMenu}{onboarding}</div>;
   }
 
   if (profile.isMobileLayout) {
     return (
-      <div className={styles.root}>
+      <div className={`${styles.root} ${devMode ? styles.devMode : ""}`}>
+        {devMode && <DevDebugPanel game={props.game} />}
         <Minimap game={props.game} />
         <PlayerVitals game={props.game} />
         <div
@@ -290,7 +269,7 @@ export default function UiRoot(props: Props) {
         <ShopPanel game={props.game} />
         <QuestStartedOverlay game={props.game} />
         <QuestCompletedOverlay game={props.game} />
-        {buildInfo}
+        {pauseMenu}
         {onboarding}
       </div>
     );
@@ -298,8 +277,9 @@ export default function UiRoot(props: Props) {
 
   return (
     <div
-      className={styles.root}
+      className={`${styles.root} ${devMode ? styles.devMode : ""}`}
     >
+      {devMode && <DevDebugPanel game={props.game} />}
       <Minimap game={props.game} />
       <PlayerVitals game={props.game} />
       <div
@@ -357,7 +337,7 @@ export default function UiRoot(props: Props) {
         <ShopPanel game={props.game} />
       <QuestStartedOverlay game={props.game} />
       <QuestCompletedOverlay game={props.game} />
-      {buildInfo}
+      {pauseMenu}
       {onboarding}
     </div>
   );

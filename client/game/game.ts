@@ -1,6 +1,7 @@
 import { ShopUpdateEventName, TradeResultEvent, type TradeResultPayload } from "../events/shop";
 import Entity from "./entity/entity.ts";
 import DayCycleClock from "./dayCycle";
+import RenderTiming from "./renderTiming";
 import EnvironmentLighting from "./environmentLighting";
 import World, { type ChunkUpdate } from "./world/world.ts";
 import Input from "../input.ts";
@@ -75,6 +76,7 @@ class Game extends EventTarget {
   scene: THREE.Scene;
   camera: Camera;
   renderer: THREE.WebGLRenderer;
+  renderTiming: RenderTiming | null = null;
   cssRenderer2d: CSS2DRenderer;
   sceneLayerRoot: HTMLElement;
   viewport: ViewportSize;
@@ -173,6 +175,16 @@ class Game extends EventTarget {
 
   setRegistrationBlocked(blocked: boolean) {
     this.input.setWorldBlocked(blocked);
+  }
+
+  setMenuBlocked(blocked: boolean) {
+    this.input.setMenuBlocked(blocked);
+  }
+
+  setRenderTimingEnabled(enabled: boolean) {
+    this.renderTiming?.reset();
+    // Three.js's WebGLRenderer uses WebGL 2 exclusively.
+    this.renderTiming = enabled ? new RenderTiming(this.renderer.getContext() as WebGL2RenderingContext) : null;
   }
 
   getDeviceProfile(): DeviceProfile {
@@ -412,7 +424,12 @@ class Game extends EventTarget {
       this.lightingFocus.set(this.observerFocus.x, 0, this.observerFocus.y));
     this.lighting.update(this.dayCycle.read()?.cycleProgress ?? 0, this.lightingFocus);
 
-    this.renderer.render(this.scene, this.camera.getInnerCamera());
+    this.renderTiming?.begin();
+    try {
+      this.renderer.render(this.scene, this.camera.getInnerCamera());
+    } finally {
+      this.renderTiming?.end();
+    }
     this.cssRenderer2d.render(this.scene, this.camera.getInnerCamera());
     this.dispatchEvent(new Event("frameRendered"));
   }

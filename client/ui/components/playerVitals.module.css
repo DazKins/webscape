@@ -2,7 +2,7 @@
   position: absolute;
   top: calc(var(--minimap-top) + var(--minimap-size) + 14px);
   left: var(--minimap-left);
-  width: max(176px, var(--minimap-size));
+  width: min(max(176px, var(--minimap-size)), calc(100vw - var(--minimap-left) - max(8px, var(--safe-area-right))));
   display: grid;
   gap: 12px;
   color: #fff5f2;

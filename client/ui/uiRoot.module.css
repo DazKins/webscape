@@ -1,47 +1,29 @@
 .root {
   --minimap-size: clamp(120px, 23vh, 192px);
   --minimap-top: calc(max(8px, var(--safe-area-top)) + 46px);
-  --minimap-left: max(16px, var(--safe-area-left));
-  --build-info-clearance: calc(max(8px, var(--safe-area-top)) + 36px);
+  --minimap-left: calc(max(16px, var(--safe-area-left)) + var(--debug-panel-offset, 0px));
+  --menu-clearance: calc(max(8px, var(--safe-area-top)) + 52px);
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.buildInfo {
-  position: absolute;
-  top: max(8px, var(--safe-area-top));
-  right: max(8px, var(--safe-area-right));
-  z-index: 101;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-  align-items: center;
-  max-width: calc(100% - max(8px, var(--safe-area-left)) - max(8px, var(--safe-area-right)));
-  white-space: nowrap;
+.devMode {
+  --debug-panel-width: 200px;
+  --debug-panel-offset: 212px;
 }
 
-.buildRevision,
-.sourceLink {
-  padding: 5px 7px;
-  border: 1px solid rgba(210, 220, 230, 0.28);
-  border-radius: 4px;
-  background: rgba(20, 24, 30, 0.72);
-  color: rgba(235, 240, 245, 0.88);
-  font-family: "Courier New", Courier, monospace;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1;
-  text-decoration: none;
-  pointer-events: auto;
-}
+@media (max-width: 720px), (max-height: 560px) {
+  .root {
+    --minimap-size: 120px;
+    --minimap-top: calc(max(8px, var(--safe-area-top)) + 42px);
+    --minimap-left: calc(max(8px, var(--safe-area-left)) + var(--debug-panel-offset, 0px));
+  }
 
-.sourceLink:hover,
-.sourceLink:focus-visible {
-  border-color: rgba(210, 225, 245, 0.62);
-  background: rgba(35, 42, 52, 0.9);
-  color: #fff;
+  .devMode {
+    --debug-panel-width: 164px;
+    --debug-panel-offset: 176px;
+  }
 }
 
 .hudPanel {
@@ -61,7 +43,7 @@
   right: max(20px, var(--safe-area-right));
   bottom: max(20px, var(--safe-area-bottom));
   width: 300px;
-  height: min(480px, calc(100vh - var(--build-info-clearance) - max(20px, var(--safe-area-bottom))));
+  height: min(480px, calc(100vh - var(--menu-clearance) - max(20px, var(--safe-area-bottom))));
 }
 
 .tabs {
@@ -227,7 +209,7 @@
   }
 
   .open {
-    height: calc(100dvh - var(--build-info-clearance) - max(8px, var(--safe-area-bottom)));
+    height: calc(100dvh - var(--menu-clearance) - max(8px, var(--safe-area-bottom)));
   }
 }
 
@@ -236,32 +218,4 @@
     gap: 5px;
     padding: 6px 8px 8px;
   }
-}
-
-@media (max-width: 360px) {
-  .buildRevision,
-  .sourceLink {
-    padding: 5px;
-    font-size: 10px;
-  }
-}
-
-.signOut {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-@media (max-width: 720px), (max-height: 560px) {
-  .root {
-    --minimap-size: 120px;
-    --minimap-top: calc(max(8px, var(--safe-area-top)) + 42px);
-    --minimap-left: max(8px, var(--safe-area-left));
-  }
-  .buildInfo {
-    max-width: calc(100% - max(8px, var(--safe-area-left)) - max(8px, var(--safe-area-right)) - 132px);
-  }
-}
-
-@media (max-width: 520px) {
-  .root { --build-info-clearance: calc(max(8px, var(--safe-area-top)) + 64px); }
 }
