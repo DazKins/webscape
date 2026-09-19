@@ -7,7 +7,7 @@ import (
 )
 
 func TestSerializeItemIncludesEquipmentRenderModel(t *testing.T) {
-	serialized, ok := SerializeItem(model.CreateLeatherHelmet()).(util.JObject)
+	serialized, ok := SerializeItem(model.NewItem("leatherHelmet")).(util.JObject)
 	if !ok {
 		t.Fatal("serialized equipment item is not an object")
 	}
@@ -21,19 +21,19 @@ func TestSerializeItemIncludesEquipmentRenderModel(t *testing.T) {
 	}
 }
 
-func TestSerializeItemOmitsEmptyRenderModel(t *testing.T) {
-	serialized, ok := SerializeItem(model.CreateBread()).(util.JObject)
+func TestSerializeItemResolvesDefinitionModel(t *testing.T) {
+	serialized, ok := SerializeItem(model.NewItem("bread")).(util.JObject)
 	if !ok {
 		t.Fatal("serialized item is not an object")
 	}
 
-	if _, ok := serialized["renderModel"]; ok {
-		t.Fatal("serialized item includes an empty renderModel")
+	if serialized["renderModel"] != util.JString("bread") || serialized["definitionId"] != util.JString("bread") {
+		t.Fatal("serialized item is missing definition identity or model")
 	}
 }
 
 func TestSerializeFishingRodIdentityWithoutCombatStats(t *testing.T) {
-	serialized := SerializeItem(model.CreateFishingRod()).(util.JObject)
+	serialized := SerializeItem(model.NewItem("fishingRod")).(util.JObject)
 	if !util.JsonEqual(serialized["name"], util.JString("Fishing Rod")) ||
 		!util.JsonEqual(serialized["type"], util.JString("fishingRod")) ||
 		!util.JsonEqual(serialized["renderModel"], util.JString("fishingRod")) ||
@@ -46,7 +46,7 @@ func TestSerializeFishingRodIdentityWithoutCombatStats(t *testing.T) {
 }
 
 func TestSerializeMagicStaffCombatProfile(t *testing.T) {
-	serialized := SerializeItem(model.CreateMagicStaff()).(util.JObject)
+	serialized := SerializeItem(model.NewItem("magicStaff")).(util.JObject)
 	stats := serialized["combatStats"].(util.JObject)
 	if stats["attackMethod"] != util.JString("magic") ||
 		stats["windUpTicks"] != util.JNumber(2) ||
@@ -58,7 +58,7 @@ func TestSerializeMagicStaffCombatProfile(t *testing.T) {
 }
 
 func TestSerializeWoodenBowCombatProfile(t *testing.T) {
-	serialized := SerializeItem(model.CreateWoodenBow()).(util.JObject)
+	serialized := SerializeItem(model.NewItem("woodenBow")).(util.JObject)
 	stats := serialized["combatStats"].(util.JObject)
 	if stats["attackMethod"] != util.JString("ranged") ||
 		stats["windUpTicks"] != util.JNumber(2) ||
@@ -70,7 +70,7 @@ func TestSerializeWoodenBowCombatProfile(t *testing.T) {
 }
 
 func TestSerializeExistingWeaponDefaultsToMeleeProfile(t *testing.T) {
-	serialized := SerializeItem(model.CreateIronSword()).(util.JObject)
+	serialized := SerializeItem(model.NewItem("ironSword")).(util.JObject)
 	stats := serialized["combatStats"].(util.JObject)
 	if stats["attackMethod"] != util.JString("melee") ||
 		stats["windUpTicks"] != util.JNumber(0) ||

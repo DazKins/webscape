@@ -33,12 +33,12 @@ func (c *CInventory) Serialize() util.Json {
 }
 
 func (c *CInventory) AddItem(item *model.Item) bool {
-	if item == nil || !item.ValidQuantity() || c.HasItem(item.Id) {
+	if item == nil || item.ValidateSaved() != nil || c.HasItem(item.Id) {
 		return false
 	}
 	if item.IsStackable() {
 		for _, existing := range c.items {
-			if existing.Type == item.Type {
+			if existing.DefinitionID == item.DefinitionID && existing.IsStackable() {
 				if item.Quantity > model.MaxStackQuantity-existing.Quantity {
 					return false
 				}
@@ -64,16 +64,16 @@ func (c *CInventory) RemoveItem(itemId model.ItemId) bool {
 	return false
 }
 
-// RemoveFirstItemByType removes one unit, preserving any remaining stack.
-func (c *CInventory) RemoveFirstItemByType(itemType string) *model.Item {
+// RemoveFirstItemByDefinition removes one unit, preserving any remaining stack.
+func (c *CInventory) RemoveFirstItemByDefinition(definitionID string) *model.Item {
 	for i, item := range c.items {
-		if item.Type == itemType {
+		if item.DefinitionID == definitionID {
 			if item.Quantity > 1 {
 				item.Quantity--
-				removed := *item
+				removed := item.Clone()
 				removed.Id = model.NewItemId()
 				removed.Quantity = 1
-				return &removed
+				return removed
 			}
 			c.items = append(c.items[:i], c.items[i+1:]...)
 			return item
@@ -82,9 +82,9 @@ func (c *CInventory) RemoveFirstItemByType(itemType string) *model.Item {
 	return nil
 }
 
-func (c *CInventory) HasItemType(itemType string) bool {
+func (c *CInventory) HasItemDefinition(definitionID string) bool {
 	for _, item := range c.items {
-		if item.Type == itemType {
+		if item.DefinitionID == definitionID {
 			return true
 		}
 	}
@@ -131,15 +131,14 @@ func (c *CInventory) AvailableSlots() int {
 func (c *CInventory) Clone() *CInventory {
 	result := NewCInventory()
 	for _, item := range c.items {
-		copied := *item
-		result.items = append(result.items, &copied)
+		result.items = append(result.items, item.Clone())
 	}
 	return result
 }
 
-func (c *CInventory) FindByType(itemType string) *model.Item {
+func (c *CInventory) FindByDefinition(definitionID string) *model.Item {
 	for _, item := range c.items {
-		if item.Type == itemType {
+		if item.DefinitionID == definitionID {
 			return item
 		}
 	}

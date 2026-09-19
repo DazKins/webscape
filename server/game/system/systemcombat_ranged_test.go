@@ -74,7 +74,7 @@ func TestRangedCombatCancelsIfArrowDisappearsDuringWindUp(t *testing.T) {
 	system.Update()
 	assertCombatPhase(t, system.ComponentManager, attackerId, component.CombatPhaseCasting, 10)
 	inventory := system.ComponentManager.GetEntityComponent(component.ComponentIdInventory, attackerId).(*component.CInventory)
-	inventory.RemoveFirstItemByType(model.ItemTypeArrow)
+	inventory.RemoveFirstItemByDefinition(model.ItemTypeArrow)
 	system.ComponentManager.SetEntityComponent(attackerId, inventory)
 
 	tick.tick = 11
@@ -121,7 +121,7 @@ func newRangedCombatSystem(
 	}
 	inventory := component.NewCInventory()
 	for range arrowCount {
-		inventory.AddItem(model.CreateArrow())
+		inventory.AddItem(model.NewItem("arrow"))
 	}
 	attackerId := manager.CreateNewEntity(
 		component.NewCPosition(math.Vec2{X: 0, Y: 0}),
@@ -154,7 +154,7 @@ func assertArrowCount(
 	inventory := manager.GetEntityComponent(component.ComponentIdInventory, entityId).(*component.CInventory)
 	got := 0
 	for _, item := range inventory.GetAllItems() {
-		if item.Type == model.ItemTypeArrow {
+		if item.Type() == model.ItemTypeArrow {
 			got += item.Quantity
 		}
 	}

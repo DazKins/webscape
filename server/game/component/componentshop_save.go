@@ -10,10 +10,33 @@ type savedShop struct {
 }
 
 func (c *CShop) Save() (SavedComponent, error) {
-	return marshalSaved(savedShop{Offers: c.Offers})
+	return marshalSaved(savedShop{Offers: c.Offers}, 2)
 }
-func init() { registerComponentRestore(ComponentIdShop, 1, restoreShop) }
+func init() {
+	registerComponentRestore(ComponentIdShop, 1, restoreShop)
+	registerComponentRestore(ComponentIdShop, 2, restoreShop)
+}
 func restoreShop(saved SavedComponent) (Component, error) {
+	if saved.Version == 1 {
+		var legacy struct {
+			Offers []struct {
+				ItemId              string
+				BuyPrice, SellPrice int
+				Item                *model.Item
+			} `json:"offers"`
+		}
+		if err := decodeSaved(saved.Data, &legacy); err != nil {
+			return nil, err
+		}
+		shop := &CShop{}
+		for _, offer := range legacy.Offers {
+			if offer.Item == nil || offer.Item.DefinitionID != offer.ItemId || offer.Item.HasProperties() {
+				return nil, fmt.Errorf("invalid legacy shop offer")
+			}
+			shop.Offers = append(shop.Offers, ShopOffer{DefinitionID: offer.ItemId, BuyPrice: offer.BuyPrice, SellPrice: offer.SellPrice})
+		}
+		return shop, nil
+	}
 	var s savedShop
 	if err := decodeSaved(saved.Data, &s); err != nil {
 		return nil, err
@@ -27,10 +50,15 @@ func (c *CShop) ValidateSaved(ctx SaveContext) error {
 	}
 	offers := map[string]bool{}
 	for _, offer := range c.Offers {
-		if offer.Item == nil || model.CreateShopItem(offer.ItemId) == nil || offers[offer.ItemId] || offer.BuyPrice < 1 || offer.BuyPrice > MaxShopPrice || offer.SellPrice < 1 || offer.SellPrice >= offer.BuyPrice {
+		if !validShopDefinition(offer.DefinitionID) || offers[offer.DefinitionID] || offer.BuyPrice < 1 || offer.BuyPrice > MaxShopPrice || offer.SellPrice < 1 || offer.SellPrice >= offer.BuyPrice {
 			return fmt.Errorf("invalid shop offer")
 		}
-		offers[offer.ItemId] = true
+		offers[offer.DefinitionID] = true
 	}
 	return nil
+}
+
+func validShopDefinition(id string) bool {
+	_, ok := model.GetItemDefinition(id)
+	return ok && id != "gold"
 }

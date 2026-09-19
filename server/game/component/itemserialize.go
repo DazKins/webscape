@@ -5,37 +5,52 @@ import (
 	"webscape/server/util"
 )
 
+// Definition metadata is resolved at the transport boundary for existing UI
+// consumers. The authoritative instance and its saved payload contain only IDs
+// and per-instance state.
 func SerializeItem(item *model.Item) util.Json {
-	itemObj := util.JObject(map[string]util.Json{
-		"id":        util.JString(item.Id.String()),
-		"name":      util.JString(item.Name),
-		"type":      util.JString(item.Type),
-		"quantity":  util.JNumber(item.Quantity),
-		"stackable": util.JBool(item.IsStackable()),
-	})
-	if item.RenderModel != "" {
-		itemObj["renderModel"] = util.JString(item.RenderModel)
+	itemObj := serializeItemPresentation(item.Definition(), item.Name(), item.CombatStats())
+	itemObj["id"] = util.JString(item.Id.String())
+	itemObj["quantity"] = util.JNumber(item.Quantity)
+	itemObj["stackable"] = util.JBool(item.IsStackable())
+	itemObj["hasProperties"] = util.JBool(item.HasProperties())
+	return itemObj
+}
+
+func SerializeItemDefinition(id string) util.Json {
+	definition, _ := model.GetItemDefinition(id)
+	obj := serializeItemPresentation(definition, definition.Name, definition.CombatStats)
+	obj["stackable"] = util.JBool(definition.Stackable)
+	return obj
+}
+
+func serializeItemPresentation(definition model.ItemDefinition, name string, stats *model.ItemCombatStats) util.JObject {
+	itemObj := util.JObject{
+		"definitionId": util.JString(definition.ID),
+		"name":         util.JString(name),
+		"type":         util.JString(definition.Type),
+		"renderModel":  util.JString(definition.RenderModel),
 	}
-	if item.EquipmentSlot != nil {
-		itemObj["equipmentSlot"] = util.JString(string(*item.EquipmentSlot))
+	if definition.EquipmentSlot != "" {
+		itemObj["equipmentSlot"] = util.JString(string(definition.EquipmentSlot))
 	}
-	if item.CombatStats != nil {
-		attackMethod := item.CombatStats.AttackMethod
+	if stats != nil {
+		attackMethod := stats.AttackMethod
 		if attackMethod == "" {
 			attackMethod = model.AttackMethodMelee
 		}
 		itemObj["combatStats"] = util.JObject(map[string]util.Json{
-			"minDamage":        util.JNumber(item.CombatStats.MinDamage),
-			"maxDamage":        util.JNumber(item.CombatStats.MaxDamage),
-			"accuracyBonus":    util.JNumber(item.CombatStats.AccuracyBonus),
-			"armorBonus":       util.JNumber(item.CombatStats.ArmorBonus),
-			"critBonus":        util.JNumber(item.CombatStats.CritBonus),
-			"range":            util.JNumber(item.CombatStats.Range),
-			"attackSpeedTicks": util.JNumber(item.CombatStats.AttackSpeedTicks),
+			"minDamage":        util.JNumber(stats.MinDamage),
+			"maxDamage":        util.JNumber(stats.MaxDamage),
+			"accuracyBonus":    util.JNumber(stats.AccuracyBonus),
+			"armorBonus":       util.JNumber(stats.ArmorBonus),
+			"critBonus":        util.JNumber(stats.CritBonus),
+			"range":            util.JNumber(stats.Range),
+			"attackSpeedTicks": util.JNumber(stats.AttackSpeedTicks),
 			"attackMethod":     util.JString(string(attackMethod)),
-			"windUpTicks":      util.JNumber(item.CombatStats.WindUpTicks),
-			"travelTicks":      util.JNumber(item.CombatStats.TravelTicks),
-			"projectileType":   util.JString(item.CombatStats.ProjectileType),
+			"windUpTicks":      util.JNumber(stats.WindUpTicks),
+			"travelTicks":      util.JNumber(stats.TravelTicks),
+			"projectileType":   util.JString(stats.ProjectileType),
 		})
 	}
 	return itemObj

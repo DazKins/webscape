@@ -10,9 +10,12 @@ type savedFishable struct {
 }
 
 func (c *CFishable) Save() (SavedComponent, error) {
-	return marshalSaved(savedFishable{CatchChancePercent: c.catchChancePercent, Yield: c.yield})
+	return marshalSaved(savedFishable{CatchChancePercent: c.catchChancePercent, Yield: c.yield}, 2)
 }
-func init() { registerComponentRestore(ComponentIdFishable, 1, restoreFishable) }
+func init() {
+	registerComponentRestore(ComponentIdFishable, 1, restoreFishable)
+	registerComponentRestore(ComponentIdFishable, 2, restoreFishable)
+}
 func restoreFishable(saved SavedComponent) (Component, error) {
 	var s savedFishable
 	if err := decodeSaved(saved.Data, &s); err != nil {
@@ -25,5 +28,5 @@ func (c *CFishable) ValidateSaved(ctx SaveContext) error {
 	if c.catchChancePercent < 1 || c.catchChancePercent > 100 {
 		return fmt.Errorf("invalid fishing chance")
 	}
-	return nil
+	return c.yield.Validate()
 }

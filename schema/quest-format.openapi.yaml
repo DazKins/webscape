@@ -111,20 +111,16 @@ components:
     QuestRewardItem:
       type: object
       additionalProperties: false
-      required:
-        - name
-        - type
-        - count
+      required: [definitionId, count]
       properties:
-        name:
+        definitionId:
           type: string
           minLength: 1
-        type:
-          type: string
-          minLength: 1
+          description: Item ID defined in Go and validated by the server.
         count:
           type: integer
           minimum: 1
+          maximum: 2147483647
 
   examples:
     FirstErrand:
@@ -150,6 +146,5 @@ components:
                   count: 3
             rewards:
               items:
-                - name: Ancient Scroll
-                  type: quest
+                - definitionId: ancientScroll
                   count: 1

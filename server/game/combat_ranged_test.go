@@ -21,7 +21,7 @@ func TestEquippingWoodenBowRestartsCombatWithRangedProfile(t *testing.T) {
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	var bow *model.Item
 	for _, item := range inventory.GetAllItems() {
-		if item.Name == "Wooden Bow" {
+		if item.Name() == "Wooden Bow" {
 			bow = item
 			break
 		}

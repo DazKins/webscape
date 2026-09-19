@@ -3,40 +3,40 @@ package model
 import "testing"
 
 func TestWoodcuttingAxeIsAWeaponSlotAxeBelowIronSwordStats(t *testing.T) {
-	axe := CreateWoodcuttingAxe()
-	sword := CreateIronSword()
-	if axe.Name != "Woodcutting Axe" || axe.Type != "axe" || axe.RenderModel != "woodcuttingAxe" {
+	axe := NewItem("woodcuttingAxe")
+	sword := NewItem("ironSword")
+	if axe.Name() != "Woodcutting Axe" || axe.Type() != "axe" || axe.RenderModel() != "woodcuttingAxe" {
 		t.Fatalf("axe identity = %#v", axe)
 	}
-	if axe.EquipmentSlot == nil || *axe.EquipmentSlot != SlotWeapon {
-		t.Fatalf("axe equipment slot = %#v, want weapon", axe.EquipmentSlot)
+	if axe.GetEquipmentSlot() == nil || *axe.GetEquipmentSlot() != SlotWeapon {
+		t.Fatalf("axe equipment slot = %#v, want weapon", axe.GetEquipmentSlot())
 	}
-	if axe.CombatStats == nil || sword.CombatStats == nil {
+	if axe.CombatStats() == nil || sword.CombatStats() == nil {
 		t.Fatal("axe and sword must have combat stats")
 	}
-	if axe.CombatStats.MinDamage >= sword.CombatStats.MinDamage ||
-		axe.CombatStats.MaxDamage >= sword.CombatStats.MaxDamage ||
-		axe.CombatStats.AccuracyBonus >= sword.CombatStats.AccuracyBonus {
-		t.Fatalf("axe combat stats %#v are not modestly below sword %#v", axe.CombatStats, sword.CombatStats)
+	if axe.CombatStats().MinDamage >= sword.CombatStats().MinDamage ||
+		axe.CombatStats().MaxDamage >= sword.CombatStats().MaxDamage ||
+		axe.CombatStats().AccuracyBonus >= sword.CombatStats().AccuracyBonus {
+		t.Fatalf("axe combat stats %#v are not modestly below sword %#v", axe.CombatStats(), sword.CombatStats())
 	}
 }
 
 func TestFishingRodIsAWeaponSlotToolWithoutCombatBonuses(t *testing.T) {
-	rod := CreateFishingRod()
-	if rod.Name != "Fishing Rod" || rod.Type != "fishingRod" || rod.RenderModel != "fishingRod" {
+	rod := NewItem("fishingRod")
+	if rod.Name() != "Fishing Rod" || rod.Type() != "fishingRod" || rod.RenderModel() != "fishingRod" {
 		t.Fatalf("rod identity = %#v", rod)
 	}
-	if rod.EquipmentSlot == nil || *rod.EquipmentSlot != SlotWeapon {
-		t.Fatalf("rod equipment slot = %#v, want weapon", rod.EquipmentSlot)
+	if rod.GetEquipmentSlot() == nil || *rod.GetEquipmentSlot() != SlotWeapon {
+		t.Fatalf("rod equipment slot = %#v, want weapon", rod.GetEquipmentSlot())
 	}
-	if rod.CombatStats != nil {
-		t.Fatalf("rod combat stats = %#v, want nil", rod.CombatStats)
+	if rod.CombatStats() != nil {
+		t.Fatalf("rod combat stats = %#v, want nil", rod.CombatStats())
 	}
 }
 
 func TestMagicStaffCombatProfile(t *testing.T) {
-	staff := CreateMagicStaff()
-	stats := staff.CombatStats
+	staff := NewItem("magicStaff")
+	stats := staff.CombatStats()
 	if stats == nil || stats.Range != 4 || stats.AttackSpeedTicks != 3 ||
 		stats.AttackMethod != AttackMethodMagic || stats.WindUpTicks != 2 ||
 		stats.TravelTicks != 1 || stats.ProjectileType != "magicBolt" {
@@ -45,9 +45,9 @@ func TestMagicStaffCombatProfile(t *testing.T) {
 }
 
 func TestWoodenBowUsesRangedProjectileProfile(t *testing.T) {
-	bow := CreateWoodenBow()
-	stats := bow.CombatStats
-	if bow.RenderModel != "woodenBow" || stats == nil ||
+	bow := NewItem("woodenBow")
+	stats := bow.CombatStats()
+	if bow.RenderModel() != "woodenBow" || stats == nil ||
 		stats.AttackMethod != AttackMethodRanged || stats.WindUpTicks != 2 ||
 		stats.TravelTicks != 1 || stats.ProjectileType != "arrow" || stats.Range != 3 {
 		t.Fatalf("wooden bow = %#v", bow)
@@ -55,8 +55,8 @@ func TestWoodenBowUsesRangedProjectileProfile(t *testing.T) {
 }
 
 func TestArrowIsInventoryAmmunition(t *testing.T) {
-	arrow := CreateArrow()
-	if arrow.Name != "Arrow" || arrow.Type != ItemTypeArrow || arrow.IsEquipable() {
+	arrow := NewItem("arrow")
+	if arrow.Name() != "Arrow" || arrow.Type() != ItemTypeArrow || arrow.IsEquipable() {
 		t.Fatalf("arrow = %#v", arrow)
 	}
 }

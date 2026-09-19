@@ -9,9 +9,12 @@ type savedDroppedItem struct {
 }
 
 func (c *CDroppedItem) Save() (SavedComponent, error) {
-	return marshalSaved(savedDroppedItem{Item: c.Item})
+	return marshalSaved(savedDroppedItem{Item: c.Item}, 2)
 }
-func init() { registerComponentRestore(ComponentIdDroppedItem, 1, restoreDroppedItem) }
+func init() {
+	registerComponentRestore(ComponentIdDroppedItem, 1, restoreDroppedItem)
+	registerComponentRestore(ComponentIdDroppedItem, 2, restoreDroppedItem)
+}
 func restoreDroppedItem(saved SavedComponent) (Component, error) {
 	var s savedDroppedItem
 	if err := decodeSaved(saved.Data, &s); err != nil {

@@ -10,7 +10,9 @@ Authored `equipped.slots` maps equipment slots to catalog ids, for example:
 {"equipped":{"slots":{"weapon":"ironSword","offhand":"woodenShield"}}}
 ```
 
-The loader creates fresh items with catalog stats; the client receives normal equipment state. Server, schema, and editor reject invalid slot/item combinations.
+The loader creates fresh items with catalog stats; the client receives normal equipment state. The editor checks slot names and non-empty item IDs. The server checks that each ID exists and fits its slot.
+
+See [Item definitions and instances](items.md) for catalogue authoring, loot, yields, rewards and shop offers.
 
 ## Validation
 

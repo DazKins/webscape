@@ -131,7 +131,7 @@ func TestResetReplacesAllCharacterStateAndPersists(t *testing.T) {
 			counts := func(inv *component.CInventory) map[string]int {
 				m := map[string]int{}
 				for _, item := range inv.GetAllItems() {
-					m[item.Type] += item.Quantity
+					m[item.Type()] += item.Quantity
 				}
 				return m
 			}

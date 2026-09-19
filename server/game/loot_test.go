@@ -7,6 +7,7 @@ import (
 	"webscape/server/game/component"
 	"webscape/server/game/model"
 	"webscape/server/game/world"
+	"webscape/server/math"
 	"webscape/server/message"
 )
 
@@ -45,7 +46,7 @@ func TestLootableObjectAddsAuthoredItemsToPlayerInventory(t *testing.T) {
 							"lootable": {
 								"once": true,
 								"items": [
-									{ "name": "Mysterious Key", "type": "quest" }
+									{ "definitionId": "mysteriousKey", "count": 1 }
 								]
 							}
 						}
@@ -106,7 +107,7 @@ func TestLootableObjectAddsAuthoredItemsToPlayerInventory(t *testing.T) {
 
 func inventoryContains(inventory *component.CInventory, name string, itemType string) bool {
 	for _, item := range inventory.GetAllItems() {
-		if item.Name == name && item.Type == itemType {
+		if item.Name() == name && item.Type() == itemType {
 			return true
 		}
 	}
@@ -141,4 +142,25 @@ func gameUpdateIncludesInteraction(messages []message.Message, entityId string, 
 		}
 	}
 	return false
+}
+
+func TestDefinitionReferencesPreserveEquipmentAndStackRules(t *testing.T) {
+	g, player, inventory := newDropTestGame(t)
+	rewards := g.deliverQuestRewards(player, []world.QuestRewardItem{{DefinitionID: "chainmailChestplate", Count: 1}})
+	mail := inventory.FindByDefinition("chainmailChestplate")
+	if mail == nil || !mail.IsEquipable() || mail.CombatStats().ArmorBonus != 4 || len(rewards) != 1 || rewards[0].DefinitionID != "chainmailChestplate" {
+		t.Fatal("quest reference did not create the catalogue's equipment")
+	}
+	arrows := inventory.FindByDefinition("arrow")
+	before := arrows.Quantity
+	for !inventory.IsFull() {
+		inventory.AddItem(model.NewItem("bread"))
+	}
+	loot := component.NewCLootable(true, []component.LootItem{{DefinitionID: "arrow", Count: 100}})
+	target := g.componentManager.CreateNewEntity(component.NewCPosition(math.Vec2{X: 1, Y: 0}), loot)
+	g.update()
+	g.LootEntityFor(player, target)
+	if !loot.IsLooted() || inventory.FindByDefinition("arrow").Quantity != before+100 || inventory.GetItemCount() != component.InventoryCapacity {
+		t.Fatal("catalogue stack rule not applied when looting into a full inventory")
+	}
 }

@@ -96,7 +96,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 						],
 						"rewards": {
 							"items": [
-								{ "name": "Guide Token", "type": "quest", "count": 1 }
+								{ "definitionId":"ancientScroll", "count": 1 }
 							]
 						}
 					},
@@ -112,7 +112,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 						],
 						"rewards": {
 							"items": [
-								{ "name": "Celebration Token", "type": "quest", "count": 1 }
+								{ "definitionId": "ancientScroll", "count": 1 }
 							]
 						}
 					}
@@ -149,7 +149,7 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 	game.EmitGameEvent(gameevent.New("kill:entity:rat", playerEntityId))
 	assertQuestProgress(t, game, playerEntityId, "first_errand", "collect_scroll", 2, 0, false)
 
-	game.AddItemToPlayerInventory(playerEntityId, model.CreateAncientScroll())
+	game.AddItemToPlayerInventory(playerEntityId, model.NewItem("ancientScroll"))
 	assertQuestProgress(t, game, playerEntityId, "first_errand", "", 0, 0, true)
 	assertQuestProgress(t, game, playerEntityId, "celebrate_errand", "", 0, 0, true)
 
@@ -160,8 +160,8 @@ func TestQuestProgressAdvancesFromGenericEvents(t *testing.T) {
 	}
 
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerEntityId).(*component.CInventory)
-	if !inventoryContains(inventory, "Guide Token", "quest") {
-		t.Fatal("quest reward Guide Token was not added to inventory")
+	if !inventoryContains(inventory, "Ancient Scroll", "quest") {
+		t.Fatal("quest reward Ancient Scroll was not added to inventory")
 	}
 }
 
@@ -190,10 +190,10 @@ func TestQuestCompletionSendsCompletionMessage(t *testing.T) {
 	if len(completion.Rewards) != 1 {
 		t.Fatalf("questCompleted rewards = %#v, want one reward", completion.Rewards)
 	}
-	if completion.Rewards[0].Name != "Reward Gem" ||
+	if completion.Rewards[0].Name != "Ancient Scroll" ||
 		completion.Rewards[0].Count != 1 ||
 		completion.Rewards[0].Delivery != message.QuestRewardDeliveryInventory {
-		t.Fatalf("questCompleted reward = %#v, want inventory Reward Gem", completion.Rewards[0])
+		t.Fatalf("questCompleted reward = %#v, want inventory Ancient Scroll", completion.Rewards[0])
 	}
 }
 
@@ -426,8 +426,8 @@ func TestLootingRewardDropRemovesParcel(t *testing.T) {
 	if game.componentManager.HasEntity(rewardDropEntityId) {
 		t.Fatal("reward drop entity still exists after successful looting")
 	}
-	if countInventoryItems(inventory, "Reward Gem", "quest") != component.InventoryCapacity {
-		t.Fatalf("Reward Gem count = %d, want %d", countInventoryItems(inventory, "Reward Gem", "quest"), component.InventoryCapacity)
+	if countInventoryItems(inventory, "Ancient Scroll", "quest") != component.InventoryCapacity {
+		t.Fatalf("Ancient Scroll count = %d, want %d", countInventoryItems(inventory, "Ancient Scroll", "quest"), component.InventoryCapacity)
 	}
 }
 
@@ -651,7 +651,7 @@ func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {
 						],
 						"rewards": {
 							"items": [
-								{ "name": "Reward Gem", "type": "quest", "count": ` + intString(rewardCount) + ` }
+								{ "definitionId":"ancientScroll", "count": ` + intString(rewardCount) + ` }
 							]
 						}
 					}
@@ -668,7 +668,7 @@ func loadRewardQuestWorld(t *testing.T, rewardCount int) *world.World {
 func countInventoryItems(inventory *component.CInventory, name string, itemType string) int {
 	count := 0
 	for _, item := range inventory.GetAllItems() {
-		if item.Name == name && item.Type == itemType {
+		if item.Name() == name && item.Type() == itemType {
 			count++
 		}
 	}

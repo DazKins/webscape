@@ -560,33 +560,46 @@ func (g *Game) deliverQuestRewards(
 
 		addedCount := 0
 		droppedCount := 0
-		for i := 0; i < count; i++ {
-			item := model.NewItem(rewardItem.Name, rewardItem.Type)
-			if g.addItemToPlayerInventory(playerEntityId, item, false) {
-				addedCount++
-				continue
+		definition, _ := model.GetItemDefinition(rewardItem.DefinitionID)
+		if definition.Stackable {
+			stack := model.NewItem(rewardItem.DefinitionID)
+			stack.Quantity = count
+			if g.addItemToPlayerInventory(playerEntityId, stack, false) {
+				addedCount = count
+			} else {
+				droppedCount = count
 			}
-			droppedCount++
+		} else {
+			for i := 0; i < count; i++ {
+				item := model.NewItem(rewardItem.DefinitionID)
+				if g.addItemToPlayerInventory(playerEntityId, item, false) {
+					addedCount++
+					continue
+				}
+				droppedCount = count - i
+				break
+			}
 		}
 		if addedCount > 0 {
 			deliveries = append(deliveries, message.QuestRewardDelivery{
-				Name:     rewardItem.Name,
-				Type:     rewardItem.Type,
-				Count:    addedCount,
-				Delivery: message.QuestRewardDeliveryInventory,
+				DefinitionID: rewardItem.DefinitionID,
+				Name:         rewardItem.Name(),
+				Type:         rewardItem.Type(),
+				Count:        addedCount,
+				Delivery:     message.QuestRewardDeliveryInventory,
 			})
 		}
 		if droppedCount > 0 {
 			droppedItems = append(droppedItems, component.LootItem{
-				Name:  rewardItem.Name,
-				Type:  rewardItem.Type,
-				Count: droppedCount,
+				DefinitionID: rewardItem.DefinitionID,
+				Count:        droppedCount,
 			})
 			deliveries = append(deliveries, message.QuestRewardDelivery{
-				Name:     rewardItem.Name,
-				Type:     rewardItem.Type,
-				Count:    droppedCount,
-				Delivery: message.QuestRewardDeliveryDropped,
+				DefinitionID: rewardItem.DefinitionID,
+				Name:         rewardItem.Name(),
+				Type:         rewardItem.Type(),
+				Count:        droppedCount,
+				Delivery:     message.QuestRewardDeliveryDropped,
 			})
 		}
 	}
@@ -848,13 +861,18 @@ func (g *Game) addItemToPlayerInventory(playerEntityId model.EntityId, item *mod
 	}
 	g.componentManager.SetEntityComponent(playerEntityId, inventoryComponent)
 
-	if emitEvents && item.Type != "" {
-		event := gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type), playerEntityId)
+	if emitEvents {
+		event := gameevent.New("collect:definition:"+item.DefinitionID, playerEntityId)
 		event.Count = item.Quantity
 		g.EmitGameEvent(event)
 	}
-	if emitEvents && item.Name != "" {
-		event := gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Name), playerEntityId)
+	if emitEvents && item.Type() != "" {
+		event := gameevent.New("collect:item:"+gameevent.NormalizeToken(item.Type()), playerEntityId)
+		event.Count = item.Quantity
+		g.EmitGameEvent(event)
+	}
+	if emitEvents && item.Definition().Name != "" {
+		event := gameevent.New("collect:name:"+gameevent.NormalizeToken(item.Definition().Name), playerEntityId)
 		event.Count = item.Quantity
 		g.EmitGameEvent(event)
 	}
@@ -1059,8 +1077,10 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 	trial := inventoryComponent.Clone()
 	for _, lootItem := range lootableComponent.GetItems() {
 		count := max(1, lootItem.Count)
-		if lootItem.Type == model.ItemTypeGold {
-			if !trial.AddItem(model.CreateGold(count)) {
+		item := lootItem.CreateItem()
+		if item.IsStackable() {
+			item.Quantity = count
+			if !trial.AddItem(item) {
 				return
 			}
 		} else {
@@ -1081,8 +1101,10 @@ func (g *Game) LootEntityFor(playerEntityId model.EntityId, targetEntityId model
 		if count < 1 {
 			count = 1
 		}
-		if lootItem.Type == model.ItemTypeGold {
-			if !g.AddItemToPlayerInventory(playerEntityId, model.CreateGold(count)) {
+		item := lootItem.CreateItem()
+		if item.IsStackable() {
+			item.Quantity = count
+			if !g.AddItemToPlayerInventory(playerEntityId, item) {
 				allItemsAdded = false
 				break
 			}

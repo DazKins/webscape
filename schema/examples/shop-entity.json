@@ -26,64 +26,64 @@
     "shop": {
       "offers": [
         {
-          "itemId": "ironSword",
           "buyPrice": 40,
-          "sellPrice": 16
+          "sellPrice": 16,
+          "definitionId": "ironSword"
         },
         {
-          "itemId": "woodcuttingAxe",
           "buyPrice": 25,
-          "sellPrice": 10
+          "sellPrice": 10,
+          "definitionId": "woodcuttingAxe"
         },
         {
-          "itemId": "fishingRod",
           "buyPrice": 25,
-          "sellPrice": 10
+          "sellPrice": 10,
+          "definitionId": "fishingRod"
         },
         {
-          "itemId": "woodenBow",
           "buyPrice": 40,
-          "sellPrice": 16
+          "sellPrice": 16,
+          "definitionId": "woodenBow"
         },
         {
-          "itemId": "magicStaff",
           "buyPrice": 50,
-          "sellPrice": 20
+          "sellPrice": 20,
+          "definitionId": "magicStaff"
         },
         {
-          "itemId": "arrow",
           "buyPrice": 3,
-          "sellPrice": 1
+          "sellPrice": 1,
+          "definitionId": "arrow"
         },
         {
-          "itemId": "leatherHelmet",
           "buyPrice": 20,
-          "sellPrice": 8
+          "sellPrice": 8,
+          "definitionId": "leatherHelmet"
         },
         {
-          "itemId": "bread",
           "buyPrice": 5,
-          "sellPrice": 2
+          "sellPrice": 2,
+          "definitionId": "bread"
         },
         {
-          "itemId": "healthPotion",
           "buyPrice": 15,
-          "sellPrice": 6
+          "sellPrice": 6,
+          "definitionId": "healthPotion"
         },
         {
-          "itemId": "logs",
           "buyPrice": 5,
-          "sellPrice": 2
+          "sellPrice": 2,
+          "definitionId": "logs"
         },
         {
-          "itemId": "rawFish",
           "buyPrice": 5,
-          "sellPrice": 2
+          "sellPrice": 2,
+          "definitionId": "rawFish"
         },
         {
-          "itemId": "ironOre",
           "buyPrice": 10,
-          "sellPrice": 4
+          "sellPrice": 4,
+          "definitionId": "ironOre"
         }
       ]
     }

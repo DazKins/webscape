@@ -27,12 +27,12 @@ func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
 	arrowCount := 0
 	arrowStacks := 0
 	for _, item := range inventory.GetAllItems() {
-		hasSword = hasSword || item.Name == "Iron Sword"
-		hasAxe = hasAxe || item.Name == "Woodcutting Axe" && item.Type == "axe"
-		hasFishingRod = hasFishingRod || item.Name == "Fishing Rod" && item.Type == "fishingRod" && item.RenderModel == "fishingRod"
-		hasMagicStaff = hasMagicStaff || item.Name == "Magic Staff" && item.RenderModel == "magicStaff"
-		hasWoodenBow = hasWoodenBow || item.Name == "Wooden Bow" && item.RenderModel == "woodenBow"
-		if item.Type == model.ItemTypeArrow {
+		hasSword = hasSword || item.Name() == "Iron Sword"
+		hasAxe = hasAxe || item.Name() == "Woodcutting Axe" && item.Type() == "axe"
+		hasFishingRod = hasFishingRod || item.Name() == "Fishing Rod" && item.Type() == "fishingRod" && item.RenderModel() == "fishingRod"
+		hasMagicStaff = hasMagicStaff || item.Name() == "Magic Staff" && item.RenderModel() == "magicStaff"
+		hasWoodenBow = hasWoodenBow || item.Name() == "Wooden Bow" && item.RenderModel() == "woodenBow"
+		if item.Type() == model.ItemTypeArrow {
 			arrowCount += item.Quantity
 			arrowStacks++
 		}

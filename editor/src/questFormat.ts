@@ -1,3 +1,4 @@
+import { normalizeItemReference, validateItemReference, type ItemReference } from "./itemReference";
 import { ID_PATTERN, isObject, serializeJson, titleFromId, type ValidationResult } from "./formatUtils";
 
 export type { ValidationResult } from "./formatUtils";
@@ -33,11 +34,7 @@ export type QuestRewards = {
   items: QuestRewardItem[];
 };
 
-export type QuestRewardItem = {
-  name: string;
-  type: string;
-  count: number;
-};
+export type QuestRewardItem = ItemReference;
 
 export function createBlankQuestDocument(id: string): QuestDocument {
   const questId = sanitizeQuestId(id);
@@ -76,8 +73,7 @@ export function createBlankQuestStep(existingSteps: QuestStep[], preferredId = "
 
 export function createBlankQuestRewardItem(): QuestRewardItem {
   return {
-    name: "Ancient Scroll",
-    type: "quest",
+    definitionId: "ancientScroll",
     count: 1,
   };
 }
@@ -131,15 +127,7 @@ export function validateQuestDocument(document: QuestDocument): ValidationResult
       errors.push(`quest "${quest.id}" must contain at least one reward item`);
     } else {
       for (const [rewardIndex, reward] of quest.rewards.items.entries()) {
-        if (reward.name.trim().length === 0) {
-          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} must include a name`);
-        }
-        if (reward.type.trim().length === 0) {
-          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} must include a type`);
-        }
-        if (!Number.isFinite(reward.count) || reward.count < 1) {
-          errors.push(`quest "${quest.id}" reward ${rewardIndex + 1} count must be at least 1`);
-        }
+        validateItemReference(reward, `quest "${quest.id}" reward ${rewardIndex + 1}`, errors);
       }
     }
 
@@ -219,14 +207,7 @@ function normalizeQuestRewards(value: unknown): QuestRewards {
 }
 
 function normalizeQuestRewardItem(value: unknown): QuestRewardItem {
-  if (!isObject(value)) {
-    return createBlankQuestRewardItem();
-  }
-  return {
-    name: typeof value.name === "string" ? value.name : "",
-    type: typeof value.type === "string" ? value.type : "",
-    count: typeof value.count === "number" ? value.count : 1,
-  };
+  return normalizeItemReference(value);
 }
 
 function nextUniqueId(base: string, existing: string[]): string {

@@ -1,3 +1,4 @@
+import { isItemDefinitionId, normalizeItemReference, validateItemReference } from "./itemReference";
 import { ID_PATTERN, isObject, serializeJson, type ValidationResult } from "./formatUtils";
 
 export type { ValidationResult } from "./formatUtils";
@@ -171,6 +172,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     validateAppearance(entity.id, entity.components, errors);
     validateEquipped(entity.id, entity.components, errors);
     validateShop(entity.id, entity.components, errors);
+    validateLootable(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
     const templateComponents = template && isObject(template.components) ? template.components : null;
@@ -180,6 +182,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
       validateAppearance(`${entity.id} child template`, templateComponents, errors);
       validateEquipped(`${entity.id} child template`, templateComponents, errors);
       validateShop(`${entity.id} child template`, templateComponents, errors);
+      validateLootable(`${entity.id} child template`, templateComponents, errors);
     }
   }
 
@@ -207,15 +210,7 @@ function validateFishable(
     errors.push(`entity "${entityId}" fishable.yield must be an object`);
     return;
   }
-  if (typeof fishingYield.name !== "string" || fishingYield.name.trim().length === 0) {
-    errors.push(`entity "${entityId}" fishable.yield.name must be a non-empty string`);
-  }
-  if (typeof fishingYield.type !== "string" || fishingYield.type.trim().length === 0) {
-    errors.push(`entity "${entityId}" fishable.yield.type must be a non-empty string`);
-  }
-  if (!Number.isInteger(fishingYield.count) || Number(fishingYield.count) < 1) {
-    errors.push(`entity "${entityId}" fishable.yield.count must be a positive integer`);
-  }
+  validateItemReference(fishingYield, `entity "${entityId}" yield`, errors);
 }
 
 function validateAppearance(
@@ -271,15 +266,7 @@ function validateWoodcuttable(
     errors.push(`entity "${entityId}" woodcuttable.yield must be an object`);
     return;
   }
-  if (typeof materialYield.name !== "string" || materialYield.name.trim().length === 0) {
-    errors.push(`entity "${entityId}" woodcuttable.yield.name must be a non-empty string`);
-  }
-  if (materialYield.type !== "material") {
-    errors.push(`entity "${entityId}" woodcuttable.yield.type must be "material"`);
-  }
-  if (!Number.isInteger(materialYield.count) || Number(materialYield.count) < 1) {
-    errors.push(`entity "${entityId}" woodcuttable.yield.count must be a positive integer`);
-  }
+  validateItemReference(materialYield, `entity "${entityId}" yield`, errors);
 }
 
 export function serializeWorld(world: WorldFormat): string {
@@ -300,7 +287,7 @@ function normalizeEntity(value: unknown): WorldEntity {
 
   return {
     id: typeof value.id === "string" ? value.id : "entity_invalid",
-    components: isObject(value.components) ? value.components : {},
+    components: isObject(value.components) ? normalizeItemReferences(value.components) : {},
   };
 }
 
@@ -344,21 +331,14 @@ function isInBounds(size: WorldSize, x: number, y: number): boolean {
   return Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < size.x && y < size.y;
 }
 
-const SHOP_ITEM_IDS = new Set(['ironSword', 'woodcuttingAxe', 'fishingRod', 'magicStaff', 'woodenBow', 'arrow', 'leatherHelmet', 'chainmailChestplate', 'ironLeggings', 'leatherBoots', 'woodenShield', 'healthPotion', 'bread', 'apple', 'ironOre', 'wood', 'logs', 'stone', 'rawFish']);
-
 function validateEquipped(entityId: string, components: Record<string, unknown>, errors: string[]) {
   if ("equipped" in components) {
     const equipment = components.equipped;
-    const compatible: Record<string, string[]> = {
-      weapon: ["ironSword", "woodcuttingAxe", "fishingRod", "woodenBow", "magicStaff"],
-      head: ["leatherHelmet"], chest: ["chainmailChestplate"],
-      legs: ["ironLeggings"], feet: ["leatherBoots"], offhand: ["woodenShield"],
-    };
     if (!isObject(equipment) || Object.keys(equipment).some(key => key !== "slots") ||
         ("slots" in equipment && (!isObject(equipment.slots) ||
           Object.entries(equipment.slots).some(([slot, id]) =>
-            typeof id !== "string" || !Object.prototype.hasOwnProperty.call(compatible, slot) || !compatible[slot].includes(id))))) {
-      errors.push(`entity "${entityId}" equipped.slots must map equipment slots to compatible catalog ids`);
+            !["head", "chest", "legs", "feet", "weapon", "offhand"].includes(slot) || !isItemDefinitionId(id))))) {
+      errors.push(`entity "${entityId}" equipped.slots must map equipment slots to non-empty item definition IDs`);
     }
   }
 }
@@ -371,15 +351,51 @@ function validateShop(entityId: string, components: Record<string, unknown>, err
     return;
   }
   const seen = new Set<string>();
-  for (const offer of shop.offers) {
-    if (!isObject(offer) || Object.keys(offer).length !== 3 || typeof offer.itemId !== "string" || !SHOP_ITEM_IDS.has(offer.itemId) || seen.has(offer.itemId)) {
-      errors.push(`entity "${entityId}" shop offer must have a known, unique itemId, buyPrice and sellPrice`);
+  for (const rawOffer of shop.offers) {
+    const offer = isObject(rawOffer) && !("definitionId" in rawOffer) && "itemId" in rawOffer
+      ? { ...rawOffer, definitionId: rawOffer.itemId } : rawOffer;
+    if (isObject(offer) && "itemId" in offer && !(isObject(rawOffer) && "definitionId" in rawOffer)) delete offer.itemId;
+    if (!isObject(offer) || Object.keys(offer).length !== 3 || !isItemDefinitionId(offer.definitionId) || offer.definitionId === "gold" || seen.has(offer.definitionId)) {
+      errors.push(`entity "${entityId}" shop offer must have a non-empty, unique definitionId, buyPrice and sellPrice`);
       continue;
     }
-    seen.add(offer.itemId);
+    seen.add(offer.definitionId);
     if (!Number.isInteger(offer.buyPrice) || !Number.isInteger(offer.sellPrice) ||
       Number(offer.sellPrice) < 1 || Number(offer.buyPrice) > 1000000 || Number(offer.sellPrice) >= Number(offer.buyPrice)) {
       errors.push(`entity "${entityId}" shop prices must be integers from 1 to 1000000 with sellPrice below buyPrice`);
     }
   }
+}
+
+function validateLootable(id: string, components: Record<string, unknown>, errors: string[]) {
+  if (!("lootable" in components)) return;
+  const lootable = components.lootable;
+  if (!isObject(lootable) || !Array.isArray(lootable.items)) {
+    errors.push(`entity "${id}" lootable must contain an items array`);
+    return;
+  }
+  lootable.items.forEach((item, index) => validateItemReference(item, `entity "${id}" loot item ${index + 1}`, errors));
+}
+
+function normalizeItemReferences(components: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...components };
+  for (const key of ["fishable", "woodcuttable"]) {
+    const value = result[key];
+    if (isObject(value) && "yield" in value) result[key] = { ...value, yield: normalizeItemReference(value.yield) };
+  }
+  const lootable = result.lootable;
+  if (isObject(lootable) && Array.isArray(lootable.items)) result.lootable = { ...lootable, items: lootable.items.map(normalizeItemReference) };
+  const shop = result.shop;
+  if (isObject(shop) && Array.isArray(shop.offers)) {
+    result.shop = { ...shop, offers: shop.offers.map(offer => {
+      if (!isObject(offer) || "definitionId" in offer || !("itemId" in offer)) return offer;
+      const { itemId, ...rest } = offer;
+      return { ...rest, definitionId: itemId };
+    }) };
+  }
+  const spawn = result.spawn;
+  if (isObject(spawn) && isObject(spawn.entity) && isObject(spawn.entity.components)) {
+    result.spawn = { ...spawn, entity: { ...spawn.entity, components: normalizeItemReferences(spawn.entity.components) } };
+  }
+  return result;
 }

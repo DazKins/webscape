@@ -10,9 +10,12 @@ type savedInventory struct {
 }
 
 func (c *CInventory) Save() (SavedComponent, error) {
-	return marshalSaved(savedInventory{Items: c.items})
+	return marshalSaved(savedInventory{Items: c.items}, 2)
 }
-func init() { registerComponentRestore(ComponentIdInventory, 1, restoreInventory) }
+func init() {
+	registerComponentRestore(ComponentIdInventory, 1, restoreInventory)
+	registerComponentRestore(ComponentIdInventory, 2, restoreInventory)
+}
 func restoreInventory(saved SavedComponent) (Component, error) {
 	var s savedInventory
 	if err := decodeSaved(saved.Data, &s); err != nil {
@@ -30,10 +33,12 @@ func (c *CInventory) ValidateSaved(ctx SaveContext) error {
 		if err := ctx.ClaimItem(item); err != nil {
 			return err
 		}
-		if item.IsStackable() && types[item.Type] {
+		if item.IsStackable() && types[item.DefinitionID] {
 			return fmt.Errorf("duplicate inventory stack")
 		}
-		types[item.Type] = true
+		if item.IsStackable() {
+			types[item.DefinitionID] = true
+		}
 	}
 	return nil
 }

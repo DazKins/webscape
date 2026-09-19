@@ -52,9 +52,13 @@ func RestoreComponent(id ComponentId, saved SavedComponent) (Component, error) {
 	}
 	return restore(saved)
 }
-func marshalSaved(value any) (SavedComponent, error) {
+func marshalSaved(value any, versions ...int) (SavedComponent, error) {
+	version := 1
+	if len(versions) > 0 {
+		version = versions[0]
+	}
 	data, err := json.Marshal(value)
-	return SavedComponent{Version: 1, Data: data}, err
+	return SavedComponent{Version: version, Data: data}, err
 }
 
 func IdleComponents(components []Component, tick uint64) []Component {

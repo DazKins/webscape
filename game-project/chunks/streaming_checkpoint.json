@@ -3132,9 +3132,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }

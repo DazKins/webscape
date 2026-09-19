@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"strings"
 	"webscape/server/game/component"
 	"webscape/server/game/world"
 	"webscape/server/math"
@@ -80,15 +79,11 @@ func createFishableComponent(components map[string]any) *component.CFishable {
 	if !ok {
 		return nil
 	}
-	name, _ := rawYield["name"].(string)
-	itemType, _ := rawYield["type"].(string)
-	count, ok := numberToInt(rawYield["count"])
-	if strings.TrimSpace(name) == "" || strings.TrimSpace(itemType) == "" || !ok || count < 1 {
+	yield, err := component.ParseItemReference(rawYield)
+	if err != nil {
 		return nil
 	}
-	return component.NewCFishable(catchChancePercent, component.LootItem{
-		Name: name, Type: itemType, Count: count,
-	})
+	return component.NewCFishable(catchChancePercent, yield)
 }
 
 func createAppearanceComponent(entityID string, components map[string]any) *component.CAppearance {
@@ -125,15 +120,14 @@ func createWoodcuttableComponent(components map[string]any) *component.CWoodcutt
 	if !ok {
 		return nil
 	}
-	name, _ := rawYield["name"].(string)
-	itemType, _ := rawYield["type"].(string)
-	count, ok := numberToInt(rawYield["count"])
-	if name == "" || itemType == "" || !ok || count < 1 {
+	yield, err := component.ParseItemReference(rawYield)
+	if err != nil {
 		return nil
 	}
-	return component.NewCWoodcuttable(maxDurability, respawnTicks, component.LootItem{
-		Name: name, Type: itemType, Count: count,
-	})
+	if yield.Type() != "material" {
+		return nil
+	}
+	return component.NewCWoodcuttable(maxDurability, respawnTicks, yield)
 }
 
 func createPositionComponent(components map[string]any) *component.CPosition {
@@ -235,20 +229,11 @@ func createLootableComponent(components map[string]any) *component.CLootable {
 			if !ok {
 				continue
 			}
-			name, _ := item["name"].(string)
-			itemType, _ := item["type"].(string)
-			if name == "" || itemType == "" {
+			reference, err := component.ParseItemReference(item)
+			if err != nil {
 				continue
 			}
-			count := 1
-			if rawCount, ok := item["count"].(float64); ok && rawCount >= 1 {
-				count = int(rawCount)
-			}
-			items = append(items, component.LootItem{
-				Name:  name,
-				Type:  itemType,
-				Count: count,
-			})
+			items = append(items, reference)
 		}
 	}
 

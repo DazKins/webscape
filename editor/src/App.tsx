@@ -1948,7 +1948,7 @@ function QuestsWorkspace({
                 {selectedQuest.rewards.items.map((reward, index) => (
                   <div key={index} className="subEditor">
                     <div className="sectionHeader compact">
-                      <h3>{reward.name || "Reward"}</h3>
+                      <h3>{reward.definitionId || "Reward"}</h3>
                       <button
                         type="button"
                         className="danger"
@@ -1960,18 +1960,8 @@ function QuestsWorkspace({
                     </div>
                     <div className="fieldRow">
                       <label>
-                        Name
-                        <input
-                          value={reward.name}
-                          onChange={(event) => onUpdateRewardItem(index, { name: event.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Type
-                        <input
-                          value={reward.type}
-                          onChange={(event) => onUpdateRewardItem(index, { type: event.target.value })}
-                        />
+                        Item ID
+                        <input value={reward.definitionId} onChange={(event) => onUpdateRewardItem(index, { definitionId: event.target.value })} />
                       </label>
                       <label>
                         Count
@@ -2263,14 +2253,14 @@ function createEntity(
     components.woodcuttable = {
       maxDurability: 5,
       respawnTicks: 60,
-      yield: { name: "Logs", type: "material", count: 1 },
+      yield: { definitionId: "logs", count: 1 },
     };
   }
 
   if (type === "fishingSpot") {
     components.fishable = {
       catchChancePercent: 5,
-      yield: { name: "Raw Fish", type: "fish", count: 1 },
+      yield: { definitionId: "rawFish", count: 1 },
     };
   }
 

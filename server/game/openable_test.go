@@ -84,7 +84,7 @@ func loadOpenableTestWorld(t *testing.T, includeQuest bool) *world.World {
 						],
 						"rewards": {
 							"items": [
-								{ "name": "Door Token", "type": "quest", "count": 1 }
+								{ "definitionId":"ancientScroll", "count": 1 }
 							]
 						}
 					}

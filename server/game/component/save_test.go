@@ -21,8 +21,8 @@ func TestSavePreservesPrivateState(t *testing.T) {
 	quest.CompleteQuest("done")
 	for _, original := range []Component{
 		spawn, log, quest,
-		&CWoodcuttable{maxDurability: 9, currentDurability: 0, respawnTicks: 11, remainingRespawnTicks: 4, depleted: true, yield: LootItem{"Oak", "logs", 3}, lastFellerEntityId: model.NewEntityId()},
-		&CLootable{once: true, looted: true, items: []LootItem{{"Gold", "gold", 5}}},
+		&CWoodcuttable{maxDurability: 9, currentDurability: 0, respawnTicks: 11, remainingRespawnTicks: 4, depleted: true, yield: LootItem{"logs", 3}, lastFellerEntityId: model.NewEntityId()},
+		&CLootable{once: true, looted: true, items: []LootItem{{"gold", 5}}},
 		&CRandomWalk{walkTimer: 3, maxDistance: 4, origin: math.Vec2{X: 6, Y: 7}, hasOrigin: true},
 		&CMetadata{metadata: util.JObject{"nested": util.JArray{util.JString("name"), util.JNull{}, util.JNumber(3)}}},
 	} {

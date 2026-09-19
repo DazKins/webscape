@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"webscape/server/game/component"
+	"webscape/server/game/model"
 	"webscape/server/math"
 )
 
@@ -163,6 +164,7 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	}
 	hash := sha256.New()
 	hash.Write(data)
+	hash.Write([]byte(model.ItemDefinitionsHash()))
 	paths := append(append(append([]string{}, format.Files.Chunks...), format.Files.Conversations...), format.Files.Quests...)
 	sort.Strings(paths)
 	for _, path := range paths {
@@ -429,6 +431,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateFishableComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
+			if err := validateLootableComponent(entity.Id+" child template", template); err != nil {
+				return err
+			}
 			if err := validateEquippedComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
@@ -443,6 +448,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			return err
 		}
 		if err := validateFishableComponent(entity.Id, entity.Components); err != nil {
+			return err
+		}
+		if err := validateLootableComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
 		if err := validateEquippedComponent(entity.Id, entity.Components); err != nil {
@@ -475,18 +483,11 @@ func validateFishableComponent(entityId string, components map[string]any) error
 	if !ok {
 		return fmt.Errorf("entity %q fishable.yield must be an object", entityId)
 	}
-	name, nameOK := yield["name"].(string)
-	if !nameOK || strings.TrimSpace(name) == "" {
-		return fmt.Errorf("entity %q fishable.yield.name must be a non-empty string", entityId)
+	reference, err := component.ParseItemReference(yield)
+	if err != nil {
+		return fmt.Errorf("entity %q yield: %w", entityId, err)
 	}
-	itemType, typeOK := yield["type"].(string)
-	if !typeOK || strings.TrimSpace(itemType) == "" {
-		return fmt.Errorf("entity %q fishable.yield.type must be a non-empty string", entityId)
-	}
-	count, ok := numberToInt(yield["count"])
-	if !ok || count < 1 {
-		return fmt.Errorf("entity %q fishable.yield.count must be a positive integer", entityId)
-	}
+	_ = reference
 	return nil
 }
 
@@ -522,17 +523,12 @@ func validateWoodcuttableComponent(entityId string, components map[string]any) e
 	if !ok {
 		return fmt.Errorf("entity %q woodcuttable.yield must be an object", entityId)
 	}
-	name, nameOK := yield["name"].(string)
-	if !nameOK || strings.TrimSpace(name) == "" {
-		return fmt.Errorf("entity %q woodcuttable.yield.name must be a non-empty string", entityId)
+	reference, err := component.ParseItemReference(yield)
+	if err != nil {
+		return fmt.Errorf("entity %q yield: %w", entityId, err)
 	}
-	itemType, typeOK := yield["type"].(string)
-	if !typeOK || itemType != "material" {
-		return fmt.Errorf("entity %q woodcuttable.yield.type must be %q", entityId, "material")
-	}
-	count, ok := numberToInt(yield["count"])
-	if !ok || count < 1 {
-		return fmt.Errorf("entity %q woodcuttable.yield.count must be a positive integer", entityId)
+	if reference.Type() != "material" {
+		return fmt.Errorf("entity %q woodcuttable yield must reference a material", entityId)
 	}
 	return nil
 }
@@ -620,3 +616,12 @@ func validateShopComponent(id string, components map[string]any) error {
 }
 
 func (w *World) ContentHash() string { return w.contentHash }
+
+func validateLootableComponent(id string, components map[string]any) error {
+	if raw, ok := components["lootable"]; ok {
+		if err := component.ValidateLootable(raw); err != nil {
+			return fmt.Errorf("entity %q: %w", id, err)
+		}
+	}
+	return nil
+}

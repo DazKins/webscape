@@ -8,10 +8,11 @@ const (
 )
 
 type QuestRewardDelivery struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Count    int    `json:"count"`
-	Delivery string `json:"delivery"`
+	DefinitionID string `json:"definitionId"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Count        int    `json:"count"`
+	Delivery     string `json:"delivery"`
 }
 
 type questCompletedData struct {

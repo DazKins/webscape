@@ -16,9 +16,12 @@ type savedWoodcuttable struct {
 }
 
 func (c *CWoodcuttable) Save() (SavedComponent, error) {
-	return marshalSaved(savedWoodcuttable{MaxDurability: c.maxDurability, CurrentDurability: c.currentDurability, RespawnTicks: c.respawnTicks, Yield: c.yield, Depleted: c.depleted, RemainingRespawnTicks: c.remainingRespawnTicks, LastFellerEntityId: c.lastFellerEntityId})
+	return marshalSaved(savedWoodcuttable{MaxDurability: c.maxDurability, CurrentDurability: c.currentDurability, RespawnTicks: c.respawnTicks, Yield: c.yield, Depleted: c.depleted, RemainingRespawnTicks: c.remainingRespawnTicks, LastFellerEntityId: c.lastFellerEntityId}, 2)
 }
-func init() { registerComponentRestore(ComponentIdWoodcuttable, 1, restoreWoodcuttable) }
+func init() {
+	registerComponentRestore(ComponentIdWoodcuttable, 1, restoreWoodcuttable)
+	registerComponentRestore(ComponentIdWoodcuttable, 2, restoreWoodcuttable)
+}
 func restoreWoodcuttable(saved SavedComponent) (Component, error) {
 	var s savedWoodcuttable
 	if err := decodeSaved(saved.Data, &s); err != nil {
@@ -31,5 +34,5 @@ func (c *CWoodcuttable) ValidateSaved(ctx SaveContext) error {
 	if c.maxDurability < 1 || c.currentDurability < 0 || c.currentDurability > c.maxDurability || c.remainingRespawnTicks < 0 {
 		return fmt.Errorf("invalid resource state")
 	}
-	return nil
+	return c.yield.Validate()
 }

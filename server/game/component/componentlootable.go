@@ -7,11 +7,7 @@ import (
 
 const ComponentIdLootable = ComponentId("lootable")
 
-type LootItem struct {
-	Name  string
-	Type  string
-	Count int
-}
+type LootItem = model.ItemReference
 
 type CLootable struct {
 	once   bool
@@ -72,8 +68,4 @@ func (c *CLootable) ItemCount() int {
 		count += item.Count
 	}
 	return count
-}
-
-func (item LootItem) CreateItem() *model.Item {
-	return model.NewItem(item.Name, item.Type)
 }

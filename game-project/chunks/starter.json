@@ -3869,29 +3869,29 @@
         "shop": {
           "offers": [
             {
-              "itemId": "woodcuttingAxe",
               "buyPrice": 25,
-              "sellPrice": 10
+              "sellPrice": 10,
+              "definitionId": "woodcuttingAxe"
             },
             {
-              "itemId": "fishingRod",
               "buyPrice": 25,
-              "sellPrice": 10
+              "sellPrice": 10,
+              "definitionId": "fishingRod"
             },
             {
-              "itemId": "logs",
               "buyPrice": 5,
-              "sellPrice": 2
+              "sellPrice": 2,
+              "definitionId": "logs"
             },
             {
-              "itemId": "rawFish",
               "buyPrice": 5,
-              "sellPrice": 2
+              "sellPrice": 2,
+              "definitionId": "rawFish"
             },
             {
-              "itemId": "leatherBoots",
               "buyPrice": 15,
-              "sellPrice": 6
+              "sellPrice": 6,
+              "definitionId": "leatherBoots"
             }
           ]
         },
@@ -3939,34 +3939,34 @@
         "shop": {
           "offers": [
             {
-              "itemId": "ironSword",
               "buyPrice": 40,
-              "sellPrice": 16
+              "sellPrice": 16,
+              "definitionId": "ironSword"
             },
             {
-              "itemId": "woodenShield",
               "buyPrice": 25,
-              "sellPrice": 10
+              "sellPrice": 10,
+              "definitionId": "woodenShield"
             },
             {
-              "itemId": "chainmailChestplate",
               "buyPrice": 65,
-              "sellPrice": 26
+              "sellPrice": 26,
+              "definitionId": "chainmailChestplate"
             },
             {
-              "itemId": "ironLeggings",
               "buyPrice": 45,
-              "sellPrice": 18
+              "sellPrice": 18,
+              "definitionId": "ironLeggings"
             },
             {
-              "itemId": "leatherHelmet",
               "buyPrice": 20,
-              "sellPrice": 8
+              "sellPrice": 8,
+              "definitionId": "leatherHelmet"
             },
             {
-              "itemId": "ironOre",
               "buyPrice": 10,
-              "sellPrice": 4
+              "sellPrice": 4,
+              "definitionId": "ironOre"
             }
           ]
         },
@@ -4008,19 +4008,19 @@
         "shop": {
           "offers": [
             {
-              "itemId": "bread",
               "buyPrice": 5,
-              "sellPrice": 2
+              "sellPrice": 2,
+              "definitionId": "bread"
             },
             {
-              "itemId": "apple",
               "buyPrice": 4,
-              "sellPrice": 1
+              "sellPrice": 1,
+              "definitionId": "apple"
             },
             {
-              "itemId": "healthPotion",
               "buyPrice": 15,
-              "sellPrice": 6
+              "sellPrice": 6,
+              "definitionId": "healthPotion"
             }
           ]
         },
@@ -4067,14 +4067,14 @@
         "shop": {
           "offers": [
             {
-              "itemId": "magicStaff",
               "buyPrice": 50,
-              "sellPrice": 20
+              "sellPrice": 20,
+              "definitionId": "magicStaff"
             },
             {
-              "itemId": "stone",
               "buyPrice": 5,
-              "sellPrice": 2
+              "sellPrice": 2,
+              "definitionId": "stone"
             }
           ]
         },
@@ -4215,9 +4215,8 @@
           "once": true,
           "items": [
             {
-              "name": "Logs",
-              "type": "material",
-              "count": 2
+              "count": 2,
+              "definitionId": "logs"
             }
           ]
         }
@@ -4244,9 +4243,8 @@
           "once": true,
           "items": [
             {
-              "name": "Iron Ore",
-              "type": "material",
-              "count": 1
+              "count": 1,
+              "definitionId": "ironOre"
             }
           ]
         }
@@ -4273,9 +4271,8 @@
           "once": true,
           "items": [
             {
-              "name": "Bread",
-              "type": "consumable",
-              "count": 1
+              "count": 1,
+              "definitionId": "bread"
             }
           ]
         }
@@ -4302,9 +4299,8 @@
           "once": true,
           "items": [
             {
-              "name": "Ancient Scroll",
-              "type": "quest",
-              "count": 1
+              "count": 1,
+              "definitionId": "ancientScroll"
             }
           ]
         }
@@ -4331,9 +4327,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4359,9 +4354,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4387,9 +4381,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4415,9 +4408,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4443,9 +4435,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4471,9 +4462,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4499,9 +4489,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4527,9 +4516,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4555,9 +4543,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4583,9 +4570,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4611,9 +4597,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4639,9 +4624,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4666,9 +4650,8 @@
         "fishable": {
           "catchChancePercent": 25,
           "yield": {
-            "name": "Raw Fish",
-            "type": "fish",
-            "count": 1
+            "count": 1,
+            "definitionId": "rawFish"
           }
         }
       }

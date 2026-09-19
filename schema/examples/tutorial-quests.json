@@ -29,9 +29,8 @@
       "rewards": {
         "items": [
           {
-            "name": "Ancient Scroll",
-            "type": "quest",
-            "count": 1
+            "count": 1,
+            "definitionId": "ancientScroll"
           }
         ]
       }

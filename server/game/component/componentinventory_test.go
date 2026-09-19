@@ -1,7 +1,6 @@
 package component
 
 import (
-	"fmt"
 	"testing"
 	"webscape/server/game/model"
 )
@@ -10,7 +9,7 @@ func TestInventoryAddItemEnforcesCapacity(t *testing.T) {
 	inventory := NewCInventory()
 
 	for i := 0; i < InventoryCapacity; i++ {
-		if !inventory.AddItem(model.NewItem(fmt.Sprintf("Item %d", i), "test")) {
+		if !inventory.AddItem(model.NewItem("bread")) {
 			t.Fatalf("AddItem returned false before capacity at item %d", i)
 		}
 	}
@@ -24,7 +23,7 @@ func TestInventoryAddItemEnforcesCapacity(t *testing.T) {
 	if !inventory.IsFull() {
 		t.Fatal("inventory is not full at capacity")
 	}
-	if inventory.AddItem(model.NewItem("Overflow", "test")) {
+	if inventory.AddItem(model.NewItem("bread")) {
 		t.Fatal("AddItem returned true after inventory reached capacity")
 	}
 	if inventory.GetItemCount() != InventoryCapacity {
@@ -34,9 +33,9 @@ func TestInventoryAddItemEnforcesCapacity(t *testing.T) {
 
 func TestInventoryRemovesFirstItemByType(t *testing.T) {
 	inventory := NewCInventory()
-	bread := model.CreateBread()
-	firstArrow := model.CreateArrow()
-	secondArrow := model.CreateArrow()
+	bread := model.NewItem("bread")
+	firstArrow := model.NewItem("arrow")
+	secondArrow := model.NewItem("arrow")
 	inventory.AddItem(bread)
 	inventory.AddItem(firstArrow)
 	inventory.AddItem(secondArrow)
@@ -44,15 +43,15 @@ func TestInventoryRemovesFirstItemByType(t *testing.T) {
 	if inventory.GetItemCount() != 2 || firstArrow.Quantity != 2 {
 		t.Fatal("arrows did not merge into one stack")
 	}
-	removed := inventory.RemoveFirstItemByType(model.ItemTypeArrow)
-	if removed == nil || removed.Quantity != 1 || removed.Type != model.ItemTypeArrow || removed.Id == firstArrow.Id || !inventory.HasItem(firstArrow.Id) || firstArrow.Quantity != 1 || inventory.HasItem(secondArrow.Id) {
+	removed := inventory.RemoveFirstItemByDefinition(model.ItemTypeArrow)
+	if removed == nil || removed.Quantity != 1 || removed.Type() != model.ItemTypeArrow || removed.Id == firstArrow.Id || !inventory.HasItem(firstArrow.Id) || firstArrow.Quantity != 1 || inventory.HasItem(secondArrow.Id) {
 		t.Fatalf("removed = %#v, remaining = %#v", removed, inventory.GetAllItems())
 	}
-	if !inventory.HasItemType(model.ItemTypeArrow) {
+	if !inventory.HasItemDefinition(model.ItemTypeArrow) {
 		t.Fatal("remaining arrow was not found")
 	}
-	inventory.RemoveFirstItemByType(model.ItemTypeArrow)
-	if inventory.HasItemType(model.ItemTypeArrow) || inventory.RemoveFirstItemByType(model.ItemTypeArrow) != nil {
+	inventory.RemoveFirstItemByDefinition(model.ItemTypeArrow)
+	if inventory.HasItemDefinition(model.ItemTypeArrow) || inventory.RemoveFirstItemByDefinition(model.ItemTypeArrow) != nil {
 		t.Fatal("empty arrow inventory still reports ammunition")
 	}
 }

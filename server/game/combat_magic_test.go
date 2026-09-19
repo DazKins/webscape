@@ -21,7 +21,7 @@ func TestEquippingMagicStaffRestartsCombatWithoutLosingTarget(t *testing.T) {
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	var staff *model.Item
 	for _, item := range inventory.GetAllItems() {
-		if item.Name == "Magic Staff" {
+		if item.Name() == "Magic Staff" {
 			staff = item
 			break
 		}

@@ -176,7 +176,7 @@ func (s *CombatSystem) hasProjectileAmmo(attackerId model.EntityId, attackMethod
 		return true
 	}
 	inventory := s.ComponentManager.GetEntityComponent(component.ComponentIdInventory, attackerId)
-	return inventory != nil && inventory.(*component.CInventory).HasItemType(model.ItemTypeArrow)
+	return inventory != nil && inventory.(*component.CInventory).HasItemDefinition(model.ItemTypeArrow)
 }
 
 func (s *CombatSystem) consumeProjectileAmmo(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
@@ -188,7 +188,7 @@ func (s *CombatSystem) consumeProjectileAmmo(attackerId model.EntityId, attackMe
 		return false
 	}
 	inventoryComponent := inventory.(*component.CInventory)
-	if inventoryComponent.RemoveFirstItemByType(model.ItemTypeArrow) == nil {
+	if inventoryComponent.RemoveFirstItemByDefinition(model.ItemTypeArrow) == nil {
 		return false
 	}
 	s.ComponentManager.SetEntityComponent(attackerId, inventoryComponent)

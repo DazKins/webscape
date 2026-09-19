@@ -132,6 +132,33 @@ components:
           $ref: "#/components/schemas/EquippedComponent"
         shop:
           $ref: "#/components/schemas/ShopComponent"
+        lootable:
+          $ref: "#/components/schemas/LootableComponent"
+
+    LootableComponent:
+      type: object
+      required: [items]
+      properties:
+        once:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemReference"
+
+    ItemReference:
+      type: object
+      additionalProperties: false
+      required: [definitionId, count]
+      properties:
+        definitionId:
+          type: string
+          minLength: 1
+          description: Item ID defined in Go and validated by the server.
+        count:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
 
     EquippedComponent:
       type: object
@@ -144,22 +171,22 @@ components:
           properties:
             weapon:
               type: string
-              enum: [ironSword, woodcuttingAxe, fishingRod, woodenBow, magicStaff]
+              minLength: 1
             head:
               type: string
-              enum: [leatherHelmet]
+              minLength: 1
             chest:
               type: string
-              enum: [chainmailChestplate]
+              minLength: 1
             legs:
               type: string
-              enum: [ironLeggings]
+              minLength: 1
             feet:
               type: string
-              enum: [leatherBoots]
+              minLength: 1
             offhand:
               type: string
-              enum: [woodenShield]
+              minLength: 1
 
     RenderableComponent:
       type: object
@@ -254,22 +281,8 @@ components:
           $ref: "#/components/schemas/MaterialYield"
 
     MaterialYield:
-      type: object
-      additionalProperties: false
-      required:
-        - name
-        - type
-        - count
-      properties:
-        name:
-          type: string
-          minLength: 1
-        type:
-          type: string
-          const: material
-        count:
-          type: integer
-          minimum: 1
+      $ref: "#/components/schemas/ItemReference"
+      description: The server validates that the referenced item is a material.
 
     FishableComponent:
       type: object
@@ -287,22 +300,7 @@ components:
           $ref: "#/components/schemas/FishingYield"
 
     FishingYield:
-      type: object
-      additionalProperties: false
-      required:
-        - name
-        - type
-        - count
-      properties:
-        name:
-          type: string
-          pattern: ".*\\S.*"
-        type:
-          type: string
-          pattern: ".*\\S.*"
-        count:
-          type: integer
-          minimum: 1
+      $ref: "#/components/schemas/ItemReference"
 
     WorldWall:
       type: object
@@ -342,19 +340,19 @@ components:
           type: array
           minItems: 1
           maxItems: 100
-          description: Each itemId must be unique. sellPrice must be below buyPrice.
+          description: Each definitionId must be unique. sellPrice must be below buyPrice.
           items:
             $ref: "#/components/schemas/ShopOffer"
 
     ShopOffer:
       type: object
       additionalProperties: false
-      required: [itemId, buyPrice, sellPrice]
+      required: [definitionId, buyPrice, sellPrice]
       properties:
-        itemId:
+        definitionId:
           type: string
-          description: Stable item factory id; purchases retain the item's equipment and combat properties.
-          enum: [ironSword, woodcuttingAxe, fishingRod, magicStaff, woodenBow, arrow, leatherHelmet, chainmailChestplate, ironLeggings, leatherBoots, woodenShield, healthPotion, bread, apple, ironOre, wood, logs, stone, rawFish]
+          description: Stable catalogue definition ID. Purchases create a fresh instance; modified instances are not sold at the standard price.
+          minLength: 1
         buyPrice:
           type: integer
           minimum: 1
@@ -423,8 +421,7 @@ components:
               lootable:
                 once: true
                 items:
-                  - name: Mysterious Key
-                    type: quest
+                  - definitionId: mysteriousKey
                     count: 1
           - id: tree_001
             components:
@@ -444,8 +441,7 @@ components:
                 maxDurability: 5
                 respawnTicks: 60
                 yield:
-                  name: Logs
-                  type: material
+                  definitionId: logs
                   count: 1
           - id: door_001
             components:
@@ -480,8 +476,7 @@ components:
               fishable:
                 catchChancePercent: 5
                 yield:
-                  name: Raw Fish
-                  type: fish
+                  definitionId: rawFish
                   count: 1
           - id: bob
             components:

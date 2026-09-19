@@ -11,10 +11,9 @@ const ComponentIdTrading = ComponentId("trading")
 const MaxShopPrice = 1000000
 
 type ShopOffer struct {
-	ItemId    string
-	BuyPrice  int
-	SellPrice int
-	Item      *model.Item
+	DefinitionID string `json:"definitionId"`
+	BuyPrice     int    `json:"buyPrice"`
+	SellPrice    int    `json:"sellPrice"`
 }
 
 type CShop struct{ Offers []ShopOffer }
@@ -23,9 +22,8 @@ func (c *CShop) GetId() ComponentId { return ComponentIdShop }
 func (c *CShop) Serialize() util.Json {
 	offers := util.JArray{}
 	for _, offer := range c.Offers {
-		item := SerializeItem(offer.Item).(util.JObject)
-		item["id"] = util.JString(offer.ItemId)
-		offers = append(offers, util.JObject{"itemId": util.JString(offer.ItemId), "buyPrice": util.JNumber(offer.BuyPrice), "sellPrice": util.JNumber(offer.SellPrice), "item": item})
+		item := SerializeItemDefinition(offer.DefinitionID)
+		offers = append(offers, util.JObject{"definitionId": util.JString(offer.DefinitionID), "buyPrice": util.JNumber(offer.BuyPrice), "sellPrice": util.JNumber(offer.SellPrice), "item": item})
 	}
 	return util.JObject{"offers": offers}
 }
@@ -48,12 +46,15 @@ func ParseShop(raw any) (*CShop, error) {
 	for _, rawOffer := range offers {
 		offer, ok := rawOffer.(map[string]any)
 		if !ok || len(offer) != 3 {
-			return nil, fmt.Errorf("shop offer must contain itemId, buyPrice and sellPrice")
+			return nil, fmt.Errorf("shop offer must contain definitionId, buyPrice and sellPrice")
 		}
-		id, _ := offer["itemId"].(string)
-		item := model.CreateShopItem(id)
-		if item == nil || seen[id] {
-			return nil, fmt.Errorf("unknown or duplicate shop itemId %q", id)
+		id, _ := offer["definitionId"].(string)
+		if _, canonical := offer["definitionId"]; !canonical {
+			id, _ = offer["itemId"].(string)
+		}
+		_, known := model.GetItemDefinition(id)
+		if !known || id == "gold" || seen[id] {
+			return nil, fmt.Errorf("unknown or duplicate shop definitionId %q", id)
 		}
 		buy, buyOK := shopPrice(offer["buyPrice"])
 		sell, sellOK := shopPrice(offer["sellPrice"])
@@ -61,7 +62,7 @@ func ParseShop(raw any) (*CShop, error) {
 			return nil, fmt.Errorf("shop prices must be integers from 1 to %d with sellPrice below buyPrice", MaxShopPrice)
 		}
 		seen[id] = true
-		shop.Offers = append(shop.Offers, ShopOffer{ItemId: id, BuyPrice: buy, SellPrice: sell, Item: item})
+		shop.Offers = append(shop.Offers, ShopOffer{DefinitionID: id, BuyPrice: buy, SellPrice: sell})
 	}
 	return shop, nil
 }

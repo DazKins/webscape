@@ -3549,24 +3549,24 @@
         "shop": {
           "offers": [
             {
-              "itemId": "woodenBow",
               "buyPrice": 40,
-              "sellPrice": 16
+              "sellPrice": 16,
+              "definitionId": "woodenBow"
             },
             {
-              "itemId": "arrow",
               "buyPrice": 3,
-              "sellPrice": 1
+              "sellPrice": 1,
+              "definitionId": "arrow"
             },
             {
-              "itemId": "leatherHelmet",
               "buyPrice": 20,
-              "sellPrice": 8
+              "sellPrice": 8,
+              "definitionId": "leatherHelmet"
             },
             {
-              "itemId": "leatherBoots",
               "buyPrice": 15,
-              "sellPrice": 6
+              "sellPrice": 6,
+              "definitionId": "leatherBoots"
             }
           ]
         },
@@ -3597,9 +3597,8 @@
           "once": true,
           "items": [
             {
-              "name": "Arrow",
-              "type": "arrow",
-              "count": 5
+              "count": 5,
+              "definitionId": "arrow"
             }
           ]
         }
@@ -4125,14 +4124,12 @@
           "once": true,
           "items": [
             {
-              "name": "Iron Ore",
-              "type": "material",
-              "count": 3
+              "count": 3,
+              "definitionId": "ironOre"
             },
             {
-              "name": "Ancient Scroll",
-              "type": "quest",
-              "count": 1
+              "count": 1,
+              "definitionId": "ancientScroll"
             }
           ]
         }
@@ -4194,9 +4191,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4222,9 +4218,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4250,9 +4245,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4278,9 +4272,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4306,9 +4299,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4334,9 +4326,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4362,9 +4353,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4390,9 +4380,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4418,9 +4407,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4446,9 +4434,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }

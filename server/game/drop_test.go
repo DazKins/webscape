@@ -120,7 +120,7 @@ func TestDropTransfersOriginalItemAndReplicatesGroundModel(t *testing.T) {
 		t.Fatal("drop did not transfer item out of inventory")
 	}
 	metadata := g.clients["player"].baseline[component.ComponentIdMetadata][dropID].(util.JObject)
-	if metadata["name"] != util.JString(item.Name) || metadata["renderModel"] != util.JString("ironSword") || metadata["blocksMovement"] != util.JBool(false) {
+	if metadata["name"] != util.JString(item.Name()) || metadata["renderModel"] != util.JString("ironSword") || metadata["blocksMovement"] != util.JBool(false) {
 		t.Fatalf("ground presentation = %#v", metadata)
 	}
 	if !gameUpdateIncludesInteraction(sent, dropID.String(), "loot") {
@@ -217,7 +217,7 @@ func TestDropPickupFullInventoryAndCompetingPlayers(t *testing.T) {
 	g.HandleDrop("player", item.Id)
 	dropID, _ := firstEntityWithComponent(g, component.ComponentIdDroppedItem)
 	for !inventory.IsFull() {
-		inventory.AddItem(model.CreateBread())
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	g.HandleInteract("player", dropID, component.InteractionOptionLoot)
 	g.update()

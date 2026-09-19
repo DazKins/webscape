@@ -127,7 +127,7 @@ func TestCreateAuthoredEntityParsesWoodcuttableComponent(t *testing.T) {
 				"maxDurability": 5,
 				"respawnTicks":  60,
 				"yield": map[string]any{
-					"name": "Logs", "type": "material", "count": 1,
+					"definitionId": "logs", "count": 1,
 				},
 			},
 		},
@@ -144,7 +144,7 @@ func TestCreateAuthoredEntityParsesWoodcuttableComponent(t *testing.T) {
 		t.Fatalf("respawnTicks = %d, want 60", woodcuttable.GetRespawnTicks())
 	}
 	materialYield := woodcuttable.GetYield()
-	if materialYield.Name != "Logs" || materialYield.Type != "material" || materialYield.Count != 1 {
+	if materialYield.Name() != "Logs" || materialYield.Type() != "material" || materialYield.Count != 1 {
 		t.Fatalf("yield = %#v, want one Logs material", materialYield)
 	}
 
@@ -164,7 +164,7 @@ func TestCreateAuthoredEntityParsesFishableComponent(t *testing.T) {
 			"fishable": map[string]any{
 				"catchChancePercent": 5,
 				"yield": map[string]any{
-					"name": "Raw Fish", "type": "fish", "count": 2,
+					"definitionId": "rawFish", "count": 2,
 				},
 			},
 		},
@@ -184,7 +184,7 @@ func TestCreateAuthoredEntityParsesFishableComponent(t *testing.T) {
 		t.Fatalf("catch chance = %d, want 5", fishable.GetCatchChancePercent())
 	}
 	yield := fishable.GetYield()
-	if yield.Name != "Raw Fish" || yield.Type != "fish" || yield.Count != 2 {
+	if yield.Name() != "Raw Fish" || yield.Type() != "fish" || yield.Count != 2 {
 		t.Fatalf("yield = %#v", yield)
 	}
 	if _, ok := any(fishable).(component.SerializeableComponent); ok {

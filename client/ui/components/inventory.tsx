@@ -15,6 +15,8 @@ export type InventoryItem = {
   quantity: number;
   stackable: boolean;
   id: string;
+  definitionId: string;
+  hasProperties: boolean;
   name: string;
   type: string;
   renderModel?: string;
@@ -285,24 +287,14 @@ const itemIcons: Record<ItemIconKind, ItemIconDefinition> = {
 
 const itemIconSrcCache = new Map<ItemIconKind, string>();
 
-function getItemIconKind(item: InventoryItem): ItemIconKind {
-  if (item.type === "gold") return "gold";
-  const name = item.name.toLowerCase();
-  if (item.renderModel === "magicStaff") return "magicStaff";
-  if (item.renderModel === "woodenBow") return "bow";
-  if (item.type === "arrow") return "arrow";
-  if (item.type === "axe") return "axe";
-  if (item.type === "fishingRod") return "fishingRod";
-  if (item.type === "fish") return "fish";
-
-  if (name.includes("key")) return "key";
-  if (name.includes("scroll")) return "scroll";
-  if (name.includes("potion")) return "potion";
-  if (name.includes("bread") || name.includes("apple")) return "food";
-  if (name.includes("ore")) return "ore";
-  if (name.includes("log")) return "logs";
-  if (name.includes("wood")) return "wood";
-  if (name.includes("stone")) return "stone";
+function getItemIconKind(item: Pick<InventoryItem, "definitionId" | "type" | "name" | "renderModel" | "equipmentSlot">): ItemIconKind {
+  if (item.definitionId === "gold") return "gold";
+  const icons: Record<string, ItemIconKind> = {
+    magicStaff: "magicStaff", woodenBow: "bow", arrow: "arrow", woodcuttingAxe: "axe",
+    fishingRod: "fishingRod", rawFish: "fish", mysteriousKey: "key", ancientScroll: "scroll",
+    healthPotion: "potion", bread: "food", apple: "food", ironOre: "ore", logs: "logs", wood: "wood", stone: "stone",
+  };
+  if (Object.prototype.hasOwnProperty.call(icons, item.definitionId)) return icons[item.definitionId];
 
   switch (item.equipmentSlot) {
     case "head":
@@ -336,7 +328,7 @@ function getItemIconKind(item: InventoryItem): ItemIconKind {
   }
 }
 
-export function getItemIconSrc(item: InventoryItem): string {
+export function getItemIconSrc(item: Pick<InventoryItem, "definitionId" | "type" | "name" | "renderModel" | "equipmentSlot">): string {
   const kind = getItemIconKind(item);
   const cached = itemIconSrcCache.get(kind);
   if (cached) {

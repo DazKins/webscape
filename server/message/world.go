@@ -49,9 +49,10 @@ type questRewardsData struct {
 }
 
 type questRewardItemData struct {
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Count int    `json:"count"`
+	DefinitionID string `json:"definitionId"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Count        int    `json:"count"`
 }
 
 func NewWorldMessage(world *world.World, intervals ...time.Duration) Message {
@@ -104,9 +105,10 @@ func serializeQuestRewardItems(items []world.QuestRewardItem) []questRewardItemD
 	result := make([]questRewardItemData, len(items))
 	for i, item := range items {
 		result[i] = questRewardItemData{
-			Name:  item.Name,
-			Type:  item.Type,
-			Count: item.Count,
+			DefinitionID: item.DefinitionID,
+			Name:         item.Name(),
+			Type:         item.Type(),
+			Count:        item.Count,
 		}
 	}
 	return result

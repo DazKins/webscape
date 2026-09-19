@@ -184,7 +184,7 @@ func (s *FishingSystem) hasEquippedFishingRod(entityId model.EntityId) bool {
 		return false
 	}
 	item := equipped.(*component.CEquipped).GetEquippedItem(model.SlotWeapon)
-	return item != nil && item.Type == "fishingRod"
+	return item != nil && item.Type() == "fishingRod"
 }
 
 func (s *FishingSystem) isAlive(entityId model.EntityId) bool {
@@ -229,7 +229,7 @@ func (s *FishingSystem) addActivityLog(entityId model.EntityId, text string, kin
 
 func fishingCatchMessage(yield component.LootItem) string {
 	if yield.Count == 1 {
-		return fmt.Sprintf("You catch 1 %s.", yield.Name)
+		return fmt.Sprintf("You catch 1 %s.", yield.Name())
 	}
-	return fmt.Sprintf("You catch %d %s.", yield.Count, yield.Name)
+	return fmt.Sprintf("You catch %d %s.", yield.Count, yield.Name())
 }

@@ -23,10 +23,13 @@ func CalculateCombatStats(base *CBaseStats, equipped *CEquipped) *CCombatStats {
 
 	if equipped != nil {
 		for slot, item := range equipped.GetAllEquippedItems() {
-			if item == nil || item.CombatStats == nil {
+			if item == nil {
 				continue
 			}
-			stats := item.CombatStats
+			stats := item.CombatStats()
+			if stats == nil {
+				continue
+			}
 			minDamage += stats.MinDamage
 			maxDamage += stats.MaxDamage
 			accuracy += stats.AccuracyBonus

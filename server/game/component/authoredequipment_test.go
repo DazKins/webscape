@@ -16,7 +16,7 @@ func TestAuthoredEquipmentUsesFreshCatalogItems(t *testing.T) {
 		t.Fatal(err)
 	}
 	staff := first.GetEquippedItem(model.SlotWeapon)
-	if !model.SameItemKind(staff, model.CreateMagicStaff()) {
+	if staff.DefinitionID != "magicStaff" || staff.CombatStats().AttackMethod != model.AttackMethodMagic {
 		t.Fatal("staff lost catalog stats")
 	}
 	if staff.Id == second.GetEquippedItem(model.SlotWeapon).Id {

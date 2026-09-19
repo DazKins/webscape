@@ -197,9 +197,9 @@ func (s *WoodcuttingSystem) addYield(playerEntityId model.EntityId, yield compon
 
 func yieldReceivedMessage(yield component.LootItem) string {
 	if yield.Count == 1 {
-		return fmt.Sprintf("You receive 1 %s.", yield.Name)
+		return fmt.Sprintf("You receive 1 %s.", yield.Name())
 	}
-	return fmt.Sprintf("You receive %d %s.", yield.Count, yield.Name)
+	return fmt.Sprintf("You receive %d %s.", yield.Count, yield.Name())
 }
 
 func (s *WoodcuttingSystem) rollOutcome() (damage int, description string, kind string) {
@@ -229,7 +229,7 @@ func (s *WoodcuttingSystem) hasEquippedAxe(entityId model.EntityId) bool {
 		return false
 	}
 	item := equipped.(*component.CEquipped).GetEquippedItem(model.SlotWeapon)
-	return item != nil && item.Type == "axe"
+	return item != nil && item.Type() == "axe"
 }
 
 func (s *WoodcuttingSystem) isAlive(entityId model.EntityId) bool {

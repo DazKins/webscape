@@ -169,7 +169,7 @@ func setupDistantFishingGame(t *testing.T) (*Game, model.EntityId) {
 			"blockers":[false,false,false,false,false,false,false,false,false,true,false,false,false,false,false],"walls":[],
 			"entities":[
 				{"id":"player_spawn","components":{"position":{"x":0,"y":1},"playerSpawn":{}}},
-				{"id":"fishing_spot_001","components":{"position":{"x":4,"y":1},"metadata":{"objectId":"fishing_spot_001","name":"Fishing Spot","type":"fishingSpot","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"fishingSpot"},"fishable":{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1}}}}
+				{"id":"fishing_spot_001","components":{"position":{"x":4,"y":1},"metadata":{"objectId":"fishing_spot_001","name":"Fishing Spot","type":"fishingSpot","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"fishingSpot"},"fishable":{"catchChancePercent":5,"yield":{"definitionId":"rawFish","count":1}}}}
 			]
 		}`)},
 	})
@@ -199,7 +199,7 @@ func TestFishingRequiresRodAndCapacity(t *testing.T) {
 	equipFishingRod(t, game, "client-1", playerId)
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	for !inventory.IsFull() {
-		inventory.AddItem(model.NewItem("Filler", "test"))
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	game.componentManager.SetEntityComponent(playerId, inventory)
 	game.HandleInteract("client-1", spotId, component.InteractionOptionFish)
@@ -239,7 +239,7 @@ func TestFishingCatchThatFillsInventoryAwardsThenCancels(t *testing.T) {
 	playerId := joinFisher(t, game, "client-1", "One")
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	for inventory.AvailableSlots() > 1 {
-		inventory.AddItem(model.NewItem("Filler", "test"))
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	game.componentManager.SetEntityComponent(playerId, inventory)
 	game.fishingSystem.RollSource = func() int { return 0 }
@@ -287,7 +287,7 @@ func TestFishingCancellationConditions(t *testing.T) {
 		{name: "rod replacement", cancel: func(t *testing.T, game *Game, playerId model.EntityId, _ model.EntityId) {
 			inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 			for _, item := range inventory.GetAllItems() {
-				if item.Name == "Iron Sword" {
+				if item.Name() == "Iron Sword" {
 					game.HandleEquip("client-1", item.Id)
 					game.fishingSystem.Update()
 					return
@@ -304,7 +304,7 @@ func TestFishingCancellationConditions(t *testing.T) {
 		{name: "inventory fills", cancel: func(t *testing.T, game *Game, playerId model.EntityId, _ model.EntityId) {
 			inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 			for !inventory.IsFull() {
-				inventory.AddItem(model.NewItem("Filler", "test"))
+				inventory.AddItem(model.NewItem("bread"))
 			}
 			game.componentManager.SetEntityComponent(playerId, inventory)
 			game.update()
@@ -369,7 +369,7 @@ func TestFishingCatchEventAdvancesQuestByAwardedCount(t *testing.T) {
 	game, spotId := setupFishingGame(t, true)
 	events := recordGameEvents(game)
 	game.componentManager.SetEntityComponent(spotId, component.NewCFishable(5, component.LootItem{
-		Name: "Raw Fish", Type: "fish", Count: 2,
+		DefinitionID: "rawFish", Count: 2,
 	}))
 	playerId := joinFisher(t, game, "client-1", "One")
 	game.fishingSystem.RollSource = func() int { return 0 }
@@ -668,7 +668,7 @@ func setupFishingGame(t *testing.T, withQuest bool) (*Game, model.EntityId) {
 			"formatVersion":2,"id":"fishing_quests","quests":[{
 				"id":"catch_fish","startEventId":"fishing:catch",
 				"steps":[{"id":"catch_four","description":"Catch four fish.","requirement":{"eventId":"fishing:catch","count":4}}],
-				"rewards":{"items":[{"name":"Fishing Badge","type":"quest","count":1}]}
+				"rewards":{"items":[{"definitionId":"ancientScroll","count":1}]}
 			}]
 		}`)}
 	}
@@ -680,7 +680,7 @@ func setupFishingGame(t *testing.T, withQuest bool) (*Game, model.EntityId) {
 		"blockers":[false,true,false,false,true,false,false,false,false],"walls":[],
 		"entities":[
 			{"id":"player_spawn","components":{"position":{"x":0,"y":1},"playerSpawn":{}}},
-			{"id":"fishing_spot_001","components":{"position":{"x":1,"y":1},"metadata":{"objectId":"fishing_spot_001","name":"Fishing Spot","type":"fishingSpot","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"fishingSpot"},"fishable":{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1}}}},
+			{"id":"fishing_spot_001","components":{"position":{"x":1,"y":1},"metadata":{"objectId":"fishing_spot_001","name":"Fishing Spot","type":"fishingSpot","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"fishingSpot"},"fishable":{"catchChancePercent":5,"yield":{"definitionId":"rawFish","count":1}}}},
 			{"id":"chest_001","components":{"position":{"x":0,"y":2},"metadata":{"objectId":"chest_001","name":"Chest","type":"chest","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"chest"},"lootable":{"once":true,"items":[]}}}
 		]
 	}`)}
@@ -709,7 +709,7 @@ func equipFishingRod(t *testing.T, game *Game, clientId string, playerId model.E
 	t.Helper()
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	for _, item := range inventory.GetAllItems() {
-		if item.Type == "fishingRod" {
+		if item.Type() == "fishingRod" {
 			game.HandleEquip(clientId, item.Id)
 			return
 		}

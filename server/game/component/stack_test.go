@@ -11,7 +11,7 @@ func TestGoldStacksInFullInventoryAndRejectsOverflow(t *testing.T) {
 	gold := model.CreateGold(100)
 	inventory.AddItem(gold)
 	for !inventory.IsFull() {
-		inventory.AddItem(model.CreateBread())
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	if !inventory.AddItem(model.CreateGold(50)) || inventory.GetItemCount() != InventoryCapacity || gold.Quantity != 150 {
 		t.Fatal("gold did not merge in a full backpack")
@@ -35,26 +35,26 @@ func TestExchangeChecksFinalInventoryAndRollsBack(t *testing.T) {
 	inventory := NewCInventory()
 	inventory.AddItem(model.CreateGold(10))
 	for !inventory.IsFull() {
-		inventory.AddItem(model.CreateBread())
+		inventory.AddItem(model.NewItem("bread"))
 	}
-	gold := inventory.FindByType(model.ItemTypeGold)
+	gold := inventory.FindByDefinition(model.ItemTypeGold)
 	before := inventory.Serialize()
-	if inventory.Exchange(gold.Id, 9, model.CreateArrow()) || !util.JsonEqual(before, inventory.Serialize()) {
+	if inventory.Exchange(gold.Id, 9, model.NewItem("arrow")) || !util.JsonEqual(before, inventory.Serialize()) {
 		t.Fatal("full backpack purchase spent gold")
 	}
-	if inventory.Exchange(gold.Id, 11, model.CreateArrow()) || !util.JsonEqual(before, inventory.Serialize()) {
+	if inventory.Exchange(gold.Id, 11, model.NewItem("arrow")) || !util.JsonEqual(before, inventory.Serialize()) {
 		t.Fatal("insufficient gold purchase mutated inventory")
 	}
-	arrow := model.CreateArrow()
-	if !inventory.Exchange(gold.Id, 10, arrow) || inventory.FindByType(model.ItemTypeGold) != nil || !inventory.IsFull() {
+	arrow := model.NewItem("arrow")
+	if !inventory.Exchange(gold.Id, 10, arrow) || inventory.FindByDefinition(model.ItemTypeGold) != nil || !inventory.IsFull() {
 		t.Fatal("spending last gold did not free its slot")
 	}
-	if !inventory.Exchange(arrow.Id, 1, model.CreateGold(5)) || inventory.FindByType(model.ItemTypeGold).Quantity != 5 || !inventory.IsFull() {
+	if !inventory.Exchange(arrow.Id, 1, model.CreateGold(5)) || inventory.FindByDefinition(model.ItemTypeGold).Quantity != 5 || !inventory.IsFull() {
 		t.Fatal("sale did not replace sold item with gold")
 	}
-	inventory.FindByType(model.ItemTypeGold).Quantity = model.MaxStackQuantity
+	inventory.FindByDefinition(model.ItemTypeGold).Quantity = model.MaxStackQuantity
 	before = inventory.Serialize()
-	bread := inventory.FindByType("consumable")
+	bread := inventory.FindByDefinition("bread")
 	if inventory.Exchange(bread.Id, 1, model.CreateGold(1)) || !util.JsonEqual(before, inventory.Serialize()) {
 		t.Fatal("overflow sale lost payment")
 	}

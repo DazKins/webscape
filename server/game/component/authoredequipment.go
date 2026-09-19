@@ -29,7 +29,7 @@ func ParseAuthoredEquipment(raw any) (*CEquipped, error) {
 	for name, rawID := range slots {
 		slot, valid := model.ParseEquipmentSlot(name)
 		id, isString := rawID.(string)
-		item := model.CreateShopItem(id)
+		item := model.NewItem(id)
 		if !valid || !isString || item == nil || item.GetEquipmentSlot() == nil || *item.GetEquipmentSlot() != slot {
 			return nil, fmt.Errorf("equipped slot %q must reference a compatible equipment catalog id", name)
 		}

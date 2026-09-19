@@ -101,21 +101,21 @@ func TestLoadChunksRejectsLegacyProjectAndInvalidPath(t *testing.T) {
 }
 
 func TestLoadChunksValidatesWoodcuttableComponents(t *testing.T) {
-	valid := `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`
+	valid := `{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"logs","count":1}}`
 	tests := []struct {
 		name         string
 		woodcuttable string
 		want         string
 	}{
 		{name: "not object", woodcuttable: `[]`, want: "woodcuttable must be an object"},
-		{name: "durability zero", woodcuttable: `{"maxDurability":0,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`, want: "maxDurability must be a positive integer"},
-		{name: "durability fractional", woodcuttable: `{"maxDurability":1.5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}`, want: "maxDurability must be a positive integer"},
-		{name: "respawn zero", woodcuttable: `{"maxDurability":5,"respawnTicks":0,"yield":{"name":"Logs","type":"material","count":1}}`, want: "respawnTicks must be a positive integer"},
+		{name: "durability zero", woodcuttable: `{"maxDurability":0,"respawnTicks":60,"yield":{"definitionId":"logs","count":1}}`, want: "maxDurability must be a positive integer"},
+		{name: "durability fractional", woodcuttable: `{"maxDurability":1.5,"respawnTicks":60,"yield":{"definitionId":"logs","count":1}}`, want: "maxDurability must be a positive integer"},
+		{name: "respawn zero", woodcuttable: `{"maxDurability":5,"respawnTicks":0,"yield":{"definitionId":"logs","count":1}}`, want: "respawnTicks must be a positive integer"},
 		{name: "yield missing", woodcuttable: `{"maxDurability":5,"respawnTicks":60}`, want: "yield must be an object"},
-		{name: "yield name empty", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":" ","type":"material","count":1}}`, want: "yield.name must be a non-empty string"},
-		{name: "yield not material", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"weapon","count":1}}`, want: `yield.type must be "material"`},
-		{name: "count zero", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":0}}`, want: "yield.count must be a positive integer"},
-		{name: "count fractional", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1.5}}`, want: "yield.count must be a positive integer"},
+		{name: "yield definition unknown", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"missing","count":1}}`, want: "unknown item definition"},
+		{name: "yield not material", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"ironSword","count":1}}`, want: `yield must reference a material`},
+		{name: "count zero", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"logs","count":0}}`, want: "count"},
+		{name: "count fractional", woodcuttable: `{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"logs","count":1.5}}`, want: "count"},
 	}
 
 	for _, test := range tests {
@@ -135,21 +135,21 @@ func TestLoadChunksValidatesWoodcuttableComponents(t *testing.T) {
 }
 
 func TestLoadChunksValidatesFishableComponents(t *testing.T) {
-	valid := `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1}}`
+	valid := `{"catchChancePercent":5,"yield":{"definitionId":"rawFish","count":1}}`
 	tests := []struct {
 		name     string
 		fishable string
 		want     string
 	}{
 		{name: "not object", fishable: `[]`, want: "fishable must be an object"},
-		{name: "chance zero", fishable: `{"catchChancePercent":0,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
-		{name: "chance over 100", fishable: `{"catchChancePercent":101,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
-		{name: "chance fractional", fishable: `{"catchChancePercent":5.5,"yield":{"name":"Raw Fish","type":"fish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "chance zero", fishable: `{"catchChancePercent":0,"yield":{"definitionId":"rawFish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "chance over 100", fishable: `{"catchChancePercent":101,"yield":{"definitionId":"rawFish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
+		{name: "chance fractional", fishable: `{"catchChancePercent":5.5,"yield":{"definitionId":"rawFish","count":1}}`, want: "catchChancePercent must be an integer from 1 to 100"},
 		{name: "yield missing", fishable: `{"catchChancePercent":5}`, want: "yield must be an object"},
-		{name: "yield name empty", fishable: `{"catchChancePercent":5,"yield":{"name":" ","type":"fish","count":1}}`, want: "yield.name must be a non-empty string"},
-		{name: "yield type empty", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":" ","count":1}}`, want: "yield.type must be a non-empty string"},
-		{name: "count zero", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":0}}`, want: "yield.count must be a positive integer"},
-		{name: "count fractional", fishable: `{"catchChancePercent":5,"yield":{"name":"Raw Fish","type":"fish","count":1.5}}`, want: "yield.count must be a positive integer"},
+		{name: "yield definition unknown", fishable: `{"catchChancePercent":5,"yield":{"definitionId":"missing","count":1}}`, want: "unknown item definition"},
+		{name: "yield definition empty", fishable: `{"catchChancePercent":5,"yield":{"definitionId":"","count":1}}`, want: "unknown item definition"},
+		{name: "count zero", fishable: `{"catchChancePercent":5,"yield":{"definitionId":"rawFish","count":0}}`, want: "count"},
+		{name: "count fractional", fishable: `{"catchChancePercent":5,"yield":{"definitionId":"rawFish","count":1.5}}`, want: "count"},
 	}
 
 	for _, test := range tests {

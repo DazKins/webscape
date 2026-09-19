@@ -16,8 +16,8 @@ func newShopTestGame(t *testing.T) (*Game, model.EntityId, model.EntityId, *comp
 	t.Helper()
 	g, player, inventory := newDropTestGame(t)
 	shop, err := component.ParseShop(map[string]any{"offers": []any{
-		map[string]any{"itemId": "ironSword", "buyPrice": float64(40), "sellPrice": float64(16)},
-		map[string]any{"itemId": "logs", "buyPrice": float64(5), "sellPrice": float64(2)},
+		map[string]any{"definitionId": "ironSword", "buyPrice": float64(40), "sellPrice": float64(16)},
+		map[string]any{"definitionId": "logs", "buyPrice": float64(5), "sellPrice": float64(2)},
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -121,11 +121,11 @@ func TestBuySellAreAuthoritativeAndResultsFollowState(t *testing.T) {
 	sent := map[string][]message.Message{}
 	g.RegisterSender(func(client string, msg message.Message) { sent[client] = append(sent[client], msg) })
 	g.HandleTrade("player", target, "buy", "ironSword")
-	if inventory.FindByType(model.ItemTypeGold).Quantity != 60 {
+	if inventory.FindByDefinition(model.ItemTypeGold).Quantity != 60 {
 		t.Fatal("buy did not charge authored price")
 	}
 	purchased := inventory.GetAllItems()[inventory.GetItemCount()-1]
-	if !model.SameItemKind(purchased, model.CreateIronSword()) {
+	if purchased.DefinitionID != "ironSword" || purchased.CombatStats().MinDamage != 6 {
 		t.Fatal("purchase lost weapon stats")
 	}
 	g.update()
@@ -143,13 +143,13 @@ func TestBuySellAreAuthoritativeAndResultsFollowState(t *testing.T) {
 		t.Fatal("unexpected fields in trade DTO")
 	}
 	g.HandleTrade("player", target, "sell", purchased.Id.String())
-	if inventory.HasItem(purchased.Id) || inventory.FindByType(model.ItemTypeGold).Quantity != 76 {
+	if inventory.HasItem(purchased.Id) || inventory.FindByDefinition(model.ItemTypeGold).Quantity != 76 {
 		t.Fatal("sale failed")
 	}
 	before := inventory.Serialize()
 	g.HandleTrade("player", target, "sell", purchased.Id.String())
 	g.HandleTrade("player", target, "buy", "unknown")
-	g.HandleTrade("player", target, "sell", inventory.FindByType(model.ItemTypeGold).Id.String())
+	g.HandleTrade("player", target, "sell", inventory.FindByDefinition(model.ItemTypeGold).Id.String())
 	g.HandleTrade("stranger", target, "buy", "logs")
 	if !util.JsonEqual(before, inventory.Serialize()) {
 		t.Fatal("invalid requests changed inventory")
@@ -203,26 +203,26 @@ func TestTradeRejectsStaleTargetsAndEquippedItems(t *testing.T) {
 
 func TestGoldDropPickupAndAuthoredLootMergeWithoutExtraSlots(t *testing.T) {
 	g, player, inventory := newDropTestGame(t)
-	gold := inventory.FindByType(model.ItemTypeGold)
+	gold := inventory.FindByDefinition(model.ItemTypeGold)
 	g.HandleDrop("player", gold.Id)
 	drop, _ := firstEntityWithComponent(g, component.ComponentIdDroppedItem)
-	if inventory.FindByType(model.ItemTypeGold) != nil {
+	if inventory.FindByDefinition(model.ItemTypeGold) != nil {
 		t.Fatal("drop left coins behind")
 	}
 	inventory.AddItem(model.CreateGold(5))
 	for !inventory.IsFull() {
-		inventory.AddItem(model.CreateBread())
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	collected := 0
 	g.RegisterGameEventHandlerFor("collect:item:gold", gameevent.HandlerFunc(func(e gameevent.Event) { collected += e.Count }))
 	g.LootEntityFor(player, drop)
-	if g.componentManager.HasEntity(drop) || inventory.FindByType(model.ItemTypeGold).Quantity != 105 || collected != 0 {
+	if g.componentManager.HasEntity(drop) || inventory.FindByDefinition(model.ItemTypeGold).Quantity != 105 || collected != 0 {
 		t.Fatal("pickup did not transfer complete stack into full inventory")
 	}
-	loot := component.NewCLootable(true, []component.LootItem{{Name: "Gold", Type: "gold", Count: 50}})
+	loot := component.NewCLootable(true, []component.LootItem{{DefinitionID: "gold", Count: 50}})
 	chest := g.componentManager.CreateNewEntity(loot)
 	g.LootEntityFor(player, chest)
-	if !loot.IsLooted() || inventory.FindByType(model.ItemTypeGold).Quantity != 155 || collected != 50 {
+	if !loot.IsLooted() || inventory.FindByDefinition(model.ItemTypeGold).Quantity != 155 || collected != 50 {
 		t.Fatal("authored gold loot did not merge or emit quantity")
 	}
 }
@@ -250,7 +250,7 @@ func TestShopBaselineReconstructsStateWithoutReplayingTrades(t *testing.T) {
 
 func TestCompetingGoldPickupsDoNotDuplicateCoins(t *testing.T) {
 	g, player, inventory := newDropTestGame(t)
-	gold := inventory.FindByType(model.ItemTypeGold)
+	gold := inventory.FindByDefinition(model.ItemTypeGold)
 	g.HandleDrop("player", gold.Id)
 	drop, _ := firstEntityWithComponent(g, component.ComponentIdDroppedItem)
 	other := model.NewEntityId()
@@ -262,11 +262,24 @@ func TestCompetingGoldPickupsDoNotDuplicateCoins(t *testing.T) {
 	total := 0
 	for _, id := range []model.EntityId{player, other} {
 		inv := g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory)
-		if stack := inv.FindByType(model.ItemTypeGold); stack != nil {
+		if stack := inv.FindByDefinition(model.ItemTypeGold); stack != nil {
 			total += stack.Quantity
 		}
 	}
 	if total != 200 || g.componentManager.HasEntity(drop) {
 		t.Fatalf("competing pickups left %d coins", total)
+	}
+}
+
+func TestShopRejectsIndividualPropertiesAtStandardPrice(t *testing.T) {
+	g, player, target, inventory := newShopTestGame(t)
+	g.StartTradingFor(player, target)
+	sword := model.NewItem("ironSword")
+	sword.Properties = &model.ItemProperties{CustomName: "Heirloom"}
+	inventory.AddItem(sword)
+	before := inventory.Serialize()
+	g.HandleTrade("player", target, "sell", sword.Id.String())
+	if !util.JsonEqual(before, inventory.Serialize()) {
+		t.Fatal("standard offer consumed customised item")
 	}
 }

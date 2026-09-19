@@ -81,29 +81,30 @@ func (g *Game) HandleTrade(client string, target model.EntityId, action, itemID 
 	inventory := rawInventory.(*component.CInventory)
 	shop := g.componentManager.GetEntityComponent(component.ComponentIdShop, target).(*component.CShop)
 	for _, offer := range shop.Offers {
-		if action == "buy" && offer.ItemId == itemID {
-			gold := inventory.FindByType(model.ItemTypeGold)
+		if action == "buy" && offer.DefinitionID == itemID {
+			gold := inventory.FindByDefinition(model.ItemTypeGold)
 			if gold == nil || gold.Quantity < offer.BuyPrice {
 				g.tradeResult(player, target, false, "Not enough gold.")
 				return
 			}
-			if !inventory.Exchange(gold.Id, offer.BuyPrice, model.CreateShopItem(offer.ItemId)) {
+			if !inventory.Exchange(gold.Id, offer.BuyPrice, model.NewItem(offer.DefinitionID)) {
 				g.tradeResult(player, target, false, "Your backpack is full.")
 				return
 			}
-			g.tradeResult(player, target, true, "Bought "+offer.Item.Name+".")
+			definition, _ := model.GetItemDefinition(offer.DefinitionID)
+			g.tradeResult(player, target, true, "Bought "+definition.Name+".")
 			return
 		}
 		if action == "sell" {
 			for _, item := range inventory.GetAllItems() {
-				if item.Id.String() != itemID || !model.SameItemKind(item, offer.Item) {
+				if item.Id.String() != itemID || item.DefinitionID != offer.DefinitionID || item.HasProperties() {
 					continue
 				}
 				if !inventory.Exchange(item.Id, 1, model.CreateGold(offer.SellPrice)) {
 					g.tradeResult(player, target, false, "There is no room for more gold.")
 					return
 				}
-				g.tradeResult(player, target, true, "Sold "+item.Name+".")
+				g.tradeResult(player, target, true, "Sold "+item.Name()+".")
 				return
 			}
 		}

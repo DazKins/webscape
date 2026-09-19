@@ -10,9 +10,12 @@ type savedEquipped struct {
 }
 
 func (c *CEquipped) Save() (SavedComponent, error) {
-	return marshalSaved(savedEquipped{Slots: c.slots})
+	return marshalSaved(savedEquipped{Slots: c.slots}, 2)
 }
-func init() { registerComponentRestore(ComponentIdEquipped, 1, restoreEquipped) }
+func init() {
+	registerComponentRestore(ComponentIdEquipped, 1, restoreEquipped)
+	registerComponentRestore(ComponentIdEquipped, 2, restoreEquipped)
+}
 func restoreEquipped(saved SavedComponent) (Component, error) {
 	var s savedEquipped
 	if err := decodeSaved(saved.Data, &s); err != nil {
@@ -29,7 +32,7 @@ func (c *CEquipped) ValidateSaved(ctx SaveContext) error {
 		if err := ctx.ClaimItem(item); err != nil {
 			return err
 		}
-		if _, ok := model.ParseEquipmentSlot(string(slot)); !ok || item.EquipmentSlot == nil || *item.EquipmentSlot != slot {
+		if _, ok := model.ParseEquipmentSlot(string(slot)); !ok || item.GetEquipmentSlot() == nil || *item.GetEquipmentSlot() != slot {
 			return fmt.Errorf("invalid equipped item")
 		}
 	}

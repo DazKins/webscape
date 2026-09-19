@@ -5,7 +5,7 @@ import { getItemIconSrc, type InventoryItem } from "./inventory";
 import panelStyles from "./uiPanel.module.css";
 import styles from "./shopPanel.module.css";
 
-type Offer = { itemId: string; buyPrice: number; sellPrice: number; item: InventoryItem };
+type Offer = { definitionId: string; buyPrice: number; sellPrice: number; item: Omit<InventoryItem, "id" | "quantity" | "hasProperties"> };
 type ShopState = { targetId: string; name: string; offers: Offer[]; items: InventoryItem[] };
 
 function readShop(game: Game): ShopState | null {
@@ -18,9 +18,7 @@ function readShop(game: Game): ShopState | null {
 }
 
 function matchesOffer(item: InventoryItem, offer: Offer): boolean {
-  const other = offer.item;
-  return item.name === other.name && item.type === other.type && item.renderModel === other.renderModel &&
-    item.equipmentSlot === other.equipmentSlot && JSON.stringify(item.combatStats) === JSON.stringify(other.combatStats);
+  return item.definitionId === offer.definitionId && !item.hasProperties;
 }
 
 export default function ShopPanel({ game }: { game: Game }) {
@@ -69,7 +67,7 @@ export default function ShopPanel({ game }: { game: Game }) {
   }, [game, targetId]);
 
   if (!shop) return null;
-  const gold = shop.items.find((item) => item.type === "gold")?.quantity ?? 0;
+  const gold = shop.items.find((item) => item.definitionId === "gold")?.quantity ?? 0;
   const sellable = shop.items.flatMap((item) => {
     const offer = shop.offers.find((candidate) => matchesOffer(item, candidate));
     return offer ? [{ item, offer }] : [];
@@ -80,7 +78,8 @@ export default function ShopPanel({ game }: { game: Game }) {
     game.handleTrade(shop.targetId, action, id);
   };
   const rows = tab === "buy"
-    ? shop.offers.map((offer) => ({ item: offer.item, offer })) : sellable;
+    ? shop.offers.map((offer) => ({ item: offer.item, offer, id: offer.definitionId }))
+    : sellable.map(({ item, offer }) => ({ item, offer, id: item.id }));
 
   return (
     <section className={`${panelStyles.panel} ${styles.container}`} role="dialog" aria-labelledby="shop-title"
@@ -103,16 +102,17 @@ export default function ShopPanel({ game }: { game: Game }) {
       </div>
       {tab === "sell" && <p className={styles.hint}>Sell gathered materials and spare gear for gold.</p>}
       <div ref={itemsRef} className={styles.items}>
-        {rows.map(({ item, offer }) => {
+        {rows.map(({ item, offer, id }) => {
           const price = tab === "buy" ? offer.buyPrice : offer.sellPrice;
-          const full = tab === "buy" && shop.items.length >= 20 && gold !== price;
+          const canMerge = item.stackable && shop.items.some(existing => existing.definitionId === offer.definitionId && existing.stackable);
+          const full = tab === "buy" && shop.items.length >= 20 && gold !== price && !canMerge;
           const disabled = pending || (tab === "buy" && (gold < price || full));
-          return <div className={styles.row} key={tab === "buy" ? offer.itemId : item.id}>
+          return <div className={styles.row} key={id}>
             <img src={getItemIconSrc(item)} alt="" draggable={false} />
             <div className={styles.itemText}><strong>{item.name}</strong><span>{price} gold</span></div>
             <button type="button" disabled={disabled} aria-label={`${tab === "buy" ? "Buy" : "Sell"} ${item.name} for ${price} gold`}
               title={full ? "Your backpack is full" : tab === "buy" && gold < price ? "Not enough gold" : undefined}
-              onClick={() => trade(tab, tab === "buy" ? offer.itemId : item.id)}>{tab === "buy" ? "Buy" : "Sell"}</button>
+              onClick={() => trade(tab, id)}>{tab === "buy" ? "Buy" : "Sell"}</button>
           </div>;
         })}
         {rows.length === 0 && <p className={styles.empty}>No items this shop buys. Try gathering logs or catching fish.</p>}

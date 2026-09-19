@@ -6,12 +6,14 @@ const ItemTypeGold = "gold"
 const MaxStackQuantity = 2147483647
 
 func CreateGold(quantity int) *Item {
-	item := NewItem("Gold", ItemTypeGold)
+	item := NewItem("gold")
 	item.Quantity = quantity
 	return item
 }
 
-func (i *Item) IsStackable() bool { return i.Type == ItemTypeGold || i.Type == ItemTypeArrow }
+func (i *Item) IsStackable() bool {
+	return itemDefinitions[i.DefinitionID].Stackable && !i.HasProperties()
+}
 
 func (i *Item) ValidQuantity() bool {
 	return i.Quantity > 0 && i.Quantity <= MaxStackQuantity && (i.IsStackable() || i.Quantity == 1)

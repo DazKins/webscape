@@ -3398,9 +3398,8 @@
           "once": false,
           "items": [
             {
-              "name": "Mysterious Key",
-              "type": "quest",
-              "count": 1
+              "count": 1,
+              "definitionId": "mysteriousKey"
             }
           ]
         }
@@ -3427,9 +3426,8 @@
           "once": true,
           "items": [
             {
-              "name": "Ancient Scroll",
-              "type": "quest",
-              "count": 1
+              "count": 1,
+              "definitionId": "ancientScroll"
             }
           ]
         }
@@ -3455,9 +3453,8 @@
         "fishable": {
           "catchChancePercent": 25,
           "yield": {
-            "name": "Raw Fish",
-            "type": "fish",
-            "count": 1
+            "count": 1,
+            "definitionId": "rawFish"
           }
         }
       }
@@ -3483,9 +3480,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3511,9 +3507,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3539,9 +3534,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3567,9 +3561,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3595,9 +3588,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3623,9 +3615,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3651,9 +3642,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3679,9 +3669,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3707,9 +3696,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3735,9 +3723,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3763,9 +3750,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3791,9 +3777,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3819,9 +3804,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3847,9 +3831,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3875,9 +3858,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3903,9 +3885,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3931,9 +3912,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3959,9 +3939,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -3987,9 +3966,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4015,9 +3993,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4043,9 +4020,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4071,9 +4047,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4099,9 +4074,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4127,9 +4101,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4155,9 +4128,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4183,9 +4155,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4211,9 +4182,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4239,9 +4209,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4267,9 +4236,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4295,9 +4263,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4323,9 +4290,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4351,9 +4317,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4379,9 +4344,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4407,9 +4371,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4435,9 +4398,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4463,9 +4425,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4491,9 +4452,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4519,9 +4479,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4547,9 +4506,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4575,9 +4533,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4603,9 +4560,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4631,9 +4587,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4659,9 +4614,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4687,9 +4641,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4715,9 +4668,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4743,9 +4695,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4771,9 +4722,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4799,9 +4749,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4827,9 +4776,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4855,9 +4803,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4883,9 +4830,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4911,9 +4857,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4939,9 +4884,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4967,9 +4911,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -4995,9 +4938,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5023,9 +4965,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5051,9 +4992,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5079,9 +5019,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5107,9 +5046,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5135,9 +5073,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5163,9 +5100,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5191,9 +5127,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5219,9 +5154,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5247,9 +5181,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5275,9 +5208,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5303,9 +5235,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5331,9 +5262,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5359,9 +5289,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5387,9 +5316,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5415,9 +5343,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5443,9 +5370,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5471,9 +5397,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5499,9 +5424,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5527,9 +5451,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5555,9 +5478,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5583,9 +5505,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5611,9 +5532,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5639,9 +5559,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5667,9 +5586,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5695,9 +5613,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5723,9 +5640,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5751,9 +5667,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5779,9 +5694,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5807,9 +5721,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5835,9 +5748,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5863,9 +5775,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5891,9 +5802,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5919,9 +5829,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5947,9 +5856,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -5975,9 +5883,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6003,9 +5910,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6031,9 +5937,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6059,9 +5964,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6087,9 +5991,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6115,9 +6018,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }
@@ -6143,9 +6045,8 @@
           "maxDurability": 5,
           "respawnTicks": 60,
           "yield": {
-            "name": "Logs",
-            "type": "material",
-            "count": 1
+            "count": 1,
+            "definitionId": "logs"
           }
         }
       }

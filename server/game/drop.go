@@ -31,7 +31,7 @@ func (g *Game) HandleDrop(clientID string, itemID model.ItemId) {
 		return
 	}
 	g.componentManager.SetEntityComponent(playerID, inventory)
-	name := item.Name
+	name := item.Name()
 	if item.IsStackable() {
 		name = fmt.Sprintf("%s × %d", name, item.Quantity)
 	}

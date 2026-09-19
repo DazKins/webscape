@@ -21,18 +21,18 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 
 	inventoryComponent := component.NewCInventory()
 	// Add some test items to the player's inventory
-	inventoryComponent.AddItem(model.CreateIronSword())
-	inventoryComponent.AddItem(model.CreateWoodcuttingAxe())
-	inventoryComponent.AddItem(model.CreateFishingRod())
-	inventoryComponent.AddItem(model.CreateMagicStaff())
-	inventoryComponent.AddItem(model.CreateWoodenBow())
-	arrows := model.CreateArrow()
+	inventoryComponent.AddItem(model.NewItem("ironSword"))
+	inventoryComponent.AddItem(model.NewItem("woodcuttingAxe"))
+	inventoryComponent.AddItem(model.NewItem("fishingRod"))
+	inventoryComponent.AddItem(model.NewItem("magicStaff"))
+	inventoryComponent.AddItem(model.NewItem("woodenBow"))
+	arrows := model.NewItem("arrow")
 	arrows.Quantity = 100
 	inventoryComponent.AddItem(arrows)
-	inventoryComponent.AddItem(model.CreateLeatherHelmet())
-	inventoryComponent.AddItem(model.CreateHealthPotion())
-	inventoryComponent.AddItem(model.CreateBread())
-	inventoryComponent.AddItem(model.CreateIronOre())
+	inventoryComponent.AddItem(model.NewItem("leatherHelmet"))
+	inventoryComponent.AddItem(model.NewItem("healthPotion"))
+	inventoryComponent.AddItem(model.NewItem("bread"))
+	inventoryComponent.AddItem(model.NewItem("ironOre"))
 	inventoryComponent.AddItem(model.CreateGold(100))
 
 	equippedComponent := component.NewCEquipped()

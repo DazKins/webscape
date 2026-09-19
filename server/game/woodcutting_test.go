@@ -91,7 +91,7 @@ func TestWoodcuttingRequiresEquippedAxeAndInventorySpace(t *testing.T) {
 	equipAxe(t, game, "client-1", playerId)
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	for !inventory.IsFull() {
-		inventory.AddItem(model.NewItem("Filler", "test"))
+		inventory.AddItem(model.NewItem("bread"))
 	}
 	game.componentManager.SetEntityComponent(playerId, inventory)
 
@@ -359,7 +359,7 @@ func setupWoodcuttingGame(t *testing.T) (*Game, model.EntityId) {
 			"blockers":[false,false,false,false,false,false,false,false,false],"walls":[],
 			"entities":[
 				{"id":"player_spawn","components":{"position":{"x":0,"y":1},"playerSpawn":{}}},
-				{"id":"tree_001","components":{"position":{"x":1,"y":1},"metadata":{"objectId":"tree_001","name":"Tree","type":"tree","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"tree"},"woodcuttable":{"maxDurability":5,"respawnTicks":60,"yield":{"name":"Logs","type":"material","count":1}}}},
+				{"id":"tree_001","components":{"position":{"x":1,"y":1},"metadata":{"objectId":"tree_001","name":"Tree","type":"tree","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"tree"},"woodcuttable":{"maxDurability":5,"respawnTicks":60,"yield":{"definitionId":"logs","count":1}}}},
 				{"id":"chest_001","components":{"position":{"x":0,"y":2},"metadata":{"objectId":"chest_001","name":"Chest","type":"chest","width":1,"height":1,"blocksMovement":true},"renderable":{"type":"chest"},"lootable":{"once":true,"items":[]}}}
 			]
 		}`)},
@@ -396,7 +396,7 @@ func equipAxe(t *testing.T, game *Game, clientId string, playerId model.EntityId
 	t.Helper()
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	for _, item := range inventory.GetAllItems() {
-		if item.Type == "axe" {
+		if item.Type() == "axe" {
 			game.HandleEquip(clientId, item.Id)
 			return
 		}
@@ -506,7 +506,7 @@ func countInventoryItemsByName(game *Game, playerId model.EntityId, name string)
 	inventory := game.componentManager.GetEntityComponent(component.ComponentIdInventory, playerId).(*component.CInventory)
 	count := 0
 	for _, item := range inventory.GetAllItems() {
-		if item.Name == name {
+		if item.Name() == name {
 			count++
 		}
 	}

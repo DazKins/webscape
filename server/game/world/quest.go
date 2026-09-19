@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"webscape/server/game/model"
 )
 
 type QuestRegistry struct {
@@ -42,11 +43,7 @@ type QuestRewards struct {
 	Items []QuestRewardItem `json:"items"`
 }
 
-type QuestRewardItem struct {
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Count int    `json:"count"`
-}
+type QuestRewardItem = model.ItemReference
 
 func NewQuestRegistry() *QuestRegistry {
 	return &QuestRegistry{
@@ -135,14 +132,8 @@ func validateQuestDocument(document questDocument) error {
 			return fmt.Errorf("quest %q must include at least one reward item", quest.Id)
 		}
 		for rewardIndex, reward := range quest.Rewards.Items {
-			if reward.Name == "" {
-				return fmt.Errorf("quest %q reward item %d must include a name", quest.Id, rewardIndex)
-			}
-			if reward.Type == "" {
-				return fmt.Errorf("quest %q reward item %d must include a type", quest.Id, rewardIndex)
-			}
-			if reward.Count < 1 {
-				return fmt.Errorf("quest %q reward item %d count must be at least 1", quest.Id, rewardIndex)
+			if err := reward.Validate(); err != nil {
+				return fmt.Errorf("quest %q reward item %d: %w", quest.Id, rewardIndex, err)
 			}
 		}
 
