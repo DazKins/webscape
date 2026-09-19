@@ -30,6 +30,14 @@ func decodeSnapshotEntities(s gameSnapshot, w *world.World) (restoredEntities, e
 		if err != nil {
 			return result, fmt.Errorf("restore entity %s: %w", key, err)
 		}
+		// Older saves predate mana. Migrate players before validating their
+		// required components, preserving mana already present in newer saves.
+		if _, player := saved[string(component.ComponentIdPlayer)]; player {
+			if _, hasMana := saved[string(component.ComponentIdMana)]; !hasMana {
+				maximum := w.GetManaSettings().MaxMana
+				components = append(components, component.NewCMana(maximum, maximum))
+			}
+		}
 		ctx := newSaveContext(w, components, claims)
 		if err := component.ValidateSavedEntity(components, ctx); err != nil {
 			return result, fmt.Errorf("restore entity %s: %w", key, err)

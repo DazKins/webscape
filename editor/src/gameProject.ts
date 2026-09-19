@@ -6,8 +6,20 @@ export type GameProject = {
   formatVersion: 2;
   id: string;
   displayName?: string;
+  mana?: ManaSettings;
   world: { chunkSize: { x: number; y: number } };
   files: GameProjectFiles;
+};
+
+export type ManaSettings = {
+  maxMana: number;
+  staffCastCost: number;
+  regenAmount: number;
+  regenIntervalTicks: number;
+};
+
+export const DEFAULT_MANA_SETTINGS: ManaSettings = {
+  maxMana: 100, staffCastCost: 10, regenAmount: 1, regenIntervalTicks: 2,
 };
 
 export type GameProjectFiles = {
@@ -26,6 +38,7 @@ export function createBlankGameProject(): GameProject {
     formatVersion: 2,
     id: "new_game",
     displayName: "New Game",
+    mana: { ...DEFAULT_MANA_SETTINGS },
     world: { chunkSize: { x: 32, y: 32 } },
     files: {
       chunks: [DEFAULT_WORLD_PATH],
@@ -51,6 +64,7 @@ export function normalizeGameProject(value: unknown): GameProject {
     id: typeof value.id === "string" ? value.id : "untitled_game",
     displayName: typeof value.displayName === "string" ? value.displayName : undefined,
     world: { chunkSize: { x: Number(chunkSizeValue.x), y: Number(chunkSizeValue.y) } },
+    mana: value.mana === undefined ? undefined : normalizeManaSettings(value.mana),
     files: {
       chunks: normalizePathList(files.chunks),
       conversations: normalizePathList(files.conversations),
@@ -80,6 +94,7 @@ export function validateGameProject(project: GameProject): ValidationResult {
   if (!Number.isInteger(project.world.chunkSize.x) || project.world.chunkSize.x < 1 || !Number.isInteger(project.world.chunkSize.y) || project.world.chunkSize.y < 1) {
     errors.push("world chunkSize must contain positive integers");
   }
+  if (project.mana !== undefined) errors.push(...validateManaSettings(project.mana));
   validatePathList(errors, "chunk", project.files.chunks);
   validatePathList(errors, "conversation", project.files.conversations);
   validatePathList(errors, "quest", project.files.quests);
@@ -195,4 +210,24 @@ function validatePathList(errors: string[], label: string, paths: string[]) {
     }
     seen.add(path);
   }
+}
+
+function normalizeManaSettings(value: unknown): ManaSettings {
+  const errors = validateManaSettings(value);
+  if (errors.length) throw new Error(errors.join("\n"));
+  return { ...(value as ManaSettings) };
+}
+
+function validateManaSettings(value: unknown): string[] {
+  if (!isObject(value)) return ["mana must be an object"];
+  const keys = Object.keys(DEFAULT_MANA_SETTINGS);
+  if (Object.keys(value).some((key) => !keys.includes(key))) return ["mana contains unknown settings"];
+  if (keys.some((key) => typeof value[key] !== "number" || !Number.isInteger(value[key]) || value[key] < 1 || value[key] > 2147483647)) {
+    return ["mana settings must contain positive integers up to 2147483647"];
+  }
+  const settings = value as ManaSettings;
+  if (settings.staffCastCost > settings.maxMana || settings.regenAmount > settings.maxMana) {
+    return ["mana staffCastCost and regenAmount must not exceed maxMana"];
+  }
+  return [];
 }

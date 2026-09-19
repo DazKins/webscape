@@ -33,10 +33,29 @@ components:
           type: string
           examples:
             - Starter Game
+        mana:
+          $ref: "#/components/schemas/ManaSettings"
         world:
           $ref: "#/components/schemas/GameWorld"
         files:
           $ref: "#/components/schemas/GameProjectFiles"
+
+    ManaSettings:
+      type: object
+      additionalProperties: false
+      description: |
+        Optional mana tuning; omitted settings use 100 maximum mana, 10 per staff
+        cast, and 1 regenerated every 2 server ticks. If supplied, all fields are
+        required. Staff cast cost and regeneration amount must not exceed maxMana.
+        Maximum mana applies to new players, resets, and legacy save migration;
+        existing saved mana is preserved. Regeneration includes combat, but only
+        active, living entities regenerate. Respawning players restore full mana.
+      required: [maxMana, staffCastCost, regenAmount, regenIntervalTicks]
+      properties:
+        maxMana: { type: integer, minimum: 1, maximum: 2147483647, default: 100 }
+        staffCastCost: { type: integer, minimum: 1, maximum: 2147483647, default: 10 }
+        regenAmount: { type: integer, minimum: 1, maximum: 2147483647, default: 1 }
+        regenIntervalTicks: { type: integer, minimum: 1, maximum: 2147483647, default: 2 }
 
     GameProjectFiles:
       type: object
@@ -92,6 +111,7 @@ components:
         formatVersion: 2
         id: starter_game
         displayName: Starter Game
+        mana: { maxMana: 100, staffCastCost: 10, regenAmount: 1, regenIntervalTicks: 2 }
         world:
           chunkSize: { x: 32, y: 32 }
         files:

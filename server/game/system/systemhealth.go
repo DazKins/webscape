@@ -31,6 +31,12 @@ func (s *HealthSystem) Update() {
 				healthComponent.SetCurrentHealth(healthComponent.GetMaxHealth())
 				s.ComponentManager.SetEntityComponent(entityId, healthComponent)
 
+				if value := s.ComponentManager.GetEntityComponent(component.ComponentIdMana, entityId); value != nil {
+					mana := value.(*component.CMana)
+					mana.Restore(mana.GetMaxMana())
+					s.ComponentManager.SetEntityComponent(entityId, mana)
+				}
+
 				positionComponent := s.ComponentManager.GetEntityComponent(component.ComponentIdPosition, entityId)
 				if positionComponent != nil {
 					position := positionComponent.(*component.CPosition)

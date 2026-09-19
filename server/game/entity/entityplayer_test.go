@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
-	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{}, 0)
+	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{}, 0, 100)
 	var inventory *component.CInventory
 	for _, value := range components {
 		if candidate, ok := value.(*component.CInventory); ok {
@@ -44,7 +44,7 @@ func TestNewPlayerInventoryIncludesStarterTools(t *testing.T) {
 }
 
 func TestPlayerReceivesValidAppearance(t *testing.T) {
-	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{}, 0)
+	components := CreatePlayerEntity(model.NewEntityId(), "Player", math.Vec2{}, 0, 100)
 	appearance := findAppearance(components)
 	if appearance == nil {
 		t.Fatal("player has no appearance")

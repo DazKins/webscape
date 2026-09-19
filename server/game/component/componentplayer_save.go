@@ -26,7 +26,7 @@ func (c *CPlayer) ValidateSaved(ctx SaveContext) error {
 	if strings.TrimSpace(c.name) == "" || utf8.RuneCountInString(c.name) > MaxPlayerNameLength {
 		return fmt.Errorf("invalid player name")
 	}
-	for _, id := range []ComponentId{ComponentIdMetadata, ComponentIdRenderable, ComponentIdAppearance, ComponentIdHealth, ComponentIdInventory, ComponentIdEquipped, ComponentIdBaseStats, ComponentIdCombatStats, ComponentIdCombatLog, ComponentIdQuestLog, ComponentIdLocomotion} {
+	for _, id := range []ComponentId{ComponentIdMetadata, ComponentIdRenderable, ComponentIdAppearance, ComponentIdHealth, ComponentIdMana, ComponentIdInventory, ComponentIdEquipped, ComponentIdBaseStats, ComponentIdCombatStats, ComponentIdCombatLog, ComponentIdQuestLog, ComponentIdLocomotion} {
 		if ctx.Component(id) == nil {
 			return fmt.Errorf("player missing component %s", id)
 		}

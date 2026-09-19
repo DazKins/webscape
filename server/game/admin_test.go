@@ -284,7 +284,7 @@ func TestResetReplacesAllCharacterStateAndPersists(t *testing.T) {
 	if !g.IsRegistered("owner") {
 		t.Fatal("reset lost registration")
 	}
-	defaults := entity.CreatePlayerEntity(id, "Owner", g.world.GetPlayerSpawn(), g.currentTick)
+	defaults := entity.CreatePlayerEntity(id, "Owner", g.world.GetPlayerSpawn(), g.currentTick, g.world.GetManaSettings().MaxMana)
 	expected := map[component.ComponentId]bool{}
 	for _, want := range defaults {
 		expected[want.GetId()] = true

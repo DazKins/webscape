@@ -101,6 +101,6 @@ func (g *Game) handleAdminCommand(clientID string, id model.EntityId, command st
 	// before applying exactly the same defaults as a first registration.
 	g.componentManager.RemoveEntity(id)
 	delete(g.offlinePlayers, id)
-	g.componentManager.SetEntityComponents(id, entity.CreatePlayerEntity(id, player.GetName(), g.world.GetPlayerSpawn(), g.currentTick)...)
+	g.componentManager.SetEntityComponents(id, entity.CreatePlayerEntity(id, player.GetName(), g.world.GetPlayerSpawn(), g.currentTick, g.world.GetManaSettings().MaxMana)...)
 	reply(true, "Character reset to a new player at spawn.")
 }

@@ -5,6 +5,7 @@ import InteractionMenu from "./components/interactionMenu";
 import { EquipmentContent, InventoryBackpackContent } from "./components/inventory";
 import { CombatLogContent } from "./components/combatLog";
 import ShopPanel from "./components/shopPanel";
+import PlayerVitals from "./components/playerVitals";
 import Minimap from "./components/minimap";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
@@ -246,6 +247,7 @@ export default function UiRoot(props: Props) {
     return (
       <div className={styles.root}>
         <Minimap game={props.game} />
+        <PlayerVitals game={props.game} />
         <div
           className={`${panelStyles.panel} ${styles.mobileSheet} ${
             isMobilePanelOpen ? styles.open : styles.collapsed
@@ -299,6 +301,7 @@ export default function UiRoot(props: Props) {
       className={styles.root}
     >
       <Minimap game={props.game} />
+      <PlayerVitals game={props.game} />
       <div
         className={`${panelStyles.panel} ${styles.hudPanel} ${styles.leftPanel}`}
         onClick={stopHudEvent}

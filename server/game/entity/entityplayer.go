@@ -7,7 +7,7 @@ import (
 	"webscape/server/util"
 )
 
-func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, currentTick uint64) []component.Component {
+func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, currentTick uint64, maxMana int) []component.Component {
 	positionComponent := component.NewCPosition(position)
 
 	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
@@ -49,6 +49,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 		renderableComponent,
 		appearanceComponent,
 		healthComponent,
+		component.NewCMana(maxMana, maxMana),
 		inventoryComponent,
 		equippedComponent,
 		baseStatsComponent,

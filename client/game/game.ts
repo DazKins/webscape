@@ -14,6 +14,7 @@ import Camera from "./camera.ts";
 import EntityRenderSystem, { type CombatProjectileLaunchedPayload } from "./entityRenderSystem.ts";
 import { ChatMessageEvent } from "../events/chat.ts";
 import { InventoryUpdateEvent } from "../events/inventory.ts";
+import { PlayerVitalsUpdateEventName } from "../events/playerVitals";
 import { CombatLogUpdateEvent } from "../events/combatlog.ts";
 import { ConversationCloseEvent, ConversationEvent, type ConversationPayload } from "../events/conversation.ts";
 import { QuestLogUpdateEvent } from "../events/questlog.ts";
@@ -348,6 +349,7 @@ class Game extends EventTarget {
     }
     const entityComponentsUpdates = gameUpdate.entities;
     let inventoryChanged = false;
+    let vitalsChanged = false;
 
     for (const entityComponentUpdate of entityComponentsUpdates) {
       const entityId = entityComponentUpdate.entityId;
@@ -369,6 +371,7 @@ class Game extends EventTarget {
       if ((componentId === "inventory" || componentId === "equipped") && entityId === this.myPlayerId) {
         inventoryChanged = true;
       }
+      if ((componentId === "health" || componentId === "mana") && entityId === this.myPlayerId) vitalsChanged = true;
       if (data === null) {
         localEntity.removeComponent(componentId);
         continue;
@@ -392,6 +395,7 @@ class Game extends EventTarget {
     }
     // UI observers read a complete snapshot, including removed components.
     if (inventoryChanged) this.dispatchEvent(new InventoryUpdateEvent());
+    if (vitalsChanged) this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
     if (this.getMyEntity()?.getComponent("trading")) this.closeActiveConversation();
     this.dispatchEvent(new Event(ShopUpdateEventName));
   }
@@ -447,6 +451,7 @@ class Game extends EventTarget {
 
   registerMyPlayerId(myPlayerId: string) {
     this.myPlayerId = myPlayerId;
+    this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
   }
 
   clearSession() {
@@ -462,6 +467,7 @@ class Game extends EventTarget {
   prepareForReconnect() {
     this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
+    this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
     this.dispatchEvent(new Event(ShopUpdateEventName));
     this.activeConversation = null;
     this.resetServerClock();

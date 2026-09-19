@@ -1,4 +1,7 @@
 .root {
+  --minimap-size: clamp(120px, 23vh, 192px);
+  --minimap-top: calc(max(8px, var(--safe-area-top)) + 46px);
+  --minimap-left: max(16px, var(--safe-area-left));
   --build-info-clearance: calc(max(8px, var(--safe-area-top)) + 36px);
   position: absolute;
   inset: 0;
@@ -249,6 +252,11 @@
 }
 
 @media (max-width: 720px), (max-height: 560px) {
+  .root {
+    --minimap-size: 120px;
+    --minimap-top: calc(max(8px, var(--safe-area-top)) + 42px);
+    --minimap-left: max(8px, var(--safe-area-left));
+  }
   .buildInfo {
     max-width: calc(100% - max(8px, var(--safe-area-left)) - max(8px, var(--safe-area-right)) - 132px);
   }

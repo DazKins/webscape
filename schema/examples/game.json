@@ -2,6 +2,12 @@
   "formatVersion": 2,
   "id": "starter_game",
   "displayName": "Starter Game",
+  "mana": {
+    "maxMana": 100,
+    "staffCastCost": 10,
+    "regenAmount": 1,
+    "regenIntervalTicks": 2
+  },
   "world": {
     "chunkSize": { "x": 32, "y": 32 }
   },

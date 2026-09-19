@@ -69,15 +69,15 @@ func (s *CombatSystem) updateCombatStates() {
 			combatState.Restart(attackerStats, currentTick)
 			s.ComponentManager.SetEntityComponent(attackerId, combatState)
 		}
-		if !s.hasProjectileAmmo(attackerId, attackerStats.GetAttackMethod()) {
-			s.stopRangedCombatWithoutArrows(attackerId)
+		if attackerStats.GetAttackMethod() == model.AttackMethodRanged && !s.hasAttackResource(attackerId, attackerStats.GetAttackMethod()) {
+			s.stopCombatWithoutResource(attackerId, attackerStats.GetAttackMethod())
 			continue
 		}
 
 		if combatState.GetPhase() == component.CombatPhaseCasting {
 			if currentTick >= combatState.GetPhaseStartedTick()+uint64(combatState.GetWindUpTicks()) {
 				if !s.launchProjectileAttack(attackerId, targetId, attackerPosition, targetPosition, attackerStats) {
-					s.stopRangedCombatWithoutArrows(attackerId)
+					s.stopCombatWithoutResource(attackerId, attackerStats.GetAttackMethod())
 					continue
 				}
 				combatState.BeginRecovering(currentTick, combatState.GetNextAttackTick())
@@ -106,6 +106,10 @@ func (s *CombatSystem) updateCombatStates() {
 		}
 
 		if isProjectileAttack(attackerStats.GetAttackMethod()) {
+			if !s.hasAttackResource(attackerId, attackerStats.GetAttackMethod()) {
+				s.stopCombatWithoutResource(attackerId, attackerStats.GetAttackMethod())
+				continue
+			}
 			combatState.BeginCasting(
 				currentTick,
 				currentTick+uint64(attackerStats.GetAttackSpeedTicks()),
@@ -137,7 +141,7 @@ func (s *CombatSystem) launchProjectileAttack(
 	targetPosition math.Vec2,
 	attackerStats *component.CCombatStats,
 ) bool {
-	if !s.consumeProjectileAmmo(attackerId, attackerStats.GetAttackMethod()) {
+	if !s.consumeAttackResource(attackerId, attackerStats.GetAttackMethod()) {
 		return false
 	}
 	launchTick := currentTick(s.TickSource)
@@ -171,7 +175,11 @@ func isProjectileAttack(attackMethod model.AttackMethod) bool {
 	return attackMethod == model.AttackMethodMagic || attackMethod == model.AttackMethodRanged
 }
 
-func (s *CombatSystem) hasProjectileAmmo(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+func (s *CombatSystem) hasAttackResource(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+	if attackMethod == model.AttackMethodMagic {
+		mana := s.ComponentManager.GetEntityComponent(component.ComponentIdMana, attackerId)
+		return mana != nil && mana.(*component.CMana).GetCurrentMana() >= s.staffCastCost()
+	}
 	if attackMethod != model.AttackMethodRanged {
 		return true
 	}
@@ -179,7 +187,15 @@ func (s *CombatSystem) hasProjectileAmmo(attackerId model.EntityId, attackMethod
 	return inventory != nil && inventory.(*component.CInventory).HasItemDefinition(model.ItemTypeArrow)
 }
 
-func (s *CombatSystem) consumeProjectileAmmo(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+func (s *CombatSystem) consumeAttackResource(attackerId model.EntityId, attackMethod model.AttackMethod) bool {
+	if attackMethod == model.AttackMethodMagic {
+		mana := s.ComponentManager.GetEntityComponent(component.ComponentIdMana, attackerId)
+		if mana == nil || !mana.(*component.CMana).Spend(s.staffCastCost()) {
+			return false
+		}
+		s.ComponentManager.SetEntityComponent(attackerId, mana)
+		return true
+	}
 	if attackMethod != model.AttackMethodRanged {
 		return true
 	}
@@ -195,9 +211,20 @@ func (s *CombatSystem) consumeProjectileAmmo(attackerId model.EntityId, attackMe
 	return true
 }
 
-func (s *CombatSystem) stopRangedCombatWithoutArrows(attackerId model.EntityId) {
+func (s *CombatSystem) staffCastCost() int {
+	if s.World != nil {
+		return s.World.GetManaSettings().StaffCastCost
+	}
+	return model.DefaultManaSettings().StaffCastCost
+}
+
+func (s *CombatSystem) stopCombatWithoutResource(attackerId model.EntityId, attackMethod model.AttackMethod) {
 	s.clearCombatState(attackerId)
-	s.addCombatLog(attackerId, "You have no arrows left", "miss")
+	if attackMethod == model.AttackMethodMagic {
+		s.addCombatLog(attackerId, "Not enough mana", "miss")
+	} else {
+		s.addCombatLog(attackerId, "You have no arrows left", "miss")
+	}
 }
 
 func (s *CombatSystem) resolvePendingImpacts() {

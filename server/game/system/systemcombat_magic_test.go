@@ -156,6 +156,7 @@ func newMagicCombatSystem(t *testing.T) (*CombatSystem, *mutableCombatTick, *rec
 	attackerId := manager.CreateNewEntity(
 		component.NewCPosition(math.Vec2{X: 0, Y: 0}),
 		component.NewCHealth(100, 100),
+		component.NewCMana(100, 100),
 		component.NewCMetadata(nil),
 		component.NewCCombatLog(10),
 	)

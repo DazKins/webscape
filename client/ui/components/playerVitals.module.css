@@ -1,0 +1,106 @@
+.vitals {
+  position: absolute;
+  top: calc(var(--minimap-top) + var(--minimap-size) + 14px);
+  left: var(--minimap-left);
+  width: max(176px, var(--minimap-size));
+  display: grid;
+  gap: 12px;
+  color: #fff5f2;
+  font: 800 14px/1 system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.vital {
+  --accent: #ff7088;
+  --rim: #9e5765;
+  --fill-top: #ef6a78;
+  --fill-bottom: #a72848;
+  position: relative;
+}
+
+.vital[data-kind="mana"] {
+  --accent: #75d9ff;
+  --rim: #507fae;
+  --fill-top: #459fd9;
+  --fill-bottom: #2357a0;
+}
+
+.track {
+  position: relative;
+  box-sizing: border-box;
+  height: 36px;
+  border: 2px solid var(--rim);
+  border-radius: 7px;
+  background: #101a28;
+  box-shadow: 0 3px 0 #080e18, 0 5px 10px #0005, inset 0 2px 4px #0008;
+  cursor: help;
+  touch-action: manipulation;
+}
+
+.reservoir {
+  position: absolute;
+  inset: 0 0 0 38px;
+  overflow: hidden;
+  border-radius: 0 4px 4px 0;
+}
+
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent calc(20% - 1px), #14203730 calc(20% - 1px), #14203730 20%),
+    linear-gradient(var(--fill-top), var(--fill-bottom));
+  box-shadow: inset 0 2px 0 #ffffff40, inset 0 -2px 0 #0003;
+}
+
+.symbol {
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid var(--rim);
+  border-radius: 9px;
+  background: linear-gradient(145deg, #334052, #101a28);
+  box-shadow: inset 0 1px 0 #ffffff30, 2px 2px 0 #0004;
+  color: var(--accent);
+}
+
+.symbol svg { width: 28px; height: 28px; filter: drop-shadow(0 2px 1px #0006); }
+.amount {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding-left: 38px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000, 0 0 5px #0009;
+}
+
+.track:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.vital[data-low="true"] .track { border-color: #ffb4c2; box-shadow: 0 3px 0 #080e18, 0 0 12px #e6496766; }
+.vital[data-low="true"] .amount { color: #ffd5de; }
+
+.tooltip {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+  padding: 9px 12px;
+  border: 1px solid var(--rim);
+  border-radius: 6px;
+  background: #111b28;
+  box-shadow: 0 3px 12px #0005;
+  font-size: 12px;
+  color: #f5f7fa;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.vital:hover .tooltip, .vital:focus-within .tooltip { visibility: visible; }

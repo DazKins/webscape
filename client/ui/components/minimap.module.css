@@ -2,9 +2,9 @@
   --day-cycle-size: 40px;
   --day-cycle-gap: 6px;
   position: absolute;
-  top: calc(max(8px, var(--safe-area-top)) + var(--day-cycle-size) + var(--day-cycle-gap));
-  left: max(16px, var(--safe-area-left));
-  width: clamp(120px, 23vh, 192px);
+  top: var(--minimap-top);
+  left: var(--minimap-left);
+  width: var(--minimap-size);
   aspect-ratio: 1;
   border: 1px solid rgba(180, 202, 215, 0.45);
   border-radius: 50%;
@@ -22,7 +22,5 @@
 @media (max-width: 720px), (max-height: 560px) {
   .minimap {
     --day-cycle-size: 36px;
-    left: max(8px, var(--safe-area-left));
-    width: 120px;
   }
 }

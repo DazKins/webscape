@@ -135,6 +135,7 @@ func NewGameWithWorldAndChunkRadius(world *world.World, chunkRadius int) *Game {
 	})
 	game.RegisterSystem(woodcuttingSystem)
 	game.RegisterSystem(fishingSystem)
+	game.RegisterSystem(&system.ManaSystem{SystemBase: systemBase, TickSource: game, Settings: world.GetManaSettings()})
 	combatSystem := &system.CombatSystem{
 		SystemBase: systemBase,
 		World:      world, SpatialIndex: game.spatialIndex,
@@ -657,7 +658,7 @@ func (g *Game) handleRegister(clientID string, id model.EntityId, name string, p
 	}
 	components, returning := g.offlinePlayers[id]
 	if !returning {
-		components = entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick)
+		components = entity.CreatePlayerEntity(id, normalizedName, g.world.GetPlayerSpawn(), g.currentTick, g.world.GetManaSettings().MaxMana)
 	} else {
 		for i, c := range components {
 			if player, ok := c.(*component.CPlayer); ok {

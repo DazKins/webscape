@@ -29,6 +29,7 @@ type Chunk struct {
 }
 
 type World struct {
+	manaSettings  model.ManaSettings
 	contentHash   string
 	chunkSize     ChunkCoord
 	chunks        map[ChunkCoord]*Chunk
@@ -39,11 +40,12 @@ type World struct {
 }
 
 type gameFormat struct {
-	FormatVersion int             `json:"formatVersion"`
-	Id            string          `json:"id"`
-	DisplayName   string          `json:"displayName"`
-	World         gameWorldFormat `json:"world"`
-	Files         gameFormatFiles `json:"files"`
+	Mana          model.ManaSettings `json:"mana"`
+	FormatVersion int                `json:"formatVersion"`
+	Id            string             `json:"id"`
+	DisplayName   string             `json:"displayName"`
+	World         gameWorldFormat    `json:"world"`
+	Files         gameFormatFiles    `json:"files"`
 }
 
 type gameWorldFormat struct {
@@ -87,7 +89,7 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read game.json: %w", err)
 	}
-	var format gameFormat
+	format := gameFormat{Mana: model.DefaultManaSettings()}
 	if err := json.Unmarshal(data, &format); err != nil {
 		return nil, fmt.Errorf("parse game.json: %w", err)
 	}
@@ -107,6 +109,7 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	}
 
 	w := &World{
+		manaSettings:  format.Mana,
 		chunkSize:     format.World.ChunkSize,
 		chunks:        make(map[ChunkCoord]*Chunk),
 		conversations: conversations,
@@ -190,11 +193,14 @@ func NewWorld(sizeX int, sizeY int) *World {
 	quests := NewQuestRegistry()
 	coord := ChunkCoord{}
 	return &World{
+		manaSettings:  model.DefaultManaSettings(),
 		chunkSize:     ChunkCoord{X: sizeX, Y: sizeY},
 		chunks:        map[ChunkCoord]*Chunk{coord: {Id: "test", Coordinate: coord, Terrain: terrain, Heights: make([]int, tileCount), Blockers: make([]bool, tileCount)}},
 		conversations: registry, quests: quests,
 	}
 }
+
+func (w *World) GetManaSettings() model.ManaSettings { return w.manaSettings }
 
 func (w *World) GetChunkSize() ChunkCoord { return w.chunkSize }
 func (w *World) GetSizeX() int            { return w.chunkSize.X }
