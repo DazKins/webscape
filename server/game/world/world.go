@@ -437,7 +437,7 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateEquippedComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
-			if err := validateShopComponent(entity.Id+" child template", template); err != nil {
+			if err := validateNPCCapabilities(entity.Id+" child template", template); err != nil {
 				return err
 			}
 			if err := validateAppearanceComponent(entity.Id+" child template", template); err != nil {
@@ -456,7 +456,7 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 		if err := validateEquippedComponent(entity.Id, entity.Components); err != nil {
 			return err
 		}
-		if err := validateShopComponent(entity.Id, entity.Components); err != nil {
+		if err := validateNPCCapabilities(entity.Id, entity.Components); err != nil {
 			return err
 		}
 		if err := validateAppearanceComponent(entity.Id, entity.Components); err != nil {
@@ -606,7 +606,12 @@ func validateEquippedComponent(id string, components map[string]any) error {
 	return nil
 }
 
-func validateShopComponent(id string, components map[string]any) error {
+func validateNPCCapabilities(id string, components map[string]any) error {
+	if raw, exists := components["banker"]; exists {
+		if _, err := component.ParseBanker(raw); err != nil {
+			return fmt.Errorf("entity %q: %w", id, err)
+		}
+	}
 	if raw, exists := components["shop"]; exists {
 		if _, err := component.ParseShop(raw); err != nil {
 			return fmt.Errorf("entity %q: %w", id, err)

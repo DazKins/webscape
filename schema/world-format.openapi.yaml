@@ -130,6 +130,8 @@ components:
           $ref: "#/components/schemas/FishableComponent"
         equipped:
           $ref: "#/components/schemas/EquippedComponent"
+        banker:
+          $ref: "#/components/schemas/BankerComponent"
         shop:
           $ref: "#/components/schemas/ShopComponent"
         lootable:
@@ -325,6 +327,11 @@ components:
         y:
           type: integer
           minimum: 0
+
+    BankerComponent:
+      type: object
+      additionalProperties: false
+      description: Grants the Bank interaction, providing nearby players access to their own persistent bank. Contains no shared storage or authored items.
 
     ShopComponent:
       type: object

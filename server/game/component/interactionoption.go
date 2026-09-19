@@ -4,6 +4,7 @@ type InteractionOption string
 
 const (
 	InteractionOptionTalk   = "talk"
+	InteractionOptionBank   = "bank"
 	InteractionOptionTrade  = "trade"
 	InteractionOptionAttack = "attack"
 	InteractionOptionLoot   = "loot"

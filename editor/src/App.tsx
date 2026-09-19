@@ -70,7 +70,7 @@ type Selection =
   | null;
 
 const WALL_TYPES = ["stone", "wood"];
-const ENTITY_TYPES = ["tree", "fishingSpot", "door", "building", "chest", "rock", "human", "rat", "lantern", "bench", "tavernTable", "bookcase", "shopCounter", "archeryTarget", "fountain"];
+const ENTITY_TYPES = ["tree", "fishingSpot", "door", "building", "chest", "rock", "human", "banker", "rat", "lantern", "bench", "tavernTable", "bookcase", "shopCounter", "archeryTarget", "fountain"];
 
 function App() {
   const defaultWorld = createBlankWorld();
@@ -2244,6 +2244,12 @@ function createEntity(
     },
     renderable: type === "door" ? { type, orientation: "north" } : { type },
   };
+
+  if (type === "banker") {
+    components.banker = {};
+    components.renderable = { type: "human" };
+    components.metadata = { name: "Banker", type: "human", entityType: "npc", width: 1, height: 1, blocksMovement };
+  }
 
   if (type === "door") {
     components.openable = { isOpen: false };

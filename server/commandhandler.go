@@ -56,6 +56,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleEquipCommand(clientID, cmd)
 	case command.CommandTypeUnequip:
 		h.handleUnequipCommand(clientID, cmd)
+	case command.CommandTypeBankDeposit, command.CommandTypeBankWithdraw, command.CommandTypeBankClose:
+		h.handleBankCommand(clientID, cmd)
 	case command.CommandTypeTrade, command.CommandTypeTradeClose:
 		h.handleTradeCommand(clientID, cmd)
 	case command.CommandTypeDrop:
@@ -238,4 +240,32 @@ func (h *ClientCommandHandler) handleTradeCommand(clientID string, cmd command.C
 		return
 	}
 	h.game.HandleTrade(clientID, model.EntityId(id), action, itemID)
+}
+
+func (h *ClientCommandHandler) handleBankCommand(clientID string, cmd command.Command) {
+	target, ok := cmd.Data["targetEntityId"].(string)
+	if !ok {
+		return
+	}
+	id, err := uuid.Parse(target)
+	if err != nil {
+		return
+	}
+	if cmd.Type == command.CommandTypeBankClose {
+		h.game.HandleBankClose(clientID, model.EntityId(id))
+		return
+	}
+	item, ok := cmd.Data["itemId"].(string)
+	if !ok {
+		return
+	}
+	itemID, err := uuid.Parse(item)
+	if err != nil {
+		return
+	}
+	quantity, ok := cmd.Data["quantity"].(float64)
+	if !ok || !(quantity >= 1 && quantity <= model.MaxStackQuantity) || quantity != float64(int(quantity)) {
+		return
+	}
+	h.game.HandleBankTransfer(clientID, model.EntityId(id), cmd.Type == command.CommandTypeBankDeposit, model.ItemId(itemID), int(quantity))
 }

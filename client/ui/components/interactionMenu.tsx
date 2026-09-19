@@ -95,7 +95,7 @@ export default function InteractionMenu(props: Props) {
                 key={index}
                 onClick={() => handleInteractionOptionClick(option)}
               >
-                {option === "chop" ? "Chop" : option}
+                {option === "chop" ? "Chop" : option === "bank" ? "Bank" : option}
               </button>
             ))}
           </div>

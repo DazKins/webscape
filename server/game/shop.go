@@ -9,11 +9,15 @@ import (
 
 // CanTradeWith is used at entry, on every transaction, and each tick.
 func (g *Game) CanTradeWith(player, target model.EntityId) bool {
+	return g.canUseNPC(player, target, component.ComponentIdShop)
+}
+
+func (g *Game) canUseNPC(player, target model.EntityId, capability component.ComponentId) bool {
 	client, ok := g.clientIdToEntityId.GetKey(player)
 	if !ok || !g.entityVisibleToClient(client, target) || player == target {
 		return false
 	}
-	if g.componentManager.GetEntityComponent(component.ComponentIdShop, target) == nil {
+	if g.componentManager.GetEntityComponent(capability, target) == nil {
 		return false
 	}
 	for _, id := range []model.EntityId{player, target} {

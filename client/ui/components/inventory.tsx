@@ -349,7 +349,7 @@ export function getItemIconSrc(item: Pick<InventoryItem, "definitionId" | "type"
   return src;
 }
 
-function getItemTitle(item: InventoryItem): string {
+export function getItemTitle(item: InventoryItem): string {
   return `${item.name}${item.stackable ? ` × ${item.quantity}` : ""} (${item.type})${
     item.equipmentSlot ? ` - Equipable: ${item.equipmentSlot}` : ""
   }${

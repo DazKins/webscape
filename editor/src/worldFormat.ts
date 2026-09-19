@@ -172,6 +172,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     validateAppearance(entity.id, entity.components, errors);
     validateEquipped(entity.id, entity.components, errors);
     validateShop(entity.id, entity.components, errors);
+    validateBanker(entity.id, entity.components, errors);
     validateLootable(entity.id, entity.components, errors);
     const spawn = isObject(entity.components.spawn) ? entity.components.spawn : null;
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
@@ -182,6 +183,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
       validateAppearance(`${entity.id} child template`, templateComponents, errors);
       validateEquipped(`${entity.id} child template`, templateComponents, errors);
       validateShop(`${entity.id} child template`, templateComponents, errors);
+      validateBanker(`${entity.id} child template`, templateComponents, errors);
       validateLootable(`${entity.id} child template`, templateComponents, errors);
     }
   }
@@ -340,6 +342,13 @@ function validateEquipped(entityId: string, components: Record<string, unknown>,
             !["head", "chest", "legs", "feet", "weapon", "offhand"].includes(slot) || !isItemDefinitionId(id))))) {
       errors.push(`entity "${entityId}" equipped.slots must map equipment slots to non-empty item definition IDs`);
     }
+  }
+}
+
+function validateBanker(entityId: string, components: Record<string, unknown>, errors: string[]) {
+  if (!("banker" in components)) return;
+  if (!isObject(components.banker) || Object.keys(components.banker).length !== 0) {
+    errors.push(`entity "${entityId}" banker must be an empty object`);
   }
 }
 

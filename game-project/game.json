@@ -12,6 +12,7 @@
     "chunks": [
       "chunks/willow_wood.json",
       "chunks/starter.json",
+      "chunks/willowbrook_bank.json",
       "chunks/east_meadow.json",
       "chunks/streaming_checkpoint.json",
       "chunks/far_plaza.json"

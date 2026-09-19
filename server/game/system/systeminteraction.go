@@ -11,6 +11,10 @@ type ConversationStarter interface {
 	StartConversationFor(playerEntityId model.EntityId, targetEntityId model.EntityId)
 }
 
+type BankingStarter interface {
+	StartBankingFor(playerEntityId, targetEntityId model.EntityId) bool
+}
+
 type TradingStarter interface {
 	StartTradingFor(playerEntityId, targetEntityId model.EntityId) bool
 }
@@ -32,6 +36,7 @@ type InteractionSystem struct {
 	TickSource          TickSource
 	ConversationStarter ConversationStarter
 	TradingStarter      TradingStarter
+	BankingStarter      BankingStarter
 	EventEmitter        GameEventEmitter
 	LootHandler         LootHandler
 	WoodcuttingStarter  WoodcuttingStarter
@@ -46,6 +51,11 @@ func (s *InteractionSystem) processInteraction(
 	case component.InteractionOptionTalk:
 		s.ConversationStarter.StartConversationFor(
 			entityId, interacting.GetTargetEntityId())
+
+	case component.InteractionOptionBank:
+		if s.BankingStarter == nil || !s.BankingStarter.StartBankingFor(entityId, interacting.GetTargetEntityId()) {
+			return
+		}
 
 	case component.InteractionOptionTrade:
 		if s.TradingStarter == nil || !s.TradingStarter.StartTradingFor(entityId, interacting.GetTargetEntityId()) {

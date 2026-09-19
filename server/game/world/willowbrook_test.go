@@ -61,7 +61,7 @@ func TestWillowbrookLandmarksAreReachable(t *testing.T) {
 	}
 	for _, entity := range w.entities {
 		c := entity.Components
-		if c["conversation"] == nil && c["shop"] == nil && c["lootable"] == nil && c["fishable"] == nil && c["openable"] == nil && c["spawn"] == nil {
+		if c["conversation"] == nil && c["shop"] == nil && c["banker"] == nil && c["lootable"] == nil && c["fishable"] == nil && c["openable"] == nil && c["spawn"] == nil {
 			continue
 		}
 		pos, _ := entityPosition(entity)

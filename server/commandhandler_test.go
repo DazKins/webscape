@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"math"
 	"testing"
 	"testing/fstest"
 	"webscape/server/command"
@@ -104,5 +105,30 @@ func TestAdminChatUsesRegisteredIdentityNotPayload(t *testing.T) {
 	}
 	if bytes.Equal(before, after) {
 		t.Fatal("authorized chat reset did not replace character items")
+	}
+}
+
+func TestMalformedBankCommandsDoNotChangeItems(t *testing.T) {
+	g := newCommandHandlerTestGame(t)
+	g.HandleRegister("player", model.NewEntityId(), "Player")
+	handler := NewClientCommandHandler(g, func(string) (model.EntityId, string, bool) { return model.EntityId{}, "", false })
+	before, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, typ := range []command.CommandType{command.CommandTypeBankDeposit, command.CommandTypeBankWithdraw, command.CommandTypeBankClose} {
+		for _, data := range []map[string]any{nil, {}, {"targetEntityId": 42}, {"targetEntityId": "bad"}, {"targetEntityId": model.NewEntityId().String(), "itemId": false}} {
+			handler.HandleCommand("player", command.Command{Type: typ, Data: data})
+		}
+		for _, quantity := range []any{nil, "1", -1.0, 0.0, 0.5, 1.0, float64(model.MaxStackQuantity) + 1, math.NaN(), math.Inf(1)} {
+			handler.HandleCommand("player", command.Command{Type: typ, Data: map[string]any{"targetEntityId": model.NewEntityId().String(), "itemId": model.NewItemId().String(), "quantity": quantity}})
+		}
+	}
+	after, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("invalid bank commands changed stored state")
 	}
 }

@@ -52,6 +52,12 @@ func decodeEntityComponents(saved map[string]component.SavedComponent) ([]compon
 		}
 		result = append(result, c)
 	}
+	// Older player saves predate banking.
+	if _, player := saved[string(component.ComponentIdPlayer)]; player {
+		if _, bank := saved[string(component.ComponentIdBank)]; !bank {
+			result = append(result, component.NewCBank())
+		}
+	}
 	return result, nil
 }
 

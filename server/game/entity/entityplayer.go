@@ -50,6 +50,7 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 		appearanceComponent,
 		healthComponent,
 		inventoryComponent,
+		component.NewCBank(),
 		equippedComponent,
 		baseStatsComponent,
 		combatStatsComponent,
