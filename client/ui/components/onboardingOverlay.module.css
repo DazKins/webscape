@@ -5,7 +5,7 @@
   display: grid;
   place-items: center;
   box-sizing: border-box;
-  padding: var(--build-info-clearance) max(20px, var(--safe-area-right)) max(20px, var(--safe-area-bottom)) max(20px, var(--safe-area-left));
+  padding: var(--menu-clearance) max(20px, var(--safe-area-right)) max(20px, var(--safe-area-bottom)) max(20px, var(--safe-area-left));
   overflow-y: auto;
   background:
     radial-gradient(circle at 50% 32%, rgba(79, 126, 112, 0.1), transparent 42%),
@@ -143,7 +143,7 @@
 
 .warning {
   position: absolute;
-  top: var(--build-info-clearance);
+  top: var(--menu-clearance);
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;

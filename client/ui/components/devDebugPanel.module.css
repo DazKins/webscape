@@ -1,0 +1,51 @@
+.panel {
+  position: absolute;
+  top: max(8px, var(--safe-area-top));
+  left: max(16px, var(--safe-area-left));
+  width: var(--debug-panel-width);
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid rgba(191, 221, 207, 0.3);
+  border-radius: 8px;
+  background: rgba(12, 23, 26, 0.9);
+  color: #e5eee8;
+  font: 11px/1.5 "Courier New", Courier, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.panel h2 {
+  margin: 0 0 4px;
+  color: #a9cfb4;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.fps {
+  margin-bottom: 10px;
+  color: #a9cfb4;
+}
+
+.fps strong {
+  color: #f4f0e5;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.panel dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.panel dt { color: #a6b5b0; }
+.panel dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+
+@media (max-width: 720px), (max-height: 560px) {
+  .panel {
+    left: max(8px, var(--safe-area-left));
+    padding: 10px;
+    font-size: 10px;
+  }
+}
