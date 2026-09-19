@@ -25,9 +25,8 @@ wall-clock accumulator for day/night.
 
 Each cycle has 1,200 day ticks and 1,200 night ticks: 20 minutes at the standard
 500 ms interval. Changing the tick interval changes the cycle's real-time duration
-along with other gameplay. Fresh worlds start at daybreak; when persistence is
-enabled, restoring the existing simulation tick also restores the cycle, without
-advancing it for time spent offline.
+along with other gameplay. Every server restart begins at daybreak (tick zero),
+including when player persistence is enabled.
 
 The client blends the sky and ambient/directional lighting across dawn and dusk.
 Models opt into warm night illumination with a `lightSource` socket on their

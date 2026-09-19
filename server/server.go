@@ -69,7 +69,7 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 			if err := g.RestoreSnapshot(data); err != nil {
 				return err
 			}
-			log.Print("Restored PostgreSQL game snapshot")
+			log.Print("Restored PostgreSQL player saves")
 		}
 		coordinator = persistence.NewCoordinator(g, store)
 		saveCtx, cancel := context.WithTimeout(ctx, timeout)

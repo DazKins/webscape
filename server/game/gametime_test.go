@@ -100,14 +100,14 @@ func assertEmptyTickUpdate(t *testing.T, messages []message.Message, tick uint64
 	}
 }
 
-func TestGameTimeRestoresWithExistingTickSnapshot(t *testing.T) {
+func TestGameTimeResetsAfterRestart(t *testing.T) {
 	g := snapshotGame(t)
 	g.currentTick = 1387
 	restored := snapshotGame(t)
 	if err := restored.RestoreSnapshot(savedBytes(t, g)); err != nil {
 		t.Fatal(err)
 	}
-	if restored.CurrentGameTime() != g.CurrentGameTime() {
-		t.Fatalf("restored game time = %+v, want %+v", restored.CurrentGameTime(), g.CurrentGameTime())
+	if got := restored.CurrentGameTime(); got.Tick != 0 || got.IsNight {
+		t.Fatalf("game time did not reset: %+v", got)
 	}
 }

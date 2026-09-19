@@ -48,7 +48,7 @@ func newPersistenceServerTest(t *testing.T) *persistenceServerTest {
 	}
 	f := &persistenceServerTest{t: t, config: cfg, admin: admin, provider: oidctest.New(t)}
 	t.Cleanup(func() {
-		admin.Exec(context.Background(), "DELETE FROM webscape_worlds WHERE world_key=$1", cfg.Persistence.WorldKey)
+		admin.Exec(context.Background(), "DELETE FROM webscape_player_saves WHERE world_key=$1", cfg.Persistence.WorldKey)
 		admin.Close(context.Background())
 	})
 	return f
@@ -170,7 +170,7 @@ func testInventory(t *testing.T, ws *websocket.Conn, id string) []wireItem {
 func (f *persistenceServerTest) savedAt() time.Time {
 	f.t.Helper()
 	var saved time.Time
-	if err := f.admin.QueryRow(context.Background(), "SELECT saved_at FROM webscape_worlds WHERE world_key=$1", f.config.Persistence.WorldKey).Scan(&saved); err != nil {
+	if err := f.admin.QueryRow(context.Background(), "SELECT saved_at FROM webscape_player_saves WHERE world_key=$1", f.config.Persistence.WorldKey).Scan(&saved); err != nil {
 		f.t.Fatal(err)
 	}
 	return saved
@@ -209,7 +209,7 @@ func TestServerRestartsWithPostgresProgress(t *testing.T) {
 		t.Fatal("restart changed inventory IDs/quantities")
 	}
 	var drops int
-	if err := f.admin.QueryRow(context.Background(), "SELECT count(*) FROM webscape_components WHERE world_key=$1 AND component_id='droppeditem'", f.config.Persistence.WorldKey).Scan(&drops); err != nil || drops != 1 {
+	if err := f.admin.QueryRow(context.Background(), "SELECT count(*) FROM webscape_players WHERE world_key=$1 AND components ? 'droppeditem'", f.config.Persistence.WorldKey).Scan(&drops); err != nil || drops != 0 {
 		t.Fatalf("ground drops=%d: %v", drops, err)
 	}
 	stop()
@@ -230,7 +230,7 @@ func TestDisconnectedPlayerReconnectsBeforeAndAfterRestart(t *testing.T) {
 	ws.Close()
 	f.waitForDisconnectSave(before)
 	var count int
-	if err := f.admin.QueryRow(context.Background(), "SELECT jsonb_array_length(data->'items') FROM webscape_components WHERE world_key=$1 AND entity_id=$2::uuid AND component_id='inventory'", f.config.Persistence.WorldKey, id).Scan(&count); err != nil || count != len(original)-1 {
+	if err := f.admin.QueryRow(context.Background(), "SELECT jsonb_array_length(components->'inventory'->'data'->'items') FROM webscape_players WHERE world_key=$1 AND player_id=$2::uuid", f.config.Persistence.WorldKey, id).Scan(&count); err != nil || count != len(original)-1 {
 		t.Fatalf("disconnect lost accepted command: %d %v", count, err)
 	}
 	ws = f.connect(address)

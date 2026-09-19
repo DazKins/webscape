@@ -1,7 +1,6 @@
 package world
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,7 +29,6 @@ type Chunk struct {
 
 type World struct {
 	manaSettings  model.ManaSettings
-	contentHash   string
 	chunkSize     ChunkCoord
 	chunks        map[ChunkCoord]*Chunk
 	entities      []WorldEntity
@@ -165,20 +163,6 @@ func LoadFromGameFS(gameFS fs.FS) (*World, error) {
 	if spawnCount != 1 {
 		return nil, fmt.Errorf("world must contain exactly one playerSpawn, got %d", spawnCount)
 	}
-	hash := sha256.New()
-	hash.Write(data)
-	hash.Write([]byte(model.ItemDefinitionsHash()))
-	paths := append(append(append([]string{}, format.Files.Chunks...), format.Files.Conversations...), format.Files.Quests...)
-	sort.Strings(paths)
-	for _, path := range paths {
-		contents, err := fs.ReadFile(gameFS, path)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Fprintf(hash, "%d:%s:%d:", len(path), path, len(contents))
-		hash.Write(contents)
-	}
-	w.contentHash = fmt.Sprintf("%x", hash.Sum(nil))
 	return w, nil
 }
 
@@ -625,8 +609,6 @@ func validateNPCCapabilities(id string, components map[string]any) error {
 	}
 	return nil
 }
-
-func (w *World) ContentHash() string { return w.contentHash }
 
 func validateLootableComponent(id string, components map[string]any) error {
 	if raw, ok := components["lootable"]; ok {

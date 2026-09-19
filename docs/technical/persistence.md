@@ -53,71 +53,56 @@ password, but cannot be combined with `passwordEnv`. `connectionStringEnv`, when
 set, overrides the individual connection fields, including TLS settings. Local
 isolated database tests can explicitly use `sslMode: "disable"`.
 
-The database/user must already exist. On startup the adapter creates
-`webscape_worlds` and `webscape_components` if needed, so the user needs schema
-CREATE permission and SELECT/INSERT/UPDATE/DELETE permissions on those tables.
-Use a direct PostgreSQL connection
-or a session-pooling endpoint: a session advisory lock prevents two game servers
-from writing the same `worldKey`. Transaction-pooling endpoints are unsupported.
-Use different keys/databases for independent worlds and previews. A rolling
-replacement must stop the old server before the new server acquires its key.
+The database/user must already exist. The adapter creates `webscape_player_saves`
+and `webscape_players` at startup, requiring schema CREATE and table
+SELECT/INSERT/UPDATE/DELETE permissions. Use a direct connection or session-pooling
+endpoint: a session advisory lock prevents two servers writing the same `worldKey`.
+Transaction-pooling endpoints are unsupported. Use separate keys for previews.
+Stop the old server before its replacement acquires the same key.
 
-The game exposes storage-independent snapshot/restore methods. Each component's
-`component*_save.go` owns its DTO, versioned decoder registration, `Save` method,
-and invariant checks. Shared helpers dispatch through interfaces; restore orchestration
-decodes and validates all entities before installing any. The read-only validation
-context supplies authored registries and cross-entity item ownership checks without
-importing `Game` into components. `server/snapshot` defines only the neutral envelope;
-`server/persistence` owns PostgreSQL, schema migrations, delta calculation and atomic
-writes. Game systems and command handlers have no database dependency. New components
-provide their own save codec or explicitly mark themselves transient.
+Only players persist. `webscape_players` contains one row per `(world_key, player_id)`
+with versioned durable components in a `components` JSONB object and an `updated_at`
+timestamp. Inventory, bank, equipment, identity, stats, position, and quest progress
+stay together. `webscape_player_saves` stores only the envelope version and last
+checkpoint timestamp for each key; it stores no world state or simulation clock.
 
-Each snapshot captures entity IDs, durable components (including server-only fields),
-the simulation tick, and offline players. PostgreSQL stores world metadata in
-`webscape_worlds` and one row per `(world_key, entity_id, component_id)` in
-`webscape_components`, with versioned JSON payloads. The adapter compares against
-its last successfully committed baseline and writes only added/changed components
-and deletions. All row changes and world metadata commit in one transaction, so an
-item transfer cannot be partially saved. Loads read a consistent transaction too.
-
-Saves run after ticks, registered-player disconnects, and graceful shutdown.
-Commands never directly trigger persistence: accepted changes are captured by the
-next tick or disconnect, and rejected/unknown/unregistered traffic cannot amplify
-checkpoint work. Viewer disconnects do not save. Database I/O happens outside the
-game mutex; captures and writes are serialized to prevent older snapshots overwriting
-newer ones. Startup/load/save failures stop the server without resetting progress or
-switching to `none`. Abrupt termination restores the last committed checkpoint.
-
-The smaller rows avoid rewriting unchanged component payloads and allow targeted
-inspection/migrations. The tradeoff is more rows/indexes, explicit deletion handling,
-and transactional assembly on load. Snapshot capture and comparison still scan the
-in-memory world; incremental dirty tracking is a separate future optimization.
+Every restart builds the world from current `game-project` content. NPCs, doors,
+chests, resources, and spawns return to authored defaults. Ground drops disappear.
+The simulation clock resets to zero and day/night starts at daybreak. Map additions
+appear immediately after restart without reconciling saved world entities.
 
 Restored players stay outside the active ECS until they reconnect using their
-verified OIDC account (issuer and subject). Their name, appearance, items, equipment,
-health and quest progress survive; no starter inventory is granted again. Clearing
-browser storage requires signing in again but does not lose account ownership.
-Legacy anonymous saves remain intact and require an explicit administrative
-migration to associate with an account. See [Authentication](authentication.md).
-Movement, combat, fishing,
-woodcutting, facing targets, conversations and trading sessions resume idle rather
-than replaying old actions or events. Resource/spawn countdowns pause while the
-server is stopped. Authored terrain and registries still load from `game-project`.
+verified account. Offline players are also captured in saves. Absence from a
+checkpoint does not delete an existing player row. Starter inventory is not granted
+again. If a saved position is missing or blocked in the current map, the player is
+moved to spawn. Movement, combat, banking, trading, and other transient activities
+reset. Clearing browser storage does not remove account progress. Legacy anonymous
+characters still require explicit account association; see [Authentication](authentication.md).
 
-Snapshots and component payloads are versioned and validated before restoration.
-A fingerprint of `game.json` and its referenced content files rejects restores
-against changed authored content. Back up and explicitly migrate a saved world
-when changing that content, or choose a new `worldKey` for a fresh world. The
-existing save is never discarded automatically. PostgreSQL backups must include both
-`webscape_worlds` and `webscape_components` in the same consistent backup.
+The game captures player components under its mutex. Component codecs own versioned
+payloads and validation; all players are validated before any are installed, including
+cross-player item ownership checks. Only components attached to players need save
+support. Game systems and commands have no database dependency.
 
-SQL schema v2 automatically imports a v1 `webscape_snapshots` row for the selected
-world key on first load. The import is transactional and preserves the entity and
-component save formats. The original blob remains as a migration backup, marked v2
-so an older binary refuses to load stale progress. Subsequent saves use the new tables;
-the legacy blob is not a current backup. Existing v1 installations also need SELECT
-and UPDATE permission on the legacy table during migration. Do not downgrade to the
-old binary after migration.
+The adapter compares player records against its last successful baseline and writes
+only changed rows. Each checkpoint is a transaction, preserving atomic changes across
+players too. Loads use a consistent transaction. Saves follow ticks, registered-player
+disconnects, and graceful shutdown. Captures and writes are serialized; database I/O
+runs outside the game mutex. Failures stop the server instead of resetting progress.
+Abrupt termination restores the latest committed checkpoint.
+
+On first load, existing v2 `webscape_worlds`/`webscape_components` saves or v1
+`webscape_snapshots` blobs are imported automatically. Only entities with a `player`
+component are retained. Existing player IDs and component payloads survive; old world
+entities and ticks are ignored. Migration and its completion marker commit together.
+Legacy tables remain as migration backups and their schema version is marked 3 so
+older binaries refuse stale saves. They are not updated afterward. Migration needs
+SELECT access to legacy tables and UPDATE access to their metadata table. Do not
+roll back to an older binary after migration.
+
+Back up before upgrading. Current backups must include `webscape_player_saves` and
+`webscape_players` together. Map edits no longer require a world-save migration;
+changes to item definitions or quest contracts still need compatible player data.
 
 Run the isolated storage integration tests with:
 
@@ -126,7 +111,7 @@ WEBSCAPE_TEST_DATABASE_URL='postgres://USER:PASSWORD@127.0.0.1:5432/TEST_DB?sslm
 ```
 
 Integration tests create unique world keys and remove their rows afterward. Use an
-isolated test database: rollback tests also install and remove a temporary test trigger.
+isolated test database: rollback tests also install and remove a temporary test constraint.
 Without that variable, database integration tests are skipped; snapshot/restore,
 configuration and coordinator tests still run under `go test ./...`.
 

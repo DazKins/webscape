@@ -1,5 +1,5 @@
-// Package persistence stores a neutral entity/component envelope. It imports no
-// game, component, command or transport packages and never interprets payloads.
+// Package persistence stores versioned player records. Component payloads remain
+// opaque; gameplay codecs and validation live in the game package.
 package persistence
 
 import (

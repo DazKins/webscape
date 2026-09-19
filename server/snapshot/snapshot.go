@@ -1,5 +1,4 @@
-// Package snapshot defines the storage-neutral envelope shared by the game and
-// adapters. Component payloads remain opaque; only components know their schema.
+// Package snapshot defines the versioned player-save envelope shared by game and storage.
 package snapshot
 
 import (
@@ -16,33 +15,57 @@ type Component struct {
 	Data    json.RawMessage `json:"data"`
 }
 type State struct {
-	Version     int                             `json:"version"`
-	ContentHash string                          `json:"contentHash"`
-	Tick        uint64                          `json:"tick"`
-	Entities    map[string]map[string]Component `json:"entities"`
+	Version int                             `json:"version"`
+	Players map[string]map[string]Component `json:"players"`
 }
 
+// Decode also imports v1 world snapshots, retaining only player records.
 func Decode(data []byte) (State, error) {
-	var state State
+	var wire struct {
+		Version     int                             `json:"version"`
+		Players     map[string]map[string]Component `json:"players"`
+		Entities    map[string]map[string]Component `json:"entities"`
+		ContentHash string                          `json:"contentHash"`
+		Tick        uint64                          `json:"tick"`
+	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&state); err != nil {
-		return state, fmt.Errorf("decode snapshot: %w", err)
+	if err := decoder.Decode(&wire); err != nil {
+		return State{}, fmt.Errorf("decode player save: %w", err)
 	}
 	if err := decoder.Decode(new(any)); err != io.EOF {
-		return state, fmt.Errorf("trailing snapshot data")
+		return State{}, fmt.Errorf("trailing save data")
 	}
-	if state.Version < 1 || state.Entities == nil {
-		return state, fmt.Errorf("invalid snapshot envelope")
+	state := State{Version: 2, Players: wire.Players}
+	switch wire.Version {
+	case 1:
+		if wire.Entities == nil || wire.Players != nil {
+			return State{}, fmt.Errorf("invalid legacy save")
+		}
+		state.Players = map[string]map[string]Component{}
+		for id, components := range wire.Entities {
+			if _, ok := components["player"]; ok {
+				state.Players[id] = components
+			}
+		}
+	case 2:
+		if wire.Entities != nil || wire.Players == nil {
+			return State{}, fmt.Errorf("invalid player save")
+		}
+	default:
+		return State{}, fmt.Errorf("unsupported save version %d", wire.Version)
 	}
-	for id, components := range state.Entities {
+	for id, components := range state.Players {
 		parsed, err := uuid.Parse(id)
-		if err != nil || parsed == uuid.Nil || parsed.String() != id || len(components) == 0 {
-			return state, fmt.Errorf("invalid saved entity %q", id)
+		if err != nil || parsed == uuid.Nil || parsed.String() != id {
+			return State{}, fmt.Errorf("invalid player id %q", id)
+		}
+		if _, ok := components["player"]; !ok {
+			return State{}, fmt.Errorf("saved record has no player component")
 		}
 		for key, c := range components {
 			if key == "" || c.Version < 1 || !json.Valid(c.Data) || bytes.Equal(bytes.TrimSpace(c.Data), []byte("null")) {
-				return state, fmt.Errorf("invalid saved component %q", key)
+				return State{}, fmt.Errorf("invalid saved component %q", key)
 			}
 		}
 	}

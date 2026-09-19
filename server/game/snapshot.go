@@ -24,7 +24,7 @@ func (g *Game) RetainOfflinePlayers() {
 func (g *Game) Snapshot() ([]byte, error) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
-	s := gameSnapshot{Version: 1, ContentHash: g.world.ContentHash(), Tick: g.currentTick, Entities: map[string]map[string]component.SavedComponent{}}
+	s := gameSnapshot{Version: 2, Players: map[string]map[string]component.SavedComponent{}}
 	add := func(id model.EntityId, c component.Component) error {
 		saved, err := component.SaveComponent(c)
 		if err != nil {
@@ -34,19 +34,22 @@ func (g *Game) Snapshot() ([]byte, error) {
 			return nil
 		}
 		key := id.String()
-		if s.Entities[key] == nil {
-			s.Entities[key] = map[string]component.SavedComponent{}
+		if s.Players[key] == nil {
+			s.Players[key] = map[string]component.SavedComponent{}
 		}
-		s.Entities[key][string(c.GetId())] = saved
+		s.Players[key][string(c.GetId())] = saved
 		return nil
 	}
-	for _, entities := range g.componentManager.GetAllComponents() {
-		for id, c := range entities {
-			if err := add(id, c); err != nil {
-				return nil, err
+	for id := range g.componentManager.GetComponent(component.ComponentIdPlayer) {
+		for _, entities := range g.componentManager.GetAllComponents() {
+			if c := entities[id]; c != nil {
+				if err := add(id, c); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
+
 	for id, components := range g.offlinePlayers {
 		for _, c := range components {
 			if err := add(id, c); err != nil {
@@ -57,10 +60,8 @@ func (g *Game) Snapshot() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// RestoreSnapshot validates the entire save before replacing any entities. Authored
-// entities are replaced as a set, preserving deletions and preventing duplicate spawns.
-// Content hashes are informational; authors are responsible for keeping world
-// edits compatible with saved state.
+// RestoreSnapshot validates every player before installing any. Authored
+// world entities remain freshly authored. Only offline players are installed.
 // Call only during startup, before installing clients or starting the update loop.
 func (g *Game) RestoreSnapshot(data []byte) error {
 	g.stateMutex.Lock()
@@ -72,13 +73,13 @@ func (g *Game) RestoreSnapshot(data []byte) error {
 	if err != nil {
 		return err
 	}
-	if s.Version != 1 {
+	if s.Version != 2 {
 		return fmt.Errorf("unsupported snapshot version %d", s.Version)
 	}
-	entities, err := decodeSnapshotEntities(s, g.world)
+	entities, err := g.decodeSnapshotPlayers(s)
 	if err != nil {
 		return err
 	}
-	g.installSnapshot(s, entities)
+	g.offlinePlayers = entities
 	return nil
 }

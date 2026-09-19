@@ -210,7 +210,7 @@ func TestBankPersistsWithoutSessionAndMigratesOldPlayers(t *testing.T) {
 	if err := json.Unmarshal(saved, &snapshot); err != nil {
 		t.Fatal(err)
 	}
-	delete(snapshot.Entities[player.String()], "bank")
+	delete(snapshot.Players[player.String()], "bank")
 	legacy, _ := json.Marshal(snapshot)
 	restored = snapshotGame(t)
 	if err := restored.RestoreSnapshot(legacy); err != nil {
@@ -226,9 +226,9 @@ func TestBankPersistsWithoutSessionAndMigratesOldPlayers(t *testing.T) {
 		t.Fatal(err)
 	}
 	record.Data, _ = json.Marshal(map[string]any{"items": []*model.Item{item}})
-	snapshot.Entities[player.String()]["inventory"] = record
+	snapshot.Players[player.String()]["inventory"] = record
 	bankRecord, _ := bank.Save()
-	snapshot.Entities[player.String()]["bank"] = bankRecord
+	snapshot.Players[player.String()]["bank"] = bankRecord
 	duplicated, _ := json.Marshal(snapshot)
 	if err := snapshotGame(t).RestoreSnapshot(duplicated); err == nil {
 		t.Fatal("duplicated item in save accepted")
