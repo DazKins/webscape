@@ -106,10 +106,6 @@ func (c *saveContext) ChunkSize() math.Vec2 {
 	size := c.world.GetChunkSize()
 	return math.Vec2{X: size.X, Y: size.Y}
 }
-func (c *saveContext) HasConversation(id string) bool {
-	_, ok := c.world.GetConversation(id)
-	return ok
-}
 func (c *saveContext) HasQuest(id string) bool { _, ok := c.world.GetQuest(id); return ok }
 func (c *saveContext) ValidQuestStep(id string, index int, step string) bool {
 	q, ok := c.world.GetQuest(id)

@@ -277,9 +277,9 @@ func TestResetReplacesAllCharacterStateAndPersists(t *testing.T) {
 	g.componentManager.SetEntityComponent(id, component.NewCActiveConversation("old", other, "node"))
 	g.componentManager.SetEntityComponent(id, component.NewCCombatState(other))
 	g.componentManager.SetEntityComponent(other, component.NewCCombatState(id))
+	beforeWorld := savedBytes(t, g)
 	g.componentManager.SetEntityComponent(id, component.NewCRewardDrop()) // arbitrary extra component must disappear
 	g.syncClient("owner")
-	beforeWorld := savedBytes(t, g)
 	g.HandleChat("owner", "/reset")
 	if !g.IsRegistered("owner") {
 		t.Fatal("reset lost registration")

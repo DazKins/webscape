@@ -19,14 +19,7 @@ func (p *Postgres) loadCheckpoint(ctx context.Context) (*snapshot.State, error) 
 	var version int
 	err = tx.QueryRow(ctx, "SELECT version FROM webscape_player_saves WHERE world_key=$1", p.worldKey).Scan(&version)
 	if err == pgx.ErrNoRows {
-		state, err := p.migrateLegacyWorld(ctx, tx)
-		if err != nil {
-			return nil, err
-		}
-		if err := tx.Commit(ctx); err != nil {
-			return nil, dbError("commit migration", err)
-		}
-		return state, nil
+		return nil, nil
 	}
 	if err != nil {
 		return nil, dbError("load save version", err)

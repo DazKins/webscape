@@ -91,14 +91,15 @@ disconnects, and graceful shutdown. Captures and writes are serialized; database
 runs outside the game mutex. Failures stop the server instead of resetting progress.
 Abrupt termination restores the latest committed checkpoint.
 
-On first load, existing v2 `webscape_worlds`/`webscape_components` saves or v1
-`webscape_snapshots` blobs are imported automatically. Only entities with a `player`
-component are retained. Existing player IDs and component payloads survive; old world
-entities and ticks are ignored. Migration and its completion marker commit together.
-Legacy tables remain as migration backups and their schema version is marked 3 so
-older binaries refuse stale saves. They are not updated afterward. Migration needs
-SELECT access to legacy tables and UPDATE access to their metadata table. Do not
-roll back to an older binary after migration.
+Only the current player-save format (version 2) is supported. Legacy world snapshots
+and their migration readers have been retired after all environments migrated.
+Older deployments must upgrade through the player-persistence migration release
+(commit `1326e0e`) before using this version.
+
+The legacy `webscape_components`, `webscape_worlds`, and `webscape_snapshots` tables
+are no longer read or written. They may be removed separately after confirming the
+migration for every world key sharing the database and retaining any desired backup.
+The runtime does not drop these tables automatically.
 
 Back up before upgrading. Current backups must include `webscape_player_saves` and
 `webscape_players` together. Map edits no longer require a world-save migration;
