@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 	"webscape/server/config"
 	"webscape/server/game/component"
@@ -13,6 +14,175 @@ import (
 	"webscape/server/math"
 	"webscape/server/message"
 )
+
+func TestGiveAdminCommand(t *testing.T) {
+	disabled, enabled := false, true
+	for _, tt := range []struct {
+		name, command, wantID, reply string
+		full, overflow, prod         bool
+		empty                        bool
+		quantity                     int
+		settings                     config.AdminCommandsConfig
+	}{
+		{name: "equipment", command: "/give chainmailChestplate", wantID: "chainmailChestplate", reply: "Added Chainmail Chestplate"},
+		{name: "existing item", command: "/give ironSword", wantID: "ironSword", reply: "Added Iron Sword"},
+		{name: "whitespace", command: "  /give\tapple  ", wantID: "apple", reply: "Added Apple"},
+		{name: "stack in full inventory", command: "/give gold", wantID: "gold", full: true, reply: "Added Gold"},
+		{name: "full inventory", command: "/give apple", full: true, reply: "full"},
+		{name: "overflow", command: "/give gold", overflow: true, reply: "full"},
+		{name: "unknown", command: "/give missing", reply: "Unknown item definition"},
+		{name: "case sensitive", command: "/give IronSword", reply: "Unknown item definition"},
+		{name: "missing argument", command: "/give", reply: "Usage:"},
+		{name: "extra argument", command: "/give ironSword 2 extra", reply: "Usage:"},
+		{name: "multiple non-stackables", command: "/give ironSword 3", wantID: "ironSword", quantity: 3, reply: "Added 3 x Iron Sword"},
+		{name: "exact available slots", command: "/give ironSword 9", wantID: "ironSword", quantity: 9, reply: "Added 9 x Iron Sword"},
+		{name: "no partial grant", command: "/give ironSword 10", reply: "full"},
+		{name: "large non-stackable request", command: "/give ironSword 2147483647", reply: "full"},
+		{name: "merge quantity", command: "/give gold 1000", wantID: "gold", quantity: 1000, full: true, reply: "Added 1000 x Gold"},
+		{name: "new stack", command: "/give arrow 250", wantID: "arrow", quantity: 250, empty: true, reply: "Added 250 x Arrow"},
+		{name: "new stack cannot fit", command: "/give gold 2", empty: true, full: true, reply: "full"},
+		{name: "stack limit", command: "/give gold 2147483547", wantID: "gold", quantity: 2147483547, reply: "Added 2147483547 x Gold"},
+		{name: "batch exceeds stack limit", command: "/give gold 2147483548", reply: "full"},
+		{name: "zero quantity", command: "/give gold 0", reply: "Quantity must"},
+		{name: "negative quantity", command: "/give gold -2", reply: "Quantity must"},
+		{name: "fractional quantity", command: "/give gold 1.5", reply: "Quantity must"},
+		{name: "non-numeric quantity", command: "/give gold lots", reply: "Quantity must"},
+		{name: "quantity exceeds limit", command: "/give gold 2147483648", reply: "Quantity must"},
+		{name: "quantity parse overflow", command: "/give gold 99999999999999999999", reply: "Quantity must"},
+		{name: "disabled", command: "/give apple", settings: config.AdminCommandsConfig{Enabled: &disabled}, reply: "disabled"},
+		{name: "not allowlisted", command: "/give apple", settings: config.AdminCommandsConfig{PlayerIDs: []string{model.NewEntityId().String()}}, reply: "permission"},
+		{name: "production default", command: "/give apple", prod: true, reply: "disabled"},
+		{name: "production empty allowlist", command: "/give apple", prod: true, settings: config.AdminCommandsConfig{Enabled: &enabled}, reply: "permission"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewGameWithWorld(loadInterestWorld(t))
+			sent := map[string][]message.Message{}
+			g.RegisterSender(func(client string, msg message.Message) { sent[client] = append(sent[client], msg) })
+			id, other := model.NewEntityId(), model.NewEntityId()
+			g.HandleRegister("owner", id, "Owner")
+			g.HandleRegister("other", other, "Other")
+			g.ConfigureAdminCommands(tt.settings, !tt.prod)
+			inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory)
+			if tt.empty {
+				inventory = component.NewCInventory()
+				g.componentManager.SetEntityComponent(id, inventory)
+			}
+			if tt.full {
+				for !inventory.IsFull() {
+					if !inventory.AddItem(model.NewItem("bread")) {
+						t.Fatal("could not fill inventory")
+					}
+				}
+			}
+			if tt.overflow {
+				inventory.FindByDefinition("gold").Quantity = model.MaxStackQuantity
+			}
+			before := inventory.Clone()
+			otherInventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, other).(*component.CInventory)
+			otherBefore := otherInventory.Clone()
+			speech := 0
+			g.RegisterGameEventHandlerFor(gameevent.EventIdChatSpoken, gameevent.HandlerFunc(func(gameevent.Event) { speech++ }))
+			sent = map[string][]message.Message{}
+			g.HandleChat("unregistered", tt.command)
+			g.HandleChat("owner", tt.command)
+			if tt.wantID == "" {
+				if !reflect.DeepEqual(before, inventory) {
+					t.Fatal("failed command changed inventory")
+				}
+			} else {
+				counts := func(inv *component.CInventory) map[string]int {
+					result := map[string]int{}
+					for _, item := range inv.GetAllItems() {
+						result[item.DefinitionID] += item.Quantity
+					}
+					return result
+				}
+				want := counts(before)
+				quantity := tt.quantity
+				if quantity == 0 {
+					quantity = 1
+				}
+				want[tt.wantID] += quantity
+				if !reflect.DeepEqual(want, counts(inventory)) {
+					t.Fatal("give did not add exactly the requested quantity")
+				}
+				seenIDs := map[model.ItemId]bool{}
+				stacks := map[string]int{}
+				for _, item := range inventory.GetAllItems() {
+					if seenIDs[item.Id] || item.ValidateSaved() != nil {
+						t.Fatal("invalid item quantity or duplicate instance UUID")
+					}
+					seenIDs[item.Id] = true
+					if item.IsStackable() {
+						stacks[item.DefinitionID]++
+						if stacks[item.DefinitionID] > 1 {
+							t.Fatal("stackable items were not merged")
+						}
+					}
+				}
+				for _, old := range before.GetAllItems() {
+					if !seenIDs[old.Id] {
+						t.Fatal("give replaced an existing instance UUID")
+					}
+				}
+			}
+			if !reflect.DeepEqual(otherBefore, otherInventory) {
+				t.Fatal("give changed another player's inventory")
+			}
+			g.update()
+			if speech != 0 || len(sent["unregistered"]) != 0 {
+				t.Fatal("command emitted speech or replied to an unregistered connection")
+			}
+			types := messageTypes(sent["owner"])
+			stateIndex := indexOfMessageType(types, message.MessageTypeGameUpdate)
+			replyIndex := indexOfMessageType(types, message.MessageTypeAdminCommandResult)
+			if stateIndex < 0 || replyIndex <= stateIndex {
+				t.Fatalf("missing reply or reply precedes state: %v", types)
+			}
+			var response struct {
+				Data struct {
+					Success bool
+					Message string
+				}
+			}
+			if err := json.Unmarshal([]byte(sent["owner"][replyIndex].Marshal()), &response); err != nil {
+				t.Fatal(err)
+			}
+			if response.Data.Success != (tt.wantID != "") || !strings.Contains(response.Data.Message, tt.reply) {
+				t.Fatalf("unexpected response: %+v", response)
+			}
+			for _, msg := range sent["other"] {
+				if msg.Metadata.Type == message.MessageTypeAdminCommandResult {
+					t.Fatal("private reply leaked")
+				}
+			}
+		})
+	}
+}
+
+func TestGiveSupportsEveryDefinitionForAllowlistedAdmin(t *testing.T) {
+	g := NewGameWithWorld(loadInterestWorld(t))
+	g.RegisterSender(func(string, message.Message) {})
+	id := model.NewEntityId()
+	g.HandleRegister("owner", id, "Owner")
+	enabled := true
+	g.ConfigureAdminCommands(config.AdminCommandsConfig{Enabled: &enabled, PlayerIDs: []string{id.String()}}, false)
+	seen := map[model.ItemId]bool{}
+	for _, definitionID := range model.ItemDefinitionIDs() {
+		inventory := component.NewCInventory()
+		g.componentManager.SetEntityComponent(id, inventory)
+		g.HandleChat("owner", "/give "+definitionID)
+		items := inventory.GetAllItems()
+		if len(items) != 1 {
+			t.Fatalf("%s: expected one item, got %d", definitionID, len(items))
+		}
+		item := items[0]
+		if item.DefinitionID != definitionID || item.Quantity != 1 || item.HasProperties() || seen[item.Id] || item.ValidateSaved() != nil {
+			t.Fatalf("%s: invalid instance: %+v", definitionID, item)
+		}
+		seen[item.Id] = true
+	}
+}
 
 func TestAdminChatAuthorizationAndPrivacy(t *testing.T) {
 	enabled, disabled := true, false

@@ -65,6 +65,15 @@ server or game content.
 
 ## Admin chat commands
 
+Enter `/give {item_definition_id} [quantity]` to add items to your inventory, for
+example `/give ironSword 3` or `/give gold 1000`. Quantity defaults to one and must
+be a whole number from 1 to 2147483647. IDs are defined in
+[`itemcatalogue.go`](../../server/game/model/itemcatalogue.go). Stackable items
+merge into an existing stack when possible; non-stackable items get separate
+instances and inventory slots. The entire quantity must fit. Unknown IDs, invalid
+arguments, or insufficient inventory/stack capacity produce a private error
+without changing inventory.
+
 Enter `/reset` in the game chat to rebuild your character at the authored player
 spawn with the same defaults as a new player, including starter items and a new
 random appearance. This wipes inventory, equipment, quests, combat history,
