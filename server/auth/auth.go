@@ -225,6 +225,7 @@ func (m *Manager) sessionHandler(fn http.HandlerFunc) http.Handler {
 }
 func (m *Manager) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("GET /auth/guest", m.sessionHandler(m.guestLogin))
+	mux.Handle("POST /auth/guest", m.sessionHandler(m.guestLogin))
 	mux.Handle("GET /auth/login", m.sessionHandler(m.login))
 	mux.HandleFunc("GET /auth/callback", m.callback)
 	mux.Handle("GET /auth/session", m.sessionHandler(m.status))
@@ -254,6 +255,10 @@ func (m *Manager) guestLogin(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	if r.Method == http.MethodPost && !m.CheckOrigin(r) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	m.revoke(m.sessions.Token(r.Context()))
 	if err := m.sessions.Destroy(r.Context()); err != nil {
 		http.Error(w, "Login unavailable", 500)
@@ -265,6 +270,10 @@ func (m *Manager) guestLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	m.sessions.RememberMe(r.Context(), false)
 	m.startSession(r.Context(), model.EntityId(uuid.New()), "", time.Now().Add(m.lifetime), true)
+	if r.Method == http.MethodPost {
+		m.status(w, r)
+		return
+	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

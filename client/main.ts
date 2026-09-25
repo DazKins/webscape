@@ -11,6 +11,8 @@ let accountId = "";
 let csrfToken = "";
 let authenticated = false;
 let guest = false;
+// Deliberately page-local: refreshing must not restore a guest from its cookie.
+let pageGuestAccountId = "";
 let allowGuests = false;
 let signInEnabled = false;
 let username = "";
@@ -59,7 +61,7 @@ function renderUi() {
       guest,
       allowGuests,
       signInEnabled,
-      onGuest: () => { location.assign("/auth/guest"); },
+      onGuest: () => { void startGuest(); },
     })
   );
 }
@@ -85,6 +87,14 @@ async function checkSession(): Promise<boolean> {
   if (!response.ok) throw new Error("Session check failed");
   const session = await response.json();
   if (generation !== authGeneration) return false;
+  if (session.authenticated && session.guest && session.accountId !== pageGuestAccountId) {
+    const ended = await fetch("/auth/logout", {
+      method: "POST", headers: { "X-CSRF-Token": session.csrfToken }, signal: AbortSignal.timeout(10000),
+    });
+    if (!ended.ok) throw new Error("Could not end previous guest session");
+    if (generation !== authGeneration) return false;
+    return checkSession();
+  }
   guest = session.guest === true;
   allowGuests = session.allowGuests === true;
   signInEnabled = session.signInEnabled === true;
@@ -112,6 +122,23 @@ async function checkSession(): Promise<boolean> {
     registration.name = `guest-${Math.floor(Math.random() * 36 ** 5).toString(36).padStart(5, "0")}`;
   }
   return true;
+}
+
+async function startGuest() {
+  if (registration.phase !== "signedOut") return;
+  authGeneration++;
+  wsClient.disconnect();
+  setRegistration({ phase: "connecting", name: "", error: "" });
+  try {
+    const response = await fetch("/auth/guest", { method: "POST", signal: AbortSignal.timeout(10000) });
+    if (!response.ok) throw new Error("Guest login failed");
+    const session = await response.json();
+    pageGuestAccountId = session.accountId;
+    accountId = "";
+    await wsClient.connect();
+  } catch {
+    setRegistration({ phase: "signedOut", error: "Could not start a guest session. Please try again." });
+  }
 }
 
 async function logout() {

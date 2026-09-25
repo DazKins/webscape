@@ -117,7 +117,7 @@ export default function OnboardingOverlay({ state, allowGuests, signInEnabled, o
           <div>
             <h1 id="onboarding-title">{state.phase === "signedOut" ? "Your adventure awaits" : "The path is interrupted"}</h1>
             <p id="onboarding-description" className={styles.description}>
-              {state.phase === "signedOut" ? (allowGuests ? (signInEnabled ? "Sign in to return to your character, or play as a guest. Guest progress is not saved across sessions." : "Play without an account. Guest progress is not saved across sessions.") : "Sign in to enter the world and return to your character.") : "Check your connection, then try again."}
+              {state.phase === "signedOut" ? (allowGuests ? (signInEnabled ? "Sign in to return to your character, or play as a guest. Refreshing or leaving this page ends your guest session and loses your progress." : "Play without an account. Refreshing or leaving this page ends your guest session and loses your progress.") : "Sign in to enter the world and return to your character.") : "Check your connection, then try again."}
             </p>
             {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
             {state.phase === "signedOut" ? (

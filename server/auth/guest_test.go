@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -39,7 +40,7 @@ func TestGuestSessionsWithoutProvider(t *testing.T) {
 		t.Fatal(first, second)
 	}
 	if again := sessionStatus(t, a, app.URL); again["accountId"] != first["accountId"] {
-		t.Fatal("reload lost guest identity")
+		t.Fatal("connection retry lost guest identity")
 	}
 	u, _ := url.Parse(app.URL)
 	var token string
@@ -96,6 +97,50 @@ func TestGuestSessionsWithoutProvider(t *testing.T) {
 	res.Body.Close()
 	if res.StatusCode != 404 {
 		t.Fatal("guest mode exposed OIDC callback")
+	}
+}
+
+func TestGuestStartsWithoutNavigation(t *testing.T) {
+	f := setup(t, true)
+	for _, origin := range []string{"", "https://evil.example", f.server.URL} {
+		req, _ := http.NewRequest(http.MethodPost, f.server.URL+"/auth/guest", nil)
+		if origin != "" {
+			req.Header.Set("Origin", origin)
+		}
+		res, err := f.browser.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if origin != f.server.URL {
+			res.Body.Close()
+			if res.StatusCode != http.StatusForbidden {
+				t.Fatalf("origin %q: got %d", origin, res.StatusCode)
+			}
+			if sessionStatus(t, f.browser, f.server.URL)["authenticated"] != false {
+				t.Fatal("rejected request created a session")
+			}
+			continue
+		}
+		var session map[string]any
+		err = json.NewDecoder(res.Body).Decode(&session)
+		res.Body.Close()
+		if err != nil || res.StatusCode != http.StatusOK || session["authenticated"] != true || session["guest"] != true || session["accountId"] == "" || session["csrfToken"] == "" {
+			t.Fatalf("guest start: status %d, session %v, error %v", res.StatusCode, session, err)
+		}
+		if again := sessionStatus(t, f.browser, f.server.URL); again["accountId"] != session["accountId"] {
+			t.Fatal("connection retry changed guest identity")
+		}
+		req, _ = http.NewRequest(http.MethodPost, f.server.URL+"/auth/logout", nil)
+		req.Header.Set("Origin", f.server.URL)
+		req.Header.Set("X-CSRF-Token", session["csrfToken"].(string))
+		res, err = f.browser.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		if res.StatusCode != http.StatusNoContent || sessionStatus(t, f.browser, f.server.URL)["authenticated"] != false {
+			t.Fatal("page restart could not clear guest session")
+		}
 	}
 }
 
