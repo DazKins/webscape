@@ -9,13 +9,13 @@ type Props = {
   authenticated: boolean;
   guest: boolean;
   onLogout: () => void;
-  devMode: boolean;
-  onToggleDevMode: () => void;
+  debugMode: boolean;
+  onToggleDebugMode: () => void;
 };
 
 const buildSuffix = __BUILD_DIRTY__ ? "-dirty" : "";
 
-export default function PauseMenu({ game, registration, authenticated, guest, onLogout, devMode, onToggleDevMode }: Props) {
+export default function PauseMenu({ game, registration, authenticated, guest, onLogout, debugMode, onToggleDebugMode }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const open = () => {
@@ -91,8 +91,8 @@ export default function PauseMenu({ game, registration, authenticated, guest, on
           <button className={styles.resume} type="button" autoFocus onClick={() => dialogRef.current?.close()}>
             Return to game
           </button>
-          <button className={styles.action} type="button" aria-pressed={devMode} onClick={onToggleDevMode}>
-            {devMode ? "Disable dev mode" : "Enable dev mode"}
+          <button className={styles.action} type="button" aria-pressed={debugMode} onClick={onToggleDebugMode}>
+            {debugMode ? "Disable debug mode" : "Enable debug mode"}
           </button>
           <a
             className={styles.action}

@@ -8,7 +8,7 @@
   pointer-events: none;
 }
 
-.devMode {
+.debugMode {
   --debug-panel-width: 200px;
   --debug-panel-offset: 212px;
 }
@@ -20,7 +20,7 @@
     --minimap-left: calc(max(8px, var(--safe-area-left)) + var(--debug-panel-offset, 0px));
   }
 
-  .devMode {
+  .debugMode {
     --debug-panel-width: 164px;
     --debug-panel-offset: 176px;
   }

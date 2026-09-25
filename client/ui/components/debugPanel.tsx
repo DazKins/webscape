@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import type Game from "../../game/game";
-import styles from "./devDebugPanel.module.css";
+import styles from "./debugPanel.module.css";
 
 function readStats(game: Game, fps: number | null) {
   const { renderer } = game;
+  const position = game.getMyEntity()?.getComponent("position");
   return {
     fps,
+    playerX: position?.x ?? null,
+    playerY: position?.y ?? null,
     timing: game.renderTiming?.takeSample(),
     calls: renderer.info.render.calls,
     triangles: renderer.info.render.triangles,
@@ -17,7 +20,7 @@ function readStats(game: Game, fps: number | null) {
   };
 }
 
-export default function DevDebugPanel({ game }: { game: Game }) {
+export default function DebugPanel({ game }: { game: Game }) {
   const [stats, setStats] = useState(() => readStats(game, null));
 
   useEffect(() => {
@@ -49,12 +52,14 @@ export default function DevDebugPanel({ game }: { game: Game }) {
   }, [game]);
 
   return (
-    <aside className={styles.panel} aria-label="Rendering debug information">
-      <h2>Dev mode</h2>
+    <aside className={styles.panel} aria-label="Debug information">
+      <h2>Debug mode</h2>
       <div className={styles.fps}>
         <strong>{stats.fps === null ? "—" : stats.fps.toFixed(1)}</strong> FPS
       </div>
       <dl>
+        <dt>Player X</dt><dd>{stats.playerX ?? "—"}</dd>
+        <dt>Player Y</dt><dd>{stats.playerY ?? "—"}</dd>
         <dt>Frame interval</dt><dd>{stats.fps ? `${(1000 / stats.fps).toFixed(1)} ms` : "—"}</dd>
         <dt>Draw CPU</dt><dd>{stats.timing?.cpuMs != null ? `${stats.timing.cpuMs.toFixed(2)} ms` : "—"}</dd>
         <dt>Draw GPU</dt><dd>{stats.timing?.gpuMs != null ? `${stats.timing.gpuMs.toFixed(2)} ms` : stats.timing?.gpuSupported === false ? "N/A" : "—"}</dd>

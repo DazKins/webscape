@@ -8,7 +8,7 @@ import BankPanel from "./components/bankPanel";
 import ShopPanel from "./components/shopPanel";
 import PlayerVitals from "./components/playerVitals";
 import PauseMenu from "./components/pauseMenu";
-import DevDebugPanel from "./components/devDebugPanel";
+import DebugPanel from "./components/debugPanel";
 import Minimap from "./components/minimap";
 import ConversationPanel from "./components/conversationPanel";
 import { QuestPanelContent } from "./components/questPanel";
@@ -159,7 +159,7 @@ export default function UiRoot(props: Props) {
   const [rightTab, setRightTab] = useState<RightTab>("inventory");
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
-  const [devMode, setDevMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const profile = useDeviceProfile(props.game);
 
   const stopHudEvent = (event: SyntheticEvent) => {
@@ -216,8 +216,8 @@ export default function UiRoot(props: Props) {
       authenticated={props.authenticated}
       guest={props.guest}
       onLogout={props.onLogout}
-      devMode={devMode}
-      onToggleDevMode={() => setDevMode((enabled) => !enabled)}
+      debugMode={debugMode}
+      onToggleDebugMode={() => setDebugMode((enabled) => !enabled)}
     />
   );
 
@@ -227,8 +227,8 @@ export default function UiRoot(props: Props) {
 
   if (profile.isMobileLayout) {
     return (
-      <div className={`${styles.root} ${devMode ? styles.devMode : ""}`}>
-        {devMode && <DevDebugPanel game={props.game} />}
+      <div className={`${styles.root} ${debugMode ? styles.debugMode : ""}`}>
+        {debugMode && <DebugPanel game={props.game} />}
         <Minimap game={props.game} />
         <PlayerVitals game={props.game} />
         <div
@@ -282,9 +282,9 @@ export default function UiRoot(props: Props) {
 
   return (
     <div
-      className={`${styles.root} ${devMode ? styles.devMode : ""}`}
+      className={`${styles.root} ${debugMode ? styles.debugMode : ""}`}
     >
-      {devMode && <DevDebugPanel game={props.game} />}
+      {debugMode && <DebugPanel game={props.game} />}
       <Minimap game={props.game} />
       <PlayerVitals game={props.game} />
       <div
