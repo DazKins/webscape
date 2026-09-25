@@ -1,7 +1,9 @@
-export const TERRAIN_SWATCHES = ["grass", "dirt", "road", "water", "stone"];
+export const TERRAIN_SWATCHES = ["grass", "grassShort", "grassLong", "dirt", "road", "water", "stone"];
 
 export function terrainColor(terrain: string): string {
   const builtIn: Record<string, string> = {
+    grassShort: "#73964f",
+    grassLong: "#698c46",
     grass: "#73964f",
     dirt: "#9a6b42",
     road: "#b8ab88",

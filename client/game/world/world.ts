@@ -236,6 +236,7 @@ class World {
         }
       }
       const chunk: ChunkBuild = { sizeX: this.chunkSize.x, sizeY: this.chunkSize.y,
+        originX: visual.data.coordinate.x * this.chunkSize.x, originY: visual.data.coordinate.y * this.chunkSize.y,
         heights, terrain: visual.data.terrain, walls: visual.data.walls ?? [] };
       this.building = true;
       constructionClient.run({ kind: "chunk", chunk }).then(result => {
@@ -253,9 +254,14 @@ class World {
   private installSurfaces(chunk: ChunkVisual, surfaces: ChunkSurfaces) {
     chunk.terrainMesh.geometry.dispose();
     chunk.terrainMesh.geometry = unpackGeometry(surfaces.terrain);
-    for (const name of ["chunkWater", "chunkWalls"]) {
+    for (const name of ["chunkWater", "chunkWalls", "chunkDetails"]) {
       const old = chunk.root.getObjectByName(name);
       if (old) { disposeObject(old); chunk.root.remove(old); }
+    }
+    if (surfaces.details.attributes.position.array.length > 0) {
+      const details = new THREE.Mesh(unpackGeometry(surfaces.details), new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+      details.name = "chunkDetails";
+      chunk.root.add(details);
     }
     chunk.waterMaterial = undefined;
     if (surfaces.water.attributes.position.array.length > 0) {

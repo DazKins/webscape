@@ -94,7 +94,7 @@ components:
 
     TerrainType:
       type: string
-      description: Freeform tile terrain identifier, such as `grass`, `road`, or `water`.
+      description: Freeform tile terrain identifier. Built-in appearances are `grass` (short grass), `grassShort`, `grassLong`, `stone`, `dirt`, `road`, and `water`. Grass length and scattered stones are cosmetic and do not change movement.
 
     WorldEntity:
       type: object

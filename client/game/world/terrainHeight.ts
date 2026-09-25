@@ -62,7 +62,7 @@ export function sampleTerrainHeight(
 export function createTerrainSurfaceGeometry(
   grid: TerrainHeightGrid,
   terrain: string[],
-  terrainColorForTile: (terrainType: string) => THREE.ColorRepresentation
+  terrainColorForTile: (terrainType: string, x: number, y: number) => THREE.ColorRepresentation
 ) {
   const positions: number[] = [];
   const colors: number[] = [];
@@ -76,7 +76,7 @@ export function createTerrainSurfaceGeometry(
       const vertexOffset = positions.length / 3;
       const terrainType = terrain[tileY * grid.sizeX + tileX] ?? "";
 
-      color.set(terrainColorForTile(terrainType));
+      color.set(terrainColorForTile(terrainType, tileX, tileY));
 
       for (const z of zCoords) {
         for (const x of xCoords) {

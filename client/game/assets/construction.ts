@@ -1,4 +1,7 @@
 import * as THREE from "three";
+import { variedTerrainColor } from "../world/terrainAppearance";
+import { createTerrainDetails } from "../world/terrainDetails";
+export { terrainColor } from "../world/terrainAppearance";
 import { geometryAssets, sharedGeometry } from "../models/assetCache";
 import { modelNames, modelRegistry, type ModelName } from "../models/registry";
 import { addWallGeometry, type WorldWall } from "../renderer/rendererWall";
@@ -8,13 +11,14 @@ import { packGeometry, type GeometryData } from "./geometryData";
 
 export type ChunkBuild = {
   sizeX: number; sizeY: number;
+  originX?: number; originY?: number;
   // A one-tile border makes sampling independent of live main-thread world data.
   heights: number[];
   terrain: string[];
   walls: WorldWall[];
 };
 export type WallPart = { geometry: number; type: string; position: number[]; quaternion: number[] };
-export type ChunkSurfaces = { terrain: GeometryData; water: GeometryData; wallGeometries: [string, GeometryData][]; walls: WallPart[] };
+export type ChunkSurfaces = { terrain: GeometryData; details: GeometryData; water: GeometryData; wallGeometries: [string, GeometryData][]; walls: WallPart[] };
 export type ConstructionRequest = { kind: "warmModels" } | { kind: "model"; name: ModelName; options: ModelOptions } | { kind: "chunk"; chunk: ChunkBuild };
 export type ConstructionResult = { kind: "warmModels"; geometries: [string, GeometryData][] } | { kind: "chunk"; surfaces: ChunkSurfaces };
 
@@ -42,7 +46,8 @@ export function construct(request: ConstructionRequest): ConstructionResult {
     heights: Array.from({ length: chunk.sizeX * chunk.sizeY }, (_, index) => chunk.heights[(Math.floor(index / chunk.sizeX) + 1) * (chunk.sizeX + 2) + index % chunk.sizeX + 1]),
     sampleOutside: (x, y) => (chunk.heights[(y + 1) * (chunk.sizeX + 2) + x + 1] ?? 0) * TERRAIN_HEIGHT_SCALE,
   };
-  const terrain = createTerrainSurfaceGeometry(grid, chunk.terrain, terrainColor);
+  const terrain = createTerrainSurfaceGeometry(grid, chunk.terrain, (type, x, y) => variedTerrainColor(type, x + (chunk.originX ?? 0), y + (chunk.originY ?? 0)));
+  const details = createTerrainDetails(grid, chunk.terrain, chunk.originX ?? 0, chunk.originY ?? 0);
   const water = createWaterSurfaceGeometry(grid, chunk.terrain);
   const root = new THREE.Group();
   addWallGeometry(root, chunk.walls, (x, z) => sampleTerrainHeight(grid, x, z), false);
@@ -54,23 +59,12 @@ export function construct(request: ConstructionRequest): ConstructionResult {
     walls.push({ geometry: geometries.get(object.geometry)!, type: object.material.userData.wallType,
       position: object.position.toArray(), quaternion: object.quaternion.toArray() });
   });
-  const surfaces = { terrain: packGeometry(terrain), water: packGeometry(water),
+  const surfaces = { terrain: packGeometry(terrain), details: packGeometry(details), water: packGeometry(water),
     wallGeometries: [...geometries.keys()].map((geometry): [string, GeometryData] => [geometry.userData.assetKey, packGeometry(geometry)]), walls };
-  terrain.dispose(); water.dispose();
+  terrain.dispose(); details.dispose(); water.dispose();
   return { kind: "chunk", surfaces };
 }
 
 export function installModelGeometry(geometries: [string, GeometryData][], unpack: (data: GeometryData) => THREE.BufferGeometry) {
   for (const [key, data] of geometries) sharedGeometry(key, () => unpack(data));
-}
-
-export function terrainColor(type: string) {
-  switch (type) {
-    case "grass": return 0x73964f;
-    case "dirt": return 0x9a6b42;
-    case "road": return 0xb8ab88;
-    case "water": return 0x4f8fb8;
-    case "stone": return 0x8b9296;
-    default: return 0xe77d11;
-  }
 }

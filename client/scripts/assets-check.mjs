@@ -73,6 +73,31 @@ try {
     for (const name of ["position", "normal", "uv"]) {
       check(JSON.stringify([...local.surfaces.water.attributes[name].array]) === JSON.stringify([...remote.surfaces.water.attributes[name].array]), `worker water ${name} mismatch`);
     }
+    for (const name of ["position", "normal", "color"]) {
+      check(JSON.stringify([...local.surfaces.details.attributes[name].array]) === JSON.stringify([...remote.surfaces.details.attributes[name].array]), `worker detail ${name} mismatch`);
+    }
+    const serialize = value => JSON.stringify(value);
+    const flat = { sizeX: 4, sizeY: 4, heights: Array(36).fill(0), terrain: Array(16).fill("grassLong"), walls: [], originX: -32, originY: 64 };
+    const detailBuild = input => construct({ kind: "chunk", chunk: input }).surfaces;
+    const first = detailBuild(flat), repeated = detailBuild(flat);
+    check(serialize(first) === serialize(repeated), "terrain changed on regeneration");
+    const shifted = detailBuild({ ...flat, originX: 0 });
+    check(serialize(first.details) !== serialize(shifted.details), "chunks repeat decoration patterns");
+    check(serialize(first.terrain.attributes.color) !== serialize(shifted.terrain.attributes.color), "chunks repeat colour patterns");
+    check(first.details.attributes.position.array.length / 9 >= 16 * 12, "long grass has bare tiles below its density floor");
+    const short = detailBuild({ ...flat, terrain: Array(16).fill("grassShort") });
+    const maxHeight = surface => Math.max(...surface.attributes.position.array.filter((_, i) => i % 3 === 1));
+    check(maxHeight(first.details) > maxHeight(short.details) * 1.5, "grass length variants indistinguishable");
+    for (const [type, limit] of [["grassLong", 36], ["grassShort", 12], ["stone", 15], ["water", 0], ["dirt", 0], ["unknown", 0]]) {
+      const surface = detailBuild({ ...flat, terrain: Array(16).fill(type) }).details;
+      check(surface.attributes.position.array.length / 9 <= 16 * limit, `${type} exceeded triangle budget`);
+      check([...surface.attributes.position.array].every(Number.isFinite), `${type} has invalid vertices`);
+    }
+    const { variedTerrainColor, terrainColor: baseColor } = await import("/game/world/terrainAppearance.ts");
+    for (let x = -20; x < 20; x++) {
+      const color = variedTerrainColor("grass", x, 3), base = new THREE.Color(baseColor("grass"));
+      check(Math.abs(color.r / base.r - 1) <= 0.0451, "tile colour outside subtle variation range");
+    }
     check(JSON.stringify(local.surfaces.walls) === JSON.stringify(remote.surfaces.walls), "worker wall placement mismatch");
     // Duplicate vertices must agree across tile colors, water, and chunk seams.
     const normalsByPosition = new Map();
@@ -137,7 +162,12 @@ try {
     liveWall.geometry.addEventListener("dispose", () => wallDisposed++);
     clearSharedAssets();
     check(wallDisposed === 0, "cache clear disposed live wall");
+    const liveDetails = visual.root.getObjectByName("chunkDetails");
+    check(Boolean(liveDetails), "chunk decorations never attached");
+    let detailsDisposed = 0;
+    liveDetails?.geometry.addEventListener("dispose", () => detailsDisposed++);
     world.applyChunkUpdate({load:[data]}); world.dispose();
+    check(detailsDisposed === 1, "chunk detail geometry was not disposed once");
     await new Promise(resolve=>setTimeout(resolve,50));
     check(world.chunks.size === 0, "disposed world resurrected chunks");
     // Worker failures must keep the client usable through the local fallback.

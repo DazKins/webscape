@@ -67,3 +67,19 @@ From `client/`:
   ownership, actual worker execution, terrain/water/wall parity, transferable
   reuse, stale results, neighboring borders and worker failure fallback.
 - `node scripts/model-screenshot.mjs --model human --animation run --phase 0.25`
+
+Terrain appearances live in `../world/terrainAppearance.ts`. `grass` and
+`grassShort` use short tufts; `grassLong` uses taller, denser tufts (4–12 per tile);
+`stone` adds tiny pebbles. Other types retain bare surfaces. Tile colours and
+scatter use deterministic global-coordinate/type seeds. Colours vary only in
+brightness (up to 4.5% for grass), and geometry does not change on reload.
+Details follow the rendered terrain triangles and are cosmetic: they do not
+participate in collision, picking, or server state. The editor exposes these
+identifiers with matching base-colour swatches; it does not preview the scatter.
+
+The chunk worker produces one extra opaque vertex-coloured mesh, with no
+animation or shadow casting. Maximum detail triangles per tile: short grass 12,
+long grass 36, stone 15. Long grass averages 24 detail triangles per tile;
+short grass and stone average roughly half their caps. Chunk culling
+and disposal apply to the whole detail mesh. No per-tuft objects are retained.
+The east meadow has a short/long grass sample beside its northern stone court.
