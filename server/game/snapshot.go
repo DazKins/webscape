@@ -26,6 +26,9 @@ func (g *Game) Snapshot() ([]byte, error) {
 	defer g.stateMutex.Unlock()
 	s := gameSnapshot{Version: 2, Players: map[string]map[string]component.SavedComponent{}}
 	add := func(id model.EntityId, c component.Component) error {
+		if g.guestPlayers[id] {
+			return nil
+		}
 		saved, err := component.SaveComponent(c)
 		if err != nil {
 			return fmt.Errorf("save entity %s: %w", id.String(), err)

@@ -212,3 +212,30 @@ func TestRestartResetsWorldInteractions(t *testing.T) {
 		}
 	}
 }
+
+func TestGuestProgressExcludedFromSnapshots(t *testing.T) {
+	g := snapshotGame(t)
+	guest, account := model.NewEntityId(), model.NewEntityId()
+	g.HandleRegisterGuest("guest", guest, "Guest")
+	g.HandleRegister("account", account, "Account")
+	g.componentManager.GetEntityComponent(component.ComponentIdHealth, guest).(*component.CHealth).SetCurrentHealth(42)
+	check := func() {
+		t.Helper()
+		var saved gameSnapshot
+		if err := json.Unmarshal(savedBytes(t, g), &saved); err != nil {
+			t.Fatal(err)
+		}
+		if len(saved.Players) != 1 || saved.Players[account.String()] == nil || saved.Players[guest.String()] != nil {
+			t.Fatal("snapshot must contain only the account")
+		}
+	}
+	check()
+	g.HandleLeave("guest")
+	g.HandleLeave("account")
+	check()
+	g.HandleRegisterGuest("reconnected", guest, "Guest")
+	if got := g.componentManager.GetEntityComponent(component.ComponentIdHealth, guest).(*component.CHealth).GetCurrentHealth(); got != 42 {
+		t.Fatal("guest lost progress within session", got)
+	}
+	check()
+}

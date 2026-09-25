@@ -170,3 +170,8 @@
   font: inherit;
   cursor: pointer;
 }
+
+.loginActions {
+  display: grid;
+  gap: 12px;
+}

@@ -11,6 +11,8 @@ let accountId = "";
 let csrfToken = "";
 let authenticated = false;
 let guest = false;
+let allowGuests = false;
+let signInEnabled = false;
 let username = "";
 let authGeneration = 0;
 let takeoverNextConnection = false;
@@ -55,6 +57,9 @@ function renderUi() {
       onLogout: () => { void logout(); },
       authenticated,
       guest,
+      allowGuests,
+      signInEnabled,
+      onGuest: () => { location.assign("/auth/guest"); },
     })
   );
 }
@@ -81,6 +86,8 @@ async function checkSession(): Promise<boolean> {
   const session = await response.json();
   if (generation !== authGeneration) return false;
   guest = session.guest === true;
+  allowGuests = session.allowGuests === true;
+  signInEnabled = session.signInEnabled === true;
   username = typeof session.username === "string" ? session.username : "";
   if (!session.authenticated) {
     authenticated = false;
@@ -100,7 +107,7 @@ async function checkSession(): Promise<boolean> {
   csrfToken = session.csrfToken;
   accountId = session.accountId;
   if (username) registration.name = username;
-  else if (!registration.name) registration.name = localStorage.getItem(`playerName:${accountId}`) ?? "";
+  else if (!guest && !registration.name) registration.name = localStorage.getItem(`playerName:${accountId}`) ?? "";
   if (guest && !registration.name) {
     registration.name = `guest-${Math.floor(Math.random() * 36 ** 5).toString(36).padStart(5, "0")}`;
   }
@@ -140,7 +147,7 @@ const wsClient = new WebSocketClient({
     if (event.code === 4001) {
       authenticated = false;
       csrfToken = "";
-      setRegistration({ phase: "signedOut", error: "Your sign-in session has ended. Please sign in again.", idleWarningUntil: undefined });
+      setRegistration({ phase: "signedOut", error: "Your session has ended. Please start a new session.", idleWarningUntil: undefined });
     } else if (event.code === 4003) {
       setRegistration({ phase: "replaced", error: "", idleWarningUntil: undefined });
     } else if (event.code === 4002 || (registration.phase === "registered" && idleDeadline > 0 && Date.now() >= idleDeadline)) {
@@ -176,7 +183,7 @@ const wsClient = new WebSocketClient({
         idleDeadline = Date.now() + idleTimeoutMs;
         lastActivitySent = 0;
         game.registerMyPlayerId(data.entityId);
-        if (!username) window.localStorage.setItem(`playerName:${accountId}`, data.name);
+        if (!guest && !username) window.localStorage.setItem(`playerName:${accountId}`, data.name);
         setRegistration({ phase: "registered", name: data.name, error: "", idleWarningUntil: undefined });
         break;
       case "inactivity":

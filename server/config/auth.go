@@ -11,6 +11,7 @@ import (
 // AuthConfig describes a confidential OIDC web client. Credentials are resolved
 // only at startup, never exposed by the browser configuration endpoint.
 type AuthConfig struct {
+	AllowGuests            bool   `json:"allowGuests,omitempty"`
 	Mode                   string `json:"mode,omitempty"`
 	Issuer                 string `json:"issuer"`
 	ClientID               string `json:"clientId"`

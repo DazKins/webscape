@@ -98,3 +98,54 @@ func TestGuestSessionsWithoutProvider(t *testing.T) {
 		t.Fatal("guest mode exposed OIDC callback")
 	}
 }
+
+func TestGuestAndSignInTogether(t *testing.T) {
+	f := setup(t, true)
+	app := f.server.URL
+	status := sessionStatus(t, f.browser, app)
+	if status["allowGuests"] != true || status["signInEnabled"] != true || status["authenticated"] != false {
+		t.Fatal(status)
+	}
+	res := oidctest.Get(t, f.browser, app+"/auth/guest")
+	for _, cookie := range res.Cookies() {
+		if !cookie.Expires.IsZero() || cookie.MaxAge > 0 {
+			t.Fatal("guest cookie persisted")
+		}
+	}
+	guest := sessionStatus(t, f.browser, app)
+	if guest["guest"] != true || guest["authenticated"] != true {
+		t.Fatal(guest)
+	}
+	u, _ := url.Parse(app)
+	token := f.browser.Jar.Cookies(u)[0].Value
+	lease := f.manager.leases[token]
+	if lease == nil || !lease.Guest {
+		t.Fatal("guest lease missing")
+	}
+
+	oidctest.Login(t, f.browser, app, "one")
+	signedIn := sessionStatus(t, f.browser, app)
+	if signedIn["guest"] != false || signedIn["accountId"] != PlayerID(f.provider.URL, "one").String() || lease.Active() {
+		t.Fatal("guest to account transition failed", signedIn)
+	}
+	oidctest.Get(t, f.browser, app+"/auth/guest")
+	next := sessionStatus(t, f.browser, app)
+	if next["guest"] != true || next["accountId"] == guest["accountId"] || next["accountId"] == signedIn["accountId"] {
+		t.Fatal("guest reused previous progress", next)
+	}
+	oidctest.Login(t, f.browser, app, "one")
+	if sessionStatus(t, f.browser, app)["accountId"] != signedIn["accountId"] {
+		t.Fatal("account identity changed")
+	}
+}
+
+func TestGuestEndpointDisabled(t *testing.T) {
+	f := setup(t)
+	res := oidctest.Get(t, f.browser, f.server.URL+"/auth/guest")
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatal(res.StatusCode)
+	}
+	if sessionStatus(t, f.browser, f.server.URL)["authenticated"] != false {
+		t.Fatal("guest login accepted")
+	}
+}

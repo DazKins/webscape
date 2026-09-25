@@ -21,11 +21,12 @@ type fixture struct {
 	browser  *http.Client
 }
 
-func setup(t *testing.T) fixture {
+func setup(t *testing.T, allowGuests ...bool) fixture {
 	t.Helper()
 	p := oidctest.New(t)
 	server := httptest.NewUnstartedServer(nil)
 	cfg := p.Config("http://" + server.Listener.Addr().String())
+	cfg.AllowGuests = len(allowGuests) > 0 && allowGuests[0]
 	m, err := New(context.Background(), cfg, true)
 	if err != nil {
 		t.Fatal(err)

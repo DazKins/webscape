@@ -351,3 +351,11 @@ func (w *wsServer) PlayerID(clientID string) (model.EntityId, string, bool) {
 	}
 	return c.session.PlayerID, c.session.Username, true
 }
+
+// IsGuest uses only the server-issued session, never client claims.
+func (w *wsServer) IsGuest(clientID string) bool {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	c := w.clients[clientID]
+	return c != nil && c.session.Guest
+}

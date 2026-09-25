@@ -16,6 +16,7 @@ import (
 type MessageSender func(clientId string, message message.Message)
 
 type ClientCommandHandler struct {
+	isGuest    func(string) bool
 	onActivity func(string)
 	onTakeover func(string)
 	game       *game.Game
@@ -113,6 +114,10 @@ func (h *ClientCommandHandler) handleRegisterCommand(clientID string, cmd comman
 			h.onActivity(clientID)
 		}
 	}()
+	if h.isGuest != nil && h.isGuest(clientID) {
+		h.game.HandleRegisterGuest(clientID, id, name)
+		return
+	}
 	if username != "" {
 		h.game.HandleRegisterWithUsername(clientID, id, username)
 		return

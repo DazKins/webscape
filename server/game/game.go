@@ -49,6 +49,7 @@ type Game struct {
 	fishingSystem     *system.FishingSystem
 	stateTransitions  *system.EntityStateTransitions
 
+	guestPlayers     map[model.EntityId]bool
 	offlinePlayers   map[model.EntityId][]component.Component
 	afterTick        func()
 	loopStopped      chan struct{}
@@ -615,15 +616,20 @@ func (g *Game) deliverQuestRewards(
 }
 
 func (g *Game) HandleRegister(clientID string, id model.EntityId, name string) {
-	g.handleRegister(clientID, id, name, false)
+	g.handleRegister(clientID, id, name, false, false)
 }
 
 // HandleRegisterWithUsername refreshes the character name from a verified identity.
 func (g *Game) HandleRegisterWithUsername(clientID string, id model.EntityId, username string) {
-	g.handleRegister(clientID, id, username, true)
+	g.handleRegister(clientID, id, username, true, false)
 }
 
-func (g *Game) handleRegister(clientID string, id model.EntityId, name string, providerName bool) {
+// HandleRegisterGuest retains progress only within the current guest session.
+func (g *Game) HandleRegisterGuest(clientID string, id model.EntityId, name string) {
+	g.handleRegister(clientID, id, name, false, true)
+}
+
+func (g *Game) handleRegister(clientID string, id model.EntityId, name string, providerName, guest bool) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
@@ -658,6 +664,12 @@ func (g *Game) handleRegister(clientID string, id model.EntityId, name string, p
 	if g.componentManager.HasEntity(id) {
 		g.sendMessage(clientID, message.NewRegistrationFailedMessage("player id belongs to a world entity"))
 		return
+	}
+	if guest {
+		if g.guestPlayers == nil {
+			g.guestPlayers = make(map[model.EntityId]bool)
+		}
+		g.guestPlayers[id] = true
 	}
 	components, returning := g.offlinePlayers[id]
 	if !returning {

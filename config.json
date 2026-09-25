@@ -30,6 +30,7 @@
     "timeoutSeconds": 10
   },
   "auth": {
+    "allowGuests": true,
     "issuer": "https://identity.example.com",
     "clientId": "webscape",
     "clientSecretEnv": "WEBSCAPE_OIDC_CLIENT_SECRET",

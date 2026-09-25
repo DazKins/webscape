@@ -50,3 +50,14 @@ func TestExplicitGuestConfiguration(t *testing.T) {
 		t.Fatal("unknown mode accepted")
 	}
 }
+
+func TestGuestsAlongsideOIDCInProduction(t *testing.T) {
+	cfg := AuthConfig{AllowGuests: true, Issuer: "https://id.example.com", ClientID: "game", ClientSecretEnv: "TEST_SECRET", PublicURL: "https://game.example.com", SessionLifetimeSeconds: 3600}
+	if err := cfg.Validate(false); err != nil {
+		t.Fatal(err)
+	}
+	cfg.ClientID = ""
+	if cfg.Validate(false) == nil {
+		t.Fatal("guest access bypassed required OIDC configuration")
+	}
+}

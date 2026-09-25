@@ -22,7 +22,9 @@ export type RegistrationViewState = {
 };
 
 type Props = {
-  guest: boolean;
+  allowGuests: boolean;
+  signInEnabled: boolean;
+  onGuest: () => void;
   state: RegistrationViewState;
   onRegister: (name: string) => void;
   onLogin: () => void;
@@ -41,7 +43,7 @@ function validateName(name: string): string {
   return "";
 }
 
-export default function OnboardingOverlay({ state, guest, onRegister, onLogin, onRetry, onStayConnected }: Props) {
+export default function OnboardingOverlay({ state, allowGuests, signInEnabled, onGuest, onRegister, onLogin, onRetry, onStayConnected }: Props) {
   const [name, setName] = useState(state.name);
   const [validationError, setValidationError] = useState("");
   const [serverError, setServerError] = useState(state.error);
@@ -115,12 +117,15 @@ export default function OnboardingOverlay({ state, guest, onRegister, onLogin, o
           <div>
             <h1 id="onboarding-title">{state.phase === "signedOut" ? "Your adventure awaits" : "The path is interrupted"}</h1>
             <p id="onboarding-description" className={styles.description}>
-              {state.phase === "signedOut" ? (guest ? "Play without an account. Your guest character lasts for this session." : "Sign in to enter the world and return to your character.") : "Check your connection, then try again."}
+              {state.phase === "signedOut" ? (allowGuests ? (signInEnabled ? "Sign in to return to your character, or play as a guest. Guest progress is not saved across sessions." : "Play without an account. Guest progress is not saved across sessions.") : "Sign in to enter the world and return to your character.") : "Check your connection, then try again."}
             </p>
             {state.error && <p role="alert" className={styles.error}>{state.error}</p>}
-            <button type="button" onClick={state.phase === "signedOut" ? onLogin : onRetry}>
-              {state.phase === "signedOut" ? (guest ? "Play as guest" : "Sign in") : "Reconnect"}
-            </button>
+            {state.phase === "signedOut" ? (
+              <div className={styles.loginActions}>
+                {signInEnabled && <button type="button" onClick={onLogin}>Sign in</button>}
+                {allowGuests && <button type="button" onClick={onGuest}>Play as guest</button>}
+              </div>
+            ) : <button type="button" onClick={onRetry}>Reconnect</button>}
           </div>
         ) : isNameEntry ? (
           <form onSubmit={handleSubmit} noValidate>

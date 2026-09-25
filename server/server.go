@@ -106,6 +106,7 @@ func Start(ctx context.Context, distFS fs.FS, gameWorld *world.World, address st
 	}
 	ws := NewWsServer(connections...)
 	handler := NewClientCommandHandler(g, ws.PlayerID)
+	handler.isGuest = ws.IsGuest
 	handler.onActivity = ws.RecordActivity
 	handler.onTakeover = ws.ReplacePlayer
 	// Drain in-flight commands before the final save. WebSockets are hijacked

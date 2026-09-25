@@ -29,6 +29,9 @@ type Props = {
   onLogout: () => void;
   authenticated: boolean;
   guest: boolean;
+  allowGuests: boolean;
+  signInEnabled: boolean;
+  onGuest: () => void;
 };
 
 type LeftTab = "chat" | "combat";
@@ -203,7 +206,7 @@ export default function UiRoot(props: Props) {
   const activeMobileLabel =
     mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
   const onboarding = (
-    <OnboardingOverlay guest={props.guest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} onStayConnected={props.onStayConnected} />
+    <OnboardingOverlay allowGuests={props.allowGuests} signInEnabled={props.signInEnabled} onGuest={props.onGuest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} onStayConnected={props.onStayConnected} />
   );
 
   const pauseMenu = (

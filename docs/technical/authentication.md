@@ -80,21 +80,32 @@ To test without any provider, explicitly set `server.devMode` to `true` and use:
 ```
 
 No issuer, client ID or secret is needed in this mode. Use the actual HTTPS origin
-for a hosted testing preview. The client shows **Play as guest**, followed by name
-entry. Anyone who can access this server can play; this mode is for testing.
+for a hosted testing preview. The client shows **Play as guest** and assigns a guest name. Anyone who can access this server can play; this mode is for testing.
 
 The server assigns a random guest character ID and keeps it in a cookie-backed
 session. Reload/reconnect keeps that ID while the session remains valid. Ending
 the session, expiry, clearing cookies or restarting the server loses access to
 that guest character; a new session starts with a new ID. Guest IDs cannot claim
-OIDC characters or old anonymous saves. With persistence enabled, guest snapshots
-may remain stored but are not recoverable after the session ends; prefer a
-separate test world with `persistence.driver: "none"`.
+OIDC characters or old anonymous saves. Guest characters are excluded from persistence snapshots, including while connected.
 
 Origin checks, CSRF-protected session termination, socket expiry and server-side
-command validation still apply. Guest cookies are separate from OIDC cookies.
+command validation still apply. Provider-free testing uses a separate cookie name.
 Omitting `auth.mode` means `oidc`; unknown modes, missing OIDC credentials and
 provider discovery errors fail startup rather than enabling guest play.
+
+## Allow guests alongside sign-in
+
+Set `auth.allowGuests: true` alongside the normal OIDC configuration (as in
+`config.json`). The startup screen offers **Sign in** and **Play as guest**.
+This option works in production as well as development. Omit it or set it to
+`false` to require sign-in. The existing `mode: "none"` development option
+continues to offer guest-only play.
+
+Guest sessions use temporary browser cookies and a fresh random character ID.
+Reloads and reconnects retain progress within a valid session, but guest progress
+is never written to player saves. Starting another guest session creates a new
+character. Signing in uses the account's existing character; guest progress is
+not transferred. Signed-in cookies remain persistent until session expiry.
 
 ## Sessions, logout and saved characters
 
