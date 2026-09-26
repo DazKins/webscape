@@ -1,4 +1,5 @@
 type PointerCallbacks = {
+  onTouchStart?: (event: PointerEvent) => void;
   onTap?: (event: PointerEvent) => void;
   onLongPress?: (event: PointerEvent) => void;
   onDrag?: (event: PointerEvent, delta: { x: number; y: number }) => void;
@@ -117,13 +118,17 @@ class Input {
       dragging: false,
     };
 
-    activePointer.longPressTimer = window.setTimeout(() => {
-      if (this.isPointerBlocked() || this.activePointer?.id !== event.pointerId) {
-        return;
-      }
-      this.activePointer.longPressed = true;
-      this.pointerCallbacks.onLongPress?.(event);
-    }, LONG_PRESS_MS);
+    // Long-press is the touch equivalent of a context click.
+    if (event.pointerType === "touch" && event.button === 0 && !this.isPointerBlocked()) {
+      this.pointerCallbacks.onTouchStart?.(event);
+      activePointer.longPressTimer = window.setTimeout(() => {
+        if (this.isPointerBlocked() || this.activePointer?.id !== event.pointerId) {
+          return;
+        }
+        this.activePointer.longPressed = true;
+        this.pointerCallbacks.onLongPress?.(event);
+      }, LONG_PRESS_MS);
+    }
 
     this.activePointer = activePointer;
   }
@@ -218,6 +223,8 @@ class Input {
   registerRightClickCallback(callback: (event: MouseEvent) => void) {
     window.addEventListener("contextmenu", (event) => {
       event.preventDefault();
+      // Touch uses our own long-press timer and the target captured at touch-down.
+      if ((event as PointerEvent).pointerType === "touch") return;
       callback(event);
     });
   }

@@ -7,6 +7,7 @@ import RenderTiming from "./renderTiming";
 import EnvironmentLighting from "./environmentLighting";
 import World, { type ChunkUpdate } from "./world/world.ts";
 import Input from "../input.ts";
+import { pickEntityAtScreenPoint } from "./entityPicking.ts";
 import addReferenceGeometry from "./referenceGeometry.ts";
 import { createCommand } from "../command/command.ts";
 import * as THREE from "three";
@@ -96,6 +97,7 @@ class Game extends EventTarget {
   private latestServerTick = 0;
   private serverTickMilliseconds = SERVER_TICK_MILLISECONDS;
   private serverTickReceivedAtMilliseconds = performance.now();
+  private touchInteractionTargetId: string | null = null;
   private dismissedBankTargetId: string | null = null;
 
   input: Input;
@@ -148,8 +150,11 @@ class Game extends EventTarget {
     this.entities = [];
 
     this.input.registerPointerCallbacks({
-      onTap: (event) => {
-        this.handleSceneTap(event.clientX, event.clientY);
+      onTouchStart: (event) => {
+        this.touchInteractionTargetId = this.getEntityAtScreenPoint(event.clientX, event.clientY)?.getId() ?? null;
+      },
+      onTap: () => {
+        this.handleSceneTap();
       },
       onLongPress: (event) => {
         this.handleSceneLongPress(event.clientX, event.clientY);
@@ -219,12 +224,8 @@ class Game extends EventTarget {
     );
   }
 
-  private handleSceneTap(clientX: number, clientY: number) {
+  private handleSceneTap() {
     if (!this.world || this.input.isPointerBlocked()) {
-      return;
-    }
-
-    if (this.openInteractionMenuAt(clientX, clientY)) {
       return;
     }
 
@@ -239,7 +240,9 @@ class Game extends EventTarget {
     if (this.input.isPointerBlocked()) {
       return;
     }
-    this.openInteractionMenuAt(clientX, clientY);
+    const entity = this.touchInteractionTargetId ? this.getEntity(this.touchInteractionTargetId) : undefined;
+    this.touchInteractionTargetId = null;
+    if (entity) this.openInteractionMenu(entity, clientX, clientY);
   }
 
   private handleSceneDrag(event: PointerEvent, delta: { x: number; y: number }) {
@@ -255,6 +258,10 @@ class Game extends EventTarget {
       return false;
     }
 
+    return this.openInteractionMenu(entity, clientX, clientY);
+  }
+
+  private openInteractionMenu(entity: Entity, clientX: number, clientY: number) {
     const interactionOptions = entity.getAvailableInteractions();
     if (interactionOptions.length === 0) {
       return false;
@@ -273,34 +280,15 @@ class Game extends EventTarget {
   }
 
   private getEntityAtScreenPoint(clientX: number, clientY: number): Entity | null {
-    const mouseX = (clientX / this.viewport.width) * 2 - 1;
-    const mouseY = -(clientY / this.viewport.height) * 2 + 1;
-
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(
-      new THREE.Vector2(mouseX, mouseY),
-      this.camera.getInnerCamera()
-    );
     const object3Ds = Object.values(this.entityRenderSystem.getRenderers())
       // The local player must not obscure selectable items beneath their feet.
       .filter((renderer) => renderer?.entity.getId() !== this.myPlayerId)
       .map((renderer) => renderer?.getObject3D() ?? null)
       .filter((object3d): object3d is THREE.Object3D => object3d !== null);
-    const intersects = raycaster.intersectObjects(object3Ds, true);
-    if (intersects.length === 0) {
-      return null;
-    }
-
-    let hitMesh: THREE.Object3D | null = intersects[0].object;
-    while (hitMesh && !hitMesh.userData.entityId) {
-      hitMesh = hitMesh.parent;
-    }
-
-    if (!hitMesh) {
-      return null;
-    }
-
-    return this.entities.find((entity) => entity.getId() === hitMesh.userData.entityId) ?? null;
+    const entityId = pickEntityAtScreenPoint(
+      clientX, clientY, this.camera.getInnerCamera(), this.viewport, object3Ds,
+    );
+    return entityId ? this.getEntity(entityId) ?? null : null;
   }
 
   updateCamera(deltaSeconds: number) {
