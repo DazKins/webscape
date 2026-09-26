@@ -11,7 +11,8 @@ func CreatePlayerEntity(id model.EntityId, name string, position math.Vec2, curr
 	positionComponent := component.NewCPosition(position)
 
 	metadataComponent := component.NewCMetadata(util.JObject(map[string]util.Json{
-		"name": util.JString(name),
+		"name":  util.JString(name),
+		"named": util.JBool(true),
 	}))
 
 	renderableComponent := component.NewCRenderable("human")

@@ -3311,6 +3311,7 @@
         },
         "metadata": {
           "name": "Rowan Moss",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3351,6 +3352,7 @@
         },
         "metadata": {
           "name": "Fen",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,

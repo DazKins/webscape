@@ -3846,6 +3846,7 @@
         },
         "metadata": {
           "name": "Mara",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3910,6 +3911,7 @@
         },
         "metadata": {
           "name": "Bram",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3985,6 +3987,7 @@
         },
         "metadata": {
           "name": "Pip",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4039,6 +4042,7 @@
         },
         "metadata": {
           "name": "Orla",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4093,6 +4097,7 @@
         },
         "metadata": {
           "name": "DazKins",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4128,6 +4133,7 @@
         },
         "metadata": {
           "name": "June",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4163,6 +4169,7 @@
         },
         "metadata": {
           "name": "Lumen",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4665,6 +4672,7 @@
         },
         "metadata": {
           "name": "Nessa Reed",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,

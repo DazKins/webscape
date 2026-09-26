@@ -116,6 +116,8 @@ components:
       description: Freeform authored ECS component data, keyed by component id.
       additionalProperties: true
       properties:
+        metadata:
+          $ref: "#/components/schemas/MetadataComponent"
         renderable:
           $ref: "#/components/schemas/RenderableComponent"
         appearance:
@@ -136,6 +138,29 @@ components:
           $ref: "#/components/schemas/ShopComponent"
         lootable:
           $ref: "#/components/schemas/LootableComponent"
+
+    MetadataComponent:
+      type: object
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+        named:
+          type: boolean
+          default: false
+          description: Distinct character identity; clients show a permanent overhead nameplate. Players always have this flag.
+      allOf:
+        - if:
+            required: [named]
+            properties:
+              named:
+                const: true
+          then:
+            required: [name]
+            properties:
+              name:
+                type: string
+                pattern: '\S'
 
     LootableComponent:
       type: object
@@ -492,6 +517,7 @@ components:
                 y: 1
               metadata:
                 name: Bob
+                named: true
                 entityType: dude
               renderable:
                 type: human

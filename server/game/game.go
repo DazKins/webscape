@@ -686,10 +686,12 @@ func (g *Game) handleRegister(clientID string, id model.EntityId, name string, p
 				}
 			}
 		}
-		if providerName {
-			for _, c := range components {
-				if metadata, ok := c.(*component.CMetadata); ok {
-					metadata.GetMetadata().(util.JObject)["name"] = util.JString(normalizedName)
+		for _, c := range components {
+			if metadata, ok := c.(*component.CMetadata); ok {
+				values := metadata.GetMetadata().(util.JObject)
+				values["named"] = util.JBool(true)
+				if providerName {
+					values["name"] = util.JString(normalizedName)
 				}
 			}
 		}

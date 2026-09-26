@@ -44,6 +44,9 @@ func TestRegistrationNormalizesAndSerializesPlayerName(t *testing.T) {
 	if !ok || metadataObject["name"] != util.JString("夜 空") {
 		t.Fatal("serialized metadata component did not contain the normalized name")
 	}
+	if metadataObject["named"] != util.JBool(true) {
+		t.Fatal("player metadata must mark a named character")
+	}
 	appearance := game.componentManager.GetEntityComponent(component.ComponentIdAppearance, playerID)
 	if appearance == nil {
 		t.Fatal("registered player has no appearance component")
@@ -248,5 +251,28 @@ func TestProviderUsernameUpdatesSavedCharacter(t *testing.T) {
 	reloaded.HandleRegisterWithUsername("again", id, "new_username")
 	if !reloaded.IsRegistered("again") {
 		t.Fatal("renamed character did not survive restart")
+	}
+}
+
+func TestLegacyPlayerGainsNamedMetadataOnReturn(t *testing.T) {
+	for _, provider := range []bool{false, true} {
+		g := snapshotGame(t)
+		id := model.NewEntityId()
+		g.HandleRegister("original", id, "Rowan")
+		metadata := g.componentManager.GetEntityComponent(component.ComponentIdMetadata, id).(*component.CMetadata)
+		delete(metadata.GetMetadata().(util.JObject), "named")
+		restored := snapshotGame(t)
+		if err := restored.RestoreSnapshot(savedBytes(t, g)); err != nil {
+			t.Fatal(err)
+		}
+		if provider {
+			restored.HandleRegisterWithUsername("returning", id, "Rowan")
+		} else {
+			restored.HandleRegister("returning", id, "Rowan")
+		}
+		metadata = restored.componentManager.GetEntityComponent(component.ComponentIdMetadata, id).(*component.CMetadata)
+		if metadata.Serialize().(util.JObject)["named"] != util.JBool(true) {
+			t.Fatal("returning legacy player missing named metadata")
+		}
 	}
 }

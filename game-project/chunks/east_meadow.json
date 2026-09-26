@@ -3521,6 +3521,7 @@
         },
         "metadata": {
           "name": "Tamsin",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3613,6 +3614,7 @@
         },
         "metadata": {
           "name": "Iris Fletcher",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -3653,6 +3655,7 @@
         },
         "metadata": {
           "name": "Ash",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,
@@ -4144,6 +4147,7 @@
         },
         "metadata": {
           "name": "Bains",
+          "named": true,
           "type": "human",
           "width": 1,
           "height": 1,

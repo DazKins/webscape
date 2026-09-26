@@ -1,3 +1,4 @@
+import RendererNameplate from "./renderer/rendererNameplate";
 import { modelVariantReady } from "./assets/constructionClient";
 import ModelEntityRenderer from "./renderer/modelEntityRenderer";
 import * as THREE from "three";
@@ -89,6 +90,7 @@ export default class EntityRenderSystem {
   private readonly getTickSeconds: () => number;
   private effectsRoot = new THREE.Group();
   private entitiesById = new Map<string, Entity>();
+  private nameplates = new Map<string, RendererNameplate>();
   private chatEffects = new Map<string, TimedChatEffect>();
   private combatEffects = new Set<TimedCombatEffect>();
   private pendingChatEffects = new Map<string, PendingChatEffect>();
@@ -160,10 +162,13 @@ export default class EntityRenderSystem {
     this.entitiesById = new Map(entities.map((entity) => [entity.getId(), entity]));
 
     // Update existing renderers every frame, but spread newly visible models
-    // across frames. The local player is always created first.
+    // across frames. Prioritize characters so scenery cannot delay nameplates.
     let constructionMilliseconds = 0;
     const priority = priorityEntityId ? this.entitiesById.get(priorityEntityId) : undefined;
-    const ordered = priority ? [priority, ...entities.filter(entity => entity !== priority)] : entities;
+    const remaining = entities.filter(entity => entity !== priority);
+    const named = remaining.filter(entity => entity.getComponent("metadata")?.named === true);
+    const generic = remaining.filter(entity => entity.getComponent("metadata")?.named !== true);
+    const ordered = priority ? [priority, ...named, ...generic] : [...named, ...generic];
     for (const entity of ordered) {
       const renderableComponent = entity.getComponent("renderable");
       if (!renderableComponent) {
@@ -188,6 +193,7 @@ export default class EntityRenderSystem {
       }
 
       renderer!.update(deltaSeconds);
+      this.updateNameplate(entity, renderer!);
       if (constructionStarted !== undefined) constructionMilliseconds += performance.now() - constructionStarted;
     }
 
@@ -197,7 +203,9 @@ export default class EntityRenderSystem {
         continue;
       }
 
-      if (!this.entitiesById.has(entityId)) {
+      if (!this.entitiesById.get(entityId)?.getComponent("renderable")) {
+        this.nameplates.get(entityId)?.dispose();
+        this.nameplates.delete(entityId);
         this.rememberCombatAnchor(entityId, renderer);
         this.clearTransientEffectsFor(entityId);
         renderer.onRemove();
@@ -208,6 +216,22 @@ export default class EntityRenderSystem {
     this.flushPendingEffects();
     this.expireRecentCombatAnchors();
     this.updateCombatProjectiles();
+  }
+
+  private updateNameplate(entity: Entity, renderer: EntityRenderer) {
+    const metadata = entity.getComponent("metadata");
+    const parent = renderer.getObject3D();
+    const name = metadata?.named === true && typeof metadata.name === "string"
+      ? metadata.name.trim() : "";
+    const current = this.nameplates.get(entity.getId());
+    if (!name || !parent) {
+      current?.dispose();
+      this.nameplates.delete(entity.getId());
+    } else if (current) {
+      current.update(name);
+    } else {
+      this.nameplates.set(entity.getId(), new RendererNameplate(parent, name));
+    }
   }
 
   getRenderers(): Record<string, EntityRenderer | null> {
@@ -308,7 +332,7 @@ export default class EntityRenderSystem {
     }
 
     this.removeChatEffect(fromEntityId);
-    const effect = new RendererChatMessage(parent, message);
+    const effect = new RendererChatMessage(parent, message, this.nameplates.has(fromEntityId) ? 2.25 : 1.5);
     const timeoutId = window.setTimeout(() => {
       const current = this.chatEffects.get(fromEntityId);
       if (current?.effect === effect) {

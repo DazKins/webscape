@@ -1,0 +1,10 @@
+.nameplate {
+  color: #fff4d6;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  pointer-events: none;
+  user-select: none;
+}

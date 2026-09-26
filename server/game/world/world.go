@@ -415,6 +415,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if _, hasPosition := template["position"]; hasPosition {
 				return fmt.Errorf("spawn entity %q child template must not include a position component", entity.Id)
 			}
+			if err := validateNamedMetadata(entity.Id+" child template", template); err != nil {
+				return err
+			}
 			if err := validateWoodcuttableComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
@@ -433,6 +436,9 @@ func validateChunkFormat(format chunkFormat, size ChunkCoord) error {
 			if err := validateAppearanceComponent(entity.Id+" child template", template); err != nil {
 				return err
 			}
+		}
+		if err := validateNamedMetadata(entity.Id, entity.Components); err != nil {
+			return err
 		}
 		if err := validateWoodcuttableComponent(entity.Id, entity.Components); err != nil {
 			return err
@@ -614,6 +620,25 @@ func validateLootableComponent(id string, components map[string]any) error {
 	if raw, ok := components["lootable"]; ok {
 		if err := component.ValidateLootable(raw); err != nil {
 			return fmt.Errorf("entity %q: %w", id, err)
+		}
+	}
+	return nil
+}
+
+func validateNamedMetadata(id string, components map[string]any) error {
+	metadata, _ := components["metadata"].(map[string]any)
+	value, exists := metadata["named"]
+	if !exists {
+		return nil
+	}
+	named, ok := value.(bool)
+	if !ok {
+		return fmt.Errorf("entity %q metadata.named must be a boolean", id)
+	}
+	if named {
+		name, _ := metadata["name"].(string)
+		if strings.TrimSpace(name) == "" {
+			return fmt.Errorf("entity %q named metadata requires a non-empty name", id)
 		}
 	}
 	return nil

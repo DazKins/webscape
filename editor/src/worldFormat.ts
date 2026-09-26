@@ -167,6 +167,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
       }
     }
 
+    validateNamedMetadata(entity.id, entity.components, errors);
     validateWoodcuttable(entity.id, entity.components, errors);
     validateFishable(entity.id, entity.components, errors);
     validateAppearance(entity.id, entity.components, errors);
@@ -178,6 +179,7 @@ export function validateWorld(world: WorldFormat): ValidationResult {
     const template = spawn && isObject(spawn.entity) ? spawn.entity : null;
     const templateComponents = template && isObject(template.components) ? template.components : null;
     if (templateComponents) {
+      validateNamedMetadata(`${entity.id} child template`, templateComponents, errors);
       validateWoodcuttable(`${entity.id} child template`, templateComponents, errors);
       validateFishable(`${entity.id} child template`, templateComponents, errors);
       validateAppearance(`${entity.id} child template`, templateComponents, errors);
@@ -407,4 +409,14 @@ function normalizeItemReferences(components: Record<string, unknown>): Record<st
     result.spawn = { ...spawn, entity: { ...spawn.entity, components: normalizeItemReferences(spawn.entity.components) } };
   }
   return result;
+}
+
+function validateNamedMetadata(id: string, components: Record<string, unknown>, errors: string[]) {
+  const metadata = isObject(components.metadata) ? components.metadata : {};
+  if (!("named" in metadata)) return;
+  if (typeof metadata.named !== "boolean") {
+    errors.push(`entity "${id}" metadata.named must be a boolean`);
+  } else if (metadata.named && (typeof metadata.name !== "string" || !metadata.name.trim())) {
+    errors.push(`entity "${id}" named metadata requires a non-empty name`);
+  }
 }
