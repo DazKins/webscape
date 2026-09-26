@@ -13,9 +13,11 @@ const ComponentIdBanking = ComponentId("banking")
 // CBank belongs to the character; bankers only grant access to it.
 type CBank struct{ storage CInventory }
 
-func NewCBank() *CBank                               { return &CBank{storage: *NewCInventory()} }
-func (*CBank) GetId() ComponentId                    { return ComponentIdBank }
-func (c *CBank) Serialize() util.Json                { return c.storage.Serialize() }
+func NewCBank() *CBank            { return &CBank{storage: *NewCInventory()} }
+func (*CBank) GetId() ComponentId { return ComponentIdBank }
+func (c *CBank) Serialize() util.Json {
+	return util.JObject{"items": util.JArrayFrom(c.storage.items, SerializeItem)}
+}
 func (c *CBank) GetItem(id model.ItemId) *model.Item { return c.storage.GetItem(id) }
 func (c *CBank) GetAllItems() []*model.Item          { return c.storage.GetAllItems() }
 
@@ -42,7 +44,7 @@ func (c *CBank) Transfer(inventory *CInventory, deposit bool, id model.ItemId, q
 	if !destination.addItem(moved, capacity) {
 		return false
 	}
-	inventory.items, c.storage.items = backpack.items, bank.items
+	*inventory, c.storage = *backpack, *bank
 	return true
 }
 

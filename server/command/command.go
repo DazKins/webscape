@@ -15,6 +15,7 @@ const (
 	CommandTypeEquip              = "equip"
 	CommandTypeUnequip            = "unequip"
 	CommandTypeDrop               = "drop"
+	CommandTypeInventoryMove      = "inventoryMove"
 	CommandTypeBankDeposit        = "bankDeposit"
 	CommandTypeBankWithdraw       = "bankWithdraw"
 	CommandTypeBankClose          = "bankClose"

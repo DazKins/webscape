@@ -1,8 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useState } from "react";
 import styles from "./interactionMenu.module.css";
 import Game from "../../game/game";
-import AbsolutePositioned from "./absolutePositioned";
 import { InteractionMenuOpenEvent } from "../../events/interactionMenu";
 
 type Props = {
@@ -66,6 +65,20 @@ export default function InteractionMenu(props: Props) {
     };
   }, [interactionMenuOpen]);
 
+  useLayoutEffect(() => {
+    if (!interactionMenuOpen) return;
+    const positionMenu = () => {
+      const element = ref.current;
+      if (!element) return;
+      const bounds = element.getBoundingClientRect();
+      element.style.left = `${Math.max(8, Math.min(positionX, window.innerWidth - bounds.width - 8))}px`;
+      element.style.top = `${Math.max(8, Math.min(positionY, window.innerHeight - bounds.height - 8))}px`;
+    };
+    positionMenu();
+    window.addEventListener("resize", positionMenu);
+    return () => window.removeEventListener("resize", positionMenu);
+  }, [interactionMenuOpen, positionX, positionY, name, interactionOptions]);
+
   const handleInteractionOptionClick = (option: string): void => {
     props.game.handleInteractionOptionClick(entityId, option);
     props.game.setPointerOverUi(false);
@@ -74,33 +87,31 @@ export default function InteractionMenu(props: Props) {
 
   return (
     interactionMenuOpen && (
-      <AbsolutePositioned top={positionY} left={positionX}>
-        <div
-          className={styles.container}
-          ref={ref}
-          onClick={(e) => e.stopPropagation()}
-          onPointerMove={(e) => e.stopPropagation()}
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            props.game.setPointerOverUi(true);
-          }}
-          onPointerEnter={() => props.game.setPointerOverUi(true)}
-          onPointerLeave={() => props.game.setPointerOverUi(false)}
-        >
-          <p className={styles.name}>{name}</p>
-          <div className={styles.interactionOptions}>
-            {interactionOptions.map((option, index) => (
-              <button
-                className={styles.interactionOption}
-                key={index}
-                onClick={() => handleInteractionOptionClick(option)}
-              >
-                {option === "chop" ? "Chop" : option === "bank" ? "Bank" : option}
-              </button>
-            ))}
-          </div>
+      <div
+        className={styles.container}
+        ref={ref}
+        onClick={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          props.game.setPointerOverUi(true);
+        }}
+        onPointerEnter={() => props.game.setPointerOverUi(true)}
+        onPointerLeave={() => props.game.setPointerOverUi(false)}
+      >
+        <p className={styles.name}>{name}</p>
+        <div className={styles.interactionOptions}>
+          {interactionOptions.map((option, index) => (
+            <button
+              className={styles.interactionOption}
+              key={index}
+              onClick={() => handleInteractionOptionClick(option)}
+            >
+              {option === "chop" ? "Chop" : option === "bank" ? "Bank" : option}
+            </button>
+          ))}
         </div>
-      </AbsolutePositioned>
+      </div>
     )
   );
 }

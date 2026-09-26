@@ -14,8 +14,9 @@ type entityUpdateData struct {
 }
 
 type gameUpdateData struct {
-	ServerTick uint64             `json:"serverTick"`
-	Entities   []entityUpdateData `json:"entities"`
+	InventoryMoveSequence uint64             `json:"inventoryMoveSequence"`
+	ServerTick            uint64             `json:"serverTick"`
+	Entities              []entityUpdateData `json:"entities"`
 }
 
 func NewGameUpdateMessage(
@@ -23,6 +24,7 @@ func NewGameUpdateMessage(
 	updatedComponents map[component.ComponentId]map[model.EntityId]util.Json,
 	removedComponents map[component.ComponentId][]model.EntityId,
 	availableInteractions map[model.EntityId][]component.InteractionOption,
+	inventoryMoveSequence uint64,
 ) Message {
 	entityUpdates := make([]entityUpdateData, 0)
 
@@ -51,8 +53,9 @@ func NewGameUpdateMessage(
 	return newMessage(
 		MessageTypeGameUpdate,
 		gameUpdateData{
-			ServerTick: serverTick,
-			Entities:   entityUpdates,
+			ServerTick:            serverTick,
+			InventoryMoveSequence: inventoryMoveSequence,
+			Entities:              entityUpdates,
 		},
 	)
 }

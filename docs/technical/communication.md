@@ -12,6 +12,16 @@ Commands use `{ "type": ..., "data": ... }`. Server messages use `{ "metadata": 
 
 On each 500 ms game tick, the server runs its ECS systems and then synchronizes every client's visible chunks and entities. Every client receives `gameUpdate` with `serverTick`, even when `entities` is an empty array. The entity array contains only changed serializable components; a `null` component value removes it. If a fact must survive reconnect or interest re-entry—position, health, inventory, quest progress, whether a door is open—it belongs in replicated state.
 
+Inventory rearranging uses optimistic presentation. The client sends `inventoryMove`
+with `{itemId, slot, sequence}` and immediately previews moves and swaps over its
+confirmed inventory. Each `gameUpdate` includes the connection-scoped
+`inventoryMoveSequence`: the highest processed request, including gameplay
+rejections. This acknowledgement accompanies the same tick’s authoritative state,
+even when no components changed. The client removes acknowledged predictions and
+reapplies newer requests; stack quantities and merging await server confirmation.
+Disconnect clears pending moves and resets the sequence. Acknowledgements live in
+connection state, not ECS components or player saves.
+
 The initial `world` metadata includes `dayCycle: { dayTicks: 1200, cycleTicks: 2400 }` and `tickIntervalMs`. Clients derive the global day/night phase and countdown from confirmed `gameUpdate.serverTick` values. Sky, lighting, and the minimap dial interpolate only within the current tick and stop before the next unconfirmed tick if updates stall. No client clock can advance authoritative game time.
 
 One-shot occurrences use the server's typed domain-event dispatcher instead. Registered subscribers can independently advance quests or project a safe event DTO to interested clients. Client events are sent after that tick's state deltas, so rendering reacts to the latest authoritative state. Chat bubbles, hit splats, and transient combat animations are client-owned effects. Ongoing fishing and woodcutting animations are selected from their replicated phase and phase-start tick.

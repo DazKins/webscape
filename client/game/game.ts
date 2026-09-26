@@ -1,3 +1,4 @@
+import InventoryPrediction, { type InventoryLayoutItem } from "./inventoryPrediction.ts";
 import { BankUpdateEventName, BankResultEvent, type BankResultPayload } from "../events/bank";
 import { ShopUpdateEventName, TradeResultEvent, type TradeResultPayload } from "../events/shop";
 import Entity from "./entity/entity.ts";
@@ -73,6 +74,7 @@ const SERVER_TICK_MILLISECONDS = 500;
 
 class Game extends EventTarget {
   wsClient!: WebSocketClient;
+  private inventoryPrediction = new InventoryPrediction();
   myPlayerId!: string;
   scene: THREE.Scene;
   camera: Camera;
@@ -408,7 +410,8 @@ class Game extends EventTarget {
       this.entities = this.entities.filter((e) => !e.isEmpty());
     }
     // UI observers read a complete snapshot, including removed components.
-    if (inventoryChanged) this.dispatchEvent(new InventoryUpdateEvent());
+    const inventoryAcknowledged = this.inventoryPrediction.acknowledge(gameUpdate.inventoryMoveSequence);
+    if (inventoryChanged || inventoryAcknowledged) this.dispatchEvent(new InventoryUpdateEvent());
     if (vitalsChanged) this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
     if (this.getMyEntity()?.getComponent("trading") || this.getMyEntity()?.getComponent("banking")) this.closeActiveConversation();
     this.dispatchEvent(new Event(ShopUpdateEventName));
@@ -487,6 +490,8 @@ class Game extends EventTarget {
   prepareForReconnect() {
     this.entityRenderSystem.clearTransientEffects();
     this.myPlayerId = "";
+    this.inventoryPrediction.reset();
+    this.dispatchEvent(new InventoryUpdateEvent());
     this.dismissedBankTargetId = null;
     this.dispatchEvent(new Event(PlayerVitalsUpdateEventName));
     this.dispatchEvent(new Event(ShopUpdateEventName));
@@ -709,6 +714,19 @@ class Game extends EventTarget {
         itemId,
       })
     );
+  }
+
+  projectInventoryItems<T extends InventoryLayoutItem>(items: T[], capacity: number): T[] {
+    return this.inventoryPrediction.project(items, capacity);
+  }
+
+  handleInventoryMove(itemId: string, slot: number) {
+    const inventory = this.getMyEntity()?.getComponent("inventory");
+    if (!this.wsClient.isConnected || !inventory || !Number.isInteger(slot) || slot < 0 ||
+        slot >= inventory.width * inventory.height || !inventory.items.some((item: InventoryLayoutItem) => item.id === itemId)) return;
+    const move = this.inventoryPrediction.enqueue(itemId, slot);
+    this.wsClient.sendMessage(createCommand("inventoryMove", move));
+    this.dispatchEvent(new InventoryUpdateEvent());
   }
 
   handleDropItem(itemId: string) {

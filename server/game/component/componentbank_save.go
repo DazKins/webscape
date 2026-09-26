@@ -11,7 +11,14 @@ func init() {
 		if err := decodeSaved(saved.Data, &s); err != nil {
 			return nil, err
 		}
-		return &CBank{storage: CInventory{items: s.Items}}, nil
+		c := NewCBank()
+		c.storage.items = s.Items
+		for i, item := range s.Items {
+			if item != nil {
+				c.storage.slots[item.Id] = i
+			}
+		}
+		return c, nil
 	})
 }
 func (c *CBank) ValidateSaved(ctx SaveContext) error {

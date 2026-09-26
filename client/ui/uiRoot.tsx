@@ -185,7 +185,7 @@ export default function UiRoot(props: Props) {
 
   const handleMobileTab = (tab: MobileTab) => {
     setMobileTab(tab);
-    setIsMobilePanelOpen(true);
+    setIsMobilePanelOpen(open => mobileTab === tab ? !open : true);
   };
 
   const renderMobileContent = () => {
@@ -203,8 +203,6 @@ export default function UiRoot(props: Props) {
     }
   };
 
-  const activeMobileLabel =
-    mobileTabs.find((tab) => tab.id === mobileTab)?.label ?? "Menu";
   const onboarding = (
     <OnboardingOverlay allowGuests={props.allowGuests} signInEnabled={props.signInEnabled} onGuest={props.onGuest} state={props.registration} onRegister={props.onRegister} onLogin={props.onLogin} onRetry={props.onRetry} onStayConnected={props.onStayConnected} />
   );
@@ -234,7 +232,7 @@ export default function UiRoot(props: Props) {
         <div
           className={`${panelStyles.panel} ${styles.mobileSheet} ${
             isMobilePanelOpen ? styles.open : styles.collapsed
-          }`}
+          } ${styles.compactPanel}`}
           onClick={stopHudEvent}
           onContextMenu={stopHudEvent}
           onPointerDown={handleHudPointerDown}
@@ -242,21 +240,6 @@ export default function UiRoot(props: Props) {
           onPointerEnter={handleHudMouseEnter}
           onPointerLeave={handleHudMouseLeave}
         >
-          {isMobilePanelOpen ? (
-            <div className={styles.mobileSheetHeader}>
-              <div className={styles.sheetTitle} aria-live="polite">
-                {activeMobileLabel}
-              </div>
-              <button
-                className={styles.sheetCloseButton}
-                type="button"
-                aria-label="Close panel"
-                onClick={() => setIsMobilePanelOpen(false)}
-              >
-                <span aria-hidden="true">x</span>
-              </button>
-            </div>
-          ) : null}
           {isMobilePanelOpen ? (
             <div className={styles.panelBody}>{renderMobileContent()}</div>
           ) : null}
@@ -312,7 +295,7 @@ export default function UiRoot(props: Props) {
       </div>
 
       <div
-        className={`${panelStyles.panel} ${styles.hudPanel} ${styles.rightPanel}`}
+        className={`${panelStyles.panel} ${styles.hudPanel} ${styles.rightPanel} ${styles.compactPanel}`}
         onClick={stopHudEvent}
         onContextMenu={stopHudEvent}
         onPointerDown={handleHudPointerDown}

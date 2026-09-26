@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"math"
 	"testing"
 	"testing/fstest"
@@ -38,6 +39,7 @@ func TestCommandHandlerIgnoresGameplayBeforeRegistration(t *testing.T) {
 		command.CommandTypeEquip,
 		command.CommandTypeUnequip,
 		command.CommandTypeDrop,
+		command.CommandTypeInventoryMove,
 		command.CommandTypeConversationOption,
 	} {
 		handler.HandleCommand("client", command.Command{Type: commandType, Data: map[string]any{}})
@@ -130,5 +132,84 @@ func TestMalformedBankCommandsDoNotChangeItems(t *testing.T) {
 	}
 	if !bytes.Equal(before, after) {
 		t.Fatal("invalid bank commands changed stored state")
+	}
+}
+
+func TestMalformedInventoryMovesDoNotChangeState(t *testing.T) {
+	g := newCommandHandlerTestGame(t)
+	g.HandleRegister("player", model.NewEntityId(), "Player")
+	handler := NewClientCommandHandler(g, nil)
+	before, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, data := range []map[string]any{nil, {}, {"itemId": 42}, {"itemId": "bad", "slot": 0.0}} {
+		handler.HandleCommand("player", command.Command{Type: command.CommandTypeInventoryMove, Data: data})
+	}
+	for _, slot := range []any{nil, "1", -1.0, 20.0, 0.5, math.NaN(), math.Inf(1)} {
+		handler.HandleCommand("player", command.Command{Type: command.CommandTypeInventoryMove, Data: map[string]any{"itemId": model.NewItemId().String(), "slot": slot}})
+	}
+	after, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("invalid moves changed state")
+	}
+}
+
+func TestInventoryMoveCommandValidatesSequence(t *testing.T) {
+	g := newCommandHandlerTestGame(t)
+	var itemID string
+	g.RegisterSender(func(_ string, msg message.Message) {
+		if msg.Metadata.Type != message.MessageTypeGameUpdate {
+			return
+		}
+		raw, _ := json.Marshal(msg.Data)
+		var update struct {
+			Entities []struct {
+				ComponentId string `json:"componentId"`
+				Data        struct {
+					Items []struct {
+						ID string `json:"id"`
+					} `json:"items"`
+				} `json:"data"`
+			} `json:"entities"`
+		}
+		if err := json.Unmarshal(raw, &update); err != nil {
+			t.Fatal(err)
+		}
+		for _, entity := range update.Entities {
+			if entity.ComponentId == "inventory" && len(entity.Data.Items) > 0 {
+				itemID = entity.Data.Items[0].ID
+			}
+		}
+	})
+	g.HandleRegister("player", model.NewEntityId(), "Player")
+	if itemID == "" {
+		t.Fatal("missing inventory")
+	}
+	handler := NewClientCommandHandler(g, nil)
+	before, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, sequence := range []any{nil, "1", 0.0, -1.0, 0.5, math.NaN(), math.Inf(1), 9007199254740992.0} {
+		handler.HandleCommand("player", command.Command{Type: command.CommandTypeInventoryMove, Data: map[string]any{"itemId": itemID, "slot": 19.0, "sequence": sequence}})
+	}
+	after, err := g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("invalid sequence changed inventory")
+	}
+	handler.HandleCommand("player", command.Command{Type: command.CommandTypeInventoryMove, Data: map[string]any{"itemId": itemID, "slot": 19.0, "sequence": 1.0}})
+	after, err = g.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Equal(before, after) {
+		t.Fatal("valid sequenced move was ignored")
 	}
 }

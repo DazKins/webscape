@@ -57,8 +57,10 @@ type Game struct {
 }
 
 type clientStreamState struct {
-	loadedChunks map[world.ChunkCoord]bool
-	baseline     map[component.ComponentId]map[model.EntityId]util.Json
+	// Session-scoped acknowledgement travels with the authoritative tick snapshot.
+	inventoryMoveSequence uint64
+	loadedChunks          map[world.ChunkCoord]bool
+	baseline              map[component.ComponentId]map[model.EntityId]util.Json
 }
 
 type pendingClientEvent struct {
@@ -755,7 +757,7 @@ func (g *Game) syncClient(clientID string) {
 	if registered {
 		positionComponent := g.componentManager.GetEntityComponent(component.ComponentIdPosition, playerID)
 		if positionComponent == nil {
-			g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, nil, nil, nil))
+			g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, nil, nil, nil, state.inventoryMoveSequence))
 			return
 		}
 		position = positionComponent.(*component.CPosition).GetPosition()
@@ -840,7 +842,7 @@ func (g *Game) syncClient(clientID string) {
 		interactions = g.availableInteractionsForGameUpdate(updated, removed)
 	}
 	// Every tick is a clock heartbeat, even when the entity delta is empty.
-	g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions))
+	g.sendMessage(clientID, message.NewGameUpdateMessage(g.currentTick, updated, removed, interactions, state.inventoryMoveSequence))
 }
 
 func (g *Game) componentVisibleToPlayer(id component.ComponentId, entity, player model.EntityId) bool {

@@ -63,7 +63,10 @@ Stop the old server before its replacement acquires the same key.
 Only players persist. `webscape_players` contains one row per `(world_key, player_id)`
 with versioned durable components in a `components` JSONB object and an `updated_at`
 timestamp. Inventory, bank, equipment, identity, stats, position, and quest progress
-stay together. `webscape_player_saves` stores only the envelope version and last
+stay together. Inventory component version 3 also saves each stack’s grid slot.
+Older inventory components load into consecutive slots; subsequent saves retain
+the chosen layout, including empty spaces. The backpack is a fixed 4 × 5 grid.
+`webscape_player_saves` stores only the envelope version and last
 checkpoint timestamp for each key; it stores no world state or simulation clock.
 
 Every restart builds the world from current `game-project` content. NPCs, doors,

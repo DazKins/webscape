@@ -6,15 +6,19 @@ import (
 )
 
 const ComponentIdInventory = ComponentId("inventory")
-const InventoryCapacity = 20
+const InventoryWidth = 4
+const InventoryHeight = 5
+const InventoryCapacity = InventoryWidth * InventoryHeight
 
 type CInventory struct {
 	items []*model.Item
+	slots map[model.ItemId]int
 }
 
 func NewCInventory() *CInventory {
 	return &CInventory{
 		items: []*model.Item{},
+		slots: make(map[model.ItemId]int),
 	}
 }
 
@@ -25,10 +29,14 @@ func (c *CInventory) GetId() ComponentId {
 func (c *CInventory) Serialize() util.Json {
 	itemsArray := make(util.JArray, len(c.items))
 	for i, item := range c.items {
-		itemsArray[i] = SerializeItem(item)
+		value := SerializeItem(item).(util.JObject)
+		value["slot"] = util.JNumber(c.slots[item.Id])
+		itemsArray[i] = value
 	}
 	return util.JObject(map[string]util.Json{
-		"items": itemsArray,
+		"items":  itemsArray,
+		"width":  util.JNumber(InventoryWidth),
+		"height": util.JNumber(InventoryHeight),
 	})
 }
 
@@ -54,6 +62,18 @@ func (c *CInventory) addItem(item *model.Item, capacity int) bool {
 	if capacity > 0 && len(c.items) >= capacity {
 		return false
 	}
+	occupied := make(map[int]bool, len(c.slots))
+	for _, slot := range c.slots {
+		occupied[slot] = true
+	}
+	slot := 0
+	for occupied[slot] {
+		slot++
+	}
+	if c.slots == nil {
+		c.slots = make(map[model.ItemId]int)
+	}
+	c.slots[item.Id] = slot
 	c.items = append(c.items, item)
 	return true
 }
@@ -61,6 +81,7 @@ func (c *CInventory) addItem(item *model.Item, capacity int) bool {
 func (c *CInventory) RemoveItem(itemId model.ItemId) bool {
 	for i, item := range c.items {
 		if item.Id == itemId {
+			delete(c.slots, item.Id)
 			c.items = append(c.items[:i], c.items[i+1:]...)
 			return true
 		}
@@ -79,6 +100,7 @@ func (c *CInventory) RemoveFirstItemByDefinition(definitionID string) *model.Ite
 				removed.Quantity = 1
 				return removed
 			}
+			delete(c.slots, item.Id)
 			c.items = append(c.items[:i], c.items[i+1:]...)
 			return item
 		}
@@ -136,6 +158,7 @@ func (c *CInventory) Clone() *CInventory {
 	result := NewCInventory()
 	for _, item := range c.items {
 		result.items = append(result.items, item.Clone())
+		result.slots[item.Id] = c.slots[item.Id]
 	}
 	return result
 }
@@ -164,6 +187,40 @@ func (c *CInventory) Exchange(paymentID model.ItemId, quantity int, received *mo
 	if !trial.AddItem(received) {
 		return false
 	}
-	c.items = trial.items
+	c.items, c.slots = trial.items, trial.slots
+	return true
+}
+
+func (c *CInventory) itemAtSlot(slot int) *model.Item {
+	for _, item := range c.items {
+		if c.slots[item.Id] == slot {
+			return item
+		}
+	}
+	return nil
+}
+
+// MoveItem preserves other positions, swapping occupied slots or merging stacks.
+func (c *CInventory) MoveItem(id model.ItemId, slot int) bool {
+	item := c.GetItem(id)
+	if item == nil || slot < 0 || slot >= InventoryCapacity {
+		return false
+	}
+	source := c.slots[id]
+	if source == slot {
+		return true
+	}
+	if target := c.itemAtSlot(slot); target != nil {
+		if item.IsStackable() && target.IsStackable() && item.DefinitionID == target.DefinitionID {
+			if item.Quantity > model.MaxStackQuantity-target.Quantity {
+				return false
+			}
+			target.Quantity += item.Quantity
+			c.RemoveItem(id)
+			return true
+		}
+		c.slots[target.Id] = source
+	}
+	c.slots[id] = slot
 	return true
 }

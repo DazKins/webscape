@@ -42,6 +42,7 @@ func TestSnapshotRestoresOnlyPlayers(t *testing.T) {
 	inventory := g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory)
 	sword := inventory.GetAllItems()[0]
 	g.HandleEquip("first", sword.Id)
+	g.HandleInventoryMove("first", inventory.GetAllItems()[0].Id, 19, 1)
 	g.componentManager.GetEntityComponent(component.ComponentIdHealth, id).(*component.CHealth).SetCurrentHealth(42)
 	dropID := g.componentManager.CreateNewEntity(component.NewCPosition(g.world.GetPlayerSpawn()), &component.CDroppedItem{Item: model.CreateGold(17)})
 	for banker := range g.componentManager.GetComponent(component.ComponentIdBanker) {
@@ -103,6 +104,8 @@ func TestDisconnectRetainsProgressAndResetsActivity(t *testing.T) {
 	gold := model.CreateGold(19)
 	g.componentManager.SetEntityComponents(id, component.NewCInventory(), component.NewCLocomotion(component.LocomotionPhaseMoving, 9), component.NewCFacing(model.NewEntityId()))
 	g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory).AddItem(gold)
+	g.HandleInventoryMove("one", gold.Id, 19, 1)
+	beforeInventory, _ := json.Marshal(g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory).Serialize())
 	g.HandleLeave("one")
 	if g.componentManager.HasEntity(id) {
 		t.Fatal("disconnected entity still simulated")
@@ -114,6 +117,10 @@ func TestDisconnectRetainsProgressAndResetsActivity(t *testing.T) {
 	inv := g.componentManager.GetEntityComponent(component.ComponentIdInventory, id).(*component.CInventory)
 	if items := inv.GetAllItems(); len(items) != 1 || items[0].Id != gold.Id {
 		t.Fatal("reconnect reset inventory")
+	}
+	afterInventory, _ := json.Marshal(inv.Serialize())
+	if !bytes.Equal(beforeInventory, afterInventory) {
+		t.Fatal("reconnect lost inventory positions")
 	}
 	if g.componentManager.GetEntityComponent(component.ComponentIdFacing, id) != nil {
 		t.Fatal("stale target restored")

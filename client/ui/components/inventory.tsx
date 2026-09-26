@@ -9,9 +9,10 @@ type Props = {
   game: Game;
 };
 
-const INVENTORY_SLOT_COUNT = 20;
+
 
 export type InventoryItem = {
+  slot?: number;
   quantity: number;
   stackable: boolean;
   id: string;
@@ -360,6 +361,7 @@ export function getItemTitle(item: InventoryItem): string {
 }
 
 function useInventoryState(props: Props) {
+  const [grid, setGrid] = useState({ width: 4, height: 5 });
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [equippedSlots, setEquippedSlots] = useState<Record<string, InventoryItem | null>>({});
 
@@ -378,7 +380,8 @@ function useInventoryState(props: Props) {
       return;
     }
 
-    setItems(inventoryComponent.items || []);
+    setItems(props.game.projectInventoryItems(inventoryComponent.items as InventoryItem[], inventoryComponent.width * inventoryComponent.height));
+    setGrid({ width: inventoryComponent.width, height: inventoryComponent.height });
 
     const equippedComponent = myEntity.getComponent("equipped");
     if (equippedComponent && equippedComponent.slots) {
@@ -403,18 +406,78 @@ function useInventoryState(props: Props) {
     };
   }, [props.game]);
 
-  return { items, equippedSlots };
+  return { items, equippedSlots, grid };
 }
 
 export function InventoryBackpackContent(props: Props) {
-  const { items } = useInventoryState(props);
+  const { items, grid } = useInventoryState(props);
+  const slotCount = grid.width * grid.height;
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const touchGesture = useRef<{ pointerId: number; itemId: string; startX: number; startY: number; x: number; y: number; dragging: boolean } | null>(null);
+  const [touchPreview, setTouchPreview] = useState<{ item: InventoryItem; x: number; y: number } | null>(null);
+  const slotAtPoint = (x: number, y: number): number | null => {
+    const element = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-inventory-slot]");
+    return element && gridRef.current?.contains(element) ? Number(element.dataset.inventorySlot) : null;
+  };
+  const clearTouchDrag = () => {
+    touchGesture.current = null;
+    setTouchPreview(null);
+    setDraggedItemId(null);
+    setDropSlot(null);
+  };
+  const [dropSlot, setDropSlot] = useState<number | null>(null);
+  const moveTo = (slot: number) => {
+    const id = draggedItemId;
+    if (id) props.game.handleInventoryMove(id, slot);
+    setDraggedItemId(null);
+    setDropSlot(null);
+  };
+  const slotHandlers = (slot: number) => ({
+    onDragOver: (event: React.DragEvent) => {
+      if (!draggedItemId) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      setDropSlot(slot);
+    },
+    onDragLeave: () => setDropSlot(null),
+    onDrop: (event: React.DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      moveTo(slot);
+    },
+  });
   const [menu, setMenu] = useState<{ itemId: string; x: number; y: number } | null>(null);
   const [tooltip, setTooltip] = useState<{ itemId: string; button: HTMLButtonElement } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const tooltipItem = items.slice(0, INVENTORY_SLOT_COUNT).find((item) => item.id === tooltip?.itemId);
+  const tooltipItem = items.find((item) => item.id === tooltip?.itemId);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const selectedItem = items.find((item) => item.id === menu?.itemId);
+
+  // Scroll short panels while dragging near their edges, including a held finger.
+  const touchDragging = touchPreview !== null;
+  useEffect(() => {
+    if (!touchDragging) return;
+    let frame: number;
+    let previousTime = performance.now();
+    const scroll = (time: number) => {
+      const gesture = touchGesture.current;
+      const gridElement = gridRef.current;
+      if (!gesture || !gridElement) return;
+      const bounds = gridElement.getBoundingClientRect();
+      const elapsed = Math.min(time - previousTime, 50);
+      previousTime = time;
+      if (gesture.x >= bounds.left && gesture.x <= bounds.right && gesture.y >= bounds.top - 24 && gesture.y <= bounds.bottom + 24) {
+        const direction = gesture.y < bounds.top + 24 ? -1 : gesture.y > bounds.bottom - 24 ? 1 : 0;
+        gridElement.scrollTop += direction * elapsed * 0.3;
+      }
+      setDropSlot(slotAtPoint(gesture.x, gesture.y));
+      frame = requestAnimationFrame(scroll);
+    };
+    frame = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(frame);
+  }, [touchDragging]);
 
   const openMenu = (itemId: string, button: HTMLButtonElement, x: number, y: number) => {
     setTooltip(null);
@@ -492,26 +555,39 @@ export function InventoryBackpackContent(props: Props) {
     };
   }, [tooltip, tooltipItem]);
 
-  const backpackItems = items.slice(0, INVENTORY_SLOT_COUNT);
-  const backpackSlots = Array.from({ length: INVENTORY_SLOT_COUNT }, (_, index) => ({
+  const backpackItems = items;
+  const backpackSlots = Array.from({ length: slotCount }, (_, index) => ({
     index,
-    item: backpackItems[index],
+    item: backpackItems.find((item) => item.slot === index),
   }));
 
   return (
     <div className={`${panelStyles.panelContent} ${styles.content}`}>
-      <div className={styles.sectionHeader}>
-        Backpack {backpackItems.length}/{INVENTORY_SLOT_COUNT}
-      </div>
-      <div className={styles.itemsGrid}>
+      <div ref={gridRef} className={styles.itemsGrid}
+        style={{ gridTemplateColumns: `repeat(${grid.width}, minmax(0, 1fr))` }}
+      >
         {backpackSlots.map(({ index, item }) =>
           item ? (
             <button
               type="button"
               key={item.id}
+              {...slotHandlers(index)}
+              data-inventory-slot={index}
+              draggable
+              onDragStart={(event) => {
+                if (touchGesture.current) { event.preventDefault(); return; }
+                event.dataTransfer.setData("text/plain", item.id);
+                event.dataTransfer.effectAllowed = "move";
+                setDraggedItemId(item.id);
+                setTooltip(null);
+                setMenu(null);
+              }}
+              onDragEnd={() => { setDraggedItemId(null); setDropSlot(null); }}
+              data-drop-target={dropSlot === index}
+              data-moving={draggedItemId === item.id}
               className={`${styles.item} ${item.equipmentSlot ? styles.equipable : ""}`}
               onPointerEnter={(event) => {
-                if (event.pointerType !== "touch" && !menu) {
+                if (event.pointerType !== "touch" && !menu && !draggedItemId) {
                   setTooltip({ itemId: item.id, button: event.currentTarget });
                 }
               }}
@@ -528,7 +604,7 @@ export function InventoryBackpackContent(props: Props) {
               onContextMenu={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openMenu(item.id, event.currentTarget, event.clientX, event.clientY);
+                if (!touchGesture.current) openMenu(item.id, event.currentTarget, event.clientX, event.clientY);
               }}
               onClick={(event) => {
                 // Keyboard activation has no pointer position.
@@ -536,11 +612,39 @@ export function InventoryBackpackContent(props: Props) {
                 const bounds = event.currentTarget.getBoundingClientRect();
                 openMenu(item.id, event.currentTarget, bounds.left, bounds.bottom);
               }}
+              onPointerDown={(event) => {
+                if (event.pointerType === "mouse" || !event.isPrimary || event.button !== 0) return;
+                touchGesture.current = { pointerId: event.pointerId, itemId: item.id,
+                  startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, dragging: false };
+                event.currentTarget.setPointerCapture(event.pointerId);
+                setTooltip(null);
+                setMenu(null);
+              }}
+              onPointerMove={(event) => {
+                const gesture = touchGesture.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) return;
+                gesture.x = event.clientX;
+                gesture.y = event.clientY;
+                if (!gesture.dragging && Math.hypot(gesture.x - gesture.startX, gesture.y - gesture.startY) < 6) return;
+                gesture.dragging = true;
+                setDraggedItemId(gesture.itemId);
+                setTouchPreview({ item, x: gesture.x, y: gesture.y });
+                setDropSlot(slotAtPoint(gesture.x, gesture.y));
+              }}
               onPointerUp={(event) => {
-                if (event.pointerType === "touch") {
+                const gesture = touchGesture.current;
+                if (!gesture || gesture.pointerId !== event.pointerId) return;
+                if (gesture.dragging) {
+                  const slot = slotAtPoint(event.clientX, event.clientY);
+                  if (slot !== null) props.game.handleInventoryMove(gesture.itemId, slot);
+                } else {
                   openMenu(item.id, event.currentTarget, event.clientX, event.clientY);
                 }
+                clearTouchDrag();
+                if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
               }}
+              onPointerCancel={clearTouchDrag}
+              onLostPointerCapture={() => { if (touchGesture.current) clearTouchDrag(); }}
             >
               <img
                 className={styles.itemImage}
@@ -552,6 +656,9 @@ export function InventoryBackpackContent(props: Props) {
             </button>
           ) : (
             <div
+              {...slotHandlers(index)}
+              data-inventory-slot={index}
+              data-drop-target={dropSlot === index}
               key={`empty-${index}`}
               className={`${styles.item} ${styles.emptySlot}`}
               aria-label={`Empty inventory slot ${index + 1}`}
@@ -559,6 +666,11 @@ export function InventoryBackpackContent(props: Props) {
           )
         )}
       </div>
+      {touchPreview && createPortal(
+        <img className={styles.touchDragPreview} src={getItemIconSrc(touchPreview.item)} alt="" aria-hidden="true"
+          style={{ left: touchPreview.x, top: touchPreview.y }} />,
+        document.getElementById("uiLayerRoot")!,
+      )}
       {tooltip && tooltipItem && !menu && createPortal(
         <div ref={tooltipRef} className={styles.itemTooltip} role="tooltip">
           {tooltipItem.name}

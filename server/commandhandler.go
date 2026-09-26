@@ -61,6 +61,8 @@ func (h *ClientCommandHandler) HandleCommand(clientID string, cmd command.Comman
 		h.handleBankCommand(clientID, cmd)
 	case command.CommandTypeTrade, command.CommandTypeTradeClose:
 		h.handleTradeCommand(clientID, cmd)
+	case command.CommandTypeInventoryMove:
+		h.handleInventoryMoveCommand(clientID, cmd)
 	case command.CommandTypeDrop:
 		h.handleDropCommand(clientID, cmd)
 	case command.CommandTypeConversationOption:
@@ -273,4 +275,24 @@ func (h *ClientCommandHandler) handleBankCommand(clientID string, cmd command.Co
 		return
 	}
 	h.game.HandleBankTransfer(clientID, model.EntityId(id), cmd.Type == command.CommandTypeBankDeposit, model.ItemId(itemID), int(quantity))
+}
+
+func (h *ClientCommandHandler) handleInventoryMoveCommand(clientID string, cmd command.Command) {
+	itemID, ok := cmd.Data["itemId"].(string)
+	if !ok {
+		return
+	}
+	id, err := uuid.Parse(itemID)
+	if err != nil {
+		return
+	}
+	slot, ok := cmd.Data["slot"].(float64)
+	if !ok || !(slot >= 0 && slot < component.InventoryCapacity) || slot != math.Trunc(slot) {
+		return
+	}
+	sequence, ok := cmd.Data["sequence"].(float64)
+	if !ok || !(sequence >= 1 && sequence <= 9007199254740991) || sequence != math.Trunc(sequence) {
+		return
+	}
+	h.game.HandleInventoryMove(clientID, model.ItemId(id), int(slot), uint64(sequence))
 }

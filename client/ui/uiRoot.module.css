@@ -112,50 +112,6 @@
   touch-action: pan-y;
 }
 
-.mobileSheetHeader {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  padding: 8px;
-  border-bottom: 1px solid rgba(230, 230, 230, 0.26);
-  background: rgba(0, 0, 0, 0.42);
-}
-
-.sheetCloseButton {
-  width: 44px;
-  min-height: 44px;
-  border: 1px solid rgba(190, 210, 230, 0.36);
-  border-radius: 6px;
-  background: rgba(40, 45, 52, 0.9);
-  color: rgba(245, 245, 245, 1);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.sheetCloseButton span {
-  display: block;
-  transform: translateY(-1px);
-  font-size: 24px;
-  line-height: 1;
-}
-
-.sheetTitle {
-  min-width: 0;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  border: 1px solid rgba(190, 210, 230, 0.26);
-  border-radius: 6px;
-  background: rgba(34, 39, 48, 0.86);
-  color: rgba(245, 245, 245, 1);
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .collapsed {
   height: auto;
 }
@@ -218,4 +174,38 @@
     gap: 5px;
     padding: 6px 8px 8px;
   }
+}
+
+.rightPanel.compactPanel,
+.mobileSheet.compactPanel {
+  left: auto;
+  width: min(282px, calc(100vw - var(--safe-area-left) - var(--safe-area-right) - 16px));
+  box-sizing: border-box;
+  border-width: 2px;
+  height: 406px;
+  max-height: calc(100dvh - var(--menu-clearance) - max(20px, var(--safe-area-bottom)));
+}
+
+.compactPanel .panelBody > * {
+  padding: 10px;
+}
+
+.compactPanel .tabs {
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 6px;
+}
+
+.compactPanel .tabButton {
+  height: 44px;
+  min-height: 44px;
+}
+
+.compactPanel .tabIcon {
+  width: 28px;
+  height: 28px;
+}
+
+.mobileSheet.compactPanel.collapsed {
+  height: auto;
 }

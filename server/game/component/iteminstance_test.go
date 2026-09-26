@@ -49,7 +49,11 @@ func TestIndividualEquipmentPropertiesSurvivePlayerSaves(t *testing.T) {
 	equipped.EquipItem(model.SlotWeapon, item)
 	for _, owner := range []Component{inventory, equipped} {
 		saved, err := SaveComponent(owner)
-		if err != nil || saved.Version != 2 {
+		wantVersion := 2
+		if owner.GetId() == ComponentIdInventory {
+			wantVersion = 3
+		}
+		if err != nil || saved.Version != wantVersion {
 			t.Fatalf("save %s: %v", owner.GetId(), err)
 		}
 		restored, err := RestoreComponent(owner.GetId(), saved)
@@ -89,7 +93,7 @@ func TestLegacyInventoryMigratesToDefinitionReferences(t *testing.T) {
 			t.Fatalf("%s: %v", test.id, err)
 		}
 		saved, err := SaveComponent(restored)
-		if err != nil || saved.Version != 2 {
+		if err != nil || saved.Version != 3 {
 			t.Fatalf("%s not upgraded: %v", test.id, err)
 		}
 		again, err := RestoreComponent(test.id, saved)
