@@ -135,6 +135,19 @@ func (t *EntityStateTransitions) BeginInteraction(
 	pathing *component.CPathing,
 	interacting *component.CInteracting,
 ) {
+	// Repeated attack intent must not interrupt a windup or reset recovery.
+	if interacting.GetOption() == component.InteractionOptionAttack {
+		if value := t.ComponentManager.GetEntityComponent(component.ComponentIdCombatState, entityId); value != nil &&
+			value.(*component.CCombatState).GetTargetId() == interacting.GetTargetEntityId() {
+			return
+		}
+		if value := t.ComponentManager.GetEntityComponent(component.ComponentIdInteracting, entityId); value != nil {
+			active := value.(*component.CInteracting)
+			if active.GetOption() == component.InteractionOptionAttack && active.GetTargetEntityId() == interacting.GetTargetEntityId() {
+				return
+			}
+		}
+	}
 	t.applyPolicy(entityId, transitionInteraction)
 	t.ComponentManager.SetEntityComponent(entityId, pathing)
 	t.ComponentManager.SetEntityComponent(entityId, interacting)

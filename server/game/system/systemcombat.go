@@ -105,6 +105,12 @@ func (s *CombatSystem) updateCombatStates() {
 			}
 		}
 
+		if cooldown := s.ComponentManager.GetEntityComponent(component.ComponentIdAttackCooldown, attackerId); cooldown != nil &&
+			currentTick < cooldown.(*component.CAttackCooldown).GetNextAttackTick() {
+			continue
+		}
+		nextAttackTick := currentTick + uint64(attackerStats.GetAttackSpeedTicks())
+
 		if isProjectileAttack(attackerStats.GetAttackMethod()) {
 			if !s.hasAttackResource(attackerId, attackerStats.GetAttackMethod()) {
 				s.stopCombatWithoutResource(attackerId, attackerStats.GetAttackMethod())
@@ -112,8 +118,9 @@ func (s *CombatSystem) updateCombatStates() {
 			}
 			combatState.BeginCasting(
 				currentTick,
-				currentTick+uint64(attackerStats.GetAttackSpeedTicks()),
+				nextAttackTick,
 			)
+			s.ComponentManager.SetEntityComponent(attackerId, component.NewCAttackCooldown(nextAttackTick))
 			s.ComponentManager.SetEntityComponent(attackerId, combatState)
 			continue
 		}
@@ -122,13 +129,14 @@ func (s *CombatSystem) updateCombatStates() {
 		if targetStats == nil {
 			continue
 		}
+		s.ComponentManager.SetEntityComponent(attackerId, component.NewCAttackCooldown(nextAttackTick))
 		attackResult := s.resolveAttack(attackerId, targetId, attackerStats, targetStats)
 		if s.applyAttackResult(attackerId, targetId, attackResult) {
 			s.discardPendingImpactsAgainst(targetId)
 		}
 		combatState.BeginRecovering(
 			currentTick,
-			currentTick+uint64(attackerStats.GetAttackSpeedTicks()),
+			nextAttackTick,
 		)
 		s.ComponentManager.SetEntityComponent(attackerId, combatState)
 	}
