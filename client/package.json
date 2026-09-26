@@ -9,6 +9,7 @@
     "clock:check": "node --test scripts/day-cycle.test.mjs",
     "model:screenshot": "node scripts/model-screenshot.mjs",
     "model:check": "node scripts/model-check.mjs",
+    "terrain:check": "node scripts/terrain-check.mjs",
     "assets:check": "node scripts/assets-check.mjs"
   },
   "devDependencies": {

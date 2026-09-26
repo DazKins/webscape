@@ -227,17 +227,19 @@ class World {
       if (!visual) continue;
       const revision = visual.revision;
       const heights: number[] = [];
+      const terrainBorder: (string | undefined)[] = [];
       for (let y = -1; y <= this.chunkSize.y; y++) {
         for (let x = -1; x <= this.chunkSize.x; x++) {
           // Worker input uses authored height units, including diagonal neighbors.
           const global = this.globalToChunk(visual.data.coordinate.x * this.chunkSize.x + x, visual.data.coordinate.y * this.chunkSize.y + y);
           const neighbor = this.chunks.get(chunkKey(global.coordinate));
+          terrainBorder.push(neighbor?.data.terrain[global.local.y * this.chunkSize.x + global.local.x]);
           heights.push(neighbor?.data.heights[global.local.y * this.chunkSize.x + global.local.x] ?? 0);
         }
       }
       const chunk: ChunkBuild = { sizeX: this.chunkSize.x, sizeY: this.chunkSize.y,
         originX: visual.data.coordinate.x * this.chunkSize.x, originY: visual.data.coordinate.y * this.chunkSize.y,
-        heights, terrain: visual.data.terrain, walls: visual.data.walls ?? [] };
+        heights, terrainBorder, terrain: visual.data.terrain, walls: visual.data.walls ?? [] };
       this.building = true;
       constructionClient.run({ kind: "chunk", chunk }).then(result => {
         if (!this.disposed && this.chunks.get(key) === visual && visual.revision === revision && result.kind === "chunk") {
@@ -330,8 +332,8 @@ function disposeObject(object: THREE.Object3D) {
 function createWaterGlintMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: { time: { value: 0 } },
-    vertexShader: `varying vec2 vWaterUv; void main(){vWaterUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-    fragmentShader: `uniform float time; varying vec2 vWaterUv; const float TAU=6.28318530718; float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);} float noise(vec2 p){vec2 c=floor(p);vec2 l=fract(p);l=l*l*(3.0-2.0*l);return mix(mix(hash(c),hash(c+vec2(1.,0.)),l.x),mix(hash(c+vec2(0.,1.)),hash(c+vec2(1.,1.)),l.x),l.y);} void main(){vec2 p=vWaterUv*3.4;float s=noise(p)*.52+noise(p*2.17+vec2(13.4,8.2))*.31+noise(p*4.61+vec2(5.7,21.9))*.17;float g=smoothstep(.58,.88,s)*(.62+.38*sin(time+noise(vWaterUv*.75+vec2(19.,3.))*TAU));g=clamp(g,0.,1.);gl_FragColor=vec4(mix(vec3(.58,.82,.92),vec3(.96,.99,1.),g),.035+g*.12);}`,
+    vertexShader: `attribute float waterWeight; varying float vWaterWeight; varying vec2 vWaterUv; void main(){vWaterWeight=waterWeight;vWaterUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+    fragmentShader: `uniform float time; varying float vWaterWeight; varying vec2 vWaterUv; const float TAU=6.28318530718; float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);} float noise(vec2 p){vec2 c=floor(p);vec2 l=fract(p);l=l*l*(3.0-2.0*l);return mix(mix(hash(c),hash(c+vec2(1.,0.)),l.x),mix(hash(c+vec2(0.,1.)),hash(c+vec2(1.,1.)),l.x),l.y);} void main(){vec2 p=vWaterUv*3.4;float s=noise(p)*.52+noise(p*2.17+vec2(13.4,8.2))*.31+noise(p*4.61+vec2(5.7,21.9))*.17;float g=smoothstep(.58,.88,s)*(.62+.38*sin(time+noise(vWaterUv*.75+vec2(19.,3.))*TAU));g=clamp(g,0.,1.);gl_FragColor=vec4(mix(vec3(.58,.82,.92),vec3(.96,.99,1.),g),(.035+g*.12)*smoothstep(0.,1.,vWaterWeight));}`,
     transparent: true, depthWrite: false, side: THREE.DoubleSide,
   });
 }

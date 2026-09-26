@@ -63,21 +63,21 @@ try {
     humanA.dispose(); humanB.dispose(); clone.dispose();
 
     const size = 4;
-    const chunk = { sizeX: size, sizeY: size, heights: Array.from({length: 36}, (_, i) => i % 4), terrain: Array(16).fill("grass"), walls: [{id:"a",type:"stone",x:0,y:0},{id:"b",type:"stone",x:1,y:0}] };
+    const chunk = { terrainBorder: [], sizeX: size, sizeY: size, heights: Array.from({length: 36}, (_, i) => i % 4), terrain: Array(16).fill("grass"), walls: [{id:"a",type:"stone",x:0,y:0},{id:"b",type:"stone",x:1,y:0}] };
     chunk.terrain[0] = "water";
     const local = construct({kind:"chunk", chunk});
     const remote = await constructionClient.run({kind:"chunk", chunk});
     for (const name of ["position", "normal", "color"]) {
       check(JSON.stringify([...local.surfaces.terrain.attributes[name].array]) === JSON.stringify([...remote.surfaces.terrain.attributes[name].array]), `worker ${name} mismatch`);
     }
-    for (const name of ["position", "normal", "uv"]) {
+    for (const name of ["position", "normal", "uv", "waterWeight"]) {
       check(JSON.stringify([...local.surfaces.water.attributes[name].array]) === JSON.stringify([...remote.surfaces.water.attributes[name].array]), `worker water ${name} mismatch`);
     }
     for (const name of ["position", "normal", "color"]) {
       check(JSON.stringify([...local.surfaces.details.attributes[name].array]) === JSON.stringify([...remote.surfaces.details.attributes[name].array]), `worker detail ${name} mismatch`);
     }
     const serialize = value => JSON.stringify(value);
-    const flat = { sizeX: 4, sizeY: 4, heights: Array(36).fill(0), terrain: Array(16).fill("grassLong"), walls: [], originX: -32, originY: 64 };
+    const flat = { terrainBorder: [], sizeX: 4, sizeY: 4, heights: Array(36).fill(0), terrain: Array(16).fill("grassLong"), walls: [], originX: -32, originY: 64 };
     const detailBuild = input => construct({ kind: "chunk", chunk: input }).surfaces;
     const first = detailBuild(flat), repeated = detailBuild(flat);
     check(serialize(first) === serialize(repeated), "terrain changed on regeneration");
@@ -110,7 +110,7 @@ try {
           }
         }
         const surfaces = construct({ kind: "chunk", chunk: {
-          sizeX: size, sizeY: size, heights,
+          sizeX: size, sizeY: size, heights, terrainBorder: [],
           terrain: Array.from({ length: size * size }, (_, i) => i % 2 ? "water" : "grass"), walls: [],
         } }).surfaces;
         for (const surface of [surfaces.terrain, surfaces.water]) {
@@ -144,7 +144,10 @@ try {
     }
     const values = visual.terrainMesh.geometry.attributes.position?.array;
     check(Boolean(values), "async chunk never attached");
-    if(values) check(Math.abs(values[13]-1.8)<1e-5, "stale chunk result overwrote replacement");
+    if(values) {
+      const center = Array.from(values).findIndex((value, i) => i % 3 === 0 && value === 0.5 && values[i + 2] === 0.5);
+      check(center >= 0 && Math.abs(values[center + 1]-1.8)<1e-5, "stale chunk result overwrote replacement");
+    }
     // A neighbor arriving during a rebuild must invalidate the previous border snapshot.
     world.applyChunkUpdate({load:[{...data,coordinate:{x:1,y:0},heights:Array(16).fill(6)}]});
     world.applyChunkUpdate({load:[{...data,coordinate:{x:1,y:1},heights:Array(16).fill(9)}]});

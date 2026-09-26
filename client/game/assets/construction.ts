@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { createTerrainBlend } from "../world/terrainBlend";
 import { variedTerrainColor } from "../world/terrainAppearance";
 import { createTerrainDetails } from "../world/terrainDetails";
 export { terrainColor } from "../world/terrainAppearance";
@@ -15,6 +16,7 @@ export type ChunkBuild = {
   // A one-tile border makes sampling independent of live main-thread world data.
   heights: number[];
   terrain: string[];
+  terrainBorder: (string | undefined)[];
   walls: WorldWall[];
 };
 export type WallPart = { geometry: number; type: string; position: number[]; quaternion: number[] };
@@ -46,9 +48,10 @@ export function construct(request: ConstructionRequest): ConstructionResult {
     heights: Array.from({ length: chunk.sizeX * chunk.sizeY }, (_, index) => chunk.heights[(Math.floor(index / chunk.sizeX) + 1) * (chunk.sizeX + 2) + index % chunk.sizeX + 1]),
     sampleOutside: (x, y) => (chunk.heights[(y + 1) * (chunk.sizeX + 2) + x + 1] ?? 0) * TERRAIN_HEIGHT_SCALE,
   };
-  const terrain = createTerrainSurfaceGeometry(grid, chunk.terrain, (type, x, y) => variedTerrainColor(type, x + (chunk.originX ?? 0), y + (chunk.originY ?? 0)));
-  const details = createTerrainDetails(grid, chunk.terrain, chunk.originX ?? 0, chunk.originY ?? 0);
-  const water = createWaterSurfaceGeometry(grid, chunk.terrain);
+  const blend = createTerrainBlend(chunk.sizeX, chunk.sizeY, chunk.terrain, chunk.terrainBorder, chunk.originX ?? 0, chunk.originY ?? 0);
+  const terrain = createTerrainSurfaceGeometry(grid, chunk.terrain, (type, x, y) => variedTerrainColor(type, x + (chunk.originX ?? 0), y + (chunk.originY ?? 0)), blend);
+  const details = createTerrainDetails(grid, chunk.terrain, chunk.originX ?? 0, chunk.originY ?? 0, blend);
+  const water = createWaterSurfaceGeometry(grid, chunk.terrain, blend, chunk.originX ?? 0, chunk.originY ?? 0);
   const root = new THREE.Group();
   addWallGeometry(root, chunk.walls, (x, z) => sampleTerrainHeight(grid, x, z), false);
   const geometries = new Map<THREE.BufferGeometry, number>();

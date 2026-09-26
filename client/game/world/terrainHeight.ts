@@ -1,4 +1,8 @@
 import * as THREE from "three";
+import type { TerrainBlend } from "./terrainBlend";
+
+export const TERRAIN_SEGMENTS = 4;
+const tileCoordinates = (tile: number) => Array.from({ length: TERRAIN_SEGMENTS + 1 }, (_, i) => tile + i / TERRAIN_SEGMENTS);
 
 // Keep the editor's MapViewport3D HEIGHT_SCALE in sync.
 export const TERRAIN_HEIGHT_SCALE = 0.6;
@@ -62,7 +66,8 @@ export function sampleTerrainHeight(
 export function createTerrainSurfaceGeometry(
   grid: TerrainHeightGrid,
   terrain: string[],
-  terrainColorForTile: (terrainType: string, x: number, y: number) => THREE.ColorRepresentation
+  terrainColorForTile: (terrainType: string, x: number, y: number) => THREE.ColorRepresentation,
+  blend?: TerrainBlend
 ) {
   const positions: number[] = [];
   const colors: number[] = [];
@@ -71,8 +76,8 @@ export function createTerrainSurfaceGeometry(
 
   for (let tileY = 0; tileY < grid.sizeY; tileY += 1) {
     for (let tileX = 0; tileX < grid.sizeX; tileX += 1) {
-      const xCoords = [tileX, tileX + 0.5, tileX + 1];
-      const zCoords = [tileY, tileY + 0.5, tileY + 1];
+      const xCoords = tileCoordinates(tileX);
+      const zCoords = tileCoordinates(tileY);
       const vertexOffset = positions.length / 3;
       const terrainType = terrain[tileY * grid.sizeX + tileX] ?? "";
 
@@ -81,7 +86,8 @@ export function createTerrainSurfaceGeometry(
       for (const z of zCoords) {
         for (const x of xCoords) {
           positions.push(x, sampleTerrainHeight(grid, x, z), z);
-          colors.push(color.r, color.g, color.b);
+          const blended = blend?.(x, z).color ?? color;
+          colors.push(blended.r, blended.g, blended.b);
         }
       }
 
@@ -108,23 +114,30 @@ export function createTerrainSurfaceGeometry(
 
 export function createWaterSurfaceGeometry(
   grid: TerrainHeightGrid,
-  terrain: string[]
+  terrain: string[],
+  blend?: TerrainBlend,
+  originX = 0,
+  originY = 0
 ) {
   const positions: number[] = [];
   const uvs: number[] = [];
+  const waterWeights: number[] = [];
   const indices: number[] = [];
 
   for (let tileY = 0; tileY < grid.sizeY; tileY += 1) {
     for (let tileX = 0; tileX < grid.sizeX; tileX += 1) {
       const terrainType = terrain[tileY * grid.sizeX + tileX] ?? "";
-      if (terrainType !== "water") {
+      if (terrainType !== "water" && !blend) {
         continue;
       }
 
-      const xCoords = [tileX, tileX + 0.5, tileX + 1];
-      const zCoords = [tileY, tileY + 0.5, tileY + 1];
+      const xCoords = tileCoordinates(tileX);
+      const zCoords = tileCoordinates(tileY);
       const vertexOffset = positions.length / 3;
 
+      const weights = zCoords.flatMap(z => xCoords.map(x => blend?.(x, z).water ?? 1));
+      if (!weights.some(weight => weight > 0)) continue;
+      waterWeights.push(...weights);
       for (const z of zCoords) {
         for (const x of xCoords) {
           positions.push(
@@ -132,7 +145,7 @@ export function createWaterSurfaceGeometry(
             sampleTerrainHeight(grid, x, z) + WATER_SURFACE_OFFSET,
             z
           );
-          uvs.push(x, z);
+          uvs.push(originX + x, originY + z);
         }
       }
 
@@ -152,6 +165,7 @@ export function createWaterSurfaceGeometry(
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute("waterWeight", new THREE.Float32BufferAttribute(waterWeights, 1));
   geometry.setIndex(indices);
   setTerrainNormals(geometry, grid);
   return geometry;
@@ -162,8 +176,8 @@ export function createTileHighlightGeometry(
   tileX: number,
   tileY: number
 ) {
-  const xCoords = [tileX, tileX + 0.5, tileX + 1];
-  const zCoords = [tileY, tileY + 0.5, tileY + 1];
+  const xCoords = tileCoordinates(tileX);
+  const zCoords = tileCoordinates(tileY);
   const positions: number[] = [];
   const indices: number[] = [];
 
@@ -204,7 +218,7 @@ function setTerrainNormals(geometry: THREE.BufferGeometry, grid: TerrainHeightGr
   const normals = new Float32Array(positions.count * 3);
   const normal = new THREE.Vector3();
 
-  // Tiles duplicate edge vertices to keep their colors distinct. Sample the
+  // Tiles duplicate edge vertices; colour sampling agrees across their edges. Sample the
   // height field on both sides so those vertices still share smooth normals.
   // Half-tile steps also fit within the worker's one-tile chunk border.
   for (let i = 0; i < positions.count; i += 1) {
